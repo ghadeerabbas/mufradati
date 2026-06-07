@@ -1877,29 +1877,38 @@ function exportGroup(gid){
   if(!g){ toast('❌ المجموعة غير موجودة'); return; }
   const gwords = words.filter(w=>parseInt(w.groupId)===parseInt(gid)).sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
   if(!gwords.length){ toast('⚠️ المجموعة فارغة'); return; }
-
-  // Build CSV (works on all platforms including Android WebView)
   const typeMap={noun:'اسم',verb:'فعل',adj:'صفة',adv:'ظرف',phrase:'تعبير'};
   const esc = v => '"' + String(v||'').replace(/"/g,'""') + '"';
   let csv = '#,الكلمة الألمانية,الأداة,الترجمة,النوع,المستوى,مثال,ترجمة المثال,الحالة\n';
   gwords.forEach((w,i)=>{
     const status = w.status==='mastered'?'محفوظة':w.status==='learning'?'قيد التعلم':'جديدة';
-    csv += [i+1, esc(w.de), esc(w.article||''), esc(w.ar), esc(typeMap[w.type]||w.type), esc(w.level), esc(w.example||''), esc(w.exampleAr||''), esc(status)].join(',') + '\n';
+    csv += [i+1,esc(w.de),esc(w.article||''),esc(w.ar),esc(typeMap[w.type]||w.type),esc(w.level),esc(w.example||''),esc(w.exampleAr||''),esc(status)].join(',')+'\n';
   });
-
-  // Export: try download first, fallback to copy modal
+  const filename = g.name.replace(/[^a-zA-Z0-9\u0600-\u06FF _-]/g,'') + '.csv';
+  // Try Android interface first
+  if(window.AndroidInterface && window.AndroidInterface.saveFile){
+    window.AndroidInterface.saveFile(filename, csv);
+    toast('✅ تم حفظ الملف في Downloads');
+    return;
+  }
+  // Try Web Share API (works on mobile browsers)
   const bom = '\uFEFF';
-  const blob = new Blob([bom + csv], {type:'text/csv;charset=utf-8;'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = g.name.replace(/[^a-zA-Z0-9\u0600-\u06FF _-]/g,'') + '.csv';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(()=>{ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
-  // Also show modal as backup
-  setTimeout(()=>{ showExportModal(g.name, csv, gwords.length); }, 300);
+  const blob = new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
+  if(navigator.share && navigator.canShare && navigator.canShare({files:[new File([blob],filename,{type:'text/csv'})]})){
+    navigator.share({files:[new File([blob],filename,{type:'text/csv'})],title:g.name}).catch(()=>showExportModal(g.name,csv,gwords.length));
+    return;
+  }
+  // Try download link
+  try{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=filename; a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
+    toast('✅ تم تصدير '+gwords.length+' كلمة');
+  }catch(e){
+    showExportModal(g.name,csv,gwords.length);
+  }
 }
 
 function showExportModal(name, csv, count){
@@ -1942,52 +1951,90 @@ function showExportModal(name, csv, count){
 function importGroup(event, gid){
   const file = event.target.files[0];
   if(!file) return;
+  const fname = file.name.toLowerCase();
+  const isCSV = fname.endsWith('.csv') || file.type === 'text/csv' || file.type === 'text/plain';
+
   const reader = new FileReader();
+  reader.onerror = function(){ toast('❌ فشل قراءة الملف'); };
   reader.onload = function(e){
     try {
       let imported = 0, skipped = 0;
       const existing = new Set(words.map(w => w.de.toLowerCase().trim()));
+      const gidInt = parseInt(gid);
 
-      if(file.name.toLowerCase().endsWith('.csv')){
-        // CSV import
+      function clean(v){ return (v===null||v===undefined||v==='null'||v==='undefined') ? '' : String(v).trim(); }
+      function addWord(de, ar, article, type, level, example, exampleAr){
+        de = clean(de); ar = clean(ar);
+        if(!de || !ar){ skipped++; return; }
+        if(existing.has(de.toLowerCase())){ skipped++; return; }
+        const sortOrder = words.filter(w=>parseInt(w.groupId)===gidInt).length;
+        words.push({
+          id: Date.now() + imported + Math.floor(Math.random()*1000),
+          de, ar,
+          article: clean(article),
+          type: mapTypeAr(clean(type)),
+          level: clean(level) || 'B2',
+          example: clean(example),
+          exampleAr: clean(exampleAr),
+          groupId: gidInt,
+          sortOrder,
+          status: 'new',
+          nextReview: Date.now() + 100*365*86400000,
+          interval: 1, ease: 2.5, lastRating: null
+        });
+        existing.add(de.toLowerCase());
+        imported++;
+      }
+
+      if(isCSV){
         const text = e.target.result;
         const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-        for(let i=1;i<lines.length;i++){
-          const line = lines[i].trim(); if(!line) continue;
-          // Parse CSV properly (handle quoted fields)
+        // detect if header row
+        const startRow = (lines[0]||'').includes('الكلمة') || (lines[0]||'').includes('#') ? 1 : 0;
+        for(let i=startRow; i<lines.length; i++){
+          const line = lines[i].trim();
+          if(!line) continue;
           const cols = parseCSVLine(line);
-          const de = (cols[1]||'').trim(), ar = (cols[3]||'').trim();
-          if(!de||!ar){ skipped++; continue; }
-          if(existing.has(de.toLowerCase())){ skipped++; continue; }
-          const sortOrder = words.filter(w=>parseInt(w.groupId)===parseInt(gid)).length;
-          words.push({id:Date.now()+imported,de,ar,article:(cols[2]||'').trim(),type:mapTypeAr(cols[4]),level:(cols[5]||'B2').trim(),example:(cols[6]||'').trim(),exampleAr:(cols[7]||'').trim(),groupId:parseInt(gid),sortOrder,status:'new',nextReview:Date.now()+100*365*86400000,interval:1,ease:2.5,lastRating:null});
-          existing.add(de.toLowerCase());
-          imported++;
+          // Support both formats:
+          // Format A (full): #, de, article, ar, type, level, example, exampleAr, status
+          // Format B (simple): de, ar
+          if(cols.length >= 4){
+            addWord(cols[1], cols[3], cols[2], cols[4], cols[5], cols[6], cols[7]);
+          } else if(cols.length === 2){
+            addWord(cols[0], cols[1], '', '', 'B2', '', '');
+          } else if(cols.length === 3){
+            addWord(cols[0], cols[1], '', '', cols[2]||'B2', '', '');
+          }
         }
       } else {
-        // Excel import via SheetJS
+        // Excel
         const data = new Uint8Array(e.target.result);
-        const wb = XLSX.read(data,{type:'array'});
+        const wb = XLSX.read(data, {type:'array', codepage:65001});
         const ws = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-        for(let i=1;i<rows.length;i++){
-          const r=rows[i]; if(!r||!r.length) continue;
-          const de=String(r[1]||'').trim(), ar=String(r[3]||'').trim();
-          if(!de||!ar){ skipped++; continue; }
-          if(existing.has(de.toLowerCase())){ skipped++; continue; }
-          const sortOrder = words.filter(w=>parseInt(w.groupId)===parseInt(gid)).length;
-          words.push({id:Date.now()+imported*7,de,ar,article:String(r[2]||'').trim(),type:mapTypeAr(String(r[4]||'')),level:String(r[5]||'B2').trim(),example:String(r[6]||'').trim(),exampleAr:String(r[7]||'').trim(),groupId:parseInt(gid),sortOrder,status:'new',nextReview:Date.now()+100*365*86400000,interval:1,ease:2.5,lastRating:null});
-          existing.add(de.toLowerCase());
-          imported++;
+        const rows = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+        const startRow = rows.length > 0 && (String(rows[0][0]||'').includes('#') || String(rows[0][1]||'').includes('كلمة')) ? 1 : 0;
+        for(let i=startRow; i<rows.length; i++){
+          const r = rows[i];
+          if(!r || !r.length) continue;
+          if(r.length >= 4){
+            addWord(r[1], r[3], r[2], r[4], r[5], r[6], r[7]);
+          } else if(r.length >= 2){
+            addWord(r[0], r[1], r[2]||'', r[3]||'', r[4]||'B2', r[5]||'', r[6]||'');
+          }
         }
       }
+
       save(); renderGroups(); renderList(); updateHome();
-      toast('✅ تم استيراد ' + imported + ' كلمة' + (skipped?' · '+skipped+' مكررة':''));
+      if(imported > 0){
+        toast('✅ تم استيراد ' + imported + ' كلمة' + (skipped?' · '+skipped+' مكررة/فارغة':''));
+      } else {
+        toast('⚠️ لم يُستورد شيء · ' + skipped + ' صف تم تخطيه');
+      }
     } catch(err){
-      toast('❌ خطأ في قراءة الملف: ' + err.message);
-      console.error(err);
+      toast('❌ خطأ: ' + err.message);
+      console.error('Import error:', err);
     }
-    event.target.value='';
+    event.target.value = '';
   };
   if(file.name.toLowerCase().endsWith('.csv')) reader.readAsText(file,'UTF-8');
   else reader.readAsArrayBuffer(file);
