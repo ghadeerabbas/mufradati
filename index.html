@@ -2112,7 +2112,7 @@ function importGroup(event,gid){
   reader.onload=function(e){
     try{
       let imported=0,skipped=0;
-      const existing=new Set(words.filter(w=>parseInt(w.groupId)===parseInt(gid)).map(w=>w.de.toLowerCase().trim()));
+      const existing=new Set(words.filter(w=>w.groupId!=null).map(w=>w.de.toLowerCase().trim()));
       const gidInt=parseInt(gid);
       function clean(v){return(v===null||v===undefined||String(v)==='null'||String(v)==='undefined')?'':String(v).trim();}
       function addWord(de,ar,article,type,level,example,exampleAr){
