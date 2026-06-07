@@ -604,7 +604,19 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
 </nav>
 
 <script>
+// VERSION: 2.1 - mapTypeAr fix
 // ===== DATA =====
+// ===== TYPE MAPPER (global) =====
+function mapTypeAr(s){
+  s = (s||'').trim();
+  if(s==='اسم'  || s==='noun')   return 'noun';
+  if(s==='فعل'  || s==='verb')   return 'verb';
+  if(s==='صفة'  || s==='adj')    return 'adj';
+  if(s==='ظرف'  || s==='adv')    return 'adv';
+  if(s==='تعبير'|| s==='phrase') return 'phrase';
+  return 'noun';
+}
+
 let words   = JSON.parse(localStorage.getItem('de_words')   || '[]');
 let groups  = JSON.parse(localStorage.getItem('de_groups')  || '[]');
 let settings = JSON.parse(localStorage.getItem('de_settings') || JSON.stringify({
