@@ -453,19 +453,7 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
     </div>
     <button class="back-home-btn" onclick="showScreen('screen-home')">العودة للرئيسية</button>
   </div>
-
-
-<!-- REPORTS SCREEN -->
-<div class="screen" id="screen-reports">
-  <div class="header"><div class="header-top"><div><h1>التقارير 📊</h1><p>إحصاءات مفصّلة عن تقدمك</p></div></div></div>
-  <div class="report-tabs" id="report-tabs">
-    <div class="report-tab active" onclick="showReportTab('overview',this)">نظرة عامة</div>
-    <div class="report-tab" onclick="showReportTab('groups',this)">المجموعات</div>
-    <div class="report-tab" onclick="showReportTab('activity',this)">النشاط</div>
-  </div>
-  <div class="report-section" id="report-content"></div>
 </div>
-
 
 <div class="toast" id="toast"></div>
 
@@ -615,159 +603,8 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
   </button>
 </nav>
 
-
-<!-- CONFIRM DELETE MODAL -->
-<div class="modal-overlay" id="modal-confirm" onclick="closeModal('modal-confirm')">
-  <div class="modal-box" onclick="event.stopPropagation()" style="text-align:center;padding:28px 20px">
-    <div style="font-size:48px;margin-bottom:12px">🗑️</div>
-    <h3 id="confirm-msg" style="font-size:17px;font-weight:700;margin-bottom:6px"></h3>
-    <p id="confirm-sub" style="font-size:13px;color:var(--muted);margin-bottom:22px"></p>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <button onclick="confirmAction()" style="background:var(--red);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">نعم، احذف</button>
-      <button onclick="closeModal('modal-confirm')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
-    </div>
-  </div>
-</div>
-
-<!-- EDIT GROUP MODAL -->
-<div class="modal-overlay" id="modal-edit-group" onclick="closeModal('modal-edit-group')">
-  <div class="modal-box" onclick="event.stopPropagation()">
-    <h3 style="text-align:center;margin-bottom:18px">✏️ تعديل المجموعة</h3>
-    <div style="margin-bottom:10px;font-size:13px;color:var(--muted)">اختر أيقونة</div>
-    <div class="emoji-pick" id="edit-group-emoji-pick">
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'📖')">📖</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏥')">🏥</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'💼')">💼</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'🍕')">🍕</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'✈️')">✈️</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏠')">🏠</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'⚽')">⚽</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎵')">🎵</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'💻')">💻</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'🌿')">🌿</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'📅')">📅</div>
-      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎓')">🎓</div>
-    </div>
-    <div class="input-group" style="margin-top:14px"><label>اسم المجموعة *</label><input type="text" id="edit-group-name" dir="rtl"></div>
-    <div class="input-group"><label>وصف (اختياري)</label><input type="text" id="edit-group-desc" dir="rtl"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
-      <button onclick="saveGroupEdit()" style="background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">حفظ ✅</button>
-      <button onclick="closeModal('modal-edit-group')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
-    </div>
-  </div>
-</div>
-
-<!-- CUSTOM REVIEW MODAL -->
-<div class="cr-overlay" id="cr-overlay" onclick="closeCR(event)">
-  <div class="cr-box" onclick="event.stopPropagation()">
-    <h2>مراجعة مخصصة ⚡</h2>
-    <div class="cr-sub">خصّص جلسة مراجعة حسب احتياجك</div>
-    <div class="cr-section">
-      <div class="cr-section-title">📚 المصدر</div>
-      <div class="cr-chips" id="cr-source-chips"><div class="cr-chip sel" data-val="all" onclick="crPickSource(this)">كل الكلمات</div></div>
-    </div>
-    <div id="cr-word-picker" style="display:none">
-      <div class="cr-section-title" style="display:flex;justify-content:space-between"><span>🎯 بطاقات محددة</span><span id="cr-word-picker-count" style="color:var(--gold);font-size:12px">الكل</span></div>
-      <div id="cr-word-picker-list" style="max-height:150px;overflow-y:auto;margin-top:8px;background:var(--card2);border-radius:12px;padding:8px"></div>
-    </div>
-    <div class="cr-section">
-      <div class="cr-section-title">🎯 فلتر الحالة</div>
-      <div class="cr-chips">
-        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'status')">الكل</div>
-        <div class="cr-chip" data-val="new" onclick="crToggleFilter(this,'status')">جديدة</div>
-        <div class="cr-chip" data-val="learning" onclick="crToggleFilter(this,'status')">قيد التعلم</div>
-        <div class="cr-chip" data-val="mastered" onclick="crToggleFilter(this,'status')">محفوظة</div>
-      </div>
-    </div>
-    <div class="cr-section">
-      <div class="cr-section-title">📊 فلتر التقييم</div>
-      <div class="cr-chips">
-        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'rating')">الكل</div>
-        <div class="cr-chip" data-val="hard" onclick="crToggleFilter(this,'rating')">😓 صعبة</div>
-        <div class="cr-chip" data-val="ok" onclick="crToggleFilter(this,'rating')">🙂 تمام</div>
-        <div class="cr-chip" data-val="easy" onclick="crToggleFilter(this,'rating')">🌟 سهلة</div>
-        <div class="cr-chip" data-val="due" onclick="crToggleFilter(this,'rating')">⏰ مستحقة</div>
-      </div>
-    </div>
-    <div class="cr-section">
-      <div class="cr-section-title">🔀 الترتيب</div>
-      <div class="cr-chips">
-        <div class="cr-chip sel" data-val="sequential" onclick="crPickOrder(this)">📋 بالترتيب</div>
-        <div class="cr-chip" data-val="random" onclick="crPickOrder(this)">🔀 عشوائي</div>
-        <div class="cr-chip" data-val="hard_first" onclick="crPickOrder(this)">😓 الصعبة أولاً</div>
-        <div class="cr-chip" data-val="easy_first" onclick="crPickOrder(this)">🌟 السهلة أولاً</div>
-        <div class="cr-chip" data-val="overdue_first" onclick="crPickOrder(this)">⏰ الأقدم أولاً</div>
-        <div class="cr-chip" data-val="new_first" onclick="crPickOrder(this)">🆕 الجديدة أولاً</div>
-      </div>
-    </div>
-    <div class="cr-section">
-      <div class="cr-section-title">🔢 عدد البطاقات</div>
-      <div class="cr-num-row">
-        <button class="cr-num-btn" onclick="crChangeCount(-5)">−5</button>
-        <button class="cr-num-btn" onclick="crChangeCount(-1)">−</button>
-        <div class="cr-num-val" id="cr-count-val">20</div>
-        <button class="cr-num-btn" onclick="crChangeCount(1)">+</button>
-        <button class="cr-num-btn" onclick="crChangeCount(5)">+5</button>
-        <button class="cr-num-btn" onclick="crSetCountAll()" style="font-size:12px;width:auto;padding:0 10px;color:var(--gold)">الكل</button>
-      </div>
-      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center" id="cr-available-label">متاح: — كلمة</div>
-    </div>
-    <div id="cr-preview-row" style="background:var(--card2);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center;font-size:13px;color:var(--muted)">اختر المصدر والفلاتر</div>
-    <button class="cr-start-btn" onclick="startCustomReview()">ابدأ المراجعة المخصصة ⚡</button>
-    <button class="cr-cancel-btn" onclick="closeCR(null)">إلغاء</button>
-  </div>
-</div>
-
-<!-- LEARN MODAL -->
-<div class="cr-overlay" id="learn-overlay" onclick="if(event.target===this)closeLearnModal()">
-  <div class="cr-box" onclick="event.stopPropagation()">
-    <h2 id="learn-title">تعلّم بطاقات 📖</h2>
-    <div class="cr-sub" id="learn-sub">اختر البطاقات</div>
-    <div class="learn-select-all-row">
-      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
-        <input type="checkbox" id="learn-select-all" onchange="learnToggleAll(this.checked)" style="width:18px;height:18px;accent-color:var(--gold)">
-        تحديد الكل
-      </label>
-      <span class="learn-count-badge" id="learn-sel-count">0 محددة</span>
-    </div>
-    <div id="learn-word-list" style="max-height:35vh;overflow-y:auto;margin-bottom:14px"></div>
-    <div class="cr-section">
-      <div class="cr-section-title">🔢 عدد البطاقات</div>
-      <div class="cr-num-row">
-        <button class="cr-num-btn" onclick="learnChangeCount(-5)">−5</button>
-        <button class="cr-num-btn" onclick="learnChangeCount(-1)">−</button>
-        <div class="cr-num-val" id="learn-count-val">10</div>
-        <button class="cr-num-btn" onclick="learnChangeCount(1)">+</button>
-        <button class="cr-num-btn" onclick="learnChangeCount(5)">+5</button>
-        <button class="cr-num-btn" onclick="learnSetAll()" style="font-size:12px;width:auto;padding:0 10px;color:var(--gold)">الكل</button>
-      </div>
-    </div>
-    <div class="cr-section">
-      <div class="cr-section-title">🔀 الترتيب</div>
-      <div class="cr-chips">
-        <div class="cr-chip sel" data-val="sequential" onclick="learnPickOrder(this)">📋 بالترتيب</div>
-        <div class="cr-chip" data-val="random" onclick="learnPickOrder(this)">🔀 عشوائي</div>
-      </div>
-    </div>
-    <button onclick="startLearnSession()" style="width:100%;background:linear-gradient(135deg,var(--green),#3aaa75);color:#000;border:none;border-radius:14px;padding:16px;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px">ابدأ التعلم 📖</button>
-    <button onclick="closeLearnModal()" style="width:100%;background:var(--card2);border:none;border-radius:14px;padding:13px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer;margin-top:8px">إلغاء</button>
-  </div>
-</div>
-
-<input type="file" id="global-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
-
 <script>
 let isLearnMode = false;
-
-function mapTypeAr(s){
-  s=(s||'').trim();
-  if(s==='اسم'||s==='noun') return 'noun';
-  if(s==='فعل'||s==='verb') return 'verb';
-  if(s==='صفة'||s==='adj')  return 'adj';
-  if(s==='ظرف'||s==='adv')  return 'adv';
-  if(s==='تعبير'||s==='phrase') return 'phrase';
-  return 'noun';
-}
 
 // ===== DATA =====
 let words   = JSON.parse(localStorage.getItem('de_words')   || '[]');
@@ -1565,7 +1402,7 @@ function startCustomReview(){
 
 
 
-function launchReview(queue, groupId, label){ isLearnMode = false;
+function launchReview(queue, groupId, label){ isLearnMode = false; isLearnMode = false;
   reviewQueue = queue;
   currentReviewGroupId = groupId;
   reviewIdx = 0;
@@ -1770,12 +1607,13 @@ let _editingGroupId = null;
 let _editGroupEmoji = '📖';
 
 function openEditGroupModal(gid){
-  _editingGroupId = parseInt(gid);
-  const g = groups.find(x => x.id === _editingGroupId); if(!g) return;
+  _editingGroupId = gid;
+  const g = groups.find(x => x.id === gid); if(!g) return;
   _editGroupEmoji = g.emoji;
-  _editGroupImageData = null;
   document.getElementById('edit-group-name').value = g.name;
   document.getElementById('edit-group-desc').value = g.desc || '';
+  _editGroupImageData = null;
+  // show current icon
   // set emoji selection
   const opts = document.querySelectorAll('#edit-group-emoji-pick .emoji-opt');
   opts.forEach(el => { el.classList.toggle('selected', el.textContent.trim() === g.emoji); });
@@ -1957,13 +1795,9 @@ function learnToggleAll(checked){
 }
 
 function learnUpdateCount(){
-  const sel = _learnSelected.size;
-  document.getElementById('learn-sel-count').textContent = sel + ' محددة';
-  // auto-update count to match selected
-  if(sel > 0){
-    _learnCount = sel;
-    document.getElementById('learn-count-val').textContent = sel;
-  }
+  const sel=_learnSelected.size;
+  document.getElementById('learn-sel-count').textContent=sel+' محددة';
+  if(sel>0){_learnCount=sel;document.getElementById('learn-count-val').textContent=sel;}
 }
 
 function learnPickOrder(el){
@@ -1973,9 +1807,7 @@ function learnPickOrder(el){
 }
 
 function learnChangeCount(d){
-  const maxAvail = _learnSelected.size > 0 ? _learnSelected.size :
-    words.filter(w=>parseInt(w.groupId)===_learnGroupId && w.status==='new').length;
-  _learnCount = Math.min(maxAvail, Math.max(1, _learnCount + d));
+  _learnCount = Math.max(1, _learnCount + d);
   document.getElementById('learn-count-val').textContent = _learnCount;
 }
 
@@ -1990,20 +1822,19 @@ function closeLearnModal(){
 }
 
 function startLearnSession(){
+  // build queue from selected words, or all group words if none selected
   let pool;
-  if(_learnSelected.size > 0){
-    // user selected specific words — use ALL of them, ignore _learnCount
-    pool = words.filter(w => _learnSelected.has(w.id));
+  if(_learnSelected.size>0){
+    pool=words.filter(w=>_learnSelected.has(w.id));
   } else {
-    // no selection — use _learnCount from counter
-    const allPool = words.filter(w => parseInt(w.groupId) === _learnGroupId && w.status === 'new');
-    pool = allPool.slice(0, _learnCount);
+    pool=words.filter(w=>parseInt(w.groupId)===_learnGroupId&&w.status==='new').slice(0,_learnCount);
   }
-
-  if(!pool.length){ toast('⚠️ اختر بطاقة واحدة على الأقل'); return; }
+  if(!pool.length){toast('⚠️ اختر بطاقة واحدة على الأقل');return;}
 
   if(_learnOrder === 'sequential') pool.sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
   else shuffle(pool);
+
+  pool = pool.slice(0, _learnCount);
 
   closeLearnModal();
 
@@ -2054,120 +1885,88 @@ function exportGroup(gid){
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,g.name.slice(0,31));
   const wbout=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
-  const fname=g.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g,'')+'.xlsx';
-
-  // Android: use native bridge
-  if(window.AndroidBridge && window.AndroidBridge.saveXLSX){
-    window.AndroidBridge.saveXLSX(fname, wbout);
+  const fname=g.name.replace(/[^؀-ۿa-zA-Z0-9 _-]/g,'')+'.xlsx';
+  if(window.AndroidBridge&&window.AndroidBridge.saveXLSX){
+    window.AndroidBridge.saveXLSX(fname,wbout);
     return;
   }
-  // Browser: download directly
   const bytes=atob(wbout);
   const arr=new Uint8Array(bytes.length);
   for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
   const blob=new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
   const url=URL.createObjectURL(blob);
-  const a=document.createElement('a'); a.href=url; a.download=fname; a.style.display='none';
-  document.body.appendChild(a); a.click();
+  const a=document.createElement('a');a.href=url;a.download=fname;a.style.display='none';
+  document.body.appendChild(a);a.click();
   setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
   toast('✅ تم تصدير '+gwords.length+' كلمة');
 }
 
-
-function downloadBlob(blob,fname,count){
-  try{
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download=fname; a.style.display='none';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
-    toast('✅ تم تصدير '+count+' كلمة');
-  }catch(e){
-    toast('❌ التصدير غير مدعوم على هذا الجهاز');
-  }
-}
-
-
-function showCopyModal(name,csv,count){
-  const old=document.getElementById('xmod'); if(old) old.remove();
-  const ov=document.createElement('div'); ov.id='xmod';
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:flex-end';
-  const box=document.createElement('div');
-  box.style.cssText='background:var(--card);border-radius:24px 24px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto';
-  const h3=document.createElement('h3'); h3.style.cssText='text-align:center;margin-bottom:6px'; h3.textContent='📋 '+name+' ('+count+' كلمة)';
-  const info=document.createElement('p'); info.style.cssText='font-size:12px;color:var(--muted);text-align:center;margin-bottom:10px'; info.textContent='انسخ النص واحفظه كملف .csv';
-  const ta=document.createElement('textarea');
-  ta.style.cssText='width:100%;height:160px;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);font-family:monospace;font-size:10px;direction:ltr;resize:none';
-  ta.value=csv;
-  const row=document.createElement('div'); row.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px';
-  const cp=document.createElement('button');
-  cp.style.cssText='background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:13px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer';
-  cp.textContent='نسخ 📋';
-  cp.onclick=function(){if(navigator.clipboard)navigator.clipboard.writeText(ta.value).then(()=>toast('✅ تم النسخ'));else{ta.select();document.execCommand('copy');toast('✅ تم النسخ');}};
-  const cl=document.createElement('button');
-  cl.style.cssText='background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--muted);cursor:pointer';
-  cl.textContent='إغلاق'; cl.onclick=function(){ov.remove();};
-  row.appendChild(cp); row.appendChild(cl);
-  box.appendChild(h3); box.appendChild(info); box.appendChild(ta); box.appendChild(row);
-  ov.appendChild(box); document.body.appendChild(ov);
-}
-
-
-function importGroup(event,gid){
-  const file=event.target.files[0]; if(!file) return;
-  const fname=file.name.toLowerCase();
-  const isCSV=fname.endsWith('.csv')||fname.endsWith('.txt');
-  const reader=new FileReader();
-  reader.onerror=function(){toast('❌ فشل قراءة الملف');};
-  reader.onload=function(e){
-    try{
-      let imported=0,skipped=0;
-      const existing=new Set(words.filter(w=>w.groupId!=null).map(w=>w.de.toLowerCase().trim()));
-      const gidInt=parseInt(gid);
-      function clean(v){return(v===null||v===undefined||String(v)==='null'||String(v)==='undefined')?'':String(v).trim();}
-      function addWord(de,ar,article,type,level,example,exampleAr){
-        de=clean(de);ar=clean(ar);
-        if(!de||!ar){skipped++;return;}
-        if(existing.has(de.toLowerCase())){skipped++;return;}
-        const sortOrder=words.filter(w=>parseInt(w.groupId)===gidInt).length;
-        words.push({id:Date.now()+imported+Math.floor(Math.random()*9999),de,ar,article:clean(article),type:mapTypeAr(clean(type)),level:clean(level)||'B2',example:clean(example),exampleAr:clean(exampleAr),groupId:gidInt,sortOrder,status:'new',nextReview:Date.now()+100*365*86400000,interval:1,ease:2.5,lastRating:null});
-        existing.add(de.toLowerCase());imported++;
-      }
-      if(isCSV){
-        const lines=e.target.result.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-        const start=(lines[0]||'').includes('الكلمة')||(lines[0]||'').startsWith('#')?1:0;
-        for(let i=start;i<lines.length;i++){
-          const line=lines[i].trim();if(!line)continue;
-          const cols=parseCSVLine(line);
-          if(cols.length>=4) addWord(cols[1],cols[3],cols[2],cols[4],cols[5],cols[6],cols[7]);
-          else if(cols.length===2) addWord(cols[0],cols[1],'','','B2','','');
-          else if(cols.length===3) addWord(cols[0],cols[1],'',cols[2]||'B2','','','');
+function importGroup(event, gid){
+  const file = event.target.files[0];
+  if(!file) return;
+  const g = groups.find(x=>x.id===gid);
+  const reader = new FileReader();
+  reader.onload = function(e){
+    try {
+      let imported = 0, skipped = 0;
+      if(file.name.endsWith('.csv')){
+        // CSV import
+        const text = e.target.result;
+        const lines = text.split('\n');
+        const header = lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
+        for(let i=1;i<lines.length;i++){
+          const line = lines[i].trim(); if(!line) continue;
+          const cols = line.split(',').map(c=>c.trim().replace(/^"|"$/g,''));
+          const de = cols[1]||'', ar = cols[3]||'';
+          if(!de||!ar){ skipped++; continue; }
+          if(words.find(w=>w.de.toLowerCase()===de.toLowerCase())){ skipped++; continue; }
+          const sortOrder = words.filter(w=>w.groupId===gid).length;
+          words.push({id:Date.now()+i,de,ar,article:cols[2]||'',type:mapTypeAr(cols[4]),level:cols[5]||'B2',example:cols[6]||'',exampleAr:cols[7]||'',groupId:gid,sortOrder,status:'new',nextReview:Date.now(),interval:1,ease:2.5});
+          imported++;
         }
       } else {
-        const data=new Uint8Array(e.target.result);
-        const wb=XLSX.read(data,{type:'array',codepage:65001});
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-        const start=(rows.length>0&&(String(rows[0][0]||'').includes('#')||String(rows[0][1]||'').includes('كلمة')))?1:0;
-        for(let i=start;i<rows.length;i++){
-          const r=rows[i];if(!r||!r.length)continue;
-          if(r.length>=4) addWord(r[1],r[3],r[2],r[4],r[5],r[6],r[7]);
-          else if(r.length>=2) addWord(r[0],r[1],r[2]||'',r[3]||'B2','','','');
+        // Excel import
+        const data = new Uint8Array(e.target.result);
+        const wb = XLSX.read(data,{type:'array'});
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(ws,{header:1});
+        for(let i=1;i<rows.length;i++){
+          const r = rows[i]; if(!r||!r.length) continue;
+          const de = String(r[1]||'').trim(), ar = String(r[3]||'').trim();
+          if(!de||!ar){ skipped++; continue; }
+          if(words.find(w=>w.de.toLowerCase()===de.toLowerCase())){ skipped++; continue; }
+          const sortOrder = words.filter(w=>w.groupId===gid).length;
+          words.push({id:Date.now()+i*7,de,ar,article:String(r[2]||'').trim(),type:mapTypeAr(String(r[4]||'')),level:String(r[5]||'B2').trim(),example:String(r[6]||'').trim(),exampleAr:String(r[7]||'').trim(),groupId:gid,sortOrder,status:'new',nextReview:Date.now(),interval:1,ease:2.5});
+          imported++;
         }
       }
-      save();renderGroups();renderList();updateHome();
-      toast(imported>0?'✅ تم استيراد '+imported+' كلمة'+(skipped?' · '+skipped+' مكررة':''):'⚠️ لم يُستورد شيء · '+skipped+' صف تم تخطيه');
-    }catch(err){toast('❌ خطأ: '+err.message);console.error(err);}
+      save(); renderGroups(); renderList(); updateHome();
+      toast(`✅ تم استيراد ${imported} كلمة${skipped?' · '+skipped+' مكررة':''}`);
+    } catch(err){
+      toast('❌ خطأ في قراءة الملف');
+      console.error(err);
+    }
     event.target.value='';
   };
-  if(isCSV) reader.readAsText(file,'UTF-8');
+  if(file.name.endsWith('.csv')) reader.readAsText(file, 'UTF-8');
   else reader.readAsArrayBuffer(file);
 }
+
+function mapTypeAr(s){
+  s=(s||'').trim();
+  if(s==='اسم'||s==='noun') return 'noun';
+  if(s==='فعل'||s==='verb') return 'verb';
+  if(s==='صفة'||s==='adj') return 'adj';
+  if(s==='ظرف'||s==='adv') return 'adv';
+  if(s==='تعبير'||s==='phrase') return 'phrase';
+  return 'noun';
+}
+
 
 // ===== IMPORT TRIGGER =====
 let _importTargetGid = null;
 function triggerImport(gid){
-  _importTargetGid = parseInt(gid);
+  _importTargetGid = gid;
   const inp = document.getElementById('global-import-input');
   inp.value = '';
   inp.click();
@@ -2177,22 +1976,170 @@ function handleImportFile(event){
   importGroup(event, _importTargetGid);
 }
 
-function parseCSVLine(line){
-  const result=[];
-  let current='', inQuotes=false;
-  for(let i=0;i<line.length;i++){
-    if(line[i]==='"'){
-      if(inQuotes&&line[i+1]==='"'){current+='"';i++;}
-      else inQuotes=!inQuotes;
-    } else if(line[i]===','&&!inQuotes){
-      result.push(current); current='';
-    } else { current+=line[i]; }
-  }
-  result.push(current);
-  return result;
+// ===== INIT =====
+// Migration: fix new words with past nextReview
+(function(){
+  let fixed=false;
+  words.forEach(w=>{if(w.status==='new'&&w.nextReview<=Date.now()){w.nextReview=Date.now()+100*365*86400000;fixed=true;}});
+  if(fixed) save();
+})();
+
+if(!words.length){
+  words=JSON.parse(JSON.stringify(SAMPLE_WORDS));
+  // new words should not appear in review queue — set nextReview far future
+  words.forEach(w=>{ if(w.status==='new') w.nextReview = Date.now() + 100*365*86400000; });
+  save();
 }
 
+// Migration: fix new words that incorrectly have past nextReview
+(function(){
+  let fixed = false;
+  words.forEach(w => {
+    if(w.status === 'new' && w.nextReview <= Date.now()){
+      w.nextReview = Date.now() + 100*365*86400000; // far future
+      fixed = true;
+    }
+  });
+  if(fixed) save();
+})();
+
+if(!groups.length){
+  groups=[{"id": 1700000001, "name": "Mein Beruf", "emoji": "💼", "icon": "💼", "desc": "وحدة: مهنتي — Aspekte Beruf B2", "order": "sequential"}, {"id": 1700000002, "name": "Mein Weg in den Beruf", "emoji": "🎯", "icon": "🎯", "desc": "وحدة: طريقي إلى المهنة — Aspekte Beruf B2", "order": "sequential"}];
+  saveGroups();
+}
+populateGroupSelect(); updateHome(); updateRateLabels();
 </script>
+
+<!-- CUSTOM REVIEW MODAL -->
+<div class="cr-overlay" id="cr-overlay" onclick="closeCR(event)">
+  <div class="cr-box" onclick="event.stopPropagation()">
+    <h2>مراجعة مخصصة ⚡</h2>
+    <div class="cr-sub">خصّص جلسة مراجعة حسب احتياجك</div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">📚 المصدر</div>
+      <div class="cr-chips" id="cr-source-chips">
+        <div class="cr-chip sel" data-val="all" onclick="crPickSource(this)">كل الكلمات</div>
+      </div>
+    </div>
+
+    <div id="cr-word-picker" style="display:none">
+      <div class="cr-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>🎯 اختر بطاقات محددة (اختياري)</span>
+        <span id="cr-word-picker-count" style="color:var(--gold);font-size:12px">الكل</span>
+      </div>
+      <div id="cr-word-picker-list" style="max-height:200px;overflow-y:auto;margin-top:8px;background:var(--card2);border-radius:12px;padding:8px"></div>
+    </div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">🎯 فلتر الكلمات</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'status')">الكل</div>
+        <div class="cr-chip" data-val="new" onclick="crToggleFilter(this,'status')">جديدة فقط</div>
+        <div class="cr-chip" data-val="learning" onclick="crToggleFilter(this,'status')">قيد التعلم</div>
+        <div class="cr-chip" data-val="mastered" onclick="crToggleFilter(this,'status')">محفوظة فقط</div>
+      </div>
+    </div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">📊 فلتر التقييم الأخير</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'rating')">الكل</div>
+        <div class="cr-chip" data-val="hard" onclick="crToggleFilter(this,'rating')">😓 قيّمتها صعبة</div>
+        <div class="cr-chip" data-val="ok" onclick="crToggleFilter(this,'rating')">🙂 قيّمتها تمام</div>
+        <div class="cr-chip" data-val="easy" onclick="crToggleFilter(this,'rating')">🌟 قيّمتها سهلة</div>
+        <div class="cr-chip" data-val="due" onclick="crToggleFilter(this,'rating')">⏰ مستحقة الآن</div>
+        <div class="cr-chip" data-val="overdue" onclick="crToggleFilter(this,'rating')">🔴 متأخرة</div>
+      </div>
+    </div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">🔀 ترتيب البطاقات</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel" data-val="sequential" onclick="crPickOrder(this)">📋 بالترتيب</div>
+        <div class="cr-chip" data-val="random" onclick="crPickOrder(this)">🔀 عشوائي</div>
+        <div class="cr-chip" data-val="hard_first" onclick="crPickOrder(this)">😓 الصعبة أولاً</div>
+        <div class="cr-chip" data-val="easy_first" onclick="crPickOrder(this)">🌟 السهلة أولاً</div>
+        <div class="cr-chip" data-val="overdue_first" onclick="crPickOrder(this)">⏰ الأقدم أولاً</div>
+        <div class="cr-chip" data-val="new_first" onclick="crPickOrder(this)">🆕 الجديدة أولاً</div>
+      </div>
+    </div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">🔢 عدد البطاقات</div>
+      <div class="cr-num-row">
+        <button class="cr-num-btn" onclick="crChangeCount(-5)">−5</button>
+        <button class="cr-num-btn" onclick="crChangeCount(-1)">−</button>
+        <div class="cr-num-val" id="cr-count-val">20</div>
+        <button class="cr-num-btn" onclick="crChangeCount(1)">+</button>
+        <button class="cr-num-btn" onclick="crChangeCount(5)">+5</button>
+        <button class="cr-num-btn" onclick="crSetCountAll()" style="font-size:12px;width:auto;padding:0 8px;color:var(--gold)">الكل</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center" id="cr-available-label">متاح: — كلمة</div>
+    </div>
+
+    <div id="cr-preview-row" style="background:var(--card2);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center;font-size:13px;color:var(--muted)">
+      اختر المصدر والفلاتر لمعاينة النتائج
+    </div>
+
+    <button class="cr-start-btn" onclick="startCustomReview()">ابدأ المراجعة المخصصة ⚡</button>
+    <button class="cr-cancel-btn" onclick="closeCR(null)">إلغاء</button>
+  </div>
+</div>
+
+<!-- REPORTS SCREEN -->
+<div class="screen" id="screen-reports">
+  <div class="header"><div class="header-top"><div><h1>التقارير 📊</h1><p>إحصاءات مفصّلة عن تقدمك</p></div></div></div>
+  <div class="report-tabs" id="report-tabs">
+    <div class="report-tab active" onclick="showReportTab('overview',this)">نظرة عامة</div>
+    <div class="report-tab" onclick="showReportTab('groups',this)">المجموعات</div>
+    <div class="report-tab" onclick="showReportTab('activity',this)">النشاط</div>
+  </div>
+  <div class="report-section" id="report-content"></div>
+</div>
+
+
+<!-- EDIT GROUP MODAL -->
+<div class="modal-overlay" id="modal-edit-group" onclick="closeModal('modal-edit-group')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h3 style="text-align:center;margin-bottom:18px">✏️ تعديل المجموعة</h3>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--muted)">اختر أيقونة أو ارفع صورة</div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div id="edit-group-icon-preview" style="width:56px;height:56px;border-radius:14px;background:var(--card2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;overflow:hidden;position:relative">
+        <span id="edit-group-icon-emoji">📖</span>
+        <img id="edit-group-icon-img" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:12px">
+      </div>
+      <div style="flex:1">
+        <label style="display:block;background:rgba(91,141,238,.15);color:var(--blue);border:1px solid rgba(91,141,238,.3);border-radius:10px;padding:9px 14px;font-family:'Tajawal',sans-serif;font-size:13px;cursor:pointer;text-align:center;margin-bottom:8px">
+          📁 رفع صورة من الجهاز
+          <input type="file" accept="image/*" style="display:none" onchange="loadGroupImage(event,'edit')">
+        </label>
+        <button onclick="clearGroupImage('edit')" style="width:100%;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:8px;font-family:'Tajawal',sans-serif;font-size:12px;color:var(--muted);cursor:pointer">↩️ إعادة إلى إيموجي</button>
+      </div>
+    </div>
+    <div class="emoji-pick" id="edit-group-emoji-pick">
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'📖')">📖</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏥')">🏥</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'💼')">💼</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🍕')">🍕</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'✈️')">✈️</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏠')">🏠</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'⚽')">⚽</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎵')">🎵</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'💻')">💻</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🌿')">🌿</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'📅')">📅</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎓')">🎓</div>
+    </div>
+    <div class="input-group"><label>اسم المجموعة *</label><input type="text" id="edit-group-name" dir="rtl" placeholder="اسم المجموعة"></div>
+    <div class="input-group"><label>وصف (اختياري)</label><input type="text" id="edit-group-desc" dir="rtl" placeholder="وصف مختصر"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button onclick="saveGroupEdit()" style="background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">حفظ ✅</button>
+      <button onclick="closeModal('modal-edit-group')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- CONFIRM DELETE MODAL -->
 <div class="modal-overlay" id="modal-confirm" onclick="closeModal('modal-confirm')">
@@ -2202,6 +2149,65 @@ function parseCSVLine(line){
     <p id="confirm-sub" style="font-size:13px;color:var(--muted);margin-bottom:22px"></p>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <button id="confirm-yes-btn" onclick="confirmAction()" style="background:var(--red);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">نعم، احذف</button>
+      <button onclick="closeModal('modal-confirm')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- LEARN MODAL -->
+<div class="cr-overlay" id="learn-overlay" onclick="if(event.target===this)closeLearnModal()">
+  <div class="cr-box" onclick="event.stopPropagation()">
+    <h2 id="learn-title">تعلّم بطاقات 📖</h2>
+    <div class="cr-sub" id="learn-sub">اختر البطاقات التي تريد تعلمها</div>
+
+    <div class="learn-select-all-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="learn-select-all" onchange="learnToggleAll(this.checked)" style="width:18px;height:18px;accent-color:var(--gold)">
+        تحديد الكل
+      </label>
+      <span class="learn-count-badge" id="learn-sel-count">0 محددة</span>
+    </div>
+
+    <div id="learn-word-list" style="max-height:40vh;overflow-y:auto;margin-bottom:14px"></div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">🔢 عدد البطاقات للعرض</div>
+      <div class="cr-num-row">
+        <button class="cr-num-btn" onclick="learnChangeCount(-5)">−5</button>
+        <button class="cr-num-btn" onclick="learnChangeCount(-1)">−</button>
+        <div class="cr-num-val" id="learn-count-val">10</div>
+        <button class="cr-num-btn" onclick="learnChangeCount(1)">+</button>
+        <button class="cr-num-btn" onclick="learnChangeCount(5)">+5</button>
+        <button class="cr-num-btn" onclick="learnSetAll()" style="font-size:12px;width:auto;padding:0 8px;color:var(--gold)">الكل</button>
+      </div>
+    </div>
+
+    <div class="cr-section">
+      <div class="cr-section-title">🔀 الترتيب</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel" data-val="sequential" onclick="learnPickOrder(this)">📋 بالترتيب</div>
+        <div class="cr-chip" data-val="random" onclick="learnPickOrder(this)">🔀 عشوائي</div>
+      </div>
+    </div>
+
+    <button onclick="startLearnSession()" style="width:100%;background:linear-gradient(135deg,var(--green),#3aaa75);color:#000;border:none;border-radius:14px;padding:16px;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px">ابدأ التعلم 📖</button>
+    <button onclick="closeLearnModal()" style="width:100%;background:var(--card2);border:none;border-radius:14px;padding:13px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer;margin-top:8px">إلغاء</button>
+  </div>
+</div>
+
+<input type="file" id="global-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
+
+
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="modal-confirm" onclick="closeModal('modal-confirm')">
+  <div class="modal-box" onclick="event.stopPropagation()" style="text-align:center;padding:28px 20px">
+    <div style="font-size:48px;margin-bottom:12px">🗑️</div>
+    <h3 id="confirm-msg" style="font-size:17px;font-weight:700;margin-bottom:6px"></h3>
+    <p id="confirm-sub" style="font-size:13px;color:var(--muted);margin-bottom:22px"></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button onclick="confirmAction()" style="background:var(--red);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">نعم، احذف</button>
       <button onclick="closeModal('modal-confirm')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
     </div>
   </div>
@@ -2226,10 +2232,8 @@ function parseCSVLine(line){
       <div class="emoji-opt" onclick="pickEditEmoji(this,'📅')">📅</div>
       <div class="emoji-opt" onclick="pickEditEmoji(this,'🎓')">🎓</div>
     </div>
-    <div style="margin-top:14px">
-      <div class="input-group"><label>اسم المجموعة *</label><input type="text" id="edit-group-name" dir="rtl" placeholder="اسم المجموعة"></div>
-      <div class="input-group"><label>وصف (اختياري)</label><input type="text" id="edit-group-desc" dir="rtl" placeholder="وصف مختصر"></div>
-    </div>
+    <div class="input-group" style="margin-top:14px"><label>اسم المجموعة *</label><input type="text" id="edit-group-name" dir="rtl"></div>
+    <div class="input-group"><label>وصف (اختياري)</label><input type="text" id="edit-group-desc" dir="rtl"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
       <button onclick="saveGroupEdit()" style="background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">حفظ ✅</button>
       <button onclick="closeModal('modal-edit-group')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
@@ -2244,19 +2248,14 @@ function parseCSVLine(line){
     <div class="cr-sub">خصّص جلسة مراجعة حسب احتياجك</div>
     <div class="cr-section">
       <div class="cr-section-title">📚 المصدر</div>
-      <div class="cr-chips" id="cr-source-chips">
-        <div class="cr-chip sel" data-val="all" onclick="crPickSource(this)">كل الكلمات</div>
-      </div>
+      <div class="cr-chips" id="cr-source-chips"><div class="cr-chip sel" data-val="all" onclick="crPickSource(this)">كل الكلمات</div></div>
     </div>
     <div id="cr-word-picker" style="display:none">
-      <div class="cr-section-title" style="display:flex;justify-content:space-between;align-items:center">
-        <span>🎯 اختر بطاقات محددة</span>
-        <span id="cr-word-picker-count" style="color:var(--gold);font-size:12px">الكل</span>
-      </div>
+      <div class="cr-section-title" style="display:flex;justify-content:space-between"><span>🎯 بطاقات محددة</span><span id="cr-word-picker-count" style="color:var(--gold);font-size:12px">الكل</span></div>
       <div id="cr-word-picker-list" style="max-height:150px;overflow-y:auto;margin-top:8px;background:var(--card2);border-radius:12px;padding:8px"></div>
     </div>
     <div class="cr-section">
-      <div class="cr-section-title">🎯 فلتر الكلمات</div>
+      <div class="cr-section-title">🎯 فلتر الحالة</div>
       <div class="cr-chips">
         <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'status')">الكل</div>
         <div class="cr-chip" data-val="new" onclick="crToggleFilter(this,'status')">جديدة</div>
@@ -2293,7 +2292,7 @@ function parseCSVLine(line){
         <div class="cr-num-val" id="cr-count-val">20</div>
         <button class="cr-num-btn" onclick="crChangeCount(1)">+</button>
         <button class="cr-num-btn" onclick="crChangeCount(5)">+5</button>
-        <button class="cr-num-btn" onclick="crSetCountAll()" style="font-size:12px;width:auto;padding:0 8px;color:var(--gold)">الكل</button>
+        <button class="cr-num-btn" onclick="crSetCountAll()" style="font-size:12px;width:auto;padding:0 10px;color:var(--gold)">الكل</button>
       </div>
       <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center" id="cr-available-label">متاح: — كلمة</div>
     </div>
@@ -2324,7 +2323,7 @@ function parseCSVLine(line){
         <div class="cr-num-val" id="learn-count-val">10</div>
         <button class="cr-num-btn" onclick="learnChangeCount(1)">+</button>
         <button class="cr-num-btn" onclick="learnChangeCount(5)">+5</button>
-        <button class="cr-num-btn" onclick="learnSetAll()" style="font-size:12px;width:auto;padding:0 8px;color:var(--gold)">الكل</button>
+        <button class="cr-num-btn" onclick="learnSetAll()" style="font-size:12px;width:auto;padding:0 10px;color:var(--gold)">الكل</button>
       </div>
     </div>
     <div class="cr-section">
@@ -2339,6 +2338,20 @@ function parseCSVLine(line){
   </div>
 </div>
 
-<input type="file" id="global-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
+<!-- REPORTS SCREEN -->
+<div class="screen" id="screen-reports">
+  <div class="header">
+    <div class="header-top">
+      <div><h1>التقارير 📊</h1><p>إحصاءات مفصّلة عن تقدمك</p></div>
+    </div>
+  </div>
+  <div class="report-tabs" id="report-tabs">
+    <div class="report-tab active" onclick="showReportTab('overview',this)">نظرة عامة</div>
+    <div class="report-tab" onclick="showReportTab('groups',this)">المجموعات</div>
+    <div class="report-tab" onclick="showReportTab('activity',this)">النشاط</div>
+  </div>
+  <div class="report-section" id="report-content"></div>
+</div>
+
 </body>
 </html>
