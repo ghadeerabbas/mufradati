@@ -1896,34 +1896,20 @@ function exportGroup(gid){
     const status = w.status==='mastered'?'محفوظة':w.status==='learning'?'قيد التعلم':'جديدة';
     csv += [i+1,esc(w.de),esc(w.article||''),esc(w.ar),esc(typeMap[w.type]||w.type),esc(w.level),esc(w.example||''),esc(w.exampleAr||''),esc(status)].join(',')+'\n';
   });
-  const filename = g.name.replace(/[^a-zA-Z0-9\u0600-\u06FF _-]/g,'') + '.csv';
-  // Try Android interface first
-  if(window.AndroidInterface && window.AndroidInterface.saveFile){
-    window.AndroidInterface.saveFile(filename, csv);
-    toast('✅ تم حفظ الملف في Downloads');
-    return;
-  }
-  // Try Web Share API (works on mobile browsers)
-  const bom = '\uFEFF';
-  const blob = new Blob([bom+csv],{type:'text/csv;charset=utf-8;'});
-  if(navigator.share && navigator.canShare && navigator.canShare({files:[new File([blob],filename,{type:'text/csv'})]})){
-    navigator.share({files:[new File([blob],filename,{type:'text/csv'})],title:g.name}).catch(()=>showExportModal(g.name,csv,gwords.length));
-    return;
-  }
-  // Try download link
-  try{
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url; a.download=filename; a.style.display='none';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{URL.revokeObjectURL(url);document.body.removeChild(a);},1000);
-    toast('✅ تم تصدير '+gwords.length+' كلمة');
-  }catch(e){
+  const filename = g.name.replace(/[^a-zA-Z0-9؀-ۿ _-]/g,'') + '.csv';
+  // Show export modal — works on all platforms
+  showExportModal(g.name, csv, gwords.length, filename);
+}
+
+function _exportGroupOld_unused(gid){
+  // kept for reference only
+  const x = 1; {
     showExportModal(g.name,csv,gwords.length);
   }
 }
 
-function showExportModal(name, csv, count){
+function showExportModal(name, csv, count, filename){
+  filename = filename || (name + '.csv');
   // Remove old if exists
   const old = document.getElementById('export-data-modal');
   if(old) old.remove();
