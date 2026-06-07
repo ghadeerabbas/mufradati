@@ -1889,27 +1889,54 @@ function exportGroup(gid){
   const gwords=words.filter(w=>parseInt(w.groupId)===parseInt(gid)).sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
   if(!gwords.length){toast('⚠️ المجموعة فارغة');return;}
   const typeMap={noun:'اسم',verb:'فعل',adj:'صفة',adv:'ظرف',phrase:'تعبير'};
-  const esc=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
-  let csv='#,الكلمة الألمانية,الأداة,الترجمة,النوع,المستوى,مثال,ترجمة المثال,الحالة\n';
+
+  // Build rows — same format as imported file
+  const rows=[['#','الكلمة الألمانية','الأداة (der/die/das)','الترجمة العربية','نوع الكلمة','المستوى','جملة مثال','ترجمة المثال','الحالة']];
   gwords.forEach((w,i)=>{
     const st=w.status==='mastered'?'محفوظة':w.status==='learning'?'قيد التعلم':'جديدة';
-    csv+=[i+1,esc(w.de),esc(w.article||''),esc(w.ar),esc(typeMap[w.type]||w.type),esc(w.level),esc(w.example||''),esc(w.exampleAr||''),esc(st)].join(',')+'\n';
+    rows.push([i+1, w.de, w.article||'', w.ar, typeMap[w.type]||w.type, w.level||'B2', w.example||'', w.exampleAr||'', st]);
   });
-  const fname=g.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g,'')+'.csv';
-  const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'});
-  const file=new File([blob],fname,{type:'text/csv'});
+
+  // Create XLSX via SheetJS
+  const ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:4},{wch:30},{wch:14},{wch:24},{wch:10},{wch:6},{wch:40},{wch:30},{wch:12}];
+  const wb=XLSX.utils.book_new();
+  const sheetName=g.name.replace(/[\\/:?*[\]]/g,'').slice(0,31)||'Sheet1';
+  XLSX.utils.book_append_sheet(wb,ws,sheetName);
+
+  // Write to array
+  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const fname=g.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g,'')+'.xlsx';
+  const file=new File([blob],fname,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+
+  // Try Web Share with file (Android)
   if(navigator.share&&navigator.canShare){
     try{
       if(navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:g.name}).then(()=>toast('✅ تم التصدير')).catch(e=>{if(e.name!=='AbortError')showCopyModal(g.name,csv,gwords.length);});
+        navigator.share({files:[file],title:g.name})
+          .then(()=>toast('✅ تم تصدير '+gwords.length+' كلمة'))
+          .catch(e=>{ if(e.name!=='AbortError') downloadBlob(blob,fname,gwords.length); });
         return;
       }
     }catch(e){}
-    navigator.share({title:g.name,text:csv}).then(()=>toast('✅ تم التصدير')).catch(()=>showCopyModal(g.name,csv,gwords.length));
-    return;
   }
-  showCopyModal(g.name,csv,gwords.length);
+  downloadBlob(blob,fname,gwords.length);
 }
+
+function downloadBlob(blob,fname,count){
+  try{
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=fname; a.style.display='none';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+    toast('✅ تم تصدير '+count+' كلمة');
+  }catch(e){
+    toast('❌ التصدير غير مدعوم على هذا الجهاز');
+  }
+}
+
 
 function showCopyModal(name,csv,count){
   const old=document.getElementById('xmod'); if(old) old.remove();
