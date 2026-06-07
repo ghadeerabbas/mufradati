@@ -1887,20 +1887,19 @@ function exportGroup(gid){
     csv += [i+1, esc(w.de), esc(w.article||''), esc(w.ar), esc(typeMap[w.type]||w.type), esc(w.level), esc(w.example||''), esc(w.exampleAr||''), esc(status)].join(',') + '\n';
   });
 
-  // Try download — works on browser
-  try {
-    const bom = '\uFEFF'; // UTF-8 BOM for Excel
-    const blob = new Blob([bom + csv], {type:'text/csv;charset=utf-8;'});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = g.name + '.csv';
-    document.body.appendChild(a); a.click();
-    setTimeout(()=>{ URL.revokeObjectURL(url); document.body.removeChild(a); }, 500);
-    toast('✅ تم تصدير ' + gwords.length + ' كلمة');
-  } catch(e){
-    // Fallback for Android WebView: show data in modal to copy
-    showExportModal(g.name, csv, gwords.length);
-  }
+  // Export: try download first, fallback to copy modal
+  const bom = '\uFEFF';
+  const blob = new Blob([bom + csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = g.name.replace(/[^a-zA-Z0-9\u0600-\u06FF _-]/g,'') + '.csv';
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(url); document.body.removeChild(a); }, 1000);
+  // Also show modal as backup
+  setTimeout(()=>{ showExportModal(g.name, csv, gwords.length); }, 300);
 }
 
 function showExportModal(name, csv, count){
@@ -2041,10 +2040,7 @@ if(!words.length){
   if(fixed) save();
 })();
 
-if(!groups.length){
-  groups=[{"id": 1700000001, "name": "Mein Beruf", "emoji": "💼", "icon": "💼", "desc": "وحدة: مهنتي — Aspekte Beruf B2", "order": "sequential"}, {"id": 1700000002, "name": "Mein Weg in den Beruf", "emoji": "🎯", "icon": "🎯", "desc": "وحدة: طريقي إلى المهنة — Aspekte Beruf B2", "order": "sequential"}];
-  saveGroups();
-}
+
 populateGroupSelect(); updateHome(); updateRateLabels();
 </script>
 
