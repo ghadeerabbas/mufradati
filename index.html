@@ -1958,7 +1958,13 @@ function learnToggleAll(checked){
 }
 
 function learnUpdateCount(){
-  document.getElementById('learn-sel-count').textContent = _learnSelected.size + ' محددة';
+  const sel = _learnSelected.size;
+  document.getElementById('learn-sel-count').textContent = sel + ' محددة';
+  // auto-update count to match selected
+  if(sel > 0){
+    _learnCount = sel;
+    document.getElementById('learn-count-val').textContent = sel;
+  }
 }
 
 function learnPickOrder(el){
@@ -1968,7 +1974,9 @@ function learnPickOrder(el){
 }
 
 function learnChangeCount(d){
-  _learnCount = Math.max(1, _learnCount + d);
+  const maxAvail = _learnSelected.size > 0 ? _learnSelected.size :
+    words.filter(w=>parseInt(w.groupId)===_learnGroupId && w.status==='new').length;
+  _learnCount = Math.min(maxAvail, Math.max(1, _learnCount + d));
   document.getElementById('learn-count-val').textContent = _learnCount;
 }
 
@@ -1989,6 +1997,8 @@ function startLearnSession(){
     : words.filter(w => parseInt(w.groupId) === _learnGroupId);
 
   if(!pool.length){ toast('⚠️ اختر بطاقة واحدة على الأقل'); return; }
+  // cap count at pool size
+  _learnCount = Math.min(_learnCount, pool.length);
 
   if(_learnOrder === 'sequential') pool.sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
   else shuffle(pool);
