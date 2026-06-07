@@ -1771,21 +1771,12 @@ let _editingGroupId = null;
 let _editGroupEmoji = '📖';
 
 function openEditGroupModal(gid){
-  _editingGroupId = gid;
-  const g = groups.find(x => x.id === gid); if(!g) return;
+  _editingGroupId = parseInt(gid);
+  const g = groups.find(x => x.id === _editingGroupId); if(!g) return;
   _editGroupEmoji = g.emoji;
+  _editGroupImageData = null;
   document.getElementById('edit-group-name').value = g.name;
   document.getElementById('edit-group-desc').value = g.desc || '';
-  _editGroupImageData = null;
-  // show current icon
-  const imgEl = document.getElementById('edit-group-icon-img');
-  const emEl = document.getElementById('edit-group-icon-emoji');
-  if(g.icon && g.icon.startsWith('data:')){
-    imgEl.src = g.icon; imgEl.style.display = 'block'; emEl.style.display = 'none';
-  } else {
-    imgEl.style.display = 'none'; emEl.style.display = 'inline';
-    emEl.textContent = g.emoji;
-  }
   // set emoji selection
   const opts = document.querySelectorAll('#edit-group-emoji-pick .emoji-opt');
   opts.forEach(el => { el.classList.toggle('selected', el.textContent.trim() === g.emoji); });
@@ -2121,7 +2112,7 @@ function importGroup(event,gid){
   reader.onload=function(e){
     try{
       let imported=0,skipped=0;
-      const existing=new Set(words.map(w=>w.de.toLowerCase().trim()));
+      const existing=new Set(words.filter(w=>parseInt(w.groupId)===parseInt(gid)).map(w=>w.de.toLowerCase().trim()));
       const gidInt=parseInt(gid);
       function clean(v){return(v===null||v===undefined||String(v)==='null'||String(v)==='undefined')?'':String(v).trim();}
       function addWord(de,ar,article,type,level,example,exampleAr){
