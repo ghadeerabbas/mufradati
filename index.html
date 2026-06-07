@@ -613,6 +613,7 @@ let settings = JSON.parse(localStorage.getItem('de_settings') || JSON.stringify(
 
 let currentFilter = 'all';
 let reviewQueue = [], reviewIdx = 0, cardFlipped = false;
+let isLearnMode = false;
 let doneStats = {hard:0,ok:0,easy:0};
 let currentReviewGroupId = null;
 let selectedGroupEmoji = '📖';
@@ -1903,24 +1904,39 @@ function exportGroup(gid){
 }
 
 function showExportModal(name, csv, count){
-  // Create or reuse export modal
-  let m = document.getElementById('export-data-modal');
-  if(!m){
-    m = document.createElement('div');
-    m.id = 'export-data-modal';
-    m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:flex-end';
-    m.innerHTML = '<div style="background:var(--card);border-radius:24px 24px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto">'
-      + '<h3 style="text-align:center;margin-bottom:8px">📋 بيانات المجموعة</h3>'
-      + '<p style="font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px">انسخ النص وأحفظه كملف .csv</p>'
-      + '<textarea id="export-textarea" style="width:100%;height:200px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;color:var(--text);font-family:monospace;font-size:11px;direction:ltr;resize:none"></textarea>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">'
-      + '<button onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('export-textarea').value).then(()=>toast('✅ تم النسخ'))" style="background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:13px;font-family:'Tajawal',sans-serif;font-size:14px;font-weight:700;cursor:pointer">نسخ 📋</button>'
-      + '<button onclick="document.getElementById('export-data-modal').remove()" style="background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:'Tajawal',sans-serif;font-size:14px;color:var(--muted);cursor:pointer">إغلاق</button>'
-      + '</div></div>';
-    document.body.appendChild(m);
-  }
-  document.getElementById('export-textarea').value = csv;
-  document.getElementById('export-data-modal').style.display = 'flex';
+  // Remove old if exists
+  const old = document.getElementById('export-data-modal');
+  if(old) old.remove();
+  // Build modal via DOM (avoids quote issues)
+  const overlay = document.createElement('div');
+  overlay.id = 'export-data-modal';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:500;display:flex;align-items:flex-end';
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--card);border-radius:24px 24px 0 0;padding:20px;width:100%;max-height:80vh;overflow-y:auto';
+  const h3 = document.createElement('h3');
+  h3.style.cssText = 'text-align:center;margin-bottom:8px';
+  h3.textContent = '📋 بيانات المجموعة: ' + name;
+  const p = document.createElement('p');
+  p.style.cssText = 'font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px';
+  p.textContent = 'انسخ النص — يمكن حفظه كملف .csv';
+  const ta = document.createElement('textarea');
+  ta.id = 'export-textarea';
+  ta.style.cssText = 'width:100%;height:200px;background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:10px;color:var(--text);font-family:monospace;font-size:11px;direction:ltr;resize:none';
+  ta.value = csv;
+  const row = document.createElement('div');
+  row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px';
+  const copyBtn = document.createElement('button');
+  copyBtn.style.cssText = 'background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:13px;font-family:Tajawal,sans-serif;font-size:14px;font-weight:700;cursor:pointer';
+  copyBtn.textContent = 'نسخ 📋';
+  copyBtn.onclick = function(){ navigator.clipboard && navigator.clipboard.writeText(ta.value).then(()=>toast('✅ تم النسخ')); };
+  const closeBtn = document.createElement('button');
+  closeBtn.style.cssText = 'background:var(--card2);border:none;border-radius:12px;padding:13px;font-family:Tajawal,sans-serif;font-size:14px;color:var(--muted);cursor:pointer';
+  closeBtn.textContent = 'إغلاق';
+  closeBtn.onclick = function(){ overlay.remove(); };
+  row.appendChild(copyBtn); row.appendChild(closeBtn);
+  box.appendChild(h3); box.appendChild(p); box.appendChild(ta); box.appendChild(row);
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
   toast('✅ ' + count + ' كلمة — انسخ البيانات');
 }
 
