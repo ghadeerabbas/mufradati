@@ -2013,6 +2013,36 @@ function importGroup(event,gid){
   if(isCSV) reader.readAsText(file,'UTF-8');
   else reader.readAsArrayBuffer(file);
 }
+
+// ===== IMPORT TRIGGER =====
+let _importTargetGid = null;
+function triggerImport(gid){
+  _importTargetGid = parseInt(gid);
+  const inp = document.getElementById('global-import-input');
+  inp.value = '';
+  inp.click();
+}
+function handleImportFile(event){
+  if(_importTargetGid === null) return;
+  importGroup(event, _importTargetGid);
+}
+
+function parseCSVLine(line){
+  const result=[];
+  let current='', inQuotes=false;
+  for(let i=0;i<line.length;i++){
+    if(line[i]==='"'){
+      if(inQuotes&&line[i+1]==='"'){current+='"';i++;}
+      else inQuotes=!inQuotes;
+    } else if(line[i]===','&&!inQuotes){
+      result.push(current); current='';
+    } else { current+=line[i]; }
+  }
+  result.push(current);
+  return result;
+}
+
 </script>
+<input type="file" id="global-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
 </body>
 </html>
