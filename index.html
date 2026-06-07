@@ -1889,40 +1889,35 @@ function exportGroup(gid){
   const gwords=words.filter(w=>parseInt(w.groupId)===parseInt(gid)).sort((a,b)=>(a.sortOrder||0)-(b.sortOrder||0));
   if(!gwords.length){toast('⚠️ المجموعة فارغة');return;}
   const typeMap={noun:'اسم',verb:'فعل',adj:'صفة',adv:'ظرف',phrase:'تعبير'};
-
-  // Build rows — same format as imported file
   const rows=[['#','الكلمة الألمانية','الأداة (der/die/das)','الترجمة العربية','نوع الكلمة','المستوى','جملة مثال','ترجمة المثال','الحالة']];
   gwords.forEach((w,i)=>{
     const st=w.status==='mastered'?'محفوظة':w.status==='learning'?'قيد التعلم':'جديدة';
-    rows.push([i+1, w.de, w.article||'', w.ar, typeMap[w.type]||w.type, w.level||'B2', w.example||'', w.exampleAr||'', st]);
+    rows.push([i+1,w.de,w.article||'',w.ar,typeMap[w.type]||w.type,w.level||'B2',w.example||'',w.exampleAr||'',st]);
   });
-
-  // Create XLSX via SheetJS
   const ws=XLSX.utils.aoa_to_sheet(rows);
   ws['!cols']=[{wch:4},{wch:30},{wch:14},{wch:24},{wch:10},{wch:6},{wch:40},{wch:30},{wch:12}];
   const wb=XLSX.utils.book_new();
-  const sheetName=g.name.replace(/[\\/:?*[\]]/g,'').slice(0,31)||'Sheet1';
-  XLSX.utils.book_append_sheet(wb,ws,sheetName);
-
-  // Write to array
-  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'array'});
-  const blob=new Blob([wbout],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  XLSX.utils.book_append_sheet(wb,ws,g.name.slice(0,31));
+  const wbout=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
   const fname=g.name.replace(/[^\u0600-\u06FFa-zA-Z0-9 _-]/g,'')+'.xlsx';
-  const file=new File([blob],fname,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
 
-  // Try Web Share with file (Android)
-  if(navigator.share&&navigator.canShare){
-    try{
-      if(navigator.canShare({files:[file]})){
-        navigator.share({files:[file],title:g.name})
-          .then(()=>toast('✅ تم تصدير '+gwords.length+' كلمة'))
-          .catch(e=>{ if(e.name!=='AbortError') downloadBlob(blob,fname,gwords.length); });
-        return;
-      }
-    }catch(e){}
+  // Android: use native bridge
+  if(window.AndroidBridge && window.AndroidBridge.saveXLSX){
+    window.AndroidBridge.saveXLSX(fname, wbout);
+    return;
   }
-  downloadBlob(blob,fname,gwords.length);
+  // Browser: download directly
+  const bytes=atob(wbout);
+  const arr=new Uint8Array(bytes.length);
+  for(let i=0;i<bytes.length;i++) arr[i]=bytes.charCodeAt(i);
+  const blob=new Blob([arr],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=fname; a.style.display='none';
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove();},1000);
+  toast('✅ تم تصدير '+gwords.length+' كلمة');
 }
+
 
 function downloadBlob(blob,fname,count){
   try{
