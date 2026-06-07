@@ -841,7 +841,7 @@ function deleteWord(id){
 function renderGroups(){
   const cont=document.getElementById('groups-list'), empty=document.getElementById('empty-groups');
   document.getElementById('groups-count-label').textContent=`${groups.length} مجموعة`;
-  
+  if(!groups.length){ cont.innerHTML=''; empty.style.display='block'; return; }
   empty.style.display='none';
   cont.innerHTML=groups.map(g=>{
     const gwords=words.filter(w=>w.groupId===g.id);
