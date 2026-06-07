@@ -1948,6 +1948,17 @@ function showExportModal(name, csv, count){
   toast('✅ ' + count + ' كلمة — انسخ البيانات');
 }
 
+
+function mapTypeAr(s){
+  s = (s||'').trim();
+  if(s==='اسم'  || s==='noun')   return 'noun';
+  if(s==='فعل'  || s==='verb')   return 'verb';
+  if(s==='صفة'  || s==='adj')    return 'adj';
+  if(s==='ظرف'  || s==='adv')    return 'adv';
+  if(s==='تعبير'|| s==='phrase') return 'phrase';
+  return 'noun'; // default
+}
+
 function importGroup(event, gid){
   const file = event.target.files[0];
   if(!file) return;
