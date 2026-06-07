@@ -1991,19 +1991,20 @@ function closeLearnModal(){
 }
 
 function startLearnSession(){
-  // build queue from selected words, or all group words if none selected
-  let pool = _learnSelected.size > 0
-    ? words.filter(w => _learnSelected.has(w.id))
-    : words.filter(w => parseInt(w.groupId) === _learnGroupId);
+  let pool;
+  if(_learnSelected.size > 0){
+    // user selected specific words — use ALL of them, ignore _learnCount
+    pool = words.filter(w => _learnSelected.has(w.id));
+  } else {
+    // no selection — use _learnCount from counter
+    const allPool = words.filter(w => parseInt(w.groupId) === _learnGroupId && w.status === 'new');
+    pool = allPool.slice(0, _learnCount);
+  }
 
   if(!pool.length){ toast('⚠️ اختر بطاقة واحدة على الأقل'); return; }
-  // cap count at pool size
-  _learnCount = Math.min(_learnCount, pool.length);
 
   if(_learnOrder === 'sequential') pool.sort((a,b) => (a.sortOrder||0) - (b.sortOrder||0));
   else shuffle(pool);
-
-  pool = pool.slice(0, _learnCount);
 
   closeLearnModal();
 
