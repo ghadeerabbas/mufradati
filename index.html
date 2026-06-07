@@ -453,6 +453,19 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
     </div>
     <button class="back-home-btn" onclick="showScreen('screen-home')">العودة للرئيسية</button>
   </div>
+
+
+<!-- REPORTS SCREEN -->
+<div class="screen" id="screen-reports">
+  <div class="header"><div class="header-top"><div><h1>التقارير 📊</h1><p>إحصاءات مفصّلة عن تقدمك</p></div></div></div>
+  <div class="report-tabs" id="report-tabs">
+    <div class="report-tab active" onclick="showReportTab('overview',this)">نظرة عامة</div>
+    <div class="report-tab" onclick="showReportTab('groups',this)">المجموعات</div>
+    <div class="report-tab" onclick="showReportTab('activity',this)">النشاط</div>
+  </div>
+  <div class="report-section" id="report-content"></div>
+</div>
+
 </div>
 
 <div class="toast" id="toast"></div>
@@ -602,6 +615,147 @@ body::after{content:'';position:fixed;bottom:-200px;right:-200px;width:600px;hei
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>إعدادات
   </button>
 </nav>
+
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="modal-confirm" onclick="closeModal('modal-confirm')">
+  <div class="modal-box" onclick="event.stopPropagation()" style="text-align:center;padding:28px 20px">
+    <div style="font-size:48px;margin-bottom:12px">🗑️</div>
+    <h3 id="confirm-msg" style="font-size:17px;font-weight:700;margin-bottom:6px"></h3>
+    <p id="confirm-sub" style="font-size:13px;color:var(--muted);margin-bottom:22px"></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button onclick="confirmAction()" style="background:var(--red);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">نعم، احذف</button>
+      <button onclick="closeModal('modal-confirm')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT GROUP MODAL -->
+<div class="modal-overlay" id="modal-edit-group" onclick="closeModal('modal-edit-group')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h3 style="text-align:center;margin-bottom:18px">✏️ تعديل المجموعة</h3>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--muted)">اختر أيقونة</div>
+    <div class="emoji-pick" id="edit-group-emoji-pick">
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'📖')">📖</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏥')">🏥</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'💼')">💼</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🍕')">🍕</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'✈️')">✈️</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏠')">🏠</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'⚽')">⚽</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎵')">🎵</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'💻')">💻</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🌿')">🌿</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'📅')">📅</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎓')">🎓</div>
+    </div>
+    <div class="input-group" style="margin-top:14px"><label>اسم المجموعة *</label><input type="text" id="edit-group-name" dir="rtl"></div>
+    <div class="input-group"><label>وصف (اختياري)</label><input type="text" id="edit-group-desc" dir="rtl"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button onclick="saveGroupEdit()" style="background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">حفظ ✅</button>
+      <button onclick="closeModal('modal-edit-group')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM REVIEW MODAL -->
+<div class="cr-overlay" id="cr-overlay" onclick="closeCR(event)">
+  <div class="cr-box" onclick="event.stopPropagation()">
+    <h2>مراجعة مخصصة ⚡</h2>
+    <div class="cr-sub">خصّص جلسة مراجعة حسب احتياجك</div>
+    <div class="cr-section">
+      <div class="cr-section-title">📚 المصدر</div>
+      <div class="cr-chips" id="cr-source-chips"><div class="cr-chip sel" data-val="all" onclick="crPickSource(this)">كل الكلمات</div></div>
+    </div>
+    <div id="cr-word-picker" style="display:none">
+      <div class="cr-section-title" style="display:flex;justify-content:space-between"><span>🎯 بطاقات محددة</span><span id="cr-word-picker-count" style="color:var(--gold);font-size:12px">الكل</span></div>
+      <div id="cr-word-picker-list" style="max-height:150px;overflow-y:auto;margin-top:8px;background:var(--card2);border-radius:12px;padding:8px"></div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🎯 فلتر الحالة</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'status')">الكل</div>
+        <div class="cr-chip" data-val="new" onclick="crToggleFilter(this,'status')">جديدة</div>
+        <div class="cr-chip" data-val="learning" onclick="crToggleFilter(this,'status')">قيد التعلم</div>
+        <div class="cr-chip" data-val="mastered" onclick="crToggleFilter(this,'status')">محفوظة</div>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">📊 فلتر التقييم</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'rating')">الكل</div>
+        <div class="cr-chip" data-val="hard" onclick="crToggleFilter(this,'rating')">😓 صعبة</div>
+        <div class="cr-chip" data-val="ok" onclick="crToggleFilter(this,'rating')">🙂 تمام</div>
+        <div class="cr-chip" data-val="easy" onclick="crToggleFilter(this,'rating')">🌟 سهلة</div>
+        <div class="cr-chip" data-val="due" onclick="crToggleFilter(this,'rating')">⏰ مستحقة</div>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔀 الترتيب</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel" data-val="sequential" onclick="crPickOrder(this)">📋 بالترتيب</div>
+        <div class="cr-chip" data-val="random" onclick="crPickOrder(this)">🔀 عشوائي</div>
+        <div class="cr-chip" data-val="hard_first" onclick="crPickOrder(this)">😓 الصعبة أولاً</div>
+        <div class="cr-chip" data-val="easy_first" onclick="crPickOrder(this)">🌟 السهلة أولاً</div>
+        <div class="cr-chip" data-val="overdue_first" onclick="crPickOrder(this)">⏰ الأقدم أولاً</div>
+        <div class="cr-chip" data-val="new_first" onclick="crPickOrder(this)">🆕 الجديدة أولاً</div>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔢 عدد البطاقات</div>
+      <div class="cr-num-row">
+        <button class="cr-num-btn" onclick="crChangeCount(-5)">−5</button>
+        <button class="cr-num-btn" onclick="crChangeCount(-1)">−</button>
+        <div class="cr-num-val" id="cr-count-val">20</div>
+        <button class="cr-num-btn" onclick="crChangeCount(1)">+</button>
+        <button class="cr-num-btn" onclick="crChangeCount(5)">+5</button>
+        <button class="cr-num-btn" onclick="crSetCountAll()" style="font-size:12px;width:auto;padding:0 10px;color:var(--gold)">الكل</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center" id="cr-available-label">متاح: — كلمة</div>
+    </div>
+    <div id="cr-preview-row" style="background:var(--card2);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center;font-size:13px;color:var(--muted)">اختر المصدر والفلاتر</div>
+    <button class="cr-start-btn" onclick="startCustomReview()">ابدأ المراجعة المخصصة ⚡</button>
+    <button class="cr-cancel-btn" onclick="closeCR(null)">إلغاء</button>
+  </div>
+</div>
+
+<!-- LEARN MODAL -->
+<div class="cr-overlay" id="learn-overlay" onclick="if(event.target===this)closeLearnModal()">
+  <div class="cr-box" onclick="event.stopPropagation()">
+    <h2 id="learn-title">تعلّم بطاقات 📖</h2>
+    <div class="cr-sub" id="learn-sub">اختر البطاقات</div>
+    <div class="learn-select-all-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="learn-select-all" onchange="learnToggleAll(this.checked)" style="width:18px;height:18px;accent-color:var(--gold)">
+        تحديد الكل
+      </label>
+      <span class="learn-count-badge" id="learn-sel-count">0 محددة</span>
+    </div>
+    <div id="learn-word-list" style="max-height:35vh;overflow-y:auto;margin-bottom:14px"></div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔢 عدد البطاقات</div>
+      <div class="cr-num-row">
+        <button class="cr-num-btn" onclick="learnChangeCount(-5)">−5</button>
+        <button class="cr-num-btn" onclick="learnChangeCount(-1)">−</button>
+        <div class="cr-num-val" id="learn-count-val">10</div>
+        <button class="cr-num-btn" onclick="learnChangeCount(1)">+</button>
+        <button class="cr-num-btn" onclick="learnChangeCount(5)">+5</button>
+        <button class="cr-num-btn" onclick="learnSetAll()" style="font-size:12px;width:auto;padding:0 10px;color:var(--gold)">الكل</button>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔀 الترتيب</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel" data-val="sequential" onclick="learnPickOrder(this)">📋 بالترتيب</div>
+        <div class="cr-chip" data-val="random" onclick="learnPickOrder(this)">🔀 عشوائي</div>
+      </div>
+    </div>
+    <button onclick="startLearnSession()" style="width:100%;background:linear-gradient(135deg,var(--green),#3aaa75);color:#000;border:none;border-radius:14px;padding:16px;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px">ابدأ التعلم 📖</button>
+    <button onclick="closeLearnModal()" style="width:100%;background:var(--card2);border:none;border-radius:14px;padding:13px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer;margin-top:8px">إلغاء</button>
+  </div>
+</div>
+
+<input type="file" id="global-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
 
 <script>
 let isLearnMode = false;
@@ -2038,6 +2192,152 @@ function parseCSVLine(line){
 }
 
 </script>
+
+<!-- CONFIRM DELETE MODAL -->
+<div class="modal-overlay" id="modal-confirm" onclick="closeModal('modal-confirm')">
+  <div class="modal-box" onclick="event.stopPropagation()" style="text-align:center;padding:28px 20px">
+    <div style="font-size:48px;margin-bottom:12px">🗑️</div>
+    <h3 id="confirm-msg" style="font-size:17px;font-weight:700;margin-bottom:6px"></h3>
+    <p id="confirm-sub" style="font-size:13px;color:var(--muted);margin-bottom:22px"></p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <button id="confirm-yes-btn" onclick="confirmAction()" style="background:var(--red);color:#fff;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">نعم، احذف</button>
+      <button onclick="closeModal('modal-confirm')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT GROUP MODAL -->
+<div class="modal-overlay" id="modal-edit-group" onclick="closeModal('modal-edit-group')">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <h3 style="text-align:center;margin-bottom:18px">✏️ تعديل المجموعة</h3>
+    <div style="margin-bottom:10px;font-size:13px;color:var(--muted)">اختر أيقونة</div>
+    <div class="emoji-pick" id="edit-group-emoji-pick">
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'📖')">📖</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏥')">🏥</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'💼')">💼</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🍕')">🍕</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'✈️')">✈️</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🏠')">🏠</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'⚽')">⚽</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎵')">🎵</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'💻')">💻</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🌿')">🌿</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'📅')">📅</div>
+      <div class="emoji-opt" onclick="pickEditEmoji(this,'🎓')">🎓</div>
+    </div>
+    <div style="margin-top:14px">
+      <div class="input-group"><label>اسم المجموعة *</label><input type="text" id="edit-group-name" dir="rtl" placeholder="اسم المجموعة"></div>
+      <div class="input-group"><label>وصف (اختياري)</label><input type="text" id="edit-group-desc" dir="rtl" placeholder="وصف مختصر"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+      <button onclick="saveGroupEdit()" style="background:linear-gradient(135deg,var(--gold),#c9a84c);color:#000;border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;font-weight:700;cursor:pointer">حفظ ✅</button>
+      <button onclick="closeModal('modal-edit-group')" style="background:var(--card2);border:none;border-radius:12px;padding:14px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOM REVIEW MODAL -->
+<div class="cr-overlay" id="cr-overlay" onclick="closeCR(event)">
+  <div class="cr-box" onclick="event.stopPropagation()">
+    <h2>مراجعة مخصصة ⚡</h2>
+    <div class="cr-sub">خصّص جلسة مراجعة حسب احتياجك</div>
+    <div class="cr-section">
+      <div class="cr-section-title">📚 المصدر</div>
+      <div class="cr-chips" id="cr-source-chips">
+        <div class="cr-chip sel" data-val="all" onclick="crPickSource(this)">كل الكلمات</div>
+      </div>
+    </div>
+    <div id="cr-word-picker" style="display:none">
+      <div class="cr-section-title" style="display:flex;justify-content:space-between;align-items:center">
+        <span>🎯 اختر بطاقات محددة</span>
+        <span id="cr-word-picker-count" style="color:var(--gold);font-size:12px">الكل</span>
+      </div>
+      <div id="cr-word-picker-list" style="max-height:150px;overflow-y:auto;margin-top:8px;background:var(--card2);border-radius:12px;padding:8px"></div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🎯 فلتر الكلمات</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'status')">الكل</div>
+        <div class="cr-chip" data-val="new" onclick="crToggleFilter(this,'status')">جديدة</div>
+        <div class="cr-chip" data-val="learning" onclick="crToggleFilter(this,'status')">قيد التعلم</div>
+        <div class="cr-chip" data-val="mastered" onclick="crToggleFilter(this,'status')">محفوظة</div>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">📊 فلتر التقييم</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel-blue" data-val="all" onclick="crToggleFilter(this,'rating')">الكل</div>
+        <div class="cr-chip" data-val="hard" onclick="crToggleFilter(this,'rating')">😓 صعبة</div>
+        <div class="cr-chip" data-val="ok" onclick="crToggleFilter(this,'rating')">🙂 تمام</div>
+        <div class="cr-chip" data-val="easy" onclick="crToggleFilter(this,'rating')">🌟 سهلة</div>
+        <div class="cr-chip" data-val="due" onclick="crToggleFilter(this,'rating')">⏰ مستحقة</div>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔀 الترتيب</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel" data-val="sequential" onclick="crPickOrder(this)">📋 بالترتيب</div>
+        <div class="cr-chip" data-val="random" onclick="crPickOrder(this)">🔀 عشوائي</div>
+        <div class="cr-chip" data-val="hard_first" onclick="crPickOrder(this)">😓 الصعبة أولاً</div>
+        <div class="cr-chip" data-val="easy_first" onclick="crPickOrder(this)">🌟 السهلة أولاً</div>
+        <div class="cr-chip" data-val="overdue_first" onclick="crPickOrder(this)">⏰ الأقدم أولاً</div>
+        <div class="cr-chip" data-val="new_first" onclick="crPickOrder(this)">🆕 الجديدة أولاً</div>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔢 عدد البطاقات</div>
+      <div class="cr-num-row">
+        <button class="cr-num-btn" onclick="crChangeCount(-5)">−5</button>
+        <button class="cr-num-btn" onclick="crChangeCount(-1)">−</button>
+        <div class="cr-num-val" id="cr-count-val">20</div>
+        <button class="cr-num-btn" onclick="crChangeCount(1)">+</button>
+        <button class="cr-num-btn" onclick="crChangeCount(5)">+5</button>
+        <button class="cr-num-btn" onclick="crSetCountAll()" style="font-size:12px;width:auto;padding:0 8px;color:var(--gold)">الكل</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center" id="cr-available-label">متاح: — كلمة</div>
+    </div>
+    <div id="cr-preview-row" style="background:var(--card2);border-radius:12px;padding:12px;margin-bottom:14px;text-align:center;font-size:13px;color:var(--muted)">اختر المصدر والفلاتر</div>
+    <button class="cr-start-btn" onclick="startCustomReview()">ابدأ المراجعة المخصصة ⚡</button>
+    <button class="cr-cancel-btn" onclick="closeCR(null)">إلغاء</button>
+  </div>
+</div>
+
+<!-- LEARN MODAL -->
+<div class="cr-overlay" id="learn-overlay" onclick="if(event.target===this)closeLearnModal()">
+  <div class="cr-box" onclick="event.stopPropagation()">
+    <h2 id="learn-title">تعلّم بطاقات 📖</h2>
+    <div class="cr-sub" id="learn-sub">اختر البطاقات</div>
+    <div class="learn-select-all-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+        <input type="checkbox" id="learn-select-all" onchange="learnToggleAll(this.checked)" style="width:18px;height:18px;accent-color:var(--gold)">
+        تحديد الكل
+      </label>
+      <span class="learn-count-badge" id="learn-sel-count">0 محددة</span>
+    </div>
+    <div id="learn-word-list" style="max-height:35vh;overflow-y:auto;margin-bottom:14px"></div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔢 عدد البطاقات</div>
+      <div class="cr-num-row">
+        <button class="cr-num-btn" onclick="learnChangeCount(-5)">−5</button>
+        <button class="cr-num-btn" onclick="learnChangeCount(-1)">−</button>
+        <div class="cr-num-val" id="learn-count-val">10</div>
+        <button class="cr-num-btn" onclick="learnChangeCount(1)">+</button>
+        <button class="cr-num-btn" onclick="learnChangeCount(5)">+5</button>
+        <button class="cr-num-btn" onclick="learnSetAll()" style="font-size:12px;width:auto;padding:0 8px;color:var(--gold)">الكل</button>
+      </div>
+    </div>
+    <div class="cr-section">
+      <div class="cr-section-title">🔀 الترتيب</div>
+      <div class="cr-chips">
+        <div class="cr-chip sel" data-val="sequential" onclick="learnPickOrder(this)">📋 بالترتيب</div>
+        <div class="cr-chip" data-val="random" onclick="learnPickOrder(this)">🔀 عشوائي</div>
+      </div>
+    </div>
+    <button onclick="startLearnSession()" style="width:100%;background:linear-gradient(135deg,var(--green),#3aaa75);color:#000;border:none;border-radius:14px;padding:16px;font-family:'Tajawal',sans-serif;font-size:17px;font-weight:700;cursor:pointer;margin-top:6px">ابدأ التعلم 📖</button>
+    <button onclick="closeLearnModal()" style="width:100%;background:var(--card2);border:none;border-radius:14px;padding:13px;font-family:'Tajawal',sans-serif;font-size:15px;color:var(--muted);cursor:pointer;margin-top:8px">إلغاء</button>
+  </div>
+</div>
+
 <input type="file" id="global-import-input" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleImportFile(event)">
 </body>
 </html>
