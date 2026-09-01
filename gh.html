@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مفرداتي — فهرس الصفحات</title>
+<style>
+  :root{
+    --navy:#1a2a52;
+    --navy-dark:#111c38;
+    --red:#b5233b;
+    --gold:#c9a24b;
+    --cream:#f7f3e8;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:"Segoe UI","Tahoma",sans-serif;
+    background:var(--cream);
+    color:var(--navy);
+    padding:20px 14px 60px;
+  }
+  header{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  header h1{
+    color:var(--navy);
+    font-size:1.7rem;
+    letter-spacing:.5px;
+  }
+  header h1 span{color:var(--red)}
+  header p{color:#555;margin-top:6px;font-size:.95rem}
+
+  .special{
+    display:block;
+    max-width:420px;
+    margin:0 auto 22px;
+    text-decoration:none;
+    text-align:center;
+    background:linear-gradient(135deg,var(--red),#8f1a2e);
+    color:#fff;
+    padding:16px;
+    border-radius:14px;
+    font-size:1.2rem;
+    font-weight:700;
+    box-shadow:0 6px 16px rgba(181,35,59,.35);
+    border:2px solid var(--gold);
+    transition:transform .12s;
+  }
+  .special:hover{transform:translateY(-2px)}
+
+  .search-wrap{
+    max-width:420px;
+    margin:0 auto 24px;
+    display:flex;
+    gap:8px;
+  }
+  .search-wrap input{
+    flex:1;
+    padding:12px 14px;
+    border:2px solid var(--navy);
+    border-radius:10px;
+    font-size:1rem;
+    text-align:center;
+    outline:none;
+  }
+  .search-wrap input:focus{border-color:var(--gold)}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(74px,1fr));
+    gap:10px;
+    max-width:900px;
+    margin:0 auto;
+  }
+  .grid a{
+    text-decoration:none;
+    text-align:center;
+    background:#fff;
+    color:var(--navy);
+    padding:14px 4px;
+    border-radius:10px;
+    font-weight:700;
+    font-size:1.05rem;
+    border:2px solid var(--navy);
+    box-shadow:0 2px 5px rgba(0,0,0,.08);
+    transition:all .12s;
+  }
+  .grid a:hover{
+    background:var(--navy);
+    color:var(--gold);
+    transform:translateY(-2px);
+  }
+  .grid a.hidden{display:none}
+
+  footer{
+    text-align:center;
+    margin-top:36px;
+    color:#888;
+    font-size:.85rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>مفرداتي — <span>فهرس الصفحات</span></h1>
+  <p>اختر رقم الصفحة للانتقال إليها</p>
+</header>
+
+<a class="special" href="https://ghadeerabbas.github.io/mufradati/B2.0">📘 البرنامج</a>
+
+<div class="search-wrap">
+  <input id="search" type="number" placeholder="اكتب رقم الصفحة (8 – 207)…">
+</div>
+
+<div class="grid" id="grid"></div>
+
+<footer>الصفحات من 8 إلى 207</footer>
+
+<script>
+  const base = "https://ghadeerabbas.github.io/mufradati/";
+  const grid = document.getElementById("grid");
+
+  for (let p = 8; p <= 207; p++) {
+    const a = document.createElement("a");
+    a.textContent = p;
+    a.dataset.page = p;
+    // الصفحة 8 → الرابط الأساسي فقط، بقية الصفحات → B2.رقم_الصفحة
+    a.href = (p === 8) ? base : base + "B2." + p;
+    grid.appendChild(a);
+  }
+
+  const search = document.getElementById("search");
+  search.addEventListener("input", () => {
+    const val = search.value.trim();
+    document.querySelectorAll("#grid a").forEach(a => {
+      const show = val === "" || a.dataset.page.startsWith(val);
+      a.classList.toggle("hidden", !show);
+    });
+  });
+</script>
+
+</body>
+</html>
