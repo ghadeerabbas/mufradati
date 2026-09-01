@@ -1,0 +1,903 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Deutsch B1/B2 — Seite 13</title>
+
+
+<style>
+:root{
+  --bg:#e8eaed;
+  --paper:#eceeef;
+  --panel:#f3f4f5;
+  --panel-soft:#e4e7e9;
+  --dark:#36414d;
+  --dark2:#2f3944;
+  --text:#252d35;
+  --muted:#747e87;
+  --line:#cfd4d8;
+  --accent:#f4b32c;
+  --accent2:#e79816;
+  --accent-soft:#ffe6a3;
+  --white:#f8f9fa;
+  --shadow:0 5px 18px rgba(37,45,53,.09);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:"Segoe UI","Noto Sans Arabic",Tahoma,Arial,sans-serif;
+  background:var(--paper);
+  color:var(--text);
+  line-height:1.7;
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  height:100dvh;
+  overflow:hidden;
+}
+.app{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+.hero{
+  flex:none;
+  background:linear-gradient(135deg,var(--dark2),var(--dark));
+  color:#fff;
+  padding:14px 18px 13px;
+  text-align:center;
+  position:relative;
+  overflow:hidden;
+  border-radius:0;
+  box-shadow:none;
+  border:none;
+}
+.hero::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;height:4px;
+  background:linear-gradient(90deg,var(--accent2),var(--accent));
+}
+.kicker{
+  font-size:.72rem;
+  letter-spacing:2px;
+  color:#ffd36a;
+  direction:ltr;
+  margin-bottom:3px;
+  font-weight:800;
+}
+h1{
+  margin:0 0 2px;
+  font-size:1.45rem;
+  line-height:1.25;
+  font-weight:850;
+}
+.hero p{
+  margin:0;
+  color:#d8dde1;
+  font-size:.86rem;
+}
+.stats{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:center;
+  margin-top:7px;
+}
+.pill{
+  background:#46515d;
+  border:1px solid rgba(255,255,255,.08);
+  color:#fff;
+  padding:3px 8px;
+  border-radius:8px;
+  font-size:.72rem;
+}
+.navtabs{
+  flex:none;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:center;
+  padding:10px 14px 9px;
+  margin:0;
+  background:var(--paper);
+  border-bottom:1px solid var(--line);
+}
+.tabbtn{
+  border:1.5px solid var(--line);
+  background:#f6f7f8;
+  color:var(--dark);
+  padding:8px 16px;
+  border-radius:30px;
+  font-size:.9rem;
+  font-weight:800;
+  cursor:pointer;
+  transition:.15s;
+}
+.tabbtn.active{
+  background:linear-gradient(135deg,#ffd36a,var(--accent));
+  color:#2a323a;
+  border-color:#e5ac34;
+  box-shadow:none;
+}
+.section{
+  display:none;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.section.active{display:block}
+.cardpanel{
+  width:min(840px,calc(100% - 28px));
+  margin:0 auto;
+  padding:18px 0 40px;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  box-shadow:none;
+}
+.toolbar{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  align-items:center;
+  margin-bottom:12px;
+}
+.input,.select{
+  background:#f7f8f9;
+  border:1.5px solid var(--line);
+  color:var(--text);
+  border-radius:10px;
+  padding:8px 10px;
+  outline:none;
+  font:inherit;
+}
+.input{flex:1;min-width:210px}
+.select{min-width:125px}
+.legend{
+  color:var(--muted);
+  font-size:.78rem;
+  text-align:center;
+  margin-bottom:12px;
+}
+.list{
+  display:block;
+}
+.wordcard{
+  background:#f6f7f8;
+  border:1px solid var(--line);
+  border-radius:13px;
+  padding:12px 15px;
+  margin-bottom:9px;
+  box-shadow:0 1px 2px rgba(37,45,53,.04);
+  transition:.15s;
+}
+.wordcard:hover{
+  transform:none;
+  border-color:#ddb04a;
+  box-shadow:0 2px 8px rgba(37,45,53,.07);
+}
+.badge{
+  display:inline-flex;
+  border-radius:7px;
+  padding:2px 8px;
+  font-size:.7rem;
+  font-weight:850;
+  margin-bottom:6px;
+}
+.b1{background:#ffe39a;color:#745300}
+.b2{background:var(--accent2);color:#fff}
+.de{
+  direction:ltr;
+  text-align:left;
+  font-size:1.12rem;
+  font-weight:800;
+  color:var(--dark);
+}
+.ar{
+  margin-top:3px;
+  font-size:.98rem;
+  font-weight:700;
+  color:#4a535c;
+}
+.ex{
+  direction:ltr;
+  text-align:left;
+  border-inline-start:3px solid var(--accent);
+  padding-inline-start:10px;
+  margin-top:7px;
+  color:#39434d;
+  font-style:italic;
+  font-size:.94rem;
+}
+.exar{
+  color:var(--muted);
+  font-size:.87rem;
+  margin-top:2px;
+}
+
+/* Flashcards — compact, centered proportions like the reference */
+.flashwrap{
+  width:min(840px,calc(100% - 28px));
+  margin:0 auto;
+  padding:18px 0 40px;
+}
+.controls{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+  background:transparent;
+  border:none;
+  border-radius:0;
+  padding:0;
+  margin-bottom:12px;
+}
+.label{
+  display:flex;
+  align-items:center;
+  gap:5px;
+  color:var(--dark);
+  font-size:.84rem;
+  font-weight:700;
+}
+.num{
+  width:58px;
+  padding:6px 8px;
+  border:1.5px solid var(--line);
+  background:#f8f9fa;
+  color:var(--dark);
+  border-radius:8px;
+  text-align:center;
+}
+.btn{
+  border:none;
+  border-radius:30px;
+  padding:8px 16px;
+  font-weight:800;
+  cursor:pointer;
+  font:inherit;
+  font-size:.86rem;
+}
+.primary{
+  background:var(--dark);
+  color:#fff;
+}
+.secondary{
+  background:#f7f8f9;
+  color:var(--dark);
+  border:1.5px solid var(--line);
+}
+.progressbox{
+  width:min(400px,100%);
+  height:6px;
+  border-radius:999px;
+  background:#d4d8dc;
+  overflow:hidden;
+  margin:0 auto 10px;
+}
+.progressbar{
+  height:100%;
+  width:0;
+  background:linear-gradient(90deg,var(--accent2),var(--accent));
+  transition:width .08s linear;
+}
+.stage{
+  perspective:1200px;
+  margin:0;
+}
+.flash{
+  width:100%;
+  max-width:400px;
+  height:250px;
+  position:relative;
+  transform-style:preserve-3d;
+  transition:transform .5s;
+  cursor:pointer;
+  margin:0 auto;
+}
+.flash.flipped{transform:rotateY(180deg)}
+.face{
+  position:absolute;
+  inset:0;
+  backface-visibility:hidden;
+  border-radius:18px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  text-align:center;
+  box-shadow:0 6px 20px rgba(37,45,53,.11);
+  overflow:hidden;
+}
+.front{
+  background:linear-gradient(145deg,#46515d,#35404b);
+  color:#fff;
+  border:none;
+}
+.back{
+  transform:rotateY(180deg);
+  background:#f6f7f8;
+  border:2px solid var(--dark);
+  color:var(--text);
+}
+.leveltag{
+  position:absolute;
+  top:14px;
+  right:14px;
+  margin:0;
+}
+.wordbig{
+  direction:ltr;
+  font-size:clamp(1.55rem,4.5vw,2rem);
+  font-weight:850;
+  line-height:1.28;
+  max-width:350px;
+}
+.front .wordbig{color:#ffc34d}
+.sentence{
+  direction:ltr;
+  margin-top:16px;
+  font-size:.98rem;
+  line-height:1.65;
+  max-width:350px;
+}
+.front .sentence{color:#f3f5f6}
+.back .wordbig{
+  direction:rtl;
+  color:#29323a;
+  font-size:1.45rem;
+}
+.back .sentence{
+  direction:rtl;
+  color:#59636c;
+  font-size:.92rem;
+}
+.flipnote{
+  position:absolute;
+  bottom:10px;
+  color:#c3c9ce;
+  font-size:.72rem;
+}
+.back .flipnote{color:#8a949c}
+.navrow{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+  margin-top:12px;
+}
+.navrow .btn{
+  width:46px;
+  height:46px;
+  border-radius:10px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  font-size:1.2rem;
+}
+.counter{
+  min-width:84px;
+  text-align:center;
+  color:var(--dark);
+  font-weight:850;
+  direction:ltr;
+}
+.smalltip{
+  text-align:center;
+  color:var(--muted);
+  font-size:.8rem;
+  margin-top:8px;
+}
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:25px;
+}
+@media(max-width:560px){
+  .hero{padding:12px 12px 11px}
+  h1{font-size:1.25rem}
+  .hero p{font-size:.8rem}
+  .stats{display:none}
+  .navtabs{padding:8px 8px 7px}
+  .tabbtn{padding:7px 12px;font-size:.82rem}
+  .cardpanel,.flashwrap{width:min(100% - 20px,840px);padding-top:14px}
+  .input,.select{width:100%}
+  .controls{gap:7px}
+  .label{font-size:.78rem}
+  .flash{height:240px;max-width:380px}
+  .face{padding:17px}
+  .wordbig{font-size:1.55rem}
+  .sentence{font-size:.9rem}
+}
+
+.repeatnote{margin-top:7px;padding:5px 9px;border-radius:8px;background:#fff0bd;border:1px solid #e8bb45;color:#6f5310;font-size:.78rem;font-weight:800}
+.verbforms{direction:ltr;text-align:left;margin-top:7px;padding:7px 9px;border-radius:8px;background:#e9ecef;border:1px solid #d2d6da;font-size:.82rem;line-height:1.55;color:#38424b}
+.verbforms b{color:#222b33}
+.flash-repeat{margin-top:8px;padding:4px 8px;border-radius:7px;background:#fff0bd;color:#6f5310;font-size:.72rem;font-weight:800;max-width:90%}
+.flash-forms{direction:ltr;text-align:left;margin-top:9px;font-size:.78rem;line-height:1.5;color:#dce1e5;max-width:92%}
+.flashback .flash-forms{color:#5d6770}
+
+
+/* Vocabulary quiz */
+.quizwrap{max-width:680px;margin:0 auto}
+.quiztop{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.quiztitle{font-size:1.12rem;font-weight:900;color:var(--ink,#2f3944)}
+.quizsub{font-size:.82rem;color:var(--muted,#747e87);margin-top:2px}
+.quizstats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+.quizcard{background:#f7f8f9;border:1px solid #d1d6da;border-radius:16px;padding:18px}
+.quizlabel{font-size:.8rem;color:#747e87;margin-bottom:6px}
+.quizword{direction:ltr;text-align:center;font-size:1.65rem;font-weight:900;color:#36414d;margin:8px 0 18px}
+.quizoptions{display:grid;gap:9px}
+.quizopt{width:100%;text-align:right;border:1.5px solid #cfd4d8;background:#fff;border-radius:11px;padding:11px 13px;font:inherit;font-weight:750;color:#303942;cursor:pointer;transition:.15s}
+.quizopt:hover{border-color:#e5ad32;background:#fffaf0}
+.quizopt.correct{border-color:#6f9b6d;background:#edf6ec;color:#315c31}
+.quizopt.wrong{border-color:#b96c68;background:#faeeee;color:#7a3330}
+.quizopt:disabled{cursor:default}
+.quizfeedback{min-height:30px;margin-top:12px;font-weight:850;text-align:center}
+.quiznext{display:block;margin:12px auto 0}
+.quizresult{text-align:center;padding:22px 10px}
+.quizresult strong{display:block;font-size:2rem;color:#36414d;margin:6px 0}
+@media(max-width:600px){.quizcard{padding:14px}.quizword{font-size:1.4rem}}
+
+
+/* Sentence ordering game */
+.sentencewrap{max-width:760px;margin:0 auto}
+.sentcard{background:#f7f8f9;border:1px solid #d1d6da;border-radius:16px;padding:17px}
+.arabicprompt{text-align:center;font-size:1.08rem;font-weight:850;color:#303942;margin:5px auto 16px;max-width:650px}
+.slots{direction:ltr;display:flex;flex-wrap:wrap;gap:7px;justify-content:center;min-height:48px;padding:9px;border:1px dashed #bfc5ca;border-radius:12px;background:#eceff1}
+.slot{min-width:62px;min-height:35px;padding:6px 9px;border-radius:8px;border:1.5px solid #c5cbd0;background:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;color:#35404b;cursor:pointer}
+.slot.empty{background:#e3e6e8;color:transparent}
+.wordbank{direction:ltr;display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:15px}
+.wordtile{border:1.5px solid #c7cdd2;background:#fff;border-radius:9px;padding:7px 10px;font:inherit;font-weight:800;color:#35404b;cursor:pointer}
+.wordtile:hover{border-color:#e3aa2e;background:#fff9eb}
+.wordtile.used{visibility:hidden}
+.sentfeedback{text-align:center;min-height:30px;margin-top:12px;font-weight:900}
+.sentactions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:8px}
+.solution{direction:ltr;text-align:center;margin-top:10px;padding:9px;border-radius:9px;background:#fff0bd;color:#604b17;font-weight:800}
+@media(max-width:600px){.slot{min-width:50px;padding:5px 7px;font-size:.84rem}.wordtile{font-size:.84rem;padding:6px 8px}}
+
+
+.vocabquick{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:-2px 0 10px}
+.quickbtn{border:1.5px solid var(--line);background:#f6f7f8;color:var(--dark);padding:6px 11px;border-radius:20px;font:inherit;font-size:.78rem;font-weight:800;cursor:pointer}
+.quickbtn.active{background:#fff0bd;border-color:#e2ae38;color:#66500f}
+.statusbadge{display:inline-flex;margin-inline-start:6px;border-radius:7px;padding:2px 7px;font-size:.68rem;font-weight:850}
+.status-new{background:#e8f2e8;color:#3e6c43;border:1px solid #bdd3bf}
+.status-repeat{background:#fff0bd;color:#70530d;border:1px solid #e3be5c}
+.flashheading{text-align:center;font-size:.94rem;font-weight:900;color:var(--dark);margin-bottom:9px}
+
+</style>
+
+
+</head>
+<body>
+<div class="app">
+  <section class="hero">
+    <div class="kicker">Deutsch · صفحة 13</div>
+    <h1>مفردات الصفحة 13</h1>
+    <p>مفردات B1 وB2 مع أمثلة وترجمة وبطاقات فلاش قابلة للتقليب اليدوي والتلقائي.</p>
+    <div class="stats">
+      <span class="pill" id="statAll"></span>
+      <span class="pill" id="statB1"></span>
+      <span class="pill" id="statB2"></span>
+      <span class="pill">انقر على البطاقة لقلبها يدويًا</span>
+    </div>
+  </section>
+
+  <nav class="navtabs">
+    <button class="tabbtn active" data-tab="all">كامل المفردات</button>
+    <button class="tabbtn" data-tab="b1new">B1 جديد</button>
+    <button class="tabbtn" data-tab="b1rep">B1 مكرر</button>
+    <button class="tabbtn" data-tab="b2new">B2 جديد</button>
+    <button class="tabbtn" data-tab="b2rep">B2 مكرر</button>
+    <button class="tabbtn" data-tab="quiz">📝 اختبار المفردات</button>
+    <button class="tabbtn" data-tab="sentence">🧩 رتّب الجملة</button>
+  </nav>
+
+  <section id="all" class="section active">
+    <div class="cardpanel">
+      <div class="toolbar">
+        <input id="search" class="input" placeholder="ابحث بالألمانية أو العربية...">
+        <select id="levelFilter" class="select">
+          <option value="">كل المفردات</option>
+          <option value="B1-new">B1 · جديد</option>
+          <option value="B1-repeat">B1 · مكرر</option>
+          <option value="B2-new">B2 · جديد</option>
+          <option value="B2-repeat">B2 · مكرر</option>
+        </select>
+        <select id="typeFilter" class="select">
+          <option value="">كل الأنواع</option>
+          <option value="اسم">أسماء</option>
+          <option value="فعل">أفعال</option>
+          <option value="صفة">صفات</option>
+          <option value="تركيب">تراكيب</option>
+        </select>
+      </div>
+      <div class="vocabquick" id="vocabQuick">
+        <button class="quickbtn active" data-filter="">الكل</button>
+        <button class="quickbtn" data-filter="B1-new">B1 جديد</button>
+        <button class="quickbtn" data-filter="B1-repeat">B1 مكرر</button>
+        <button class="quickbtn" data-filter="B2-new">B2 جديد</button>
+        <button class="quickbtn" data-filter="B2-repeat">B2 مكرر</button>
+      </div>
+      <div class="legend">الجديد = لم يظهر في الصفحات السابقة · المكرر = سبق وروده في صفحة 11 أو 12.</div>
+      <div id="vocabList" class="list" style="margin-top:14px"></div>
+    </div>
+  </section>
+
+  <section id="b1new" class="section"><div class="cardpanel flashwrap" id="b1NewMount"></div></section>
+  <section id="b1rep" class="section"><div class="cardpanel flashwrap" id="b1RepMount"></div></section>
+  <section id="b2new" class="section"><div class="cardpanel flashwrap" id="b2NewMount"></div></section>
+  <section id="b2rep" class="section"><div class="cardpanel flashwrap" id="b2RepMount"></div></section>
+
+  <section id="quiz" class="section">
+    <div class="cardpanel quizwrap">
+      <div class="quiztop">
+        <div>
+          <div class="quiztitle">اختبار معاني الكلمات</div>
+          <div class="quizsub">اختر المستوى ثم اختبر نفسك. في كل مرة يتغيّر ترتيب الأسئلة والخيارات.</div>
+        </div>
+        <select id="quizLevel" class="select">
+          <option value="">B1 + B2</option>
+          <option value="B1">B1 فقط</option>
+          <option value="B2">B2 فقط</option>
+        </select>
+      </div>
+      <div class="quizstats">
+        <span class="pill" id="quizCount">السؤال 1</span>
+        <span class="pill" id="quizScore">الصحيح: 0</span>
+      </div>
+      <div id="quizBox"></div>
+    </div>
+  </section>
+
+
+  <section id="sentence" class="section">
+    <div class="cardpanel sentencewrap">
+      <div class="quiztop">
+        <div>
+          <div class="quiztitle">🧩 رتّب الجملة بالألمانية</div>
+          <div class="quizsub">اقرأ الجملة العربية، ثم اضغط الكلمات الألمانية بالترتيب الصحيح.</div>
+        </div>
+        <select id="sentenceLevel" class="select">
+          <option value="">B1 + B2</option>
+          <option value="B1">B1 فقط</option>
+          <option value="B2">B2 فقط</option>
+        </select>
+      </div>
+      <div class="quizstats">
+        <span class="pill" id="sentenceCount">الجملة 1</span>
+        <span class="pill" id="sentenceScore">من أول محاولة: 0</span>
+      </div>
+      <div id="sentenceBox"></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const DATA = [{"level": "B1", "de": "im Internet einen Job finden", "type": "تركيب", "ar": "يجد وظيفة عبر الإنترنت", "ex": "Yuan Javier möchte im Internet einen Job finden.", "ex_ar": "يريد يوان خافيير إيجاد وظيفة عبر الإنترنت.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er findet im Internet einen Job", "perfekt": "er hat im Internet einen Job gefunden"}, {"level": "B2", "de": "sich in der Gastronomie selbstständig machen", "type": "تركيب", "ar": "يبدأ عملًا مستقلًا في قطاع المطاعم والضيافة", "ex": "Paul will sich in der Gastronomie selbstständig machen.", "ex_ar": "يريد باول بدء عمل مستقل في قطاع المطاعم والضيافة.", "repeat": "↻ مكررة من صفحة 12 (و selbstständig وردت في صفحة 11)", "praesens": "er macht sich in der Gastronomie selbstständig", "perfekt": "er hat sich in der Gastronomie selbstständig gemacht"}, {"level": "B1", "de": "unsicher sein, ob ...", "type": "تركيب", "ar": "يكون غير متأكد مما إذا...", "ex": "Avio ist unsicher, ob er seinen kranken Sohn mit ins Büro nehmen darf.", "ex_ar": "أفيو غير متأكد مما إذا كان مسموحًا له اصطحاب ابنه المريض إلى المكتب.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er ist unsicher, ob ...", "perfekt": "er ist unsicher gewesen, ob ..."}, {"level": "B2", "de": "die Jobchancen", "type": "اسم", "ar": "فرص الحصول على عمل", "ex": "Nora interessiert sich für Jobchancen als Reiseverkehrskauffrau.", "ex_ar": "تهتم نورا بفرص العمل كموظفة في مجال السفر.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "der Reiseverkehrskaufmann / die Reiseverkehrskauffrau", "type": "اسم", "ar": "موظف/موظفة خدمات وحجوزات السفر", "ex": "Nora interessiert sich für Jobchancen als Reiseverkehrskauffrau.", "ex_ar": "تهتم نورا بفرص العمل كموظفة في مجال السفر.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "das Vorstellungsgespräch", "type": "اسم", "ar": "مقابلة العمل", "ex": "Anna Maria überlegt, ob sie im Vorstellungsgespräch ihre Schwangerschaft erwähnen muss.", "ex_ar": "تفكر آنا ماريا فيما إذا كان عليها ذكر حملها في مقابلة العمل.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "die Schwangerschaft", "type": "اسم", "ar": "الحمل", "ex": "Sie fragt sich, ob sie ihre Schwangerschaft erwähnen muss.", "ex_ar": "تتساءل إن كان عليها ذكر حملها.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "etwas erwähnen", "type": "فعل", "ar": "يذكر شيئًا", "ex": "Muss sie ihre Schwangerschaft im Gespräch erwähnen?", "ex_ar": "هل يجب عليها ذكر حملها في المقابلة؟", "repeat": "↻ مكررة من صفحة 12", "praesens": "er erwähnt etwas", "perfekt": "er hat etwas erwähnt"}, {"level": "B2", "de": "Familienmitglieder betreuen", "type": "تركيب", "ar": "يرعى أفراد الأسرة", "ex": "Manchmal müssen Beschäftigte Familienmitglieder betreuen.", "ex_ar": "يضطر الموظفون أحيانًا إلى رعاية أفراد الأسرة.", "praesens": "er betreut Familienmitglieder", "perfekt": "er hat Familienmitglieder betreut"}, {"level": "B2", "de": "der Rechtsanspruch", "type": "اسم", "ar": "حق قانوني قابل للمطالبة", "ex": "Eltern haben einen Rechtsanspruch darauf, ihre kranken Kinder zu pflegen.", "ex_ar": "للوالدين حق قانوني في رعاية أطفالهم المرضى.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "einen Rechtsanspruch auf etwas haben", "type": "تركيب", "ar": "يكون له حق قانوني في شيء", "ex": "Eltern haben einen Rechtsanspruch auf bestimmte freie Tage.", "ex_ar": "للوالدين حق قانوني في أيام إجازة معينة.", "repeat": "↻ مرتبط بمفردة der Rechtsanspruch من صفحة 12", "praesens": "er hat einen Rechtsanspruch auf etwas", "perfekt": "er hat einen Rechtsanspruch auf etwas gehabt"}, {"level": "B1", "de": "ein krankes Kind pflegen", "type": "تركيب", "ar": "يعتني بطفل مريض", "ex": "Eltern dürfen ihre kranken Kinder pflegen.", "ex_ar": "يُسمح للوالدين برعاية أطفالهم المرضى.", "praesens": "er pflegt ein krankes Kind", "perfekt": "er hat ein krankes Kind gepflegt"}, {"level": "B2", "de": "eine bestimmte Anzahl an Tagen", "type": "تركيب اسمي", "ar": "عدد محدد من الأيام", "ex": "Eltern haben eine bestimmte Anzahl an Tagen zur Verfügung.", "ex_ar": "يتوفر للوالدين عدد محدد من الأيام."}, {"level": "B2", "de": "zur Verfügung haben", "type": "تركيب", "ar": "يكون متاحًا لديه / تحت تصرفه", "ex": "Sie haben mehrere freie Tage zur Verfügung.", "ex_ar": "لديهم عدة أيام إجازة متاحة.", "praesens": "er hat etwas zur Verfügung", "perfekt": "er hat etwas zur Verfügung gehabt"}, {"level": "B1", "de": "freinehmen", "type": "فعل منفصل", "ar": "يأخذ إجازة من العمل", "ex": "Bei einem kranken Kind können Eltern freinehmen.", "ex_ar": "يمكن للوالدين أخذ إجازة عندما يكون الطفل مريضًا.", "praesens": "er nimmt frei", "perfekt": "er hat freigenommen"}, {"level": "B1", "de": "zu Hause bleiben", "type": "تركيب", "ar": "يبقى في المنزل", "ex": "Kranke Personen müssen zu Hause bleiben.", "ex_ar": "يجب على الأشخاص المرضى البقاء في المنزل.", "repeat": "↻ zu Hause وردت في صفحة 11", "praesens": "er bleibt zu Hause", "perfekt": "er ist zu Hause geblieben"}, {"level": "B2", "de": "sich unter Wert verkaufen", "type": "تركيب", "ar": "يقلّل من قيمة نفسه / قدراته", "ex": "Frauen verkaufen sich im Berufsleben oft unter Wert.", "ex_ar": "تقلل النساء غالبًا من قيمة أنفسهن في الحياة المهنية.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er verkauft sich unter Wert", "perfekt": "er hat sich unter Wert verkauft"}, {"level": "B1", "de": "über seine Rechte informiert sein", "type": "تركيب", "ar": "يكون مطلعًا على حقوقه", "ex": "Man sollte über seine Rechte im Berufsleben informiert sein.", "ex_ar": "ينبغي أن يكون المرء مطلعًا على حقوقه في الحياة المهنية.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er ist über seine Rechte informiert", "perfekt": "er ist über seine Rechte informiert gewesen"}, {"level": "B2", "de": "das Arbeitsrecht", "type": "اسم", "ar": "قانون العمل", "ex": "Eine Expertin für Arbeitsrecht gibt berufliche Tipps.", "ex_ar": "تقدم خبيرة في قانون العمل نصائح مهنية.", "repeat": "↻ مكررة من صفحة 11"}, {"level": "B2", "de": "die Gehaltsverhandlung", "type": "اسم", "ar": "التفاوض على الراتب", "ex": "Die Expertin gibt Tipps für Gehaltsverhandlungen.", "ex_ar": "تقدم الخبيرة نصائح لمفاوضات الراتب.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "ein selbstbewusstes Auftreten", "type": "تركيب اسمي", "ar": "حضور واثق بالنفس", "ex": "Ein selbstbewusstes Auftreten ist im Beruf wichtig.", "ex_ar": "الحضور الواثق بالنفس مهم في العمل.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "das Bewerbungsgespräch", "type": "اسم", "ar": "مقابلة التوظيف", "ex": "Nicht jede Information muss man im Bewerbungsgespräch erzählen.", "ex_ar": "ليس من الضروري ذكر كل معلومة في مقابلة التوظيف.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "der Aufwand", "type": "اسم", "ar": "الجهد / الوقت والتكلفة المبذولة", "ex": "Der Aufwand für Stellenanzeigen soll sich lohnen.", "ex_ar": "ينبغي أن يكون الجهد المبذول لإعلانات الوظائف مجديًا.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "sich lohnen", "type": "فعل انعكاسي", "ar": "يكون مجديًا / يستحق", "ex": "Damit sich der Aufwand lohnt, muss das richtige Portal gewählt werden.", "ex_ar": "حتى يكون الجهد مجديًا، يجب اختيار البوابة المناسبة.", "repeat": "↻ مكررة من صفحة 11 و12", "praesens": "es lohnt sich", "perfekt": "es hat sich gelohnt"}, {"level": "B2", "de": "ein Stellenangebot online schalten", "type": "تركيب", "ar": "ينشر إعلان وظيفة على الإنترنت", "ex": "Stellenangebote online zu schalten kann kostspielig werden.", "ex_ar": "قد يصبح نشر عروض العمل على الإنترنت مكلفًا.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er schaltet ein Stellenangebot online", "perfekt": "er hat ein Stellenangebot online geschaltet"}, {"level": "B2", "de": "kostspielig", "type": "صفة", "ar": "مكلف", "ex": "Mehrere Anzeigen können für ein Unternehmen kostspielig sein.", "ex_ar": "قد تكون عدة إعلانات مكلفة للشركة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "das Stellenportal", "type": "اسم", "ar": "بوابة الوظائف الإلكترونية", "ex": "Für den Erfolg muss das richtige Stellenportal gewählt werden.", "ex_ar": "لتحقيق النجاح يجب اختيار بوابة الوظائف المناسبة."}, {"level": "B2", "de": "neu gegründet", "type": "صفة/تركيب", "ar": "مؤسس حديثًا", "ex": "Neu gegründete Unternehmen müssen auf ihre Kosten achten.", "ex_ar": "يجب على الشركات المؤسسة حديثًا الانتباه إلى تكاليفها."}, {"level": "B2", "de": "sich etwas finanziell leisten können", "type": "تركيب", "ar": "يستطيع تحمل تكلفة شيء ماليًا", "ex": "Das Unternehmen kann sich mehrere Anzeigen finanziell nicht leisten.", "ex_ar": "لا تستطيع الشركة تحمل تكلفة عدة إعلانات ماليًا.", "praesens": "er kann sich etwas finanziell leisten", "perfekt": "er hat sich etwas finanziell leisten können"}, {"level": "B2", "de": "der Bundesverband", "type": "اسم", "ar": "الاتحاد الاتحادي / الرابطة الاتحادية", "ex": "Der Bundesverband informiert über die Tourismusbranche.", "ex_ar": "يقدم الاتحاد معلومات عن قطاع السياحة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Tourismusbranche", "type": "اسم", "ar": "قطاع السياحة", "ex": "In der Tourismusbranche ist die Nachfrage groß.", "ex_ar": "الطلب كبير في قطاع السياحة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "anhaltend", "type": "صفة/حال", "ar": "مستمر / متواصل", "ex": "Die Nachfrage ist anhaltend groß.", "ex_ar": "الطلب كبير بشكل مستمر.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Nachfrage", "type": "اسم", "ar": "الطلب", "ex": "Die Nachfrage von Seiten der Arbeitgeber ist groß.", "ex_ar": "الطلب من جانب أصحاب العمل كبير.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "rückläufig sein", "type": "تركيب", "ar": "يكون في تراجع / انخفاض", "ex": "Die Zahl der Bewerbungen ist rückläufig.", "ex_ar": "عدد طلبات التقديم آخذ في التراجع.", "repeat": "↻ مكررة من صفحة 12", "praesens": "die Zahl ist rückläufig", "perfekt": "die Zahl ist rückläufig gewesen"}, {"level": "B2", "de": "der Ausbildungsmarkt", "type": "اسم", "ar": "سوق التدريب المهني", "ex": "Auf dem Ausbildungsmarkt fehlen junge Menschen.", "ex_ar": "يوجد نقص في الشباب في سوق التدريب المهني.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "es fehlt an + Dativ", "type": "تركيب", "ar": "يوجد نقص في...", "ex": "Auf dem Ausbildungsmarkt fehlt es an jungen Menschen.", "ex_ar": "يوجد نقص في الشباب في سوق التدريب المهني.", "repeat": "↻ مكررة من صفحة 12", "praesens": "es fehlt an + Dativ", "perfekt": "es hat an + Dativ gefehlt"}, {"level": "B2", "de": "demzufolge", "type": "رابط/حال", "ar": "وبناءً على ذلك / نتيجة لذلك", "ex": "Es gibt wenige Bewerber; demzufolge gibt es offene Stellen.", "ex_ar": "يوجد عدد قليل من المتقدمين؛ ونتيجة لذلك توجد وظائف شاغرة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "die offene Stelle", "type": "تركيب اسمي", "ar": "الوظيفة الشاغرة", "ex": "Aktuell gibt es eine Reihe offener Stellen.", "ex_ar": "توجد حاليًا مجموعة من الوظائف الشاغرة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "eine Reihe von", "type": "تركيب", "ar": "مجموعة / عدد من", "ex": "Es gibt eine Reihe von offenen Stellen.", "ex_ar": "توجد مجموعة من الوظائف الشاغرة."}, {"level": "B2", "de": "der Mutterschutz", "type": "اسم", "ar": "حماية الأمومة", "ex": "Für Schwangere gelten besondere Regeln zum Mutterschutz.", "ex_ar": "تسري قواعد خاصة لحماية الأمومة على الحوامل.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "das Mutterschutzgesetz", "type": "اسم", "ar": "قانون حماية الأمومة", "ex": "Das Mutterschutzgesetz schützt schwangere Arbeitnehmerinnen.", "ex_ar": "يحمي قانون حماية الأمومة الموظفات الحوامل.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "die Geburt", "type": "اسم", "ar": "الولادة", "ex": "Der Schutz gilt bis zu vier Monate nach der Geburt.", "ex_ar": "تستمر الحماية حتى أربعة أشهر بعد الولادة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Voraussetzung", "type": "اسم", "ar": "الشرط المسبق", "ex": "Eine Voraussetzung ist, dass der Arbeitgeber davon wusste.", "ex_ar": "أحد الشروط أن يكون صاحب العمل على علم بذلك.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "zum Zeitpunkt der Kündigung", "type": "تركيب", "ar": "وقت إنهاء عقد العمل", "ex": "Der Arbeitgeber wusste zum Zeitpunkt der Kündigung von der Schwangerschaft.", "ex_ar": "كان صاحب العمل يعلم بالحمل وقت إنهاء العقد.", "repeat": "↻ مكررة من صفحة 12، و Kündigung وردت في صفحة 11"}, {"level": "B2", "de": "einer Bitte zustimmen", "type": "تركيب", "ar": "يوافق على طلب", "ex": "Viele Arbeitgeber stimmen der Bitte der Eltern zu.", "ex_ar": "يوافق كثير من أصحاب العمل على طلب الوالدين.", "praesens": "er stimmt einer Bitte zu", "perfekt": "er hat einer Bitte zugestimmt"}, {"level": "B2", "de": "die Betreuung fällt aus", "type": "تركيب", "ar": "تتعطل / تُلغى الرعاية", "ex": "Die Betreuung des Kindes fällt kurzfristig aus.", "ex_ar": "تتعطل رعاية الطفل بشكل مفاجئ وقصير الأجل.", "praesens": "die Betreuung fällt aus", "perfekt": "die Betreuung ist ausgefallen"}, {"level": "B2", "de": "kurzfristig", "type": "صفة/حال", "ar": "في وقت قصير / بشكل مفاجئ", "ex": "Die Betreuung fällt kurzfristig aus.", "ex_ar": "تتعطل الرعاية في وقت قصير."}, {"level": "B2", "de": "die Fehlzeit", "type": "اسم", "ar": "فترة الغياب عن العمل", "ex": "Durch die Lösung können Fehlzeiten vermieden werden.", "ex_ar": "يمكن تجنب فترات الغياب عن العمل بهذا الحل."}, {"level": "B2", "de": "Fehlzeiten vermeiden", "type": "تركيب", "ar": "يتجنب فترات الغياب", "ex": "Flexible Lösungen können Fehlzeiten vermeiden.", "ex_ar": "يمكن للحلول المرنة تجنب فترات الغياب.", "praesens": "er vermeidet Fehlzeiten", "perfekt": "er hat Fehlzeiten vermieden"}, {"level": "B2", "de": "die Sicherheit gefährden", "type": "تركيب", "ar": "يعرّض السلامة للخطر", "ex": "Der Arbeitsplatz darf die Sicherheit des Kindes nicht gefährden.", "ex_ar": "يجب ألا يعرّض مكان العمل سلامة الطفل للخطر.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er gefährdet die Sicherheit", "perfekt": "er hat die Sicherheit gefährdet"}, {"level": "B2", "de": "der angehende Gründer", "type": "تركيب اسمي", "ar": "رائد الأعمال المقبل على تأسيس مشروع", "ex": "Ein angehender Gründer braucht Branchenkenntnisse.", "ex_ar": "يحتاج رائد الأعمال المقبل على التأسيس إلى معرفة بالقطاع.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Branchenkenntnisse", "type": "اسم", "ar": "المعرفة بالقطاع", "ex": "Branchenkenntnisse sind für Gründer wichtig.", "ex_ar": "المعرفة بالقطاع مهمة لمؤسسي المشاريع.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "betriebswirtschaftliche Vorgänge", "type": "تركيب اسمي", "ar": "العمليات المتعلقة بإدارة واقتصاد المنشأة", "ex": "Gründer müssen betriebswirtschaftliche Vorgänge verstehen.", "ex_ar": "يجب على مؤسسي المشاريع فهم العمليات الاقتصادية والإدارية للمنشأة.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "der Businessplan", "type": "اسم", "ar": "خطة العمل", "ex": "Ein guter Businessplan ist für die Gründung wichtig.", "ex_ar": "خطة العمل الجيدة مهمة لتأسيس المشروع.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Finanzierung", "type": "اسم", "ar": "التمويل", "ex": "Die richtige Finanzierung muss geplant werden.", "ex_ar": "يجب التخطيط للتمويل المناسب.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Personalplanung", "type": "اسم", "ar": "تخطيط الموارد البشرية", "ex": "Eine vernünftige Personalplanung gehört zur Gründung.", "ex_ar": "يُعد التخطيط المناسب للموظفين جزءًا من تأسيس المشروع.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "die Einholung der notwendigen Lizenzen", "type": "تركيب اسمي", "ar": "الحصول على التراخيص الضرورية", "ex": "Auch die Einholung der notwendigen Lizenzen gehört zur Gründung.", "ex_ar": "يشمل تأسيس المشروع أيضًا الحصول على التراخيص الضرورية.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "auf jemanden zukommen", "type": "تركيب", "ar": "يكون بانتظار شخص / يواجهه لاحقًا", "ex": "Bei einer Gründung kommen viele Aufgaben auf einen zu.", "ex_ar": "عند تأسيس مشروع تنتظر الشخص مهام كثيرة.", "repeat": "↻ مكررة من صفحة 12", "praesens": "etwas kommt auf ihn zu", "perfekt": "etwas ist auf ihn zugekommen"}, {"level": "B2", "de": "der Stellenmarkt", "type": "اسم", "ar": "سوق الوظائف", "ex": "Der Stellenmarkt spielt sich heute fast ausschließlich online ab.", "ex_ar": "يجري سوق الوظائف اليوم تقريبًا بالكامل عبر الإنترنت."}, {"level": "B2", "de": "sich online abspielen", "type": "فعل/تركيب", "ar": "يجري / يحدث عبر الإنترنت", "ex": "Der Stellenmarkt spielt sich fast ausschließlich online ab.", "ex_ar": "يجري سوق الوظائف تقريبًا بالكامل عبر الإنترنت.", "praesens": "es spielt sich online ab", "perfekt": "es hat sich online abgespielt"}, {"level": "B2", "de": "fast ausschließlich", "type": "حال", "ar": "تقريبًا حصريًا / بشكل شبه كامل", "ex": "Die Jobsuche findet fast ausschließlich online statt.", "ex_ar": "يتم البحث عن الوظائف بشكل شبه كامل عبر الإنترنت."}, {"level": "B2", "de": "der Erfolg bleibt aus", "type": "تركيب", "ar": "لا يتحقق النجاح / لا تظهر النتيجة المرجوة", "ex": "Trotz des großen Angebots bleibt der Erfolg oft aus.", "ex_ar": "رغم كثرة العروض لا تتحقق النتيجة المرجوة غالبًا.", "repeat": "↻ مكررة من صفحة 12", "praesens": "der Erfolg bleibt aus", "perfekt": "der Erfolg ist ausgeblieben"}, {"level": "B2", "de": "eine der wichtigsten Voraussetzungen", "type": "تركيب", "ar": "أحد أهم الشروط", "ex": "Die richtige Suche ist eine der wichtigsten Voraussetzungen.", "ex_ar": "البحث الصحيح أحد أهم الشروط.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B2", "de": "Jobangebote filtern", "type": "تركيب", "ar": "يفلتر / ينتقي عروض العمل", "ex": "Man muss Jobangebote richtig filtern.", "ex_ar": "يجب فلترة عروض العمل بشكل صحيح.", "repeat": "↻ مكررة من صفحة 12", "praesens": "er filtert Jobangebote", "perfekt": "er hat Jobangebote gefiltert"}, {"level": "B2", "de": "ohne großen Zeitaufwand", "type": "تركيب", "ar": "دون استهلاك وقت كبير", "ex": "So findet man ohne großen Zeitaufwand die richtige Anzeige.", "ex_ar": "بهذه الطريقة يجد المرء الإعلان المناسب دون استهلاك وقت كبير.", "repeat": "↻ مكررة من صفحة 12"}, {"level": "B1", "de": "die Anzeige", "type": "اسم", "ar": "الإعلان", "ex": "Man möchte die richtige Anzeige schnell finden.", "ex_ar": "يريد المرء العثور على الإعلان المناسب بسرعة.", "repeat": "↻ مكررة من صفحة 12"}];
+const ALL = DATA.map((x,i)=>({...x, order:i+1}));
+const B1 = ALL.filter(x=>x.level==="B1");
+const B2 = ALL.filter(x=>x.level==="B2");
+const B1_NEW = B1.filter(x=>!x.repeat);
+const B1_REPEAT = B1.filter(x=>!!x.repeat);
+const B2_NEW = B2.filter(x=>!x.repeat);
+const B2_REPEAT = B2.filter(x=>!!x.repeat);
+
+document.getElementById("statAll").textContent = `المجموع: ${ALL.length}`;
+document.getElementById("statB1").textContent = `B1: ${B1.length}`;
+document.getElementById("statB2").textContent = `B2: ${B2.length}`;
+
+document.querySelectorAll(".tabbtn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.querySelectorAll(".tabbtn,.section").forEach(x=>x.classList.remove("active"));
+    btn.classList.add("active");
+    document.getElementById(btn.dataset.tab).classList.add("active");
+  });
+});
+
+function renderVocab(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const lf=document.getElementById("levelFilter").value;
+  const tf=document.getElementById("typeFilter").value;
+  const rows=ALL.filter(x=>{
+    const hay=(x.de+" "+x.ar+" "+x.ex+" "+x.ex_ar).toLowerCase();
+    let levelOK=true;
+    if(lf==="B1-new") levelOK=x.level==="B1" && !x.repeat;
+    else if(lf==="B1-repeat") levelOK=x.level==="B1" && !!x.repeat;
+    else if(lf==="B2-new") levelOK=x.level==="B2" && !x.repeat;
+    else if(lf==="B2-repeat") levelOK=x.level==="B2" && !!x.repeat;
+    const typeOK=!tf || x.type.includes(tf);
+    return (!q || hay.includes(q)) && levelOK && typeOK;
+  });
+  document.getElementById("vocabList").innerHTML = rows.length ? rows.map(x=>`
+    <article class="wordcard">
+      <div class="badge ${x.level.toLowerCase()}">${x.level} · ${x.type}</div>
+      <span class="statusbadge ${x.repeat ? "status-repeat":"status-new"}">${x.repeat ? "مكرر":"جديد"}</span>
+      <div class="de">${x.de}</div>
+      <div class="ar">${x.ar}</div>
+      ${x.repeat ? `<div class="repeatnote">${x.repeat}</div>` : ""}
+      ${x.praesens ? `<div class="verbforms"><b>Präsens:</b> ${x.praesens}<br><b>Perfekt:</b> ${x.perfekt}</div>` : ""}
+      <div class="ex">${x.ex}</div>
+      <div class="exar">${x.ex_ar}</div>
+    </article>`).join("") : `<div class="empty">لا توجد نتائج مطابقة.</div>`;
+}
+["search","levelFilter","typeFilter"].forEach(id=>document.getElementById(id).addEventListener("input",renderVocab));
+document.querySelectorAll("#vocabQuick .quickbtn").forEach(btn=>{
+  btn.addEventListener("click",()=>{
+    document.getElementById("levelFilter").value=btn.dataset.filter;
+    document.querySelectorAll("#vocabQuick .quickbtn").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    renderVocab();
+  });
+});
+document.getElementById("levelFilter").addEventListener("change",()=>{
+  const v=document.getElementById("levelFilter").value;
+  document.querySelectorAll("#vocabQuick .quickbtn").forEach(b=>b.classList.toggle("active",b.dataset.filter===v));
+});
+renderVocab();
+
+function flashTemplate(level,title){
+  return `
+  <div class="flashheading">${title}</div>
+  <div class="controls">
+    <label class="label">مدة الألماني (ثوانٍ)<input class="num frontSec" type="number" min="1" max="120" value="6"></label>
+    <label class="label">مدة العربي (ثوانٍ)<input class="num backSec" type="number" min="1" max="120" value="4"></label>
+    <button class="btn primary autoBtn">▶ تشغيل تلقائي</button>
+    <button class="btn secondary stopBtn">⏸ إيقاف</button>
+  </div>
+  <div class="progressbox"><div class="progressbar"></div></div>
+  <div class="stage">
+    <div class="flash">
+      <div class="face front">
+        <div class="badge ${level.toLowerCase()} leveltag">${level}</div>
+        <div class="wordbig fword"></div>
+        <div class="flash-extra fextra"></div>
+        <div class="sentence fex"></div>
+        <div class="flipnote">اضغطي لقلب البطاقة</div>
+      </div>
+      <div class="face back">
+        <div class="badge ${level.toLowerCase()} leveltag">${level}</div>
+        <div class="wordbig bword"></div>
+        <div class="flash-extra bextra"></div>
+        <div class="sentence bex"></div>
+        <div class="flipnote">المعنى + ترجمة المثال</div>
+      </div>
+    </div>
+  </div>
+  <div class="navrow">
+    <button class="btn secondary prevBtn">‹</button>
+    <div class="counter"></div>
+    <button class="btn primary nextBtn">›</button>
+  </div>
+  <div class="smalltip">الوضع التلقائي: ألماني ← عربي ← البطاقة التالية. يمكن ضبط زمن كل وجه بشكل مستقل.</div>`;
+}
+
+function setupFlash(mountId, deck, level, title){
+  const mount=document.getElementById(mountId);
+  if(!deck.length){
+    mount.innerHTML=`<div class="empty">لا توجد بطاقات في قسم ${title}.</div>`;
+    return;
+  }
+  mount.innerHTML=flashTemplate(level,title);
+  let idx=0, auto=false, timeout=null, ticker=null, started=0, duration=1;
+  const $=s=>mount.querySelector(s), card=$(".flash"), bar=$(".progressbar");
+
+  function render(){
+    const x=deck[idx];
+    $(".fword").textContent=x.de; $(".fex").textContent=x.ex_ar;
+    $(".bword").textContent=x.ar; $(".bex").textContent=x.ex;
+    const extra=(x.repeat ? `<div class="flash-repeat">${x.repeat}</div>` : "") +
+      (x.praesens ? `<div class="flash-forms"><b>Präsens:</b> ${x.praesens}<br><b>Perfekt:</b> ${x.perfekt}</div>` : "");
+    $(".fextra").innerHTML=extra; $(".bextra").innerHTML=extra;
+    $(".counter").textContent=`${idx+1} / ${deck.length}`;
+    card.classList.remove("flipped");
+  }
+  function stop(){
+    auto=false; clearTimeout(timeout); clearInterval(ticker);
+    bar.style.width="0%"; $(".autoBtn").textContent="▶ تشغيل تلقائي";
+  }
+  function progress(ms){
+    clearInterval(ticker); started=Date.now(); duration=ms; bar.style.width="0%";
+    ticker=setInterval(()=>{
+      let p=Math.min(100,(Date.now()-started)/duration*100);
+      bar.style.width=p+"%";
+      if(p>=100) clearInterval(ticker);
+    },80);
+  }
+  function frontPhase(){
+    if(!auto)return;
+    card.classList.remove("flipped");
+    const ms=Math.max(1,parseFloat($(".frontSec").value)||6)*1000;
+    progress(ms); timeout=setTimeout(backPhase,ms);
+  }
+  function backPhase(){
+    if(!auto)return;
+    card.classList.add("flipped");
+    const ms=Math.max(1,parseFloat($(".backSec").value)||4)*1000;
+    progress(ms); timeout=setTimeout(()=>{idx=(idx+1)%deck.length;render();frontPhase();},ms);
+  }
+  $(".autoBtn").onclick=()=>{stop();auto=true;$(".autoBtn").textContent="● يعمل الآن";frontPhase();};
+  $(".stopBtn").onclick=stop;
+  $(".prevBtn").onclick=()=>{stop();idx=(idx-1+deck.length)%deck.length;render();};
+  $(".nextBtn").onclick=()=>{stop();idx=(idx+1)%deck.length;render();};
+  card.onclick=()=>{if(auto)stop();card.classList.toggle("flipped");};
+  render();
+}
+setupFlash("b1NewMount",B1_NEW,"B1","B1 · مفردات جديدة");
+setupFlash("b1RepMount",B1_REPEAT,"B1","B1 · مفردات مكررة");
+setupFlash("b2NewMount",B2_NEW,"B2","B2 · مفردات جديدة");
+setupFlash("b2RepMount",B2_REPEAT,"B2","B2 · مفردات مكررة");
+
+function shuffleQuiz(a){
+  const arr=a.slice();
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [arr[i],arr[j]]=[arr[j],arr[i]];
+  }
+  return arr;
+}
+let quizDeck=[], quizIndex=0, quizCorrect=0, quizAnswered=false;
+
+function startQuiz(){
+  const level=document.getElementById("quizLevel").value;
+  const pool=level ? ALL.filter(x=>x.level===level) : ALL.slice();
+  quizDeck=shuffleQuiz(pool);
+  quizIndex=0; quizCorrect=0; quizAnswered=false;
+  renderQuiz();
+}
+function renderQuiz(){
+  const box=document.getElementById("quizBox");
+  if(!quizDeck.length){
+    box.innerHTML='<div class="empty">لا توجد كلمات لهذا المستوى.</div>';
+    return;
+  }
+  if(quizIndex>=quizDeck.length){
+    const pct=Math.round((quizCorrect/quizDeck.length)*100);
+    document.getElementById("quizCount").textContent="انتهى الاختبار";
+    document.getElementById("quizScore").textContent=`الصحيح: ${quizCorrect}`;
+    box.innerHTML=`<div class="quizcard quizresult">
+      <div>نتيجتك</div><strong>${quizCorrect} / ${quizDeck.length}</strong>
+      <div>${pct}%</div>
+      <button class="btn primary quiznext" onclick="startQuiz()">↻ إعادة الاختبار</button>
+    </div>`;
+    return;
+  }
+  quizAnswered=false;
+  const x=quizDeck[quizIndex];
+  const others=shuffleQuiz(quizDeck.filter(y=>y!==x && y.ar!==x.ar)).slice(0,3);
+  const opts=shuffleQuiz([x,...others]);
+  document.getElementById("quizCount").textContent=`السؤال ${quizIndex+1} / ${quizDeck.length}`;
+  document.getElementById("quizScore").textContent=`الصحيح: ${quizCorrect}`;
+  box.innerHTML=`<div class="quizcard">
+    <div class="quizlabel">ما معنى هذه الكلمة أو العبارة؟</div>
+    <div class="quizword">${x.de}</div>
+    <div class="quizoptions">${opts.map(o=>`<button class="quizopt" data-correct="${o===x ? "1":"0"}">${o.ar}</button>`).join("")}</div>
+    <div class="quizfeedback"></div>
+    <button class="btn primary quiznext" style="display:none">السؤال التالي ›</button>
+  </div>`;
+  const buttons=box.querySelectorAll(".quizopt");
+  const feedback=box.querySelector(".quizfeedback");
+  const next=box.querySelector(".quiznext");
+  buttons.forEach(btn=>btn.onclick=()=>{
+    if(quizAnswered)return;
+    quizAnswered=true;
+    buttons.forEach(b=>{
+      b.disabled=true;
+      if(b.dataset.correct==="1") b.classList.add("correct");
+    });
+    if(btn.dataset.correct==="1"){
+      quizCorrect++;
+      feedback.textContent="✓ صحيح";
+    }else{
+      btn.classList.add("wrong");
+      feedback.textContent="✕ غير صحيح — الإجابة الصحيحة مبيّنة بالأخضر";
+    }
+    document.getElementById("quizScore").textContent=`الصحيح: ${quizCorrect}`;
+    next.style.display="block";
+  });
+  next.onclick=()=>{quizIndex++;renderQuiz();};
+}
+document.getElementById("quizLevel").addEventListener("change",startQuiz);
+startQuiz();
+
+
+function tokenizeSentence(str){
+  return str.trim().split(/\s+/);
+}
+let sentDeck=[],sentIndex=0,sentFirstCorrect=0,sentHadWrong=false,sentChosen=[];
+
+function startSentenceGame(){
+  const level=document.getElementById("sentenceLevel").value;
+  const pool=(level?ALL.filter(x=>x.level===level):ALL.slice()).filter(x=>x.ex&&x.ex_ar);
+  sentDeck=shuffleQuiz(pool);
+  sentIndex=0;sentFirstCorrect=0;sentHadWrong=false;sentChosen=[];
+  renderSentenceGame();
+}
+function renderSentenceGame(){
+  const box=document.getElementById("sentenceBox");
+  if(sentIndex>=sentDeck.length){
+    document.getElementById("sentenceCount").textContent="انتهى التدريب";
+    document.getElementById("sentenceScore").textContent=`من أول محاولة: ${sentFirstCorrect}`;
+    box.innerHTML=`<div class="sentcard quizresult"><div>النتيجة</div><strong>${sentFirstCorrect} / ${sentDeck.length}</strong><div>جمل صحيحة من أول محاولة</div><button class="btn primary quiznext" onclick="startSentenceGame()">↻ إعادة التدريب</button></div>`;
+    return;
+  }
+  const x=sentDeck[sentIndex], words=tokenizeSentence(x.ex);
+  const tiles=shuffleQuiz(words.map((w,i)=>({w,i})));
+  sentChosen=[];sentHadWrong=false;
+  document.getElementById("sentenceCount").textContent=`الجملة ${sentIndex+1} / ${sentDeck.length}`;
+  document.getElementById("sentenceScore").textContent=`من أول محاولة: ${sentFirstCorrect}`;
+  box.innerHTML=`<div class="sentcard">
+    <div class="quizlabel">رتّب الترجمة الألمانية:</div>
+    <div class="arabicprompt">${x.ex_ar}</div>
+    <div class="slots">${words.map((_,i)=>`<button class="slot empty" data-pos="${i}">&nbsp;</button>`).join("")}</div>
+    <div class="wordbank">${tiles.map(t=>`<button class="wordtile" data-id="${t.i}">${t.w}</button>`).join("")}</div>
+    <div class="sentfeedback"></div>
+    <div class="sentactions">
+      <button class="btn" id="sentReset">↻ مسح</button>
+      <button class="btn" id="sentShow">إظهار الحل</button>
+      <button class="btn primary" id="sentNext" style="display:none">الجملة التالية ›</button>
+    </div>
+    <div class="solution" id="sentSolution" style="display:none">${x.ex}</div>
+  </div>`;
+  const slots=[...box.querySelectorAll(".slot")], bank=[...box.querySelectorAll(".wordtile")];
+  const feedback=box.querySelector(".sentfeedback"), next=box.querySelector("#sentNext");
+
+  function refresh(){
+    slots.forEach((sl,i)=>{
+      if(sentChosen[i]){
+        sl.textContent=sentChosen[i].word;
+        sl.classList.remove("empty");
+      }else{
+        sl.innerHTML="&nbsp;";
+        sl.classList.add("empty");
+      }
+    });
+    bank.forEach(b=>b.classList.toggle("used",sentChosen.some(c=>c&&c.id===b.dataset.id)));
+  }
+  function checkIfFull(){
+    if(sentChosen.filter(Boolean).length!==words.length)return;
+    const made=sentChosen.map(c=>c.word).join(" ");
+    if(made===x.ex){
+      feedback.textContent="✓ Richtig! الجملة صحيحة";
+      if(!sentHadWrong)sentFirstCorrect++;
+      document.getElementById("sentenceScore").textContent=`من أول محاولة: ${sentFirstCorrect}`;
+      next.style.display="inline-block";
+      bank.forEach(b=>b.disabled=true);slots.forEach(sl=>sl.disabled=true);
+    }else{
+      sentHadWrong=true;
+      feedback.textContent="✕ الترتيب غير صحيح — عدّل الكلمات وحاول مرة ثانية";
+    }
+  }
+  bank.forEach(b=>b.onclick=()=>{
+    const pos=sentChosen.findIndex(v=>!v);
+    const target=pos===-1?sentChosen.length:pos;
+    if(target>=words.length)return;
+    sentChosen[target]={word:b.textContent,id:b.dataset.id};
+    refresh();checkIfFull();
+  });
+  slots.forEach((sl,i)=>sl.onclick=()=>{
+    if(!sentChosen[i])return;
+    sentChosen.splice(i,1);
+    sentChosen=sentChosen.filter(Boolean);
+    feedback.textContent="";
+    refresh();
+  });
+  box.querySelector("#sentReset").onclick=()=>{sentChosen=[];feedback.textContent="";refresh();};
+  box.querySelector("#sentShow").onclick=()=>{sentHadWrong=true;box.querySelector("#sentSolution").style.display="block";};
+  next.onclick=()=>{sentIndex++;renderSentenceGame();};
+}
+const sentenceLevelEl=document.getElementById("sentenceLevel");
+if(sentenceLevelEl){
+  sentenceLevelEl.addEventListener("change",startSentenceGame);
+  startSentenceGame();
+}
+
+</script>
+</body>
+</html>
