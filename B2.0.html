@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>برنامج الموديول تيست — 29 يوماً</title>
+<style>
+  :root{
+    --navy:#16233f; --navy2:#1f3157; --red:#a81e28; --red2:#c0392b;
+    --gold:#c9a227; --cream:#faf6ec; --ink:#20293a; --line:#e3d9c2;
+    --lesen:#1f4e79; --schreiben:#7a1f2b; --hoeren:#2a6b3a; --sprechen:#8a5a00;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;background:linear-gradient(160deg,#0f1830,#1f3157);color:var(--ink);padding:16px;line-height:1.7}
+  .wrap{max-width:780px;margin:0 auto}
+  header{background:var(--navy);color:var(--cream);border-radius:16px;padding:20px 22px;text-align:center;border:2px solid var(--gold);box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  header h1{font-size:1.4rem;color:var(--gold);letter-spacing:.5px}
+  header p{margin-top:6px;font-size:.9rem;opacity:.92}
+  .stats{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:16px 0}
+  .stat{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:10px 16px;text-align:center;flex:1;min-width:110px}
+  .stat b{display:block;font-size:1.35rem;color:var(--red)}
+  .stat span{font-size:.78rem;color:#5a5140}
+  .progress-box{background:var(--cream);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:16px}
+  .bar{height:14px;background:#e7ddc5;border-radius:8px;overflow:hidden;margin-top:8px}
+  .bar>i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--gold),var(--red));transition:.3s}
+  .pct{font-weight:bold;color:var(--navy)}
+  .day-card{background:var(--cream);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.12)}
+  .day-head{display:flex;align-items:center;justify-content:space-between;gap:8px;background:var(--navy);color:var(--cream);padding:11px 16px}
+  .day-head .dnum{font-weight:800;font-size:1.05rem;color:var(--gold)}
+  .day-head .date{font-size:.82rem;opacity:.85}
+  .day-head .prog{background:var(--red);color:#fff;border-radius:20px;padding:2px 12px;font-size:.8rem;font-weight:700}
+  .day-body{padding:10px 14px 14px}
+  .sec{margin-top:10px}
+  .sec:first-child{margin-top:2px}
+  .sec-title{font-size:.78rem;font-weight:800;letter-spacing:1px;padding:3px 0 5px;border-bottom:2px solid;margin-bottom:6px}
+  .sec-lesen .sec-title{color:var(--lesen);border-color:var(--lesen)}
+  .sec-schreiben .sec-title{color:var(--schreiben);border-color:var(--schreiben)}
+  .sec-hoeren .sec-title{color:var(--hoeren);border-color:var(--hoeren)}
+  .sec-sprechen .sec-title{color:var(--sprechen);border-color:var(--sprechen)}
+  .row{display:flex;align-items:center;gap:10px;padding:6px 6px;border-radius:8px}
+  .row:hover{background:#f2ecda}
+  .row input{width:19px;height:19px;accent-color:var(--red);flex:none;cursor:pointer}
+  .row .nm{flex:1;font-size:.92rem;font-weight:600;color:var(--ink)}
+  .row .vr{color:#6b6250;font-size:.82rem;direction:ltr}
+  .row .pg{background:#eee7d6;color:var(--navy);border-radius:6px;padding:1px 8px;font-size:.75rem;font-weight:700;direction:ltr;white-space:nowrap}
+  .row.done .nm{text-decoration:line-through;color:#9a927f}
+  .review{padding:16px;text-align:center;color:#6b6250;font-size:.9rem}
+  .review b{color:var(--schreiben)}
+  footer{color:#d8dde1;text-align:center;font-size:.82rem;margin-top:10px}
+  .legend{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:6px 0 16px}
+  .legend span{font-size:.72rem;color:#fff;padding:2px 10px;border-radius:20px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>برنامج الموديول تيست</h1>
+    <p>كل يوم = امتحان كامل: نسخة من كل Teil في كل قسم (قراءة · كتابة · استماع · محادثة)</p>
+  </header>
+
+  <div class="legend">
+    <span style="background:var(--lesen)">Lesen قراءة</span>
+    <span style="background:var(--schreiben)">Schreiben كتابة</span>
+    <span style="background:var(--hoeren)">Hören استماع</span>
+    <span style="background:var(--sprechen)">Sprechen محادثة</span>
+  </div>
+
+  <div class="stats">
+    <div class="stat"><b id="mockCount">9</b><span>أيام موديول تيست</span></div>
+    <div class="stat"><b>29</b><span>أيام (١ → ٢٩)</span></div>
+    <div class="stat"><b id="itemCount">0</b><span>تدريب إجمالي</span></div>
+  </div>
+
+  <div class="progress-box">
+    <span class="pct" id="pctText">أنجزت 0 (0%)</span>
+    <div class="bar"><i id="barFill"></i></div>
+  </div>
+
+  <div id="days"></div>
+  <footer>يُحفَظ تقدّمك تلقائياً في المتصفّح · ضع إشارة على كل جزء تُنهيه</footer>
+</div>
+
+<script>
+// كل قسم: القسم الأكبر (اللون) + الاسم + مفتاح + النسخ [التسمية، الصفحات]
+const streams = [
+ {sec:"lesen", label:"القراءة", key:"L1", name:"Lesen Teil 1", vars:[["Variante 1","8"],["Variante 2","11"],["Variante 3","12"],["Variante 4","14"],["Variante 5","15"],["Variante 6","16"],["Variante 7","17"],["Variante 8","18"]]},
+ {sec:"lesen", label:"القراءة", key:"L2a", name:"Lesen Teil 2 · Fragen 6–7", vars:[["Text","19"],["Text","20"],["Text","21"],["Text","22"],["Text","23"],["Text","24"]]},
+ {sec:"lesen", label:"القراءة", key:"L2b", name:"Lesen Teil 2 · Fragen 8–9", vars:[["Text","25"],["Text","26"],["Text","27"],["Text","28"],["Text","29"],["Text","30"],["Text","31"]]},
+ {sec:"lesen", label:"القراءة", key:"L3", name:"Lesen Teil 3", vars:[["Variante 1","32"],["Variante 2","35"],["Variante 3","36"],["Variante 4","37"],["Variante 5","38"],["Variante 6","40"],["Variante 7","41"],["Variante 8","42"]]},
+ {sec:"lesen", label:"القراءة", key:"L4", name:"Lesen Teil 4", vars:[["Variante 1","43-44"],["Variante 2","47-48"],["Variante 3","51-52"],["Variante 4","53-54"],["Variante 5","55-56"],["Variante 6","57-58"],["Variante 7","59-60"],["Variante 8","61-62"],["Variante 9","63-64"]]},
+ {sec:"schreiben", label:"الكتابة", key:"BE", name:"Beschwerde (شكوى)", vars:[["Variante 1","66"],["Variante 2","67"],["Variante 3","69"],["Variante 4","70"],["Variante 5","71"],["Variante 6","72"],["Variante 7","74-75"],["Variante 8","76"],["Variante 9","77-79"]]},
+ {sec:"schreiben", label:"الكتابة", key:"SB1", name:"Sprachbausteine 1", vars:[["Variante 1","80"],["Variante 2","81"],["Variante 3","82"],["Variante 4","83"],["Variante 5","84"],["Variante 7","85"]]},
+ {sec:"schreiben", label:"الكتابة", key:"SB2", name:"Sprachbausteine 2", vars:[["Variante 1","86-87"],["Variante 2","88-89"],["Variante 3","90"],["Variante 4","91"],["Variante 5","92-93"],["Variante 6","94"],["Variante 7","95"],["Variante 8","96"]]},
+ {sec:"schreiben", label:"الكتابة", key:"TN", name:"Telefonnotiz", vars:[["Variante 1","107-110"],["Variante 2","111-113"],["Variante 3","114-118"],["Variante 4","204-207"]]},
+ {sec:"hoeren", label:"الاستماع", key:"H1", name:"Hören Teil 1", vars:[["Variante 1","119-120"],["Variante 2","121-123"],["Variante 3","124-126"],["Variante 4","127-128"],["Variante 5","129-130"],["Variante 6","131-132"],["Variante 7","133-134"],["Variante 8","135"]]},
+ {sec:"hoeren", label:"الاستماع", key:"H2", name:"Hören Teil 2", vars:[["Variante 1","136-137"],["Variante 2","138-139"],["Variante 3","140-141"],["Variante 4","142-143"],["Variante 5","144-145"],["Variante 6","146-147"],["Variante 7","148"]]},
+ {sec:"hoeren", label:"الاستماع", key:"H3", name:"Hören Teil 3", vars:[["Variante 1","149-150"],["Variante 2","151-152"],["Variante 3","153-154"],["Variante 4","155-156"],["Variante 5","157-160"],["Variante 6","161-162"],["Variante 7","163"]]},
+ {sec:"hoeren", label:"الاستماع", key:"H4", name:"Hören Teil 4", vars:[["Variante 1","164-165"],["Variante 2","166"],["Variante 3","167-168"],["Variante 4","169-170"],["Variante 5","171-172"],["Variante 6","173-174"],["Variante 7","175"],["Variante 8","176"]]},
+ {sec:"sprechen", label:"المحادثة", key:"SP", name:"Sprechen (كل الأجزاء)", vars:[["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"],["تدريب","177-203"]]},
+];
+
+const secLabelAr = {lesen:"القراءة · Lesen", schreiben:"الكتابة · Schreiben", hoeren:"الاستماع · Hören", sprechen:"المحادثة · Sprechen"};
+const secOrder = ["lesen","schreiben","hoeren","sprechen"];
+
+// عدد أيام الموديول تيست = أطول سلسلة أساسية (٩)
+const MOCK_DAYS = Math.max(...streams.map(s=>s.vars.length));  // = 9
+const TOTAL_DAYS = 29;
+
+// إجمالي عناصر التدريب
+let TOTAL_ITEMS = 0;
+for(let d=0; d<MOCK_DAYS; d++){ streams.forEach(s=>{ if(s.vars[d]) TOTAL_ITEMS++; }); }
+document.getElementById("mockCount").textContent = MOCK_DAYS;
+document.getElementById("itemCount").textContent = TOTAL_ITEMS;
+
+let done = {};
+const KEY = "modultest_done_v1";
+function load(){
+  try{ const r = localStorage.getItem(KEY); if(r) done = JSON.parse(r); }catch(e){ done={}; }
+  render();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(done)); }catch(e){} }
+
+function render(){
+  const host = document.getElementById("days");
+  host.innerHTML = "";
+  for(let day=1; day<=TOTAL_DAYS; day++){
+    const idx = day-1;
+    const card = document.createElement("div");
+    card.className = "day-card";
+
+    if(day<=MOCK_DAYS){
+      // اجمع عناصر اليوم حسب القسم
+      let total=0, doneN=0, bodyHtml="";
+      secOrder.forEach(sec=>{
+        const rows = streams.filter(s=>s.sec===sec && s.vars[idx]);
+        if(!rows.length) return;
+        let rowsHtml="";
+        rows.forEach(s=>{
+          const [vlabel,pages]=s.vars[idx];
+          const id = day+"_"+s.key;
+          const on = !!done[id];
+          if(on) doneN++;
+          total++;
+          rowsHtml += '<label class="row '+(on?'done':'')+'">'+
+            '<input type="checkbox" data-id="'+id+'" '+(on?'checked':'')+'>'+
+            '<span class="nm">'+s.name+'</span>'+
+            '<span class="vr">'+vlabel+'</span>'+
+            '<span class="pg">ص '+pages+'</span></label>';
+        });
+        bodyHtml += '<div class="sec sec-'+sec+'"><div class="sec-title">'+secLabelAr[sec]+'</div>'+rowsHtml+'</div>';
+      });
+      card.innerHTML =
+        '<div class="day-head">'+
+          '<span class="dnum">اليوم '+day+' — موديول تيست كامل</span>'+
+          '<span class="date">التاريخ: '+day+'</span>'+
+          '<span class="prog">'+doneN+'/'+total+'</span>'+
+        '</div>'+
+        '<div class="day-body">'+bodyHtml+'</div>';
+    } else {
+      // أيام المراجعة الحرّة
+      card.innerHTML =
+        '<div class="day-head" style="background:var(--schreiben)">'+
+          '<span class="dnum" style="color:#fff">اليوم '+day+' — مراجعة حرّة</span>'+
+          '<span class="date">التاريخ: '+day+'</span>'+
+        '</div>'+
+        '<div class="review">أنهيت كل النسخ 🎉 — <b>خصّص هذا اليوم للمراجعة:</b> أعد النسخ التي أخطأت فيها، راجع مفردات الصفحات، أو أعد امتحاناً كاملاً بالمؤقّت.</div>';
+    }
+    host.appendChild(card);
+  }
+  host.querySelectorAll("input").forEach(cb=>{
+    cb.addEventListener("change",()=>{
+      const id=cb.dataset.id;
+      if(cb.checked) done[id]=true; else delete done[id];
+      save(); render();
+    });
+  });
+  updateBar();
+}
+function updateBar(){
+  const c = Object.keys(done).length;
+  const pct = TOTAL_ITEMS? Math.round(c/TOTAL_ITEMS*100):0;
+  document.getElementById("barFill").style.width = pct+"%";
+  document.getElementById("pctText").textContent = 'أنجزت '+c+' من '+TOTAL_ITEMS+' تدريب ('+pct+'%)';
+}
+load();
+</script>
+</body>
+</html>
