@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Modelltest 2 – Auswertung der Gruppe</title>
+<style>
+:root{
+  --papier:#FAF9F6; --band:#E6E5DF; --linie:#C9C7C0; --linie-fein:#DEDCD5;
+  --tinte:#1F4E79; --stift:#2C4A8F; --korrektur:#A8382B; --gruen:#2F6B4F;
+  --text:#23231F; --gedaempft:#6E6D66;
+  --raster: repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(0,0,0,.035) 2px,rgba(0,0,0,.035) 3px);
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--papier); color:var(--text);
+  font-family:"Helvetica Neue",Helvetica,Arial,"Liberation Sans",sans-serif;
+  font-size:16px; line-height:1.5;
+}
+.huelle{max-width:1180px;margin:0 auto;padding:32px 24px 96px}
+
+/* ---------- Kopf ---------- */
+.kopf{border-top:3px solid var(--tinte);padding-top:18px;margin-bottom:38px}
+.kopf h1{font-size:30px;line-height:1.15;font-weight:700;margin:0 0 6px;letter-spacing:-.01em}
+.kopf .unter{color:var(--gedaempft);font-size:14.5px;margin:0}
+.kopf .zahl{font-size:14.5px;color:var(--tinte);font-weight:700;margin-top:14px}
+
+h2{font-size:19px;font-weight:700;margin:0 0 4px;letter-spacing:-.005em}
+.einleitung{color:var(--gedaempft);font-size:14.5px;max-width:66ch;margin:0 0 18px}
+section{margin-bottom:46px}
+
+/* ---------- Gruppenbogen ---------- */
+.bogen{border:1px solid var(--linie);background:#fff}
+.bogen-kopf{display:grid;grid-template-columns:78px repeat(4,1fr) 96px 104px;
+  font-size:11.5px;color:var(--gedaempft);padding:9px 14px;border-bottom:1px solid var(--linie)}
+.bogen-kopf span:nth-child(n+2):nth-child(-n+5){text-align:left}
+.bogen-kopf span:nth-child(6),.bogen-kopf span:nth-child(7){text-align:right}
+.zeile{display:grid;grid-template-columns:78px repeat(4,1fr) 96px 104px;align-items:center;
+  padding:9px 14px;border-bottom:1px solid var(--linie-fein)}
+.zeile:nth-child(odd){background:var(--band);background-image:var(--raster)}
+.zeile:last-child{border-bottom:0}
+.tn{font-weight:700;font-size:15px}
+.balken{position:relative;height:19px;margin-right:48px;background:rgba(0,0,0,.055)}
+.balken i{position:absolute;left:0;top:0;bottom:0;background:var(--stift);opacity:.78}
+.balken b{position:absolute;top:0;bottom:0;width:2px;background:var(--korrektur);left:60%}
+.balken em{position:absolute;right:-44px;top:0;width:40px;text-align:right;line-height:19px;
+  font-size:11.5px;font-style:normal;color:var(--text);font-weight:700;font-variant-numeric:tabular-nums}
+.summe{text-align:right;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+.urteil{text-align:right;font-size:12.5px;font-weight:700}
+.ja{color:var(--gruen)} .nein{color:var(--korrektur)}
+.legende{font-size:12.5px;color:var(--gedaempft);margin-top:10px}
+.legende span{display:inline-block;margin-right:18px}
+.legende i{display:inline-block;width:2px;height:11px;background:var(--korrektur);vertical-align:-1px;margin-right:5px}
+
+/* ---------- Trefferquoten ---------- */
+.quoten{display:grid;gap:7px}
+.quote{display:grid;grid-template-columns:minmax(170px,240px) 1fr 52px;align-items:center;gap:14px;font-size:14px}
+.qbalken{height:14px;background:rgba(0,0,0,.055);position:relative}
+.qbalken i{position:absolute;left:0;top:0;bottom:0;background:var(--stift);opacity:.7}
+.qbalken.schwach i{background:var(--korrektur);opacity:.72}
+.qwert{text-align:right;font-variant-numeric:tabular-nums;font-size:13px;color:var(--gedaempft)}
+
+/* ---------- Steuerung ---------- */
+.steuerung{position:sticky;top:0;z-index:5;background:var(--papier);
+  border-bottom:1px solid var(--linie);padding:12px 0 12px;margin-bottom:20px;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+button.reiter{font:inherit;font-size:14px;padding:7px 14px;border:1px solid var(--linie);
+  background:#fff;color:var(--text);cursor:pointer;border-radius:0}
+button.reiter[aria-pressed="true"]{background:var(--tinte);border-color:var(--tinte);color:#fff;font-weight:700}
+button.reiter:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--stift);outline-offset:2px}
+.suche{font:inherit;font-size:14px;padding:7px 11px;border:1px solid var(--linie);background:#fff;min-width:210px}
+.stand{margin-left:auto;font-size:13.5px;color:var(--gedaempft);font-variant-numeric:tabular-nums}
+.werkzeug{font:inherit;font-size:13.5px;padding:7px 12px;border:1px solid var(--linie);background:#fff;cursor:pointer}
+
+/* ---------- Fehlerkatalog ---------- */
+.gruppe-titel{font-size:15px;font-weight:700;color:var(--tinte);
+  border-bottom:2px solid var(--tinte);padding-bottom:5px;margin:30px 0 0}
+.karte{display:grid;grid-template-columns:44px minmax(0,1fr) minmax(0,1fr);
+  border-bottom:1px solid var(--linie-fein);align-items:start}
+.karte:nth-child(even){background:var(--band);background-image:var(--raster)}
+.karte > *{padding:11px 12px}
+.wer{font-size:12px;font-weight:700;color:var(--gedaempft);padding-top:13px}
+.links .zitat{font-size:14.5px;line-height:1.45}
+.links .hinweis{font-size:12.5px;color:var(--gedaempft);font-style:italic;margin-top:4px;line-height:1.4}
+.rechts{border-left:1px solid var(--linie-fein)}
+.rechts textarea{width:100%;min-height:54px;font:inherit;font-size:14.5px;line-height:1.45;
+  border:0;border-bottom:1px dashed var(--linie);background:transparent;resize:vertical;
+  color:var(--stift);padding:2px 0 5px;font-family:inherit}
+.rechts textarea::placeholder{color:#B4B2AA;font-style:italic}
+.karte.fertig .rechts textarea{border-bottom-color:var(--gruen)}
+.leer{padding:32px 12px;color:var(--gedaempft);font-size:14.5px}
+
+.fuss{margin-top:52px;border-top:1px solid var(--linie);padding-top:14px;
+  font-size:12.5px;color:var(--gedaempft)}
+
+@media (max-width:820px){
+  .bogen-kopf,.zeile{grid-template-columns:58px repeat(4,1fr) 74px 62px;padding:8px 9px;font-size:12px}
+  .balken{margin-right:7px} .balken em{display:none} .bogen-kopf,.zeile{grid-template-columns:52px repeat(4,1fr) 66px 58px}
+  .karte{grid-template-columns:36px 1fr}
+  .rechts{grid-column:2/3;border-left:0;border-top:1px dashed var(--linie);padding-top:9px}
+  .quote{grid-template-columns:1fr;gap:3px}
+}
+@media print{
+  .steuerung{display:none} body{background:#fff}
+  .karte{break-inside:avoid} .rechts textarea{border-bottom:1px solid #999;min-height:46px}
+  .huelle{max-width:none;padding:0}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="huelle">
+
+<header class="kopf">
+  <h1>Modelltest 2 — was die Gruppe geschrieben hat</h1>
+  <p class="unter">Deutsch-Test für den Beruf B2 · Prüfung vom 11.09.2026 · neun Teilnehmende</p>
+  <p class="zahl">4 von 9 bestanden · Gruppenschnitt 143,9 von 240 Punkten · bestanden ab 144</p>
+</header>
+
+<section>
+  <h2>Der Gruppenbogen</h2>
+  <p class="einleitung">Jede Zeile ist eine Prüfung. Der rote Strich markiert die 36-Punkte-Marke:
+  Drei der vier Balken müssen sie erreichen, einer darf darunter liegen — aber nicht unter 24.</p>
+  <div class="bogen" id="bogen"></div>
+  <p class="legende">
+    <span><i></i>Mindestgrenze 36 Punkte</span>
+    <span>Balkenlänge = erreichte Punkte von 60</span>
+  </p>
+</section>
+
+<section>
+  <h2>Wo die Punkte liegen geblieben sind</h2>
+  <p class="einleitung">Trefferquote aller neun Prüfungen zusammen, nach Prüfungsteil.
+  Rot markiert ist alles unter 50 Prozent.</p>
+  <div class="quoten" id="quoten"></div>
+</section>
+
+<section>
+  <h2>Fehlerkatalog</h2>
+  <p class="einleitung">Alle Fehler aus den neun Arbeiten, nach Aufgabe geordnet.
+  Links steht der Originalwortlaut mit einem Hinweis auf die Fehlerart — rechts ist Platz
+  für die richtige Fassung. Am Ende lässt sich alles ausdrucken oder als Text kopieren.</p>
+
+  <div class="steuerung">
+    <button class="reiter" data-f="alle" aria-pressed="true">Alle</button>
+    <button class="reiter" data-f="21" aria-pressed="false">Aufgabe 21</button>
+    <button class="reiter" data-f="58" aria-pressed="false">Aufgabe 58</button>
+    <button class="reiter" data-f="tel" aria-pressed="false">Telefonnotiz</button>
+    <button class="reiter" data-f="offen" aria-pressed="false">Noch offen</button>
+    <input class="suche" id="suche" type="search" placeholder="Im Wortlaut suchen …" aria-label="Im Wortlaut suchen">
+    <button class="werkzeug" id="kopieren">Als Text kopieren</button>
+    <button class="werkzeug" id="drucken">Drucken</button>
+    <span class="stand" id="stand"></span>
+  </div>
+
+  <div id="katalog"></div>
+</section>
+
+<p class="fuss">Pädagogische Einschätzung nach den telc-Bewertungsrichtlinien.
+In der Zertifikatsprüfung bewerten zwei lizenzierte Bewerterinnen bzw. Bewerter unabhängig
+voneinander. — Deutsch-Test für den Beruf B2 · von Iveta</p>
+
+</div>
+<script>
+const DATEN = {"fehler": [["21", 1, "A.W FW Reklamation Küchen einbau", "Betreffzeile: Abkürzung „AW:“ mit Doppelpunkt; Komposita zusammenschreiben"], ["21", 1, "Sehr geehrter Herr Raueisen", "Komma nach der Anrede fehlt"], ["21", 1, "Hiermit möchte ich mich persönlich für die entstandenen Unannehmlichkeiten.", "Das Vollverb am Satzende fehlt – der Satz hat kein Prädikat"], ["21", 1, "das weniger erfahrung hat", "Substantive werden großgeschrieben"], ["21", 1, "Noch dazu war der Meister nich dabei", "Rechtschreibung: nicht"], ["21", 1, "dass so etwas nie wieder passiert wird", "Futur I mit „werden“ verlangt den Infinitiv, nicht das Partizip"], ["21", 1, "Umgehen werden wir das defektes Spullbecken umtauschen.", "Adverb: „Umgehend“ (Endung fehlt)"], ["21", 1, "das defektes Spullbecken", "Adjektivendung nach bestimmtem Artikel; Rechtschreibung: Spülbecken"], ["21", 1, "Langfristig organisieren wir einen Schulung für unsere Mitarbeiter.", "Genus und Kasus: „Schulung“ ist feminin"], ["21", 1, "bitte verzeien Sie uns,", "Großschreibung am Satzanfang; Rechtschreibung: verzeihen; Satzzeichen am Ende"], ["21", 1, "Wir stehen Ihnen jederzeit zur Verfügung", "Satzzeichen am Ende fehlt"], ["58", 1, "Hallo Zusammen!", "„zusammen“ wird hier kleingeschrieben"], ["58", 1, "habt ihr vielleicht schon gehört, …", "Großschreibung am Satzanfang"], ["58", 1, "dass alle Mitarbeitenden besser sich kennenlernen müssen", "Wortstellung im Nebensatz: Reflexivpronomen vor der Angabe"], ["58", 1, "und noch dazu eine Interview für die Zeitung nehmen?", "Großschreibung am Satzanfang; Genus: „Interview“ ist neutrum; Verb: ein Interview geben oder führen"], ["58", 1, "Meine Meinung nach ist, dass eine gute Vorschlag ist.", "Feste Wendung: „Meiner Meinung nach“; Genus und Adjektivendung bei „Vorschlag“; im dass-Satz fehlt das Subjekt"], ["58", 1, "wenn Kollegen sich mitinanders kennenlernen", "Wortform: miteinander"], ["58", 1, "ist das Arbeitsläufe besser", "Numerus und Artikel: Plural; Wortbildung: Arbeitsabläufe"], ["58", 1, "weil eine praktische Kommunikation eine große Rolle am Arbeitsplatz spielt", "Abstrakta im allgemeinen Sinn stehen ohne unbestimmten Artikel"], ["58", 1, "gern vor den Kamera für eine Interview stehen", "Kasus und Genus nach „vor“ (Dativ, feminin); Genus: ein Interview"], ["58", 1, "Ich würde gern wissen, wie sollen damit ungehen, …", "Subjekt fehlt; Verbstellung im indirekten Fragesatz; Rechtschreibung: umgehen"], ["58", 1, "die Kollegen die schüchtern oder introvertiert sind", "Komma vor dem Relativsatz; Anschluss an den Hauptsatz"], ["58", 1, "Zu dieser Thema bleibe ich zweischneidig.", "Genus und Kasus: zu diesem Thema; „zweischneidig“ beschreibt Sachen, nicht Personen"], ["tel", 1, "42 Namen: Kooeln", "Der Name wird in der Ansage buchstabiert: K-O-L-L-N-I-T-Z"], ["tel", 1, "43 Kontakt/Telefon: 073 … 64", "Telefonnummer unvollständig – die mittleren Ziffern fehlen"], ["tel", 1, "44 Weitere Informationen: 3 Zimmer Buchen", "Inhaltlich das Gegenteil der Ansage; Verben werden kleingeschrieben"], ["tel", 1, "44 Weitere Informationen: suzatlliche Raum", "Gewünscht war ein zusätzlicher Bildschirm, kein Raum; Rechtschreibung und Adjektivendung"], ["tel", 1, "44 Weitere Informationen: (Tagungsraum nicht notiert)", "Die Information, dass der große Tagungsraum in Ordnung bleibt, fehlt"], ["tel", 1, "45 Zu erledigen: (leer)", "Das Feld ist der Extrapunkt der Aufgabe – hier gehört die konkrete Handlung hinein"], ["21", 2, "Betreffzeile: (leer geblieben)", "Die Betreffzeile gehört zur Textsorte E-Mail – hier mit „AW:“ und dem Bezug auf die Reklamation"], ["21", 2, "Seher Seehrter Heer Raueisen,", "Rechtschreibung der Anrede: drei Wörter, drei Fehler"], ["21", 2, "dass das Spülbecken beschändligt wurde", "Rechtschreibung: beschädigt"], ["21", 2, "Leider ist ihm beim Einbau ein schwer Gegenstand …", "Adjektivendung nach unbestimmtem Artikel"], ["21", 2, "… aus das Spülbecken gefahllen.", "Präposition der Richtung: in das / ins (mit Akkusativ); Rechtschreibung: gefallen"], ["21", 2, "das Spülbekken kostenlos austauchen", "Rechtschreibung: Spülbecken, austauschen"], ["21", 2, "noch mal für die Vnannehmlichkeiten", "Rechtschreibung: Unannehmlichkeiten"], ["58", 2, "Hallo Zusammen,", "„zusammen“ wird hier kleingeschrieben"], ["58", 2, "abwechselnd den Putzdinst übernehmen", "Rechtschreibung: Putzdienst"], ["58", 2, "So ist jeder dafür verandwortlich", "Rechtschreibung: verantwortlich"], ["58", 2, "dass die Pausenräumen sauber bleiben", "Pluralform ohne -n: die Pausenräume"], ["58", 2, "wenn die aufgaben regelmäßig wechselen", "Substantive großschreiben; Verbform: wechseln"], ["58", 2, "Alledings sollte der Putzdinst nicht zu viel Zeit …", "Rechtschreibung: Allerdings; Putzdienst (zweites Mal)"], ["58", 2, "Wichtig ist auch dass die Firma …", "Komma vor dem Nebensatz mit „dass“"], ["58", 2, "alle nötigen Reinigungsmittel zur Verfügen stellt", "Feste Wendung: zur Verfügung stellen"], ["58", 2, "Insgesamt finde ich diese Lösung gut weil …", "Komma vor dem Nebensatz mit „weil“"], ["58", 2, "weil der Pauseraum von allen genutzt wird", "Rechtschreibung: Pausenraum (Fugen-n)"], ["58", 2, "und deshalb auch alle etwas für die Sauberkeit tut können", "Infinitiv nach Modalverb: tun können"], ["58", 2, "Textende: „Viele Grüße“ direkt nach dem letzten Argument", "Dem Forumsbeitrag fehlt das Gesprächsangebot an die Kolleginnen und Kollegen (z. B. eine Schlussfrage)"], ["tel", 2, "42 Namen: Norina Collmetz", "Der Name wird in der Ansage buchstabiert: K-O-L-L-N-I-T-Z; Vorname Marina"], ["tel", 2, "43 Kontakt/Telefon: 0 7351", "Die Nummer bricht nach der Vorwahl ab – es fehlen 599 64"], ["tel", 2, "44 Weitere Informationen: (leer)", "Drei Inhaltspunkte plus ein Sprachpunkt hängen an diesem Feld – hier gehen die meisten Punkte des Teils verloren"], ["tel", 2, "45 Zu erledigen: (leer)", "Hier gehört die konkrete Handlung hinein: drei Zimmer stornieren"], ["21", 3, "Betreffzeile: (leer geblieben)", "Die Betreffzeile gehört zur Textsorte E-Mail – hier mit „AW:“ und dem Bezug auf die Reklamation"], ["21", 3, "für die entstandenen und Unannehmlichkeiten entschuldigen", "„und“ ist hier überflüssig – zwischen Adjektiv und Substantiv steht keine Konjunktion"], ["21", 3, "Heute wurde wir mit unseren Mitarbeitern gesprochen", "Perfekt mit „haben“, nicht mit „werden“; Kongruenz: wir haben"], ["21", 3, "und herausgefunden, dass der Grund dafür war.", "Dem dass-Satz fehlt die Angabe, WAS der Grund war – der Satz endet ohne Inhalt"], ["21", 3, "damals hatten wir Probleme mit unsere Mitarbeitenden", "Dativ nach „mit“: mit unseren Mitarbeitenden"], ["21", 3, "deswegen könnten wir unbedingt das Spülbecken reparieren", "„deswegen“ verknüpft hier keine Folge; Konjunktiv II passt nicht zu einer festen Zusage"], ["21", 3, "Mit freundlichen Grüßen.", "Nach der Grußformel steht kein Punkt"], ["21", 3, "Unterschrift: Lisa Gärtner", "Lisa Gärtner ist die Teamleitung, die die Mail weitergeleitet hat – unterschrieben wird mit dem eigenen Namen, üblich mit „i. A.“"], ["58", 3, "Hallo Zusammen,", "„zusammen“ wird hier kleingeschrieben"], ["58", 3, "Habt ihr schon gehört dass Alle Mitarbeiterinnen …", "Komma vor dem Nebensatz mit „dass“; „alle“ wird kleingeschrieben"], ["58", 3, "Putzdienst abwechselnd in den Pausenräumen übernehmen sollen", "Wortstellung: Die Angabe der Art („abwechselnd“) steht vor der Ortsangabe"], ["58", 3, "Ich werde gerne meinen Meinung äußern", "Akkusativ feminin: meine Meinung"], ["58", 3, "weil unsere Firma das Putzdienst abwechselnd möchte", "Genus: der Putzdienst, hier Akkusativ „den“; inhaltlich wiederholt der Nebensatz nur die These, statt sie zu begründen"], ["58", 3, "wenn die Firma eine neue Dienstleistung anstellen könnte", "Wortwahl: einen Dienstleister beauftragen oder eine Reinigungsfirma engagieren"], ["58", 3, "Wir haben kaum Zeit wahrscheinlich.", "Satzstellung: „wahrscheinlich“ gehört ins Mittelfeld, nicht ans Satzende"], ["58", 3, "Es nicht lohnt sich, dass wir es übernehmen sollen", "Verbzweitstellung im Hauptsatz: Es lohnt sich nicht …"], ["58", 3, "deswegen könnten wir einen Lösung finden", "Akkusativ feminin: eine Lösung"], ["58", 3, "Was hält ihr davon, …", "Verbform für „ihr“: haltet"], ["58", 3, "wenn jemand eine Idee hat, der Bescheid mitteilen könnte", "Wendung: Bescheid geben oder Bescheid sagen; der Relativsatz ist nicht angebunden"], ["58", 3, "wahrscheinlich dass könnte eine gute gelegenheit sein.", "Demonstrativpronomen: das; Substantiv großschreiben: Gelegenheit; der Satz braucht Komma und Verbstellung"], ["58", 3, "Textaufbau: ein durchgehender Block", "Die Aufgabe verlangt eine Gliederung in sinnvolle Abschnitte"], ["58", 3, "Textende: „Viele Grüße“ ohne Namen", "Der Forumsbeitrag wird mit dem Vornamen unterschrieben"], ["tel", 3, "42 Namen: kollaitz", "Sehr nah dran – der Name wird buchstabiert: K-O-L-L-N-I-T-Z; ein Buchstabe weicht ab"], ["tel", 3, "43 Kontakt/Telefon: 03777091476", "Die Ziffernfolge stimmt nicht: 07351 599 64"], ["tel", 3, "44 Weitere Informationen: Sie haben eine Bestellung gemacht", "Das ist der Anrufgrund aus Aufgabe 41, keine der drei zusätzlichen Informationen"], ["tel", 3, "44 Weitere Informationen: (Tagungsraum und Bildschirm nicht notiert)", "Es fehlen: großer Tagungsraum bleibt in Ordnung; zusätzlicher Bildschirm gewünscht"], ["tel", 3, "45 Zu erledigen: (leer)", "Hier gehört die konkrete Handlung hinein: drei Zimmer stornieren"], ["21", 4, "vielen Dank für Ihrer E-Mail", "Akkusativ feminin nach „für“: für Ihre E-Mail"], ["21", 4, "Es tut uns sehr leid, dass die Situation.", "Dem dass-Satz fehlt das Prädikat – was ist mit der Situation?"], ["21", 4, "Wir möchte uns Ihnen für alle Unannehmlichkeiten eine entschuldigen waren.", "Konjugation „wir möchten“; „eine“ und „waren“ gehören nicht in den Satz: Wir möchten uns … entschuldigen"], ["21", 4, "Zudem wir können Ihnen verstehen", "Verbzweitstellung im Hauptsatz: Zudem können wir …; Akkusativ: Sie verstehen"], ["21", 4, "und möchen uns eklären und, dass Problem sofort reagiert wurden", "Rechtschreibung: möchten, erklären; Komma und „und“ vertauscht; „auf das Problem reagiert wurde“"], ["21", 4, "Hiermit möchte ich wissen, ob das Problem gelöst ist.", "Rollenumkehr: Der Kunde meldet das Problem – geantwortet wird ihm, statt ihn zu fragen"], ["21", 4, "Weshalb wir können Ihnen eenen Lösung zufinden", "Verbzweitstellung; „weshalb“ leitet hier keine Folge ein; Akkusativ feminin: eine Lösung; Rechtschreibung: finden"], ["21", 4, "und repariert oder ausgetauscht wird", "Dem Passivsatz fehlt das Subjekt: damit das Spülbecken repariert … wird"], ["21", 4, "Meine Meinung ist, dass wir gab Ihnen einen Rabatt für den reparatur.", "Verbendstellung im dass-Satz und Präsens: dass wir Ihnen einen Rabatt geben; Substantiv großschreiben: die Reparatur"], ["21", 4, "Wir hoffen Ihnen in Zukunft wiedergutzumachen", "„hoffen“ verlangt einen dass-Satz; „etwas wiedergutmachen“ braucht ein Objekt"], ["21", 4, "Wir können ein Kompromiss machen", "Akkusativ maskulin: einen Kompromiss"], ["21", 4, "Für jedenfragen stehe ich Ihnen zur Verfügung.", "Getrennt und großgeschrieben: Für alle Fragen / Bei Fragen"], ["58", 4, "hab schon gehört unsere Firma sollen einander besser kennenlern", "Subjekt „ich“ fehlt; der Nebensatz braucht „dass“ und ein Komma; Verbform: kennenlernen"], ["58", 4, "Ich finde das Idee nicht so gut.", "Genus: die Idee (kommt im Text mehrfach vor)"], ["58", 4, "Ich möchte wissen, ob Sie das Idee gut zu finden", "Im ob-Satz steht eine finite Verbform: ob ihr die Idee gut findet"], ["58", 4, "Anrede mit „Sie“ im Forumsbeitrag", "Kolleginnen und Kollegen werden im Forum geduzt – hier durchgehend „ihr“"], ["58", 4, "weshalb ich bedacht warum sollen uns in diese Rubrik interviewen zu lassen", "Der Satz hat zwei Fragewörter und kein finites Verb – hier zwei getrennte Sätze bilden"], ["58", 4, "Als Vorteile finde ich nicht gut das Interview alle wissen über unsere Privatleben.", "Angekündigt wird ein Vorteil, genannt wird eine Ablehnung; Wortstellung und Anschluss fehlen"], ["58", 4, "Zudem als Nachteil ich möchte sagen warschainlich alle haben Familien", "Verbzweitstellung: … möchte ich sagen; Rechtschreibung: wahrscheinlich; Komma vor dem Nebensatz"], ["58", 4, "und müssen uns nicht alle über uns wissen das Interview", "Der Satz ist nicht aufzulösen – Subjekt und Satzende fehlen"], ["58", 4, "Meine Meinung ist, dass ich gewöhnlich durch man andrer Lösung zu entscheiden", "Im dass-Satz steht eine finite Verbform; „durch man andrer“ ergibt keine Wortgruppe"], ["58", 4, "deshalb ich wurde sagen, wenn unserer Firma nicht unterstützung …", "Verbzweitstellung: deshalb würde ich sagen; Konjunktiv II: würde; Substantiv großschreiben: Unterstützung"], ["58", 4, "ob Sie alle möchten zu das Interview zu gehen?", "Verbendstellung im ob-Satz; „zu“ steht nur einmal, vor dem Infinitiv"], ["58", 4, "für jederzeit können wir mehr über das Thema diskutieren können", "Das Modalverb steht doppelt; „für jederzeit“ heißt schlicht „jederzeit“"], ["tel", 4, "42 Namen: Kolleitz", "Sehr nah dran – der Name wird buchstabiert: K-O-L-L-N-I-T-Z"], ["tel", 4, "44 Weitere Informationen: 3 Zimmer stornieren", "Inhaltlich richtig erfasst, steht aber im falschen Feld – das gehört unter 45 „Zu erledigen“"], ["tel", 4, "44 Weitere Informationen: (Tagungsraum nicht notiert)", "Es fehlt: der große Tagungsraum bleibt in Ordnung"], ["tel", 4, "45 Zu erledigen: rückmelden für weiter information", "Gefragt ist die konkrete Handlung – die Rückmeldung ist nur der Rahmen; Substantiv großschreiben: Information"], ["21", 5, "Sehr geehrte Herr Raueisen,", "Adjektivendung in der Anrede: Sehr geehrter Herr"], ["21", 5, "Wir bedauern Sehr, dass …", "„sehr“ wird kleingeschrieben"], ["21", 5, "dass das Spülbecken ein Defekt hat", "Akkusativ maskulin: einen Defekt"], ["21", 5, "und in Ihren Schränke ein Kratzer ist", "Dativ Plural: in Ihren Schränken"], ["21", 5, "Wir entschuldigen die entstadenen unanemmlichKeit.", "Reflexiv: Wir entschuldigen uns für …; Rechtschreibung: entstandenen, Unannehmlichkeiten; Plural; keine Großschreibung im Wortinneren"], ["21", 5, "Der Grund auf das Problem war, Weil unserer Mitarbeiter …", "„Der Grund für …“; entweder „Der Grund war, dass …“ oder „… , weil …“, nicht beides; „weil“ mitten im Satz kleinschreiben; Nominativ: unser Mitarbeiter"], ["21", 5, "so viele gearbeitet hat und wir haben wenige Personal", "Mengenangabe ohne Endung: so viel, wenig Personal"], ["21", 5, "Wir schiken sofort noch anderer mitarbeiter", "Rechtschreibung: schicken; Plural: andere Mitarbeiter; Substantiv großschreiben"], ["21", 5, "und wir versichern, dass noch nicht wieder passiert", "Im dass-Satz fehlt das Subjekt: dass es nicht wieder passiert"], ["21", 5, "Lösung: „Wir schicken noch andere Mitarbeiter“", "Der Kunde fragt, ob das Spülbecken repariert oder ausgetauscht wird – darauf braucht er eine Antwort"], ["21", 5, "Mit freundlichen Grüßen.", "Nach der Grußformel steht kein Punkt"], ["58", 5, "ich mochte über das Thema … meine Meinung äußern", "Umlaut: möchte"], ["58", 5, "Ich finde das mit sinnvoll", "„mit“ gehört nicht in den Satz: Ich finde das sinnvoll"], ["58", 5, "weil wir sehr oft das Pausenräumen benutzen", "Plural mit Artikel: die Pausenräume"], ["58", 5, "und unsere eigene Lebensmittel dort liegen lassen", "Akkusativ Plural: unsere eigenen Lebensmittel"], ["58", 5, "Deswegen finde ich gut, dass …", "Das Objekt fehlt: Deswegen finde ich es gut"], ["58", 5, "dass wir selbst das Räumen putzen", "Plural mit Artikel: die Räume"], ["58", 5, "Naturlich gibt es Vor und nachteile.", "Umlaut: Natürlich; Bindestrich und Großschreibung: Vor- und Nachteile"], ["58", 5, "Einerseits kann immer unsere räume sauber sein", "Kongruenz im Plural: können unsere Räume; Substantiv großschreiben"], ["58", 5, "und nicht nur das räume sondern auch unsere gericht", "Artikel und Großschreibung: die Räume, unser Geschirr; Komma vor „sondern“"], ["58", 5, "will man sowohl ein Kaffe trinken oder etwas essen als auch spannen bleiben", "Die Wendung heißt „sowohl … als auch“ – das „oder“ passt nicht dazwischen; Akkusativ: einen Kaffee; Rechtschreibung: Kaffee, entspannen"], ["58", 5, "oder musik hören", "Substantiv großschreiben: Musik"], ["58", 5, "weil das ein Verantwortung ist", "Genus feminin: eine Verantwortung"], ["58", 5, "dass wir zum Beispiel in unsere hause in Küche haben", "Dativ nach „in“: in unserem Haus, in der Küche; Substantiv großschreiben"], ["tel", 5, "42 Namen: KOLLmiTZ", "Sehr nah dran – der Name wird buchstabiert: K-O-L-L-N-I-T-Z"], ["tel", 5, "43 Kontakt/Telefon: 06375", "Die Ziffernfolge stimmt nicht: 07351 599 64"], ["tel", 5, "44 Weitere Informationen: 15 Zimmer gebuch", "Das ist der Ausgangsstand der Buchung, keine der drei neuen Informationen; Rechtschreibung: gebucht"], ["tel", 5, "44 Weitere Informationen: (Tagungsraum, Seminarräume, Bildschirm fehlen)", "Gefragt sind: großer Tagungsraum bleibt in Ordnung, nur noch zwei Seminarräume, zusätzlicher Bildschirm"], ["tel", 5, "45 Zu erledigen: 5 Zimmer stonieren", "Die Handlung ist richtig erkannt, die Anzahl nicht: drei Zimmer; Rechtschreibung: stornieren"], ["21", 6, "Wir bitten Sie für eine Unanehmlichkeiten.", "Gemeint ist eine Entschuldigung: „Wir bitten um Entschuldigung für die Unannehmlichkeiten“; Plural; Rechtschreibung"], ["21", 6, "Warschanlich dass das Spülbecken … war schon mit defekt", "Rechtschreibung: Wahrscheinlich; der Satz braucht ein Hauptverb („Wahrscheinlich war das Spülbecken …“); „mit“ gehört nicht dazu; Substantiv großschreiben: Defekt"], ["21", 6, "bei den Lieferung", "Genus und Kasus: bei der Lieferung"], ["21", 6, "und unsere Mitarbeiter hatt das nicht gemerkt", "Singular: unser Mitarbeiter; Verbform: hat"], ["21", 6, "Aber machen Sie keine sorge,", "Substantiv großschreiben; feste Wendung: machen Sie sich keine Sorgen"], ["21", 6, "morgen kommt er zu Ihnen und tauschen das Spülbecken aus", "Kongruenz: er … tauscht aus"], ["21", 6, "Ich versichere Ihnen dass solche Situation passiert nicht mehr.", "Komma vor „dass“; Verbendstellung im Nebensatz: dass so etwas nicht mehr passiert; Artikel fehlt"], ["21", 6, "Wir übernehmen die Kontrole.", "Rechtschreibung: Kontrolle"], ["21", 6, "Bei weitere Frage bin ich für Sie jederzeit telefonisch erreichbar.", "Dativ Plural: Bei weiteren Fragen"], ["58", 6, "Was weren wir ein „Putzdienst“ Plan in den Pausenrämen organisieren?", "Vermutlich gemeint: „Was wäre, wenn wir … organisieren?“ – so ist der Satz nicht auflösbar; Kompositum: Putzdienstplan; Umlaut: Pausenräumen"], ["58", 6, "Wir wiesen selbst was brauchen wir noch für Pauseraum", "Rechtschreibung: wissen; Komma vor dem Nebensatz; Verbendstellung im indirekten Fragesatz: was wir noch brauchen; Artikel: für den Pausenraum"], ["58", 6, "Das ist nicht schwirige Aufgabe.,", "Artikel fehlt: keine schwierige Aufgabe; Rechtschreibung: schwierige; doppeltes Satzzeichen"], ["58", 6, "Selbstwerstendlich nach den Pause räumt jeder sein Tase auf.", "Rechtschreibung: Selbstverständlich; Dativ feminin: nach der Pause; gemeint ist vermutlich „seine Tasse“"], ["58", 6, "Die Mitarbeirere welche Putzdienst machen, müssen …", "Rechtschreibung: Mitarbeiter; Komma vor dem Relativsatz; im Deutschen üblich: die den Putzdienst machen"], ["58", 6, "das alles Kontrolieren", "Verben werden kleingeschrieben; Rechtschreibung: kontrollieren"], ["58", 6, "und wenn etwas fehld werden zur Verfügung stellt", "Der Satz ist nicht auflösbar – gemeint ist vermutlich: wenn etwas fehlt, wird es zur Verfügung gestellt; Rechtschreibung: fehlt"], ["58", 6, "Jeder macht pro Woche Dienst ein mal.", "Zusammen: einmal; Wortstellung: einmal pro Woche Dienst"], ["58", 6, "Wenn jemand Krank meldet muss dann eine Ersatzt übernehmen.", "Reflexivpronomen: sich krank meldet; Adjektiv kleinschreiben; Komma vor dem Hauptsatz; Genus und Rechtschreibung: einen Ersatz"], ["58", 6, "können ganz Ruhe so was Organisieren", "Feste Wendung: in aller Ruhe; Verben werden kleingeschrieben"], ["58", 6, "Aber dass ist für uns, wir benutzen diese Raum.", "Demonstrativpronomen: das; Akkusativ maskulin: diesen Raum; die beiden Teilsätze brauchen eine Verknüpfung"], ["58", 6, "Und dass ist gut wenn wir machen Pause", "Demonstrativpronomen: das; Komma vor „wenn“; Verbendstellung im Nebensatz: wenn wir Pause machen"], ["58", 6, "und kommen rein in Ondentliche Raum.", "Rechtschreibung: ordentlichen; Adjektiv kleinschreiben; Akkusativ maskulin: in einen ordentlichen Raum"], ["58", 6, "Warschawlich hat jemand andere Meinung?", "Rechtschreibung: Wahrscheinlich; Artikel: eine andere Meinung"], ["tel", 6, "42 Namen: Kollniete", "Sehr nah dran – der Name wird buchstabiert: K-O-L-L-N-I-T-Z"], ["tel", 6, "43 Kontakt/Telefon: 07351 59846", "Vorwahl richtig, die Endziffern nicht: 599 64"], ["tel", 6, "44 Weitere Informationen: 3 Stornieren Zimmer", "Inhaltlich richtig erfasst, steht aber im falschen Feld – das gehört unter 45 „Zu erledigen“; Verben kleinschreiben; Wortstellung: 3 Zimmer stornieren"], ["tel", 6, "44 Weitere Informationen: (Tagungsraum nicht notiert)", "Es fehlt: der große Tagungsraum bleibt in Ordnung"], ["tel", 6, "45 Zu erledigen: Ruckruf, Treffen in Karaoke raum", "Der Karaoke-Abend ist eine Randbemerkung der Anruferin, keine Aufgabe; gefragt ist die Stornierung; Umlaut: Rückruf"], ["21", 7, "dass das Spülbecken ein Kratzer von unserm Mitarbeiter entstaden ist", "Satzbau: dass an dem Spülbecken ein Kratzer entstanden ist; Dativ: unserem Mitarbeiter; Rechtschreibung: entstanden"], ["21", 7, "Ich verstehe ihren Ärger", "Höflichkeitsform großschreiben: Ihren"], ["21", 7, "dass unserm Mitarbeiter demals viele Arbeit hat", "Nominativ: unser Mitarbeiter; Rechtschreibung: damals; Mengenangabe: viel Arbeit; Vergangenheit: hatte"], ["21", 7, "und ein bischen krank war", "Rechtschreibung: bisschen"], ["21", 7, "Außdem hat er ein Fehler gemacht", "Rechtschreibung: Außerdem; Akkusativ maskulin: einen Fehler"], ["21", 7, "wenn er sich um das Spülbecken … nicht kümmiert hat", "Begründung, nicht Bedingung: weil; Rechtschreibung: gekümmert"], ["21", 7, "während seinem Arbeit", "Genitiv nach „während“, Genus feminin: während seiner Arbeit"], ["21", 7, "Als Entschuldigung werden wir ein Handwerke schieken", "Ein Handwerker ist keine Entschuldigung – besser: „Um das wiedergutzumachen …“; Akkusativ: einen Handwerker; Rechtschreibung: schicken"], ["21", 7, "dann können wir das gerät tauschen oder reparieren", "Substantiv großschreiben: Gerät; dem Kunden fehlt eine verbindliche Zusage – er hat um Rückmeldung bis zum 4. Juli gebeten"], ["58", 7, "wie ihr weißt, dass in unserer Firma alle Mitarbeiter … übernehmen sollen", "„wie ihr wisst“ und „dass“ stehen doppelt – eines von beidem streichen; Verbform für „ihr“: wisst"], ["58", 7, "Dazu möchte ich mein Ansicht mit euch teilen.", "Akkusativ feminin: meine Ansicht"], ["58", 7, "Einerseits finde ich eine gute Idee", "Vor dem Objekt fehlt der Platzhalter: finde ich es eine gute Idee / finde ich das gut"], ["58", 7, "weil die Pausenräume sauber bleibt wird", "„bleiben“ bildet kein Passiv; Kongruenz im Plural: sauber bleiben"], ["58", 7, "finden manche von uns vielleicht Putzdienst nicht gut für Ihnen", "Kleinschreibung bei „ihnen“ (keine Anrede); besser: für sich"], ["58", 7, "weil ihre Arbeitkleidung sauber bleiben müssen", "Fugen-s: Arbeitskleidung; Kongruenz im Singular: bleiben muss"], ["58", 7, "dass unsere Firma ein spezialisten Mitarbeiter … stellen muss", "Akkusativ maskulin: einen; Adjektiv: spezialisierten"], ["58", 7, "wer über Pausenräume verantwortlich ist", "Feste Verbindung: verantwortlich für; Artikel: für die Pausenräume"], ["58", 7, "wenn eigene Mitarbeiter sie saber nicht machen", "Rechtschreibung: sauber"], ["58", 7, "und wie hoch die Strafe sein ist?", "Nur ein Verb: wie hoch die Strafe ist"], ["58", 7, "Position: Einerseits … Andererseits ohne Fazit", "Beide Seiten sind gut abgewogen – am Ende fehlt der eigene Standpunkt"], ["tel", 7, "43 Kontakt/Telefon: 07351 59564", "Vorwahl richtig, eine Ziffer weicht ab: 599 64"], ["tel", 7, "44 Weitere Informationen: nur 12 Zimmer anstatt 15 Zimmer", "Richtig gehört, aber es ist der Ausgangsstand – gefragt sind: großer Tagungsraum bleibt in Ordnung, nur zwei Seminarräume, zusätzlicher Bildschirm"], ["tel", 7, "45 Zu erledigen: (leer)", "Hier gehört die konkrete Handlung hinein: drei Zimmer stornieren"], ["sonst", 7, "Aufgabe 46: (nicht markiert)", "Eine fehlende Markierung zählt als falsch – bei Zuordnungen lohnt sich immer ein Tipp"], ["21", 8, "Anrede: Sehr geehrte Frau Gärtner,", "Geantwortet wird dem Kunden, Herrn Raueisen – Frau Gärtner ist die Teamleitung, die die Mail nur weitergeleitet hat"], ["21", 8, "Betreffzeile: (leer geblieben)", "Die Betreffzeile gehört zur Textsorte E-Mail – hier mit „AW:“ und dem Bezug auf die Reklamation"], ["21", 8, "Ich verstehe sehr gut, dass diese Fehler schon gemacht.", "Dem Passivsatz fehlt das Hilfsverb: dass dieser Fehler gemacht wurde"], ["21", 8, "dass ihr Spülbecken in einer Stelle Defekt hat", "Höflichkeitsform großschreiben: Ihr; Präposition: an einer Stelle; Akkusativ: einen Defekt"], ["21", 8, "weil wann die Küche und Spülbecke transportirt dann ein Unfall … passiert kann", "Bedingung: wenn, nicht wann; „dann“ entfällt nach dem Nebensatz; Rechtschreibung: transportiert; Infinitiv nach Modalverb: passieren kann"], ["21", 8, "Natürlich das ist große Schade", "Verbzweitstellung: Natürlich ist das …; Artikel und Wortform: ein großer Schaden"], ["21", 8, "Wir sind richtiges Kündigung für uns.", "Der Satz ist nicht auflösbar – gemeint ist vermutlich eine Zusicherung; „Kündigung“ passt inhaltlich nicht"], ["21", 8, "Ihre Bestellung 4 Juli bei Ihnen", "Dem Satz fehlt das Verb: ist am 4. Juli bei Ihnen"], ["21", 8, "Ich habe für uns eine Rabatt 15% für andere Bestellung.", "Genus: einen Rabatt; gemeint ist vermutlich „Ich biete Ihnen … an“; Perspektive: für Sie, nicht für uns"], ["21", 8, "Wir hoffen diese Situation vorbei ist.", "Komma und Verbendstellung: Wir hoffen, dass diese Situation vorbei ist"], ["58", 8, "dass unsere Firma aktuell darüber sollen abwechselnd „Putzdienst“ … übernehmen wird", "Der Satz ist nicht auflösbar – „sollen“ und „wird“ stehen doppelt, das Subjekt wechselt; gemeint: dass alle Mitarbeitenden abwechselnd Putzdienst übernehmen sollen"], ["58", 8, "in den den Pausenräumen", "Artikel steht doppelt"], ["58", 8, "Das ist sehr interessante und spezielle Thema", "Artikel fehlt und Adjektivendung: ein sehr interessantes und spezielles Thema"], ["58", 8, "weil viele mal mit unsere Mitarbeiter schon … ich habe das gesprochen", "Der Satz ist nicht auflösbar; Dativ Plural: mit unseren Mitarbeitenden; das Subjekt steht doppelt"], ["58", 8, "Meiner persönliche Meinung nach denken, dass ist gut", "Adjektivendung: Meiner persönlichen Meinung nach; dem Satz fehlt das Subjekt „ich“; Demonstrativpronomen: das"], ["58", 8, "weil dass immer perfekte sauber Pausenräume machen selbst", "Nicht auflösbar – gemeint ist vermutlich: weil wir die Pausenräume selbst sauber halten"], ["58", 8, "Ohne Chemie Materialen benutzen kann", "Subjekt fehlt: man kann ohne chemische Mittel auskommen; Rechtschreibung: Materialien"], ["58", 8, "deshalb habe viele Leute Allergie", "„deshalb“ kehrt die Ursache um – die Allergie ist der Grund, nicht die Folge; Kongruenz: haben viele Leute"], ["58", 8, "Das ist wichtig für das Gesundheit", "Genus: die Gesundheit"], ["58", 8, "und die Pauseraum viel Zeit zusammen mitbringen", "Rechtschreibung: Pausenraum; der Satz braucht ein Subjekt und eine passende Verbwahl (verbringen statt mitbringen)"], ["58", 8, "Ich habe meine erste Erfahrungen zur meine letzte Arbeit.", "Plural: meine ersten Erfahrungen; Präposition und Kasus: in meiner letzten Arbeit"], ["58", 8, "Was denken Sie darüber?", "Im Forumsbeitrag werden die Kolleginnen und Kollegen geduzt: Was denkt ihr darüber?"], ["58", 8, "Textaufbau: ein durchgehender Block", "Die Aufgabe verlangt eine Gliederung in sinnvolle Abschnitte"], ["tel", 8, "42 Namen: 0317115 519 419", "Hier gehört der Name hin – die Telefonnummer kommt in Feld 43"], ["tel", 8, "43 Kontakt/Telefon: KOLLNITZ", "Der Name ist richtig mitgeschrieben, steht aber im Nummernfeld – die beiden Felder sind vertauscht"], ["tel", 8, "44 Weitere Informationen: (Tagungsraum nicht notiert)", "Es fehlt: der große Tagungsraum bleibt in Ordnung"], ["tel", 8, "45 Zu erledigen: (leer)", "Hier gehört die konkrete Handlung hinein: drei Zimmer stornieren"], ["sonst", 8, "Lesen Teil 4 (Aufgaben 14–18): alle fünf falsch", "Das Protokoll verlangt Detailverstehen – erst die Fragen lesen, dann gezielt im Text suchen"], ["21", 9, "Betreffzeile: (leer geblieben)", "Die Betreffzeile gehört zur Textsorte E-Mail – hier mit „AW:“ und dem Bezug auf die Reklamation"], ["21", 9, "Sehr geehrte Herr Raueisen,", "Adjektivendung in der Anrede: Sehr geehrter Herr"], ["21", 9, "Ich habe eure E-Mail gelesen … eure Problem", "Dem Kunden gegenüber wird gesiezt: Ihre E-Mail, Ihr Problem; Genus: das Problem"], ["21", 9, "und verstehe ich schon ja eure Problem", "Nach „und“ folgt kein neuer Satzanfang: … und verstehe Ihr Problem; „schon ja“ entfällt"], ["21", 9, "für diese Situazion", "Rechtschreibung: Situation"], ["21", 9, "und Danke dass Ihnen keine Beschwerde im Internet geschrieben haben", "„danke“ kleinschreiben; Komma vor „dass“; Nominativ: dass Sie … geschrieben haben"], ["21", 9, "Ich habe für Ihnen einen Vorschlag.", "Ohne Präposition: Ich habe einen Vorschlag für Sie"], ["21", 9, "Wir ruben jetz unserer Mitarbeitern und bitten, um Sie Spülbecken an einer Stelle reparieren.", "Rechtschreibung: rufen, jetzt; Akkusativ: unsere Mitarbeiter an; der bitten-Satz braucht „darum, dass sie … reparieren“"], ["21", 9, "ein Angebot für Ihnen bei nächsten mal geben", "Akkusativ: für Sie; Dativ mit Artikel: beim nächsten Mal; Substantiv großschreiben"], ["21", 9, "Oder wenn Sie wollen, wir können auszutauschen.", "Verbzweitstellung nach dem Nebensatz: … können wir es austauschen; nach Modalverb steht der reine Infinitiv"], ["21", 9, "Ich hoffe auf Ihre Verständnis", "Genus: Ihr Verständnis"], ["21", 9, "Grund für den Defekt: (fehlt)", "Die Teamleitung bittet ausdrücklich darum, dem Kunden die Ursache zu nennen"], ["58", 9, "Liebe Koleginnen und Kollegen,", "Rechtschreibung: Kolleginnen (Doppelkonsonant)"], ["58", 9, "Ich habe neue Idee … schon gesehen.", "Artikel fehlt: die neue Idee; Verbwahl: gelesen oder gehört statt gesehen"], ["58", 9, "Ich würde sagen dass sie können alle zusammen diese Interview machen", "Komma vor „dass“; Verbendstellung im Nebensatz: dass wir alle … machen können; Genus: dieses Interview"], ["58", 9, "Anrede mit „Sie“ und „Mit freundlichen Grüßen“", "Im Forumsbeitrag werden die Kolleginnen und Kollegen geduzt, und die Grußformel ist kollegial: „Viele Grüße“"], ["58", 9, "um jemanden lieber kennenzulernen", "Wortwahl: besser kennenzulernen; „einander“ statt „jemanden“"], ["58", 9, "diese Interview wird während der Arbeitzeit stattfinden", "Genus: dieses Interview; Fugen-s: Arbeitszeit"], ["58", 9, "Das alles ist also eine grosse Vorteile", "ß statt ss: große; Numerus: ein großer Vorteil"], ["58", 9, "dann könnten sie danach noch in Privatleben reden", "Dativ mit Artikel: im Privatleben; Perspektive: wir statt sie"], ["58", 9, "Jemanden an der Interview die Rubrik „ganz privat“ kommt, bekommt …", "Der Satz ist nicht auflösbar – gemeint ist vermutlich: Wer in der Rubrik „Ganz privat“ vorkommt, bekommt …"], ["58", 9, "Wer ist dabei schreiben Sie bitte eine E-Mail an mich.", "Komma nach dem Nebensatz; im Forum: schreibt mir bitte"], ["58", 9, "Sie können auch gute Meinun schreiben", "Wortform: Meinung; gemeint ist vermutlich „eure Meinung“"], ["58", 9, "Ich hoffe auf eure positive und zustimmende antworten!", "Substantiv großschreiben: Antworten; Adjektivendung im Plural: positiven und zustimmenden"], ["58", 9, "Perspektive: „schreiben Sie bitte eine E-Mail an mich“", "Der Beitrag ist als Rundmail der Organisatorin geschrieben – gefragt ist die eigene Meinung als Kollegin im Forum"], ["tel", 9, "44 Weitere Informationen: 12 Mitarbeiter", "Richtig gehört, aber es ist der Ausgangsstand – gefragt sind die drei Änderungen"], ["tel", 9, "44 Weitere Informationen: 1 Mitar von Brasilien", "Das ist die Begründung – notiert werden sollte die Folge: ein zusätzlicher Bildschirm"], ["tel", 9, "44 Weitere Informationen: (Tagungsraum nicht notiert)", "Es fehlt: der große Tagungsraum bleibt in Ordnung"], ["tel", 9, "45 Zu erledigen: (leer)", "Hier gehört die konkrete Handlung hinein: drei Zimmer stornieren"]], "erg": [[1, 42, 42, 33, 52.5, 169.5, 1], [2, 24, 27, 35.25, 32.5, 118.75, 0], [3, 24, 27, 29.25, 38.5, 118.75, 0], [4, 24, 24, 27.75, 40, 115.75, 0], [5, 36, 42, 34, 42.5, 154.5, 1], [6, 48, 57, 37.5, 50, 192.5, 1], [7, 39, 45, 35.25, 40.5, 159.75, 1], [8, 24, 36, 26.25, 40.5, 126.75, 0], [9, 33, 30, 32.25, 44, 139.25, 0]], "teile": [["Sprachbausteine Teil 1", 15, 54], ["Telefonnotiz (Punkte)", 16.5, 54], ["Lesen Teil 4 · Protokoll", 18, 45], ["Sprachbausteine Teil 2", 24, 54], ["Lesen Teil 2", 17, 36], ["Hören Teil 2 · Gespräch", 17, 36], ["Lesen Teil 3", 19, 36], ["Hören Teil 1", 31, 54], ["Lesen und Schreiben 19–20", 11, 18], ["Hören Teil 3 · Präsentation", 22, 36], ["Hören Teil 4 · Mitteilungen", 31, 45], ["Lesen Teil 1 · Zuordnung", 33, 45], ["Hören 41 · Anrufgrund", 9, 9]]};
+const TITEL = {'21':'Aufgabe 21 · E-Mail an den Kunden',
+               '58':'Aufgabe 58 · Forumsbeitrag',
+               'tel':'Aufgaben 42–45 · Telefonnotiz',
+               'sonst':'Weitere Befunde'};
+const ESC = t => String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* --- Gruppenbogen --- */
+(function(){
+  const el = document.getElementById('bogen');
+  el.innerHTML = '<div class="bogen-kopf"><span>TN</span><span>Lesen</span><span>Hören</span>'
+    + '<span>Schreiben</span><span>Sprechen</span><span>Gesamt</span><span>Zertifikat</span></div>'
+    + DATEN.erg.map(e=>{
+      const b = v => '<div class="balken"><i style="width:'+(v/60*100).toFixed(1)+'%"></i>'
+        + '<b></b><em>'+String(v).replace('.',',')+'</em></div>';
+      return '<div class="zeile"><span class="tn">TN '+e[0]+'</span>'
+        + b(e[1])+b(e[2])+b(e[3])+b(e[4])
+        + '<span class="summe">'+String(e[5]).replace('.',',')+'</span>'
+        + '<span class="urteil '+(e[6]?'ja':'nein')+'">'+(e[6]?'bestanden':'nicht bestanden')+'</span></div>';
+    }).join('');
+})();
+
+/* --- Trefferquoten --- */
+(function(){
+  document.getElementById('quoten').innerHTML = DATEN.teile.map(t=>{
+    const p = t[1]/t[2]*100;
+    return '<div class="quote"><span>'+ESC(t[0])+'</span>'
+      + '<div class="qbalken'+(p<50?' schwach':'')+'"><i style="width:'+p.toFixed(1)+'%"></i></div>'
+      + '<span class="qwert">'+Math.round(p)+'&#8201;%</span></div>';
+  }).join('');
+})();
+
+/* --- Fehlerkatalog --- */
+const katalog = document.getElementById('katalog');
+const stand = document.getElementById('stand');
+let filter = 'alle', suchwort = '';
+const werte = new Array(DATEN.fehler.length).fill('');
+
+function passt(r,i){
+  if(suchwort && !(r[2]+' '+r[3]).toLowerCase().includes(suchwort)) return false;
+  if(filter==='alle') return true;
+  if(filter==='offen') return !werte[i].trim();
+  return r[0]===filter;
+}
+
+function zeichnen(){
+  const sichtbar = DATEN.fehler.map((r,i)=>[r,i]).filter(([r,i])=>passt(r,i));
+  if(!sichtbar.length){ katalog.innerHTML = '<p class="leer">Keine Einträge für diese Auswahl.</p>'; aktualisieren(); return; }
+  let html='', letzte=null;
+  for(const [r,i] of sichtbar){
+    if(r[0]!==letzte){ html += '<h3 class="gruppe-titel">'+ESC(TITEL[r[0]]||r[0])+'</h3>'; letzte=r[0]; }
+    html += '<div class="karte'+(werte[i].trim()?' fertig':'')+'" data-i="'+i+'">'
+      + '<div class="wer">TN&nbsp;'+r[1]+'</div>'
+      + '<div class="links"><div class="zitat">'+ESC(r[2])+'</div>'
+      + (r[3]?'<div class="hinweis">'+ESC(r[3])+'</div>':'')+'</div>'
+      + '<div class="rechts"><textarea rows="2" placeholder="richtige Fassung …" '
+      + 'aria-label="Richtige Fassung zu: '+ESC(r[2]).slice(0,60)+'">'+ESC(werte[i])+'</textarea></div>'
+      + '</div>';
+  }
+  katalog.innerHTML = html;
+  aktualisieren();
+}
+
+function aktualisieren(){
+  const fertig = werte.filter(w=>w.trim()).length;
+  stand.textContent = fertig+' von '+werte.length+' korrigiert';
+}
+
+katalog.addEventListener('input', e=>{
+  const ta = e.target.closest('textarea'); if(!ta) return;
+  const karte = ta.closest('.karte');
+  werte[+karte.dataset.i] = ta.value;
+  karte.classList.toggle('fertig', !!ta.value.trim());
+  aktualisieren();
+});
+
+document.querySelectorAll('.reiter').forEach(b=>{
+  b.addEventListener('click', ()=>{
+    filter = b.dataset.f;
+    document.querySelectorAll('.reiter').forEach(x=>x.setAttribute('aria-pressed', String(x===b)));
+    zeichnen();
+  });
+});
+document.getElementById('suche').addEventListener('input', e=>{
+  suchwort = e.target.value.trim().toLowerCase(); zeichnen();
+});
+document.getElementById('drucken').addEventListener('click', ()=>window.print());
+document.getElementById('kopieren').addEventListener('click', async e=>{
+  let t = 'Modelltest 2 – Fehlerkatalog mit Korrekturen\n\n', letzte=null;
+  DATEN.fehler.forEach((r,i)=>{
+    if(!werte[i].trim()) return;
+    if(r[0]!==letzte){ t += '\n== '+(TITEL[r[0]]||r[0])+' ==\n'; letzte=r[0]; }
+    t += '\nTN '+r[1]+': '+r[2]+'\n  → '+werte[i].trim()+'\n';
+  });
+  const fertig = werte.filter(w=>w.trim()).length;
+  if(!fertig) t += '(noch keine Korrekturen eingetragen)\n';
+  try{ await navigator.clipboard.writeText(t); e.target.textContent='Kopiert'; }
+  catch{ e.target.textContent='Kopieren nicht möglich'; }
+  setTimeout(()=>{e.target.textContent='Als Text kopieren';},1800);
+});
+
+zeichnen();
+
+</script>
+</body>
+</html>
