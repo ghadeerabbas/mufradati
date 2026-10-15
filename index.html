@@ -154,7 +154,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .mb{min-height:52px;padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:.95rem;font-weight:600}
 .mb.sel{border-color:var(--gold);background:#c9a84a22}.mb.gone{visibility:hidden}
 .lghead{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lgic{font-size:2.2rem}.lghead b{display:block;font-size:1.05rem;color:var(--hd)}.lghead small{font-size:.78rem;color:var(--muted)}
-.tiers{display:flex;justify-content:space-between;margin:6px 0 10px;font-size:1.05rem}.tiers span{opacity:.9}.tiers .lock{opacity:.25;filter:grayscale(1)}.tiers .on{transform:scale(1.35)}
+svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
+.tiers{display:flex;justify-content:space-between;margin:6px 0 10px;font-size:1.25rem}.tiers span{opacity:.9}.tiers .lock{opacity:.5}.tiers .on{transform:scale(1.35)}
 .lgrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;font-size:.9rem}.lgrow b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lgrow .rk{width:24px;text-align:center;font-weight:700}.lgrow .xp{font-size:.8rem;color:var(--muted)}.lgrow.up{background:#22c55e14}.lgrow.down{background:#ef444414}.lgrow.me{outline:2px solid var(--gold)}
 .botl{font-size:.68rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:8px;padding:0 6px}
@@ -1058,7 +1059,9 @@ function measure(){
   return {total:Math.round(total),parts};
 }
 const band=()=>Math.min(5,Math.floor(measure().total/20));
-const TIERS=[["البرونزي","🥉"],["الفضّي","🥈"],["الذهبي","🥇"],["الياقوت الأزرق","💙"],["الياقوت الأحمر","❤️"],["الزمرّدي","💚"],["الجَمَشت","💜"],["اللؤلؤي","🤍"],["السَّبَج","🖤"],["الماسي","💎"]];
+// كؤوس ملوّنة لكل دوري
+const cupSVG=(c,d)=>`<svg class="cup" viewBox="0 0 24 24" aria-hidden="true"><path fill="${c}" stroke="${d}" stroke-width=".7" stroke-linejoin="round" d="M7 3h10v2h3v2.5a4.5 4.5 0 0 1-4.2 4.5A5 5 0 0 1 13 14.9V17h3v2H8v-2h3v-2.1A5 5 0 0 1 8.2 12 4.5 4.5 0 0 1 4 7.5V5h3V3zm0 4H6v.5a2.5 2.5 0 0 0 1.4 2.2A5 5 0 0 1 7 8V7zm10 0v1a5 5 0 0 1-.4 1.7A2.5 2.5 0 0 0 18 7.5V7h-1z"/><rect x="6.5" y="19" width="11" height="2.4" rx="1.1" fill="${d}"/><path fill="#fff" opacity=".45" d="M9 5h1.6v6.2A3.4 3.4 0 0 1 9 8.6z"/></svg>`;
+const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3","#7d8792"],["الذهبي","#f4c430","#b08a12"],["الياقوت الأزرق","#2f6fdf","#1d4a9c"],["الياقوت الأحمر","#e0314b","#8f1626"],["الزمرّدي","#1fb46c","#11703f"],["الجَمَشت","#9b5de5","#6a35ad"],["اللؤلؤي","#f3eef9","#a99bbf"],["السَّبَج","#3a3a4a","#101016"],["الماسي","#5fe0ee","#1c97a8"]].map(([n,c,d])=>[n,cupSVG(c,d)]);
 const tierName=i=>"الدوري "+TIERS[i][0];
 const GROUP_MAX=20,PROMO_MIN=100;
 function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()}
