@@ -411,7 +411,7 @@ const ACH=[
  {id:"shop5",ic:"🛍️",n:"جامع التحف",d:"شراء ٥ أغراض من المتجر",g:30,v:s=>s.items,need:5},
 ];
 const achList=()=>ACH.filter(a=>!a.b2||useDays());
-const lvlNeed=l=>100+(l-1)*50;
+const lvlNeed=l=>200*l;                         // كل مستوى يحتاج ٢٠٠ نقطة أكثر من سابقه
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};
