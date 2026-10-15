@@ -157,6 +157,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .tiers{display:flex;justify-content:space-between;margin:6px 0 10px;font-size:1.05rem}.tiers span{opacity:.9}.tiers .lock{opacity:.25;filter:grayscale(1)}.tiers .on{transform:scale(1.35)}
 .lgrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;font-size:.9rem}.lgrow b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lgrow .rk{width:24px;text-align:center;font-weight:700}.lgrow .xp{font-size:.8rem;color:var(--muted)}.lgrow.up{background:#22c55e14}.lgrow.down{background:#ef444414}.lgrow.me{outline:2px solid var(--gold)}
+.botl{font-size:.68rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:8px;padding:0 6px}
 .lgline{font-size:.72rem;text-align:center;margin:4px 0;font-weight:700}.lgline.up{color:var(--green)}.lgline.down{color:var(--rd)}
 .lgrules{margin-top:8px;font-size:.82rem}.lgrules summary{cursor:pointer;color:var(--hd);font-weight:600}.lgrules ul{padding-right:18px;margin-top:6px;line-height:1.7}
 .mbar{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:4px 0}.mbar span{width:46%}.mbar i{flex:1;height:8px;border-radius:4px;background:var(--soft);position:relative;overflow:hidden}.mbar i b{position:absolute;inset:0 auto 0 0;background:var(--navy2);border-radius:4px}.mbar em{font-style:normal;width:44px;text-align:left}
@@ -1069,7 +1070,6 @@ function zones(n){
   const up=n<=4?1:n<=9?2:Math.round(n*.25),down=n<5?0:n<10?1:Math.round(n*.17);
   return {up,down};
 }
-const prize=(rank,n,xp)=>xp<PROMO_MIN?0:n>=3?([50,30,20][rank-1]||0):(rank===1?20:0);
 const initialTier=()=>{const m=measure().total;return m<15?0:m<30?1:m<45?2:m<60?3:4};
 const lgref=w=>db.collection("lg").doc(w).collection("m");
 let LGME=null,LGC={at:0,rows:null};
@@ -1087,6 +1087,55 @@ async function chooseGroup(w,tier){
   const ks=Object.keys(gs).map(Number);return ks.length?Math.max(...ks)+1:0;
 }
 // تطبيق نتيجة الأسبوع الماضي مرة واحدة: صعود أو هبوط وجوائز
+// المجموعة: إن قلّ المتعلّمون الحقيقيون عن ٥ تُضمّ إليهم أقرب الدوريات المتجاورة،
+// ثم تُكمَل حتى ١٠ بمنافسين آليّين ظاهرين بأنهم آليّون
+const MINR=5,TARGET=10;
+function clusters(members){
+  const units={};members.forEach(m=>{const k=(m.tier||0)*1000+(m.grp||0);(units[k]=units[k]||[]).push(m)});
+  const out=[];let cur=null;
+  for(const k of Object.keys(units).map(Number).sort((a,b)=>a-b)){
+    if(!cur)cur={key:k,m:[]};cur.m.push(...units[k]);
+    if(cur.m.length>=MINR){out.push(cur);cur=null}
+  }
+  if(cur){if(out.length)out[out.length-1].m.push(...cur.m);else out.push(cur)}
+  return out;
+}
+function rngOf(seed){let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
+  return()=>{h=h+0x6D2B79F5|0;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
+const BOTN=["Lena","Jonas","Mia","Paul","Emma","Felix","Hannah","Lukas","Sophie","Elias","Lea","Noah","Marie","Ben","Clara","Finn","Anna","Leon"];
+// منافسون آليّون ثابتون طوال الأسبوع: خبرتهم حول متوسط خبرة المجموعة، وتزداد يومًا بعد يوم
+function makeBots(w,cl,base,prog){
+  const r=rngOf(w+"|"+cl.key),names=[...BOTN];
+  for(let i=names.length-1;i>0;i--){const j=r()*(i+1)|0;[names[i],names[j]]=[names[j],names[i]]}
+  const out=[],n=Math.max(0,TARGET-cl.m.length),tier=Math.min(...cl.m.map(m=>m.tier||0));
+  for(let i=0;i<n;i++){
+    const target=base*(.35+r()*1.3),wts=[...Array(7)].map(()=>{const a=r(),b=r();return a<.2?0:.3+b});
+    const tot=wts.reduce((a,b)=>a+b,0)||1,days=prog*7;let xp=0;
+    for(let d=0;d<7;d++)xp+=target*wts[d]/tot*Math.max(0,Math.min(1,days-d));
+    out.push({id:"bot"+i,bot:1,name:names[i],av:"🤖",tier,xp:Math.round(xp)});
+  }
+  return out;
+}
+// متوسط خبرة المتعلّمين الحقيقيين في المجموعة خلال الأسبوع السابق، وإلا فقيمة تناسب الدوري
+function botBase(cl,prevDocs){
+  const ids=new Set(cl.m.map(m=>m.id)),xs=prevDocs.filter(d=>ids.has(d.id)&&d.xp>0).map(d=>d.xp);
+  const tier=Math.min(...cl.m.map(m=>m.tier||0));
+  return Math.max(100,xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:150+tier*80);
+}
+const LGW={};
+async function weekDocs(w,fresh){
+  if(!fresh&&LGW[w]&&Date.now()-LGW[w].at<60000)return LGW[w].d;
+  const q=await lgref(w).get();const d=q.docs.map(x=>({id:x.id,...x.data()}));LGW[w]={at:Date.now(),d};return d;
+}
+// جدول مجموعتي في أسبوع ما: المتعلّمون الحقيقيون ثم الآليّون، مرتّبين بالخبرة
+async function groupTable(w,prog,fresh){
+  const docs=await weekDocs(w,fresh),cl=clusters(docs).find(c=>c.m.some(m=>m.id===UID));
+  if(!cl)return [];
+  const prev=await weekDocs(weekId(new Date(w+"T12:00:00").getTime()-3*DAY));
+  return [...cl.m,...makeBots(w,cl,botBase(cl,prev),prog)].sort((a,b)=>b.xp-a.xp||(a.bot?1:0)-(b.bot?1:0));
+}
+const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,30,20][realRank-1]||0);
+// تطبيق نتيجة الأسبوع الماضي مرة واحدة: صعود أو هبوط وجوائز
 async function leagueSettle(){
   if(!UID)return;
   const cur=weekId(Date.now());
@@ -1095,11 +1144,10 @@ async function leagueSettle(){
   const last=weekId(weekStart(Date.now())-3*DAY);let res=null;
   const me=await lgref(last).doc(UID).get();
   if(me.exists){
-    const m=me.data(),q=await lgref(last).where("tier","==",m.tier).where("grp","==",m.grp).get();
-    const rows=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.xp-a.xp);
-    const n=rows.length,rank=rows.findIndex(r=>r.id===UID)+1,{up,down}=zones(n);
-    let mv=0;if(rank<=up&&m.xp>=PROMO_MIN&&m.tier<9)mv=1;else if(down&&rank>n-down&&m.tier>0)mv=-1;
-    res={w:last,tier:m.tier,rank,n,mv,g:prize(rank,n,m.xp),xp:m.xp};
+    const m=me.data(),rows=await groupTable(last,1,true);
+    const n=rows.length,rank=rows.findIndex(r=>r.id===UID)+1,realRank=rows.filter(r=>!r.bot).findIndex(r=>r.id===UID)+1,{up,down}=zones(n);
+    let mv=0;if(rank&&rank<=up&&m.xp>=PROMO_MIN&&m.tier<9)mv=1;else if(rank&&down&&rank>n-down&&m.tier>0)mv=-1;
+    res={w:last,tier:m.tier,rank,n,mv,g:prizeOf(realRank,m.xp),xp:m.xp};
     LG.tier=m.tier+mv;
   }
   const prev=EC||econ();
@@ -1123,10 +1171,9 @@ async function leagueUpdate(){
   Object.assign(me,{xp,name:UNAME,av});LGC.at=0;
 }
 async function leagueRows(){
-  const w=weekId(Date.now());
+  const ws=weekStart(Date.now()),w=weekId(ws);
   if(LGC.rows&&LGC.w===w&&Date.now()-LGC.at<60000)return LGC.rows;
-  const me=await myLeagueDoc(w);let rows=[];
-  if(me){const q=await lgref(w).where("tier","==",me.tier).where("grp","==",me.grp).get();rows=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.xp-a.xp)}
+  const rows=await groupTable(w,Math.min(1,(Date.now()-ws)/(7*DAY)),true);
   LGC={at:Date.now(),rows,w};return rows;
 }
 function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
@@ -1138,17 +1185,18 @@ async function fillLeague(){
   if(!$("lgBox"))return;
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n);
   const lastRes=(LG.hist||[]).slice(-1)[0];
-  const row=(r,i)=>{const z=i<up&&r.xp>=PROMO_MIN&&t<9?"up":down&&i>=n-down&&t>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة الهبوط</div>':""}<div class="lgrow ${z} ${r.id===UID?"me":""}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b>${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}</b><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة الصعود</div>':""}`};
+  const row=(r,i)=>{const rt=r.tier??t,z=i<up&&r.xp>=PROMO_MIN&&rt<9?"up":down&&i>=n-down&&rt>0?"down":"";
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة الهبوط</div>':""}<div class="lgrow ${z} ${r.id===UID?"me":""}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b>${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة الصعود</div>':""}`};
   box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
    ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
    <details class="lgrules"><summary>كيف يعمل الدوري؟</summary><ul>
     <li>كل أسبوع من الإثنين إلى الأحد تتنافس مع مجموعة من المتعلّمين القريبين من مستواك، حتى ${GROUP_MAX} متعلّمًا.</li>
+    <li>إن قلّ المتعلّمون في دوريك، يُضمّ إليك متعلّمون من أقرب الدوريات، وتُكمَل المجموعة حتى ${TARGET} بمنافسين آليّين 🤖 خبرتهم قريبة من مستوى المجموعة. والآليّون لا يأخذون الجوائز.</li>
     <li>الترتيب بحسب الخبرة التي تكسبها هذا الأسبوع من المراجعة والاختبارات والتمارين.</li>
     <li>الأوائل في منطقة الصعود ينتقلون إلى الدوري الأعلى، بشرط ${PROMO_MIN} خبرة على الأقل، والأواخر في منطقة الهبوط ينزلون.</li>
-    <li>جوائز نهاية الأسبوع: الأول ٥٠ 💎، والثاني ٣٠، والثالث ٢٠.</li>
+    <li>جوائز نهاية الأسبوع لأول ثلاثة متعلّمين حقيقيين: ٥٠ 💎، ثم ٣٠، ثم ٢٠، لمن جمع ${PROMO_MIN} خبرة على الأقل.</li>
     <li>الدوريات من الأدنى إلى الأعلى: ${TIERS.map(x=>x[1]+" "+x[0]).join("، ")}.</li></ul></details>`;
 }
 
