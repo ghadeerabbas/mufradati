@@ -146,6 +146,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .sth{font-size:1.15rem;color:var(--hd);margin-bottom:10px}
 .nreq{display:flex;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.nreq>div{flex:1;min-width:0}.nreq b{display:block}.nreq small{font-size:.75rem;color:var(--muted)}
 .nok{background:var(--green);color:#fff;padding:7px 12px}.nno{background:var(--red);color:#fff;padding:7px 12px}
+.rvbox h3{margin-bottom:4px}.rvbox .numpicks{margin-top:6px}.rvbox .numpick{min-width:52px}.rvbox .numpick small{opacity:.7;font-size:.75em;margin-right:3px}.rvbox .numpick:disabled{opacity:.35}
 .strow{display:flex;gap:8px;margin-top:6px}.stin{display:block;width:100%;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin-top:6px}
 .strow .stin{margin-top:0;flex:1}.stbtn{background:var(--navy);color:#fff}.stmsg{font-size:.85rem;margin-top:6px;text-align:center}.stmsg.ok{color:var(--green)}.stmsg.bad{color:var(--rd)}
 #settings .numpicks{margin-top:4px}
@@ -689,13 +690,51 @@ function celebrate(prev){
 
 /* ================= المراجعة ================= */
 let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
+// المراجعة على شكل جلسات يختارها المتعلّم: تعلّم كلمات جديدة (حتى ٢٠ يوميًا)، أو مراجعة ما تعلّمه
+const NEW_MAX=20;
+let RVDONE=null,RVSTATE="due";
 function buildQueue(){
-  const now=Date.now(),f=uniq(filtered());
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
-  const due=shuffle(f.filter(w=>P[w.k]&&P[w.k].due<=now)).sort((a,b)=>P[a.k].due-P[b.k].due);
-  const left=Math.max(0,S.limit-(S.newCount||0));
-  queue=[...due,...f.filter(w=>!P[w.k]).slice(0,left)];
-  sessTotal=queue.length;sessDone=0;
+  queue=[];sessTotal=0;sessDone=0;
+}
+// حالات الكلمات التي بدأها المتعلّم
+// الصعبة: آخر تقييم لها «نسيت» أو «صعبة»؛ السهلة: آخر تقييم «سهلة» أو صارت محفوظة؛ والمتوسطة ما بينهما
+const RSTATES=[["due","المستحقّة اليوم",(w,p,now)=>p.due<=now],["hard","الصعبة",(w,p,now,r)=>r<=1],["mid","المتوسطة",(w,p,now,r)=>r===2&&p.box<4],["easy","السهلة",(w,p,now,r)=>r===3||p.box>=4],["all","كلها",()=>true]];
+function stateList(id){
+  const st=RSTATES.find(x=>x[0]===id),now=Date.now(),last={};for(const x of LOG)last[x[1]]=x[2];
+  return uniq(filtered()).filter(w=>P[w.k]&&st[2](w,P[w.k],now,last[w.k]??2));
+}
+const fives=n=>{const a=[];for(let i=5;i<=n;i+=5)a.push(i);if(n%5&&n<5)a.push(n);return a};
+function startLearn(n){
+  const left=Math.max(0,NEW_MAX-(S.newCount||0)),list=uniq(filtered()).filter(w=>!P[w.k]).slice(0,Math.min(n,left));
+  queue=list;sessTotal=list.length;sessDone=0;RVDONE={mode:"learn",n:list.length};showCard();scrollTo(0,0);
+}
+function startReview(state,n){
+  let list=stateList(state);
+  list=state==="due"?list.sort((a,b)=>P[a.k].due-P[b.k].due):shuffle(list);
+  queue=list.slice(0,n);sessTotal=queue.length;sessDone=0;RVDONE={mode:"review",n:queue.length};showCard();scrollTo(0,0);
+}
+function reviewHome(){
+  const el=$("review"),f=uniq(filtered()),learned=f.filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
+  if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
+  const left=Math.max(0,NEW_MAX-(S.newCount||0)),newOpts=fives(Math.min(left,fresh));
+  const counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
+  if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
+  const done=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:18px"><div class="big">🏆</div><h2>أحسنت! ${RVDONE.mode==="learn"?"تعلّمت "+RVDONE.n+" كلمات جديدة":"راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
+  el.innerHTML=reviewPills()+done+`
+  <div class="rsec rvbox"><h3>🆕 تعلّم كلمات جديدة</h3>
+   ${!fresh?'<p class="rnote">تعلّمت كل كلمات هذا الاختيار. اختر يومًا أو منهجًا آخر من الأعلى.</p>'
+     :!left?`<p class="rnote">تعلّمت اليوم ${NEW_MAX} كلمة جديدة، وهذا حدّ اليوم. عُد غدًا لكلمات جديدة، وراجع ما تعلّمته الآن.</p>`
+     :`<p class="rnote">كم كلمة جديدة تريد أن تتعلّم الآن؟ تعلّمت اليوم ${S.newCount||0} من ${NEW_MAX}.</p><div class="numpicks" id="rvNew">${newOpts.map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>`}</div>
+  ${learned?`<div class="rsec rvbox"><h3>🔁 مراجعة ما تعلّمته (${learned})</h3>
+   <p class="rnote">اختر نوع الكلمات:</p>
+   <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
+   ${counts[RVSTATE]?`<p class="rnote" style="margin-top:10px">كم كلمة تريد أن تراجع؟</p><div class="numpicks" id="rvN">${fives(counts[RVSTATE]).map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>`:""}
+  </div>`:""}`+settingsHTML();
+  bindSettings();
+  const nb=$("rvNew");if(nb)nb.onclick=e=>{const b=e.target.closest(".numpick");if(b)startLearn(+b.dataset.v)};
+  const sb=$("rvState");if(sb)sb.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
+  const rb=$("rvN");if(rb)rb.onclick=e=>{const b=e.target.closest(".numpick");if(b)startReview(RVSTATE,+b.dataset.v)};
 }
 function reviewPills(){
   const u=uniq(filtered()),now=Date.now();
@@ -704,23 +743,18 @@ function reviewPills(){
 function showCard(){
   const el=$("review");
   if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
-  if(!queue.length){
-    const f=uniq(filtered()),nxt=f.filter(w=>P[w.k]).map(w=>P[w.k].due).sort((a,b)=>a-b)[0];
-    el.innerHTML=reviewPills()+`<div class="box done"><div class="big">🏆</div><h2>أحسنت! انتهت مراجعة اليوم</h2><p>${nxt?"المراجعة القادمة: "+new Date(nxt).toLocaleDateString("ar",{weekday:"long",day:"numeric",month:"long"}):"لا كلمات جديدة في هذا الاختيار."}</p>
-     <p style="margin-top:8px;font-size:.85rem;color:var(--muted)">تريد المزيد؟ جرّب الاختبار أو زد عدد الكلمات الجديدة من الإعدادات أدناه.</p></div>`+settingsHTML();
-    bindSettings();return;
-  }
+  if(!queue.length){if(RVDONE&&sessTotal&&sessDone>=sessTotal)RVDONE.finished=true;reviewHome();return}
   cur=queue[0];flipped=false;
   const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${esc(E.sticker)}</span>`:"";
   const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
-  el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span></div>
+  el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
   <div class="scene fr-${E.frame}"><div class="flip" id="flip">
    <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
    <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
     ${exPairs(cur)}</div>
   </div></div><div id="rate"></div>`+settingsHTML();
-  $("flip").onclick=flip;bindSettings();
+  $("flip").onclick=flip;bindSettings();$("rvQuit").onclick=()=>{queue=[];RVDONE=null;sessTotal=0;reviewHome()};
 }
 function flip(){
   if(flipped)return;flipped=true;$("flip").classList.add("on");
@@ -771,13 +805,12 @@ async function resetProgress(){
 function settingsHTML(){
   const o=(arr,v)=>arr.map(n=>`<option ${n==v?"selected":""}>${n}</option>`).join("");
   const btns=(id,arr,v)=>`<span class="numpicks" id="${id}">${arr.map(n=>`<button type="button" class="numpick${n==v?" on":""}" data-v="${n}">${n}</button>`).join("")}</span>`;
-  return `<div class="settings"><div class="limrow">كلمات جديدة يوميًا: ${btns("sLim",[5,10,15,20,30,50],S.limit)}</div>
+  return `<div class="settings">
    <div class="limrow">هدف المراجعات اليومي: ${btns("sGoal",[20,30,50,80,100],S.goal)}</div>
    الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select></div>`;
 }
 function bindSettings(){
   const set=()=>{S.ts=Date.now();save();schedSync()};
-  $("sLim").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.limit)return;S.limit=+b.dataset.v;set();buildQueue();showCard()};
   $("sGoal").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.goal)return;S.goal=+b.dataset.v;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
 }
@@ -1105,7 +1138,7 @@ const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3",
 const tierName=i=>"الدوري "+TIERS[i][0];
 // أعلى دوري وصله المتعلّم: يفتح إطارات المتجر، ولا تُقفل إن نزل بعدها
 const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier+h.mv));
-const itemLocked=it=>it.cat!=="power"&&(it.tier||0)>bestTier();
+const itemLocked=it=>it.cat!=="power"&&!isAdmin()&&(it.tier||0)>bestTier();   // المشرف مفتوح له كل شيء
 const GROUP_MAX=20,PROMO_MIN=100;
 function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()}
 const weekId=t=>dkey(weekStart(t));
