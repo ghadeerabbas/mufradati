@@ -2,6 +2,7 @@
 "default": ["a1"],
 "courses": [
  {"id": "a1", "name": "A1 · المنهج العام", "file": "words-a1.json"},
- {"id": "b2", "name": "B2 · منهج غدير", "file": "words.json", "days": true}
+ {"id": "b2", "name": "B2 · منهج غدير", "file": "words.json", "days": true},
+ {"id": "k3", "name": "Klasse 3", "file": "words-k3.json", "subjects": true}
 ]
 }

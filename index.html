@@ -302,6 +302,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
   <div class="filters" id="mainFilters">
     <select id="fCourse" style="display:none;flex-basis:100%"></select>
     <select id="fDay"><option value="all">كل الأيام</option></select>
+    <select id="fSubj" style="display:none"><option value="all">كل المواد</option></select>
     <select id="fLvl"><option value="all">كل المستويات</option><option>B1</option><option>B2</option></select>
     <select id="fCore"><option value="all">كل الكلمات</option><option value="1">الأساسية فقط ★</option></select>
   </div>
@@ -499,6 +500,7 @@ function econ(){
 let COURSES={a1:{file:"words-a1.json",name:"A1 · المنهج العام"}},DEF_COURSES=["a1"],MY_COURSES=["a1"];
 let COURSE="a1";
 const useDays=()=>!!(COURSES[COURSE]&&COURSES[COURSE].days);   // تصنيف الأيام لمنهج غدير فقط
+const useSubj=()=>!!(COURSES[COURSE]&&COURSES[COURSE].subjects);   // تصنيف المواد لمناهج الصفوف المدرسية
 async function loadCourses(){
   try{const d=await fetch("courses.json?v="+Date.now(),{cache:"no-store"}).then(r=>r.json());
     COURSES={};d.courses.forEach(c=>COURSES[c.id]=c);DEF_COURSES=(d.default||[]).filter(id=>COURSES[id]);if(!DEF_COURSES.length)DEF_COURSES=[Object.keys(COURSES)[0]];}catch(e){}
@@ -527,6 +529,9 @@ async function loadWords(c){
   $("fDay").innerHTML='<option value="all">كل الأيام</option>'+DAYS.map(x=>`<option value="${x.day}">${dayName(x.day)}</option>`).join("");
   $("fDay").value="all";$("fDay").style.display=useDays()?"":"none";
   $("fCore").value="all";$("fCore").style.display=useDays()?"":"none";   // «الأساسية» لمنهج غدير فقط
+  const sj=[...new Set(W.map(w=>w.subj).filter(Boolean))];
+  $("fSubj").innerHTML='<option value="all">كل المواد</option>'+sj.map(x=>`<option>${esc(x)}</option>`).join("");
+  $("fSubj").value="all";$("fSubj").style.display=useSubj()?"":"none";
   // المستويات حسب كلمات المنهج نفسه (A1، A2، B1، B2…)، وتُخفى الخانة إن كان فيه مستوى واحد
   const lv=[...new Set(W.map(w=>w.lvl).filter(Boolean))].sort();
   $("fLvl").innerHTML='<option value="all">كل المستويات</option>'+lv.map(l=>`<option>${esc(l)}</option>`).join("");
@@ -534,8 +539,8 @@ async function loadWords(c){
 }
 
 function filtered(){
-  const d=$("fDay").value,l=$("fLvl").value,c=$("fCore").value;
-  return W.filter(w=>(d==="all"||w.day==d)&&(l==="all"||w.lvl===l)&&(c==="all"||w.core==1));
+  const d=$("fDay").value,l=$("fLvl").value,c=$("fCore").value,j=$("fSubj").value;
+  return W.filter(w=>(d==="all"||w.day==d)&&(l==="all"||w.lvl===l)&&(c==="all"||w.core==1)&&(j==="all"||w.subj===j));
 }
 function artHTML(de){
   const m=de.match(/^(der|die|das)\s/i);
@@ -549,7 +554,7 @@ function exPairs(w,mode){
   return `<div class="exs ${mode||""}">${pairs.map(([x,y])=>`<div class="exp"><div class="exd de">${esc(x)}</div><div class="exa">${esc(y)}</div></div>`).join("")}</div>`;
 }
 function tags(w){
-  return `<span class="tag ${w.lvl}">${w.lvl}</span><span class="tag">${TYPE[w.t]||""}</span>`+
+  return (w.lvl?`<span class="tag ${w.lvl}">${w.lvl}</span>`:"")+(w.subj&&useSubj()?`<span class="tag">📚 ${esc(w.subj)}</span>`:"")+`<span class="tag">${TYPE[w.t]||""}</span>`+
    w.s.map(s=>`<span class="tag de">${esc(s)}</span>`).join("")+
    (w.core==1&&useDays()?'<span class="tag core">★ أساسية</span>':"")+
    (w.rep&&useDays()?`<span class="tag rep">مكرر · أول ظهور: ${dayName(w.rep)}</span>`:"");
@@ -802,7 +807,8 @@ function renderReport(){
   <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>٧٠٪ فأكثر</span><span><i style="background:var(--red)"></i>أقل من ٧٠٪</span></div></div>
   <div class="rsec"><h3>المراجعات المستحقّة في الأيام القادمة</h3>${colChart(fc,fl)}</div>
   ${useDays()?`<div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>`:""}
-  <div class="rsec"><h3>حسب المستوى والنوع</h3>${groupRows([{name:"B1",list:f.filter(w=>w.lvl==="B1")},{name:"B2",list:f.filter(w=>w.lvl==="B2")},...(useDays()?[{name:"★ الأساسية",list:f.filter(w=>w.core==1)}]:[])])}
+  ${useSubj()?`<div class="rsec"><h3>التقدّم حسب المادة</h3>${groupRows([...new Set(W.map(w=>w.subj).filter(Boolean))].map(x=>({name:x,list:f.filter(w=>w.subj===x)})))}</div>`:""}
+  <div class="rsec"><h3>${useSubj()?"حسب النوع":"حسب المستوى والنوع"}</h3>${groupRows([...[...new Set(W.map(w=>w.lvl).filter(Boolean))].sort().map(l=>({name:l,list:f.filter(w=>w.lvl===l)})),...(useDays()?[{name:"★ الأساسية",list:f.filter(w=>w.core==1)}]:[])])}
    ${groupRows(Object.keys(TYPE).map(t=>({name:TYPE[t],list:f.filter(w=>w.t===t)})))}</div>
   <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`;
 }
@@ -1185,7 +1191,7 @@ function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
-  ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
+  ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("fCourse").onchange=e=>switchCourse(e.target.value);
   $("q").oninput=renderList;$("fType").onchange=renderList;
   $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
