@@ -214,6 +214,8 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 .ach small{font-size:.7rem;color:var(--muted);display:block;line-height:1.4}
 .ach.lock{opacity:.55}.ach.lock .ic{filter:grayscale(1)}
 .ach.got{border-color:var(--gold);background:linear-gradient(135deg,var(--card),rgba(201,168,74,.12))}
+.alv{display:inline-block;min-width:18px;text-align:center;font-size:.7rem;background:var(--gold);color:#222;border-radius:9px;padding:0 5px;margin-right:4px}
+.lvdots{display:flex;gap:3px;margin:3px 0}.lvdots i{width:7px;height:7px;border-radius:50%;background:var(--soft);border:1px solid var(--line)}.lvdots i.on{background:var(--gold);border-color:var(--gold)}
 .mini{height:5px;background:var(--soft);border-radius:3px;margin-top:4px;overflow:hidden}
 .mini i{display:block;height:100%;background:var(--gold)}
 .album{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
@@ -332,7 +334,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
     <button data-p="quiz"><i>❓</i>الاختبار</button>
     <button data-p="games"><i>🎮</i>تمارين</button>
     <button data-p="report"><i>📊</i>التقارير</button>
-    <button data-p="rewards"><i>🏆</i>الجوائز</button>
+    <button data-p="rewards"><i>🏆</i>الدوري</button>
     <button data-p="shop"><i>🛍️</i>المتجر</button>
   </nav>
 </header>
@@ -360,6 +362,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
   <section id="games" class="panel"></section>
   <section id="report" class="panel"></section>
   <section id="rewards" class="panel"></section>
+  <section id="profile" class="panel"></section>
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
   <section id="users" class="panel"></section>
@@ -463,38 +466,30 @@ const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.som
 
 /* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
 const GEM=[0,1,2,2],XPR=[2,5,10,10];
+// الإنجازات بمستويات: كل إنجاز يرتقي إلى مستوى أعلى كلما زاد الرقم، ولكل مستوى جواهره
 const ACH=[
- {id:"first",ic:"👣",n:"أول خطوة",d:"أول مراجعة",g:5,v:s=>s.reviews,need:1},
- {id:"r100",ic:"💯",n:"مئة مراجعة",d:"١٠٠ مراجعة",g:20,v:s=>s.reviews,need:100},
- {id:"r500",ic:"📖",n:"قارئ نهم",d:"٥٠٠ مراجعة",g:50,v:s=>s.reviews,need:500},
- {id:"r1000",ic:"📚",n:"ألف مراجعة",d:"١٠٠٠ مراجعة",g:100,v:s=>s.reviews,need:1000},
- {id:"r5000",ic:"🏛️",n:"مكتبة متنقّلة",d:"٥٠٠٠ مراجعة",g:300,v:s=>s.reviews,need:5000},
- {id:"m10",ic:"🌱",n:"البذرة",d:"١٠ كلمات محفوظة",g:20,v:s=>s.mem,need:10},
- {id:"m50",ic:"🌿",n:"النبتة",d:"٥٠ كلمة محفوظة",g:50,v:s=>s.mem,need:50},
- {id:"m100",ic:"🌳",n:"الشجرة",d:"١٠٠ كلمة محفوظة",g:100,v:s=>s.mem,need:100},
- {id:"m250",ic:"🌲",n:"الغابة",d:"٢٥٠ كلمة محفوظة",g:200,v:s=>s.mem,need:250},
- {id:"m500",ic:"🏔️",n:"قمّة الجبل",d:"٥٠٠ كلمة محفوظة",g:400,v:s=>s.mem,need:500},
- {id:"x50",ic:"💎",n:"راسخ",d:"٥٠ كلمة راسخة",g:150,v:s=>s.mast,need:50},
- {id:"s3",ic:"🔥",n:"شرارة",d:"سلسلة ٣ أيام",g:20,v:s=>s.best,need:3},
- {id:"s7",ic:"🔥",n:"أسبوع كامل",d:"سلسلة ٧ أيام",g:50,v:s=>s.best,need:7},
- {id:"s14",ic:"☄️",n:"لا يتوقّف",d:"سلسلة ١٤ يومًا",g:100,v:s=>s.best,need:14},
- {id:"s30",ic:"🌋",n:"شهر من النار",d:"سلسلة ٣٠ يومًا",g:200,v:s=>s.best,need:30},
- {id:"s60",ic:"⚡",n:"عزيمة حديدية",d:"سلسلة ٦٠ يومًا",g:400,v:s=>s.best,need:60},
- {id:"s100",ic:"👑",n:"أسطورة",d:"سلسلة ١٠٠ يوم",g:700,v:s=>s.best,need:100},
- {id:"perfect",ic:"🎯",n:"يوم مثالي",d:"٢٠ مراجعة أو أكثر دون أي نسيان",g:30,v:s=>s.perfect,need:1},
- {id:"marathon",ic:"🏃",n:"ماراثون",d:"١٠٠ مراجعة في يوم واحد",g:50,v:s=>s.maxDay,need:100},
- {id:"q10",ic:"🧩",n:"محبّ الاختبارات",d:"١٠ اختبارات مكتملة",g:30,v:s=>s.quizzes,need:10},
- {id:"qfull",ic:"🥇",n:"العلامة الكاملة",d:"١٠ من ١٠ في اختبار",g:20,v:s=>s.qfull,need:1},
- {id:"dayall",ic:"📅",n:"يوم مكتمل",d:"بدء كل كلمات يوم من الأيام",g:50,v:s=>s.dayAll,need:1,b2:1},
- {id:"owl",ic:"🦉",n:"بومة الليل",d:"مراجعة بعد الحادية عشرة ليلًا",g:10,v:s=>s.night,need:1},
- {id:"bird",ic:"🐦",n:"الطائر المبكر",d:"مراجعة قبل السابعة صباحًا",g:10,v:s=>s.early,need:1},
- {id:"shop5",ic:"🛍️",n:"جامع التحف",d:"شراء ٥ أغراض من المتجر",g:30,v:s=>s.items,need:5},
+ {id:"rev",ic:"📖",n:"المراجِع المجتهد",u:"مراجعة",v:s=>s.reviews,L:[[1,5],[100,20],[500,50],[1000,100],[2500,200],[5000,300],[10000,500],[25000,800],[50000,1200]]},
+ {id:"mem",ic:"🌳",n:"حديقة الكلمات",u:"كلمة محفوظة",v:s=>s.mem,L:[[10,20],[50,50],[100,100],[250,200],[500,400],[1000,700],[2000,1000],[3000,1500]]},
+ {id:"mast",ic:"💎",n:"الكلمات الراسخة",u:"كلمة راسخة",v:s=>s.mast,L:[[10,30],[50,150],[100,250],[250,500],[500,800],[1000,1200]]},
+ {id:"streak",ic:"🔥",n:"السلسلة",u:"يومًا متتاليًا",v:s=>s.best,L:[[3,20],[7,50],[14,100],[30,200],[60,400],[100,700],[200,1000],[365,1500]]},
+ {id:"perfect",ic:"🎯",n:"الأيام المثالية",u:"يومًا بلا نسيان (٢٠ مراجعة فأكثر)",v:s=>s.perfect,L:[[1,30],[5,60],[10,100],[25,200],[50,400],[100,700]]},
+ {id:"marathon",ic:"🏃",n:"الماراثون",u:"مراجعة في يوم واحد",v:s=>s.maxDay,L:[[50,25],[100,50],[200,100],[300,150],[500,250]]},
+ {id:"quiz",ic:"🧩",n:"محبّ الاختبارات",u:"اختبارًا وتمرينًا مكتملًا",v:s=>s.quizzes,L:[[10,30],[25,50],[50,80],[100,150],[250,300],[500,500]]},
+ {id:"qfull",ic:"🥇",n:"العلامة الكاملة",u:"اختبارًا أو تمرينًا بلا خطأ",v:s=>s.qfull,L:[[1,20],[5,40],[10,70],[25,150],[50,300],[100,500]]},
+ {id:"dayall",ic:"📅",n:"الأيام المكتملة",u:"يومًا بدأت كل كلماته",v:s=>s.dayAll,L:[[1,50],[3,80],[5,120],[10,200],[20,400]],b2:1},
+ {id:"owl",ic:"🦉",n:"بومة الليل",u:"ليلة راجعت فيها بعد الحادية عشرة",v:s=>s.night,L:[[1,10],[5,20],[15,40],[30,80],[60,150]]},
+ {id:"bird",ic:"🐦",n:"الطائر المبكر",u:"صباحًا راجعت فيه قبل السابعة",v:s=>s.early,L:[[1,10],[5,20],[15,40],[30,80],[60,150]]},
+ {id:"shop",ic:"🛍️",n:"جامع التحف",u:"غرضًا من المتجر",v:s=>s.items,L:[[5,30],[10,50],[20,100],[30,150],[40,200]]},
 ];
+// أسماء الإنجازات قبل المستويات، لئلّا تُدفع جواهرها مرتين بعد التصفير
+const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:6",m10:"mem:1",m50:"mem:2",m100:"mem:3",m250:"mem:4",m500:"mem:5",x50:"mast:2",
+ s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
 const achList=()=>ACH.filter(a=>!a.b2||useDays());
+const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
 const lvlNeed=l=>200*l;                         // كل مستوى يحتاج ٢٠٠ نقطة أكثر من سابقه
 let EC=null;
 function econ(){
-  const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};
+  const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
   let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={};
   const L=[...LOG].sort((a,b)=>a[0]-b[0]);
   for(const [t,k,r,nw] of L){
@@ -503,14 +498,14 @@ function econ(){
     if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=20}
     if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=50}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
-    const h=new Date(t).getHours();if(h>=23||h<4)s.night=1;if(h>=4&&h<7)s.early=1;
+    const h=new Date(t).getHours();if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
   }
-  s.mem=r4.size;s.mast=r7.size;
-  for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect=1;
+  s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
+  for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
     gems+=(x.n>=20?5:0)+(x.n>=50?10:0)+(x.n>=100?15:0);xp+=(x.n>=20?30:0)}
-  for(const q of QLOG){gems+=q[1];xp+=q[1]*5;if(q[2]>=10&&q[1]===q[2])s.qfull=1}
+  for(const q of QLOG){gems+=q[1];xp+=q[1]*5;if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // الأيام المكتملة
-  if(W.length){const started=k=>!!P[k];for(const d of DAYS){const ws=W.filter(w=>w.day===d.day);if(ws.length&&ws.every(w=>started(w.k))){s.dayAll=1;break}}}
+  if(W.length){const started=k=>!!P[k];for(const d of DAYS){const ws=W.filter(w=>w.day===d.day);if(ws.length&&ws.every(w=>started(w.k)))s.dayAll++;}}
   // السلسلة مع التجميد
   const fz=BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)).sort();
   const days=Object.keys(per).sort();let fi=0,avail=0;
@@ -525,12 +520,13 @@ function econ(){
   s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
   // المستوى
   let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=lv*5}
-  const got=achList().filter(a=>a.v(s)>=a.need),paid=new Set(R.ach||[]);gems+=got.filter(a=>!paid.has(a.id)).reduce((a,b)=>a+b.g,0);
+  const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
+  for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++){const id=a.id+":"+i;got.push(id);if(!paid.has(id))gems+=a.L[i-1][1]}}
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
-  EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got.map(a=>a.id)),todayN:td.n,per};
+  EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got),alv,todayN:td.n,per};
   return EC;
 }
 
@@ -613,7 +609,7 @@ function renderHeader(){
   $("hAv").innerHTML=esc(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
   $("hTitle").innerHTML=`<bdi>${esc(UNAME)}</bdi>`;$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
-  $("hXpT").textContent=`${e.rest}/${e.need} خبرة`;
+  $("hXpT").textContent=`✨ ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
   const g=Math.min(1,e.todayN/(S.goal||30));
   $("hRing").style.strokeDashoffset=94.2*(1-g);$("hRing").setAttribute("stroke",g>=1?"#ffd34d":"#7bd88f");
   $("hRingT").textContent=g>=1?"✓":e.todayN;
@@ -644,7 +640,7 @@ function celebrate(prev){
   const e=econ();renderHeader();
   if(!prev)return;
   if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!","+"+(e.lv*5)+" 💎");confetti(120)}
-  ACH.forEach(a=>{if(e.got.has(a.id)&&!prev.got.has(a.id)){toast(a.ic,"إنجاز جديد: "+a.n,a.d+" · +"+a.g+" 💎");confetti(60)}});
+  achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u+" · +"+a.L[k-1][1]+" 💎");confetti(60)}});
   const g=S.goal||30;if(prev.todayN<g&&e.todayN>=g){toast("🎯","أتممت هدف اليوم!","استمر هكذا");confetti(100)}
   if(e.s.streak>prev.s.streak&&prev.todayN===0)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
 }
@@ -1061,7 +1057,7 @@ function measure(){
 const band=()=>Math.min(5,Math.floor(measure().total/20));
 // كؤوس ملوّنة لكل دوري
 const cupSVG=(c,d)=>`<svg class="cup" viewBox="0 0 24 24" aria-hidden="true"><path fill="${c}" stroke="${d}" stroke-width=".7" stroke-linejoin="round" d="M7 3h10v2h3v2.5a4.5 4.5 0 0 1-4.2 4.5A5 5 0 0 1 13 14.9V17h3v2H8v-2h3v-2.1A5 5 0 0 1 8.2 12 4.5 4.5 0 0 1 4 7.5V5h3V3zm0 4H6v.5a2.5 2.5 0 0 0 1.4 2.2A5 5 0 0 1 7 8V7zm10 0v1a5 5 0 0 1-.4 1.7A2.5 2.5 0 0 0 18 7.5V7h-1z"/><rect x="6.5" y="19" width="11" height="2.4" rx="1.1" fill="${d}"/><path fill="#fff" opacity=".45" d="M9 5h1.6v6.2A3.4 3.4 0 0 1 9 8.6z"/></svg>`;
-const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3","#7d8792"],["الذهبي","#f4c430","#b08a12"],["الياقوت الأزرق","#2f6fdf","#1d4a9c"],["الياقوت الأحمر","#e0314b","#8f1626"],["الزمرّدي","#1fb46c","#11703f"],["الجَمَشت","#9b5de5","#6a35ad"],["اللؤلؤي","#f3eef9","#a99bbf"],["السَّبَج","#3a3a4a","#101016"],["الماسي","#5fe0ee","#1c97a8"]].map(([n,c,d])=>[n,cupSVG(c,d)]);
+const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3","#7d8792"],["الذهبي","#f4c430","#b08a12"],["الياقوت الأزرق","#2f6fdf","#1d4a9c"],["الياقوت الأحمر","#e0314b","#8f1626"],["الزمرّدي","#1fb46c","#11703f"],["البنفسجي","#9b5de5","#6a35ad"],["اللؤلؤي","#f3eef9","#a99bbf"],["الملكي","#3a3a4a","#101016"],["الماسي","#5fe0ee","#1c97a8"]].map(([n,c,d])=>[n,cupSVG(c,d)]);
 const tierName=i=>"الدوري "+TIERS[i][0];
 const GROUP_MAX=20,PROMO_MIN=100;
 function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()}
@@ -1200,13 +1196,7 @@ async function fillLeague(){
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
    ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
-   <details class="lgrules"><summary>كيف يعمل الدوري؟</summary><ul>
-    <li>كل أسبوع من الإثنين إلى الأحد تتنافس مع مجموعة من المتعلّمين القريبين من مستواك، حتى ${GROUP_MAX} متعلّمًا.</li>
-    <li>إن قلّ المتعلّمون في دوريك، يُضمّ إليك متعلّمون من أقرب الدوريات، وتُكمَل المجموعة حتى ${TARGET} بمنافسين آليّين 🤖 خبرتهم قريبة من مستوى المجموعة. والآليّون لا يأخذون الجوائز.</li>
-    <li>الترتيب بحسب الخبرة التي تكسبها هذا الأسبوع من المراجعة والاختبارات والتمارين.</li>
-    <li>الأوائل في منطقة الصعود ينتقلون إلى الدوري الأعلى، بشرط ${PROMO_MIN} خبرة على الأقل، والأواخر في منطقة الهبوط ينزلون.</li>
-    <li>جوائز نهاية الأسبوع لأول ثلاثة متعلّمين حقيقيين: ٥٠ 💎، ثم ٣٠، ثم ٢٠، لمن جمع ${PROMO_MIN} خبرة على الأقل.</li>
-    <li>الدوريات من الأدنى إلى الأعلى: ${TIERS.map(x=>x[1]+" "+x[0]).join("، ")}.</li></ul></details>`;
+`;
 }
 
 /* ================= التقارير ================= */
@@ -1267,12 +1257,14 @@ function renderReport(){
 }
 
 /* ================= الجوائز ================= */
-function renderRewards(){
+// تبويب الدوري
+function renderRewards(){$("rewards").innerHTML=leagueHTML();fillLeague()}
+// الملف الشخصي: يُفتح بالضغط على الصورة في الأعلى
+function renderProfile(){
   const e=econ(),t=itemOf("title",E.title),s=e.s;
-  const stickers=SHOP.filter(x=>x.cat==="sticker");
-  const el=$("rewards");
-  el.innerHTML=leagueHTML()+`<div class="hero"><div class="av">${esc(E.avatar)}</div><div style="flex:1">
-   <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv} · ${esc(t?t.val:"")}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
+  const stickers=SHOP.filter(x=>x.cat==="sticker"),al=achList(),maxL=al.reduce((a,x)=>a+x.L.length,0);
+  $("profile").innerHTML=`<div class="hero"><div class="av">${esc(E.avatar)}</div><div style="flex:1">
+   <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv} · ${esc(t?t.val:"")}${LG.tier!=null?" · "+TIERS[LG.tier][1]:""}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
    <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
   <div class="gstats">
    <div class="gstat"><b>🔥 ${s.streak}</b><span>السلسلة الحالية</span></div>
@@ -1280,14 +1272,17 @@ function renderRewards(){
    <div class="gstat"><b>❄️ ${s.freezes}</b><span>تجميد متاح</span></div>
    <div class="gstat"><b>💎 ${e.gems}</b><span>رصيد الجواهر</span></div>
    <div class="gstat"><b>✨ ${e.earned}</b><span>جواهر مكتسبة</span></div>
-   <div class="gstat"><b>🏆 ${e.got.size}/${achList().length}</b><span>إنجازات</span></div>
+   <div class="gstat"><b>🏆 ${e.got.size}/${maxL}</b><span>مستويات الإنجازات</span></div>
   </div>
-  <div class="rsec"><h3>الإنجازات</h3><div class="achs">${achList().map(a=>{const v=Math.min(a.v(s),a.need),g=e.got.has(a.id);
-   return `<div class="ach ${g?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}</b><small>${a.d} · ${g?"✓ تحقّق":"+"+a.g+" 💎"}</small>${g||a.need===1?"":`<div class="mini"><i style="width:${v/a.need*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
+  <div class="rsec"><h3>الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];
+   return `<div class="ach ${k?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}${k?` <span class="alv">${k}</span>`:""}</b>
+    <div class="lvdots">${a.L.map((_,i)=>`<i class="${i<k?"on":""}"></i>`).join("")}</div>
+    <small>${top?`✓ أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u} · +${a.L[k][1]} 💎`}</small>
+    ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
    <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${x.val}</span>`).join("")}</div>
    <p style="font-size:.78rem;color:var(--muted);margin-top:6px">اشترِ الملصقات من المتجر، وثبّت أحدها ليظهر على بطاقاتك.</p></div>`+syncHTML();
-  bindSync();fillLeague();
+  bindSync();
 }
 
 /* ================= المتجر ================= */
@@ -1637,7 +1632,8 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="shop"||p==="messages"||p==="users")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="shop"||p==="messages"||p==="users")?"none":"";
+  if(p==="profile"){renderProfile();return}
   if(p==="messages"){renderMessages();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
@@ -1654,7 +1650,7 @@ function init(){
   $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
   $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
-  $("hAv").onclick=()=>document.querySelector('nav button[data-p=rewards]').click();
+  $("hAv").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
 
