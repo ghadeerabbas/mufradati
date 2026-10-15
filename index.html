@@ -197,12 +197,17 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 
 .nc-red{color:#e53935}.nc-green{color:#2e9e44}.nc-blue{color:#2f6fdf}.nc-orange{color:#f57c00}.nc-purple{color:#8e44ad}.nc-pink{color:#e84393}.nc-teal{color:#0a9396}.nc-brown{color:#8d5a2b}.nc-crimson{color:#b0103a}
 [data-dark] .nc-crimson{color:#ff4d6d}
-/* الأسماء المميّزة: لون غني مع توهّج من اللون نفسه، واضح في الوضعين */
-.nc-silver,.nc-gold,.nc-emerald,.nc-sapphire{font-weight:900!important;letter-spacing:.3px;color:var(--c);text-shadow:0 0 1px var(--d),0 0 7px var(--g),0 0 14px var(--g)}
-.nc-silver{--c:#8e9aa8;--d:#5b6673;--g:rgba(148,163,184,.55)}.nc-gold{--c:#e0a800;--d:#9a7300;--g:rgba(245,190,40,.6)}.nc-emerald{--c:#10b06a;--d:#076b40;--g:rgba(16,185,129,.5)}.nc-sapphire{--c:#2f6fe8;--d:#1b4ab0;--g:rgba(59,130,246,.55)}
-[data-dark] .nc-silver{--c:#d5dbe3}[data-dark] .nc-gold{--c:#ffcc33}[data-dark] .nc-emerald{--c:#34d399}[data-dark] .nc-sapphire{--c:#6ea2ff}
-/* اسم المشرف باللون العادي: شارة بيضاء بحافة خمرية */
-.nc-admin{display:inline-block;width:fit-content;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:0 9px;border-radius:9px;line-height:1.55;background:#fff;color:#000!important;font-weight:900!important;border:2px solid #8b1538;box-shadow:0 0 0 1px rgba(139,21,56,.15)}
+/* الأسماء المميّزة: شارة داكنة بحافة متوهّجة بلون الاسم */
+.nc-silver,.nc-gold,.nc-emerald,.nc-sapphire,.nc-admin{display:inline-block;width:fit-content;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:0 9px;border-radius:9px;font-weight:800;line-height:1.55;letter-spacing:.2px}
+.nc-silver,.nc-gold,.nc-emerald,.nc-sapphire{background:#111827;border:1.5px solid var(--c);color:var(--c);box-shadow:0 0 7px var(--g)}
+.nc-silver{--c:#e2e8f0;--g:rgba(226,232,240,.45)}.nc-gold{--c:#fbbf24;--g:rgba(251,191,36,.5)}.nc-emerald{--c:#34d399;--g:rgba(52,211,153,.45)}.nc-sapphire{--c:#60a5fa;--g:rgba(96,165,250,.5)}
+/* اسم المشرف باللون العادي: شارة بحافة لهب متحرّكة */
+.nc-admin{padding:0 10px;color:#000!important;font-weight:900!important;border:2.5px solid transparent;
+ background:linear-gradient(#fff8ef,#fff8ef) padding-box,linear-gradient(90deg,#7a0a00,#ff3d00,#ffb300,#ff6d00,#7a0a00) border-box;background-size:100% 100%,300% 100%;
+ animation:flame 1.8s linear infinite,flick 1.1s ease-in-out infinite alternate}
+.nc-admin::before{content:"🔥";margin-left:4px;font-size:.9em}
+@keyframes flame{to{background-position:0 0,300% 0}}
+@keyframes flick{from{box-shadow:0 -2px 6px rgba(255,90,0,.5),0 0 9px rgba(255,170,0,.3)}to{box-shadow:0 -5px 13px rgba(255,61,0,.75),0 0 17px rgba(255,200,0,.45)}}
 .botl{font-size:.68rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:8px;padding:0 6px}
 .lgline{font-size:.72rem;text-align:center;margin:4px 0;font-weight:700}.lgline.up{color:var(--green)}.lgline.down{color:var(--rd)}
 .lgrules{margin-top:8px;font-size:.82rem}.lgrules summary{cursor:pointer;color:var(--hd);font-weight:600}.lgrules ul{padding-right:18px;margin-top:6px;line-height:1.7}
