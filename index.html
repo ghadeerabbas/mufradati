@@ -135,6 +135,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .item .ea{font-size:.88rem;color:var(--muted)}
 .item .tags{justify-content:flex-start;margin-top:4px}
 .count{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+.pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px}.pager span{font-size:.85rem;color:var(--muted)}.pager .btn{background:var(--navy);color:#fff;padding:9px 14px}.pager .btn:disabled{opacity:.35}
 /* ===== الاختبار ===== */
 .qword{font-size:1.5rem;font-weight:700;color:var(--hd);text-align:center;margin:8px 0 14px}
 .opt{display:block;width:100%;text-align:right;background:var(--card);color:var(--ink);border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
@@ -770,13 +771,22 @@ function reminderHTML(){
 }
 
 /* ================= القائمة ================= */
+// القائمة صفحاتٍ: ٢٠ كلمة في كل صفحة، لتبقى خفيفة وسريعة
+let LPAGE=0;const LSIZE=20;
+function pagerHTML(pages){
+  if(pages<=1)return"";
+  return `<div class="pager"><button class="btn" data-pg="${LPAGE-1}" ${LPAGE<=0?"disabled":""}>→ السابق</button><span>صفحة ${LPAGE+1} من ${pages}</span><button class="btn" data-pg="${LPAGE+1}" ${LPAGE>=pages-1?"disabled":""}>التالي ←</button></div>`;
+}
 function renderList(){
   const q=$("q").value.trim().toLowerCase(),t=$("fType").value;
   const r=filtered().filter(w=>(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));
-  $("lcount").textContent=r.length+" كلمة";
-  $("litems").innerHTML=r.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
+  const pages=Math.max(1,Math.ceil(r.length/LSIZE));LPAGE=Math.min(Math.max(0,LPAGE),pages-1);
+  const from=LPAGE*LSIZE,part=r.slice(from,from+LSIZE);
+  $("lcount").textContent=r.length?`${r.length} كلمة · ${from+1}–${from+part.length}`:"لا كلمات";
+  $("litems").innerHTML=part.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
    return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>
-   ${exPairs(w,"list")}<div class="tags">${tags(w)}</div></div>`}).join("");
+   ${exPairs(w,"list")}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
+  $("litems").querySelectorAll(".pager button").forEach(b=>b.onclick=()=>{LPAGE=+b.dataset.pg;renderList();$("list").scrollIntoView({block:"start"});scrollBy(0,-130)});
 }
 
 /* ================= الاختبار ================= */
@@ -1769,14 +1779,14 @@ function renderPanel(p){
   if(p==="games"){renderGames();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
-function refresh(){buildQueue();showCard();renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
+function refresh(){buildQueue();showCard();LPAGE=0;renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
 function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
-  $("q").oninput=renderList;$("fType").onchange=renderList;
+  $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
   $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
   $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
