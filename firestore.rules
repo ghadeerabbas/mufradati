@@ -9,6 +9,9 @@ service cloud.firestore {
     match /users/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
     match /users/{uid}/{rest=**} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
 
+    // المناهج المعيّنة لكل مستخدم: يعيّنها المدير وحده، ويقرؤها المستخدم
+    match /assign/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isAdmin(); }
+
     // التقييم: مرة واحدة لكل مستخدم، ويقرؤه هو والمدير
     match /feedback/{uid} {
       allow read: if isMe(uid) || isAdmin();

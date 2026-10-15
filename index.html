@@ -300,6 +300,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 </header>
 <main>
   <div class="filters" id="mainFilters">
+    <select id="fCourse" style="display:none;flex-basis:100%"></select>
     <select id="fDay"><option value="all">كل الأيام</option></select>
     <select id="fLvl"><option value="all">كل المستويات</option><option>B1</option><option>B2</option></select>
     <select id="fCore"><option value="all">كل الكلمات</option><option value="1">الأساسية فقط ★</option></select>
@@ -494,9 +495,30 @@ function econ(){
 
 /* ================= تحميل المفردات ================= */
 /* المنهج: غدير يدرس B2، وباقي المستخدمين يبدؤون من A1 */
-const COURSES={b2:{file:"words.json",name:"B2 (منهجي)"},a1:{file:"words-a1.json",name:"A1 (المستخدمون)"}};
+/* المناهج: تُعرَّف في courses.json، والمدير يعيّن لكل مستخدم مناهجه */
+let COURSES={a1:{file:"words-a1.json",name:"A1 · المنهج العام"}},DEF_COURSES=["a1"],MY_COURSES=["a1"];
 let COURSE="a1";
-const useDays=()=>COURSE==="b2";              // تصنيف الأيام لمنهج غدير فقط
+const useDays=()=>!!(COURSES[COURSE]&&COURSES[COURSE].days);   // تصنيف الأيام لمنهج غدير فقط
+async function loadCourses(){
+  try{const d=await fetch("courses.json?v="+Date.now(),{cache:"no-store"}).then(r=>r.json());
+    COURSES={};d.courses.forEach(c=>COURSES[c.id]=c);DEF_COURSES=(d.default||[]).filter(id=>COURSES[id]);if(!DEF_COURSES.length)DEF_COURSES=[Object.keys(COURSES)[0]];}catch(e){}
+}
+const aref=u=>db.collection("assign").doc(u);
+// المناهج المتاحة للمستخدم: كلّها للمدير، والمعيّنة له لغيره، وإلا فالعامّة
+async function myCourses(){
+  if(isAdmin())return Object.keys(COURSES);
+  try{const d=await aref(UID).get();const c=d.exists?(d.data().courses||[]).filter(id=>COURSES[id]):[];if(c.length)return c}catch(e){}
+  return DEF_COURSES;
+}
+function renderCourseSel(){
+  const sel=$("fCourse");
+  sel.innerHTML=MY_COURSES.map(id=>`<option value="${esc(id)}" ${id===COURSE?"selected":""}>📘 ${esc(COURSES[id].name)}</option>`).join("");
+  sel.style.display=MY_COURSES.length>1?"":"none";
+}
+async function switchCourse(c){
+  if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
+  await loadWords(c);renderCourseSel();econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
+}
 async function loadWords(c){
   COURSE=c;
   const d=await fetch(COURSES[c].file+"?v="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():{days:[],words:[]}).catch(()=>({days:[],words:[]}));
@@ -902,13 +924,9 @@ function syncHTML(){
   return `<div class="rsec sync"><h3>☁️ حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
   <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="renameBtn">تغيير الاسم</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
-  <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`+(isAdmin()?`
-  <div class="rsec sync"><h3>📘 المنهج المعروض لك</h3><p>تدرس أنت منهج B2، وباقي المستخدمين منهج A1. تستطيع التبديل لمعاينة منهجهم.</p>
-  <div class="btns">${Object.keys(COURSES).map(c=>`<button class="btn ${c===COURSE?"":"sec"}" data-course="${c}">${COURSES[c].name}</button>`).join("")}</div></div>`:"");
+  <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
 }
 function bindSync(){
-  document.querySelectorAll("[data-course]").forEach(b=>b.onclick=async()=>{const c=b.dataset.course;if(c===COURSE)return;st(K("course"),c);
-    await loadWords(c);econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة")});
   if($("syncBtn"))$("syncBtn").onclick=()=>syncNow(true);
   if($("renameBtn"))$("renameBtn").onclick=async()=>{const v=(await uiPrompt("اسمك:",UNAME)||"").trim();if(!v)return;UNAME=v;st(K("name"),v);
     try{await auth.currentUser.updateProfile({displayName:v})}catch(e){}renderHeader();await syncNow();renderPanel(document.querySelector(".panel.on").id)};
@@ -953,7 +971,10 @@ async function offerLegacy(cloudEmpty){
 async function onLogin(user){
   UID=user.uid;loadState();
   UNAME=st(K("name"))||user.displayName||(user.email||"").split("@")[0];st(K("name"),UNAME);
-  await loadWords(isAdmin()?(st(K("course"))||"b2"):"a1");
+  await loadCourses();MY_COURSES=await myCourses();
+  const saved=st(K("course"));
+  await loadWords(MY_COURSES.includes(saved)?saved:(isAdmin()&&MY_COURSES.includes("b2")?"b2":MY_COURSES[0]));
+  renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
   try{const {d,name}=await cloudGet();if(name){UNAME=name;st(K("name"),name);renderHeader()}if(isAdmin())await offerLegacy(!d)}catch(e){}
@@ -1115,8 +1136,25 @@ function renderUser(){
   </div>
   <div class="rsec"><h3>نشاطه في آخر ١٤ يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
+  <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
+  renderAssign(u.id);
+}
+
+async function renderAssign(uid){
+  const box=$("assignBox");if(!box)return;
+  let cur=[];try{const d=await aref(uid).get();cur=d.exists?(d.data().courses||[]):[]}catch(e){}
+  const using=cur.filter(id=>COURSES[id]),eff=using.length?using:DEF_COURSES;
+  box.innerHTML=`<h3>📘 مناهجه</h3><p style="font-size:.8rem;color:var(--muted);margin-bottom:8px">${using.length?"مناهج معيّنة له:":"لم تعيّن له شيئًا، فيدرس المنهج العام."} اختر ما تريد ثم احفظ. إن اخترت أكثر من منهج، يبدّل بينها بنفسه.</p>
+   ${Object.keys(COURSES).map(id=>`<label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.92rem"><input type="checkbox" value="${esc(id)}" ${eff.includes(id)?"checked":""}> ${esc(COURSES[id].name)}</label>`).join("")}
+   <div class="btns" style="margin-top:8px"><button class="btn" id="asSave" style="background:var(--navy);color:#fff;padding:8px 16px">حفظ المناهج</button></div>`;
+  $("asSave").onclick=async()=>{
+    const pick=[...box.querySelectorAll("input:checked")].map(x=>x.value);
+    if(!pick.length){await uiAlert("اختر منهجًا واحدًا على الأقل.");return}
+    try{await aref(uid).set({courses:pick,ts:firebase.firestore.FieldValue.serverTimestamp()});toast("📘","حُفظت مناهجه",pick.map(id=>COURSES[id].name).join("، "))}
+    catch(e){await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
+  };
 }
 
 /* ================= سؤال التقييم ================= */
@@ -1151,6 +1189,7 @@ function init(){
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
+  $("fCourse").onchange=e=>switchCourse(e.target.value);
   $("q").oninput=renderList;$("fType").onchange=renderList;
   $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
   $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
