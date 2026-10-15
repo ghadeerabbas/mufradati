@@ -5,9 +5,21 @@ service cloud.firestore {
     function isAdmin() { return signedIn() && request.auth.token.email == "ghadeer@mufradati.app"; }
     function isMe(uid) { return signedIn() && request.auth.uid == uid; }
 
-    // تقدّم كل مستخدم: له وحده
-    match /users/{uid} { allow read, write: if isMe(uid); }
-    match /users/{uid}/{rest=**} { allow read, write: if isMe(uid); }
+    // تقدّم كل مستخدم: يكتبه هو وحده، ويقرؤه هو والمدير
+    match /users/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
+    match /users/{uid}/{rest=**} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
+
+    // التقييم: مرة واحدة لكل مستخدم، ويقرؤه هو والمدير
+    match /feedback/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow create: if isMe(uid)
+        && request.resource.data.keys().hasOnly(["stars","note","name","ts"])
+        && request.resource.data.stars is int && request.resource.data.stars >= 1 && request.resource.data.stars <= 5
+        && request.resource.data.note is string && request.resource.data.note.size() <= 500
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.ts == request.time;
+      allow update, delete: if false;
+    }
 
     // الرسائل: رسالة واحدة من المستخدم ثم ينتظر رد المدير
     match /threads/{uid} {
