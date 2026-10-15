@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1f2a5a">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="مفرداتي">
 <title>مفرداتي</title>
 <style>
 :root{--navy:#1f2a5a;--navy2:#33407a;--red:#a01f26;--gold:#c9a84a;--paper:#f7f5ef;--card:#fff;--ink:#20242e;--muted:#6b7180;--line:#e2ddd0;--green:#2a6b3a;--orange:#c2541b;
@@ -1125,6 +1132,7 @@ function init(){
 }
 
 // البدء بعد تعريف كل شيء
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
 init();
 auth.onAuthStateChanged(u=>{if(u)onLogin(u);else showLogin()});
 </script>
