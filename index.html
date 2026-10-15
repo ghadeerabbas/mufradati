@@ -87,6 +87,12 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .hw:last-child{border:0}
 .hw .m{color:var(--red)}.hw small{color:var(--muted)}
 .empty{font-size:.85rem;color:var(--muted);text-align:center;padding:8px}
+.sync input{width:100%;font:inherit;font-size:.85rem;padding:8px 10px;border:1px solid var(--line);border-radius:10px;direction:ltr;margin:6px 0}
+.sync .btns{display:flex;gap:8px;flex-wrap:wrap}
+.sync .btn{background:var(--navy);color:#fff;font-size:.9rem;padding:8px 14px}
+.sync .btn.sec{background:#eef0f7;color:var(--navy)}
+.sync p{font-size:.82rem;color:var(--muted)}
+.sstat{font-size:.85rem;margin-top:6px}.sstat.ok{color:var(--green)}.sstat.bad{color:var(--red)}
 </style>
 </head>
 <body>
@@ -217,8 +223,8 @@ function rate(r){
   if(!old){S.newCount=(S.newCount||0)+1}
   let box=old?old.box:0;
   if(r===0)box=0;else if(r===1)box=Math.max(1,box);else box=Math.min(box+(r===2?1:2),8);
-  P[cur.k]={box,due:r===0?now:now+IV[box]*DAY};save();
-  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>30000)LOG=LOG.slice(-30000);st("muf_log",JSON.stringify(LOG));
+  P[cur.k]={box,due:r===0?now:now+IV[box]*DAY,t:now};save();
+  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>30000)LOG=LOG.slice(-30000);st("muf_log",JSON.stringify(LOG));schedSync();
   queue.shift();
   if(r===0)queue.splice(Math.min(3,queue.length),0,cur); // تعود بعد بطاقات قليلة
   stats();showCard();
@@ -320,7 +326,63 @@ function renderReport(){
   <div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>
   <div class="rsec"><h3>حسب المستوى والنوع</h3>${groupRows([{name:"B1",list:f.filter(w=>w.lvl==="B1")},{name:"B2",list:f.filter(w=>w.lvl==="B2")},{name:"★ الأساسية",list:f.filter(w=>w.core==1)}])}
    ${groupRows(Object.keys(TYPE).map(t=>({name:TYPE[t],list:f.filter(w=>w.t===t)})))}</div>
-  <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`;
+  <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`+syncHTML();
+  bindSync();
+}
+
+/* ===== المزامنة مع المستودع ===== */
+const REPO="ghadeerabbas/mufradati",PFILE="progress.json",API=`https://api.github.com/repos/${REPO}/contents/${PFILE}`;
+let syncTimer=null,syncing=false;
+const tok=()=>st("muf_token")||"";
+const b64e=t=>btoa(unescape(encodeURIComponent(t))),b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,""))));
+function setSyncStat(msg,cls){st("muf_sync_msg",msg);const e=$("sStat");if(e){e.textContent=msg;e.className="sstat "+(cls||"")}}
+async function getRemote(){
+  const r=await fetch(API+"?ref=main&t="+Date.now(),{headers:{Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"},cache:"no-store"});
+  if(r.status===404)return {sha:null,data:null};
+  if(!r.ok)throw new Error(r.status===401?"المفتاح غير صالح أو منتهي":"خطأ "+r.status);
+  const j=await r.json();return {sha:j.sha,data:JSON.parse(b64d(j.content))};
+}
+function mergeIn(d){
+  if(!d)return;
+  for(const k in d.P||{}){const a=P[k],b=d.P[k];if(!a||(b.t||0)>(a.t||0))P[k]=b}
+  const seen=new Set(LOG.map(x=>x[0]+"|"+x[1]));
+  (d.LOG||[]).forEach(x=>{if(!seen.has(x[0]+"|"+x[1]))LOG.push(x)});
+  LOG.sort((a,b)=>a[0]-b[0]);if(LOG.length>30000)LOG=LOG.slice(-30000);
+  if(d.S){S.limit=d.S.limit||S.limit;S.dir=d.S.dir||S.dir}
+  save();st("muf_log",JSON.stringify(LOG));
+}
+async function syncNow(manual){
+  if(!tok()||syncing)return;syncing=true;clearTimeout(syncTimer);
+  setSyncStat("جارٍ المزامنة…");
+  try{
+    for(let attempt=0;attempt<2;attempt++){
+      const {sha,data}=await getRemote();mergeIn(data);
+      const body={updated:new Date().toISOString(),P,LOG,S:{limit:S.limit,dir:S.dir}};
+      const r=await fetch(API,{method:"PUT",headers:{Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"},
+        body:JSON.stringify({message:"تحديث التقدّم",content:b64e(JSON.stringify(body)),branch:"main",...(sha?{sha}:{})})});
+      if(r.ok){setSyncStat("✓ آخر مزامنة: "+new Date().toLocaleString("ar",{weekday:"long",hour:"2-digit",minute:"2-digit"}),"ok");break}
+      if(r.status!==409&&r.status!==422||attempt)throw new Error(r.status===401||r.status===403?"المفتاح لا يملك صلاحية الكتابة":"خطأ "+r.status);
+    }
+    stats();if(manual){buildQueue();showCard()}
+    if($("report").classList.contains("on"))renderReport();
+  }catch(e){setSyncStat("✗ تعذّرت المزامنة: "+e.message,"bad")}
+  syncing=false;
+}
+function schedSync(){if(!tok())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),60000)}
+function syncHTML(){
+  const has=!!tok(),msg=st("muf_sync_msg")||"";
+  return `<div class="rsec sync"><h3>🔄 المزامنة مع المستودع</h3>
+  ${has?`<p>تُحفظ مراجعاتك في المستودع تلقائيًا بعد دقيقة من آخر بطاقة، ويُدمج تقدّم الهاتف والحاسوب معًا.</p>
+   <div class="btns"><button class="btn" id="syncBtn">مزامنة الآن</button><button class="btn sec" id="tokDel">حذف المفتاح من هذا الجهاز</button></div>`
+  :`<p>الصق مفتاح الوصول الذي أنشأته في غيت هب. يُحفظ في هذا المتصفح فقط.</p>
+   <input type="password" id="tokIn" placeholder="github_pat_..." autocomplete="off">
+   <div class="btns"><button class="btn" id="tokSave">حفظ وبدء المزامنة</button></div>`}
+  <div class="sstat ${msg.startsWith("✓")?"ok":msg.startsWith("✗")?"bad":""}" id="sStat">${esc(msg)}</div></div>`;
+}
+function bindSync(){
+  if($("syncBtn"))$("syncBtn").onclick=()=>syncNow(true);
+  if($("tokDel"))$("tokDel").onclick=()=>{if(confirm("حذف المفتاح من هذا الجهاز؟ يبقى تقدّمك محفوظًا.")){st("muf_token","");st("muf_sync_msg","");renderReport()}};
+  if($("tokSave"))$("tokSave").onclick=()=>{const v=$("tokIn").value.trim();if(!v)return;st("muf_token",v);renderReport();syncNow(true)};
 }
 
 function refresh(){buildQueue();showCard();renderList();startQuiz();stats();renderReport()}
@@ -331,6 +393,8 @@ function init(){
   ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("q").oninput=renderList;$("fType").onchange=renderList;
   refresh();
+  if(tok())syncNow(true);
+  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
 </script>
 </body>
