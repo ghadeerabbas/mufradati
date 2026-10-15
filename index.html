@@ -131,6 +131,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .err{color:var(--rd);text-align:center;padding:30px}
 /* ===== النطق والتمارين والدوري ===== */
 .sth{font-size:1.15rem;color:var(--hd);margin-bottom:10px}
+.nreq{display:flex;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.nreq>div{flex:1;min-width:0}.nreq b{display:block}.nreq small{font-size:.75rem;color:var(--muted)}
+.nok{background:var(--green);color:#fff;padding:7px 12px}.nno{background:var(--red);color:#fff;padding:7px 12px}
 .strow{display:flex;gap:8px;margin-top:6px}.stin{display:block;width:100%;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin-top:6px}
 .strow .stin{margin-top:0;flex:1}.stbtn{background:var(--navy);color:#fff}.stmsg{font-size:.85rem;margin-top:6px;text-align:center}.stmsg.ok{color:var(--green)}.stmsg.bad{color:var(--rd)}
 #settings .numpicks{margin-top:4px}
@@ -326,7 +328,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
     <div class="chips">
       <span class="chip fire" id="hFire">🔥 0</span>
       <span class="chip" id="hGem">💎 0</span>
-      <button class="iconbtn" id="usersBtn" title="المستخدمون" style="display:none">👥</button>
+      <button class="iconbtn mbtn" id="usersBtn" title="المستخدمون" style="display:none">👥<span class="mbadge" id="uBadge"></span></button>
       <button class="iconbtn mbtn" id="msgBtn" title="الرسائل">✉️<span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="darkBtn" title="الوضع الليلي">🌙</button>
       <button class="iconbtn" id="setBtn" title="الإعدادات">⚙️</button>
@@ -728,15 +730,13 @@ function settingsHTML(){
   const btns=(id,arr,v)=>`<span class="numpicks" id="${id}">${arr.map(n=>`<button type="button" class="numpick${n==v?" on":""}" data-v="${n}">${n}</button>`).join("")}</span>`;
   return `<div class="settings"><div class="limrow">كلمات جديدة يوميًا: ${btns("sLim",[5,10,15,20,30,50],S.limit)}</div>
    <div class="limrow">هدف المراجعات اليومي: ${btns("sGoal",[20,30,50,80,100],S.goal)}</div>
-   الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
-   <button class="link" id="sReset">تصفير التقدّم</button></div>`;
+   الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select></div>`;
 }
 function bindSettings(){
   const set=()=>{S.ts=Date.now();save();schedSync()};
   $("sLim").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.limit)return;S.limit=+b.dataset.v;set();buildQueue();showCard()};
   $("sGoal").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.goal)return;S.goal=+b.dataset.v;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
-  $("sReset").onclick=resetProgress;
 }
 // التذكير اليومي: في تطبيق أندرويد فقط، ويُحفظ على الجهاز نفسه
 const REM=()=>Object.assign({on:false,h:19},jget("muf_rem",{}));
@@ -1390,23 +1390,21 @@ function renderSettings(){
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
   <div class="rsec"><h3>🔔 التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>
-  <div class="rsec"><h3>👤 الاسم الظاهر</h3><p class="rnote">يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>
-   <div class="strow"><input id="stName" class="stin" maxlength="40" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">حفظ</button></div></div>
+  <div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
    <input id="pwCur" class="stin" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password">
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (٦ أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
-   <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>`;
+   <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
+  <div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
+   <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`;
+  $("stReset").onclick=resetProgress;bindNameBox();
   const cs=$("stCourse");if(cs)cs.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.dataset.v===COURSE)return;
     cs.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));switchCourse(b.dataset.v)};
   const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
     try{st("muf_rem",JSON.stringify(r));MufApp.setReminder(r.on,r.h,0)}catch(err){}
     rm.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
     toast("🔔",r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
-  $("stNameBtn").onclick=async()=>{const v=$("stName").value.replace(/\s+/g," ").trim().slice(0,40);
-    if(!v){$("stName").focus();return}if(v===UNAME)return;
-    UNAME=v;st(K("name"),v);try{await auth.currentUser.updateProfile({displayName:v})}catch(e){}
-    renderHeader();toast("👤","تغيّر اسمك الظاهر",v);await syncNow();leagueUpdate().catch(()=>{})};
   $("pwBtn").onclick=async()=>{
     const cur=$("pwCur").value,n1=$("pwNew").value,n2=$("pwNew2").value,m=$("pwMsg"),say=(t,ok)=>{m.textContent=t;m.className="stmsg "+(ok?"ok":"bad")};
     if(!cur)return say("اكتب كلمة المرور الحالية");
@@ -1418,6 +1416,64 @@ function renderSettings(){
     catch(e){say(e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"?"كلمة المرور الحالية غير صحيحة":AERR[e.code]||"تعذّر التغيير، أعد المحاولة")}
     $("pwBtn").disabled=false;
   };
+}
+
+/* ================= الاسم الظاهر: يوافق عليه المشرف، ويُغيَّر مرة كل ٧ أيام ================= */
+const nref=u=>db.collection("names").doc(u),NAME_WAIT=7;
+let NM={},nmUnsub=null;
+const loginName=()=>((auth.currentUser||{}).email||"").split("@")[0];
+const tsOf=t=>t&&t.toMillis?t.toMillis():(t||0);
+function watchName(){
+  if(nmUnsub)nmUnsub();
+  nmUnsub=nref(UID).onSnapshot(d=>{
+    NM=d.exists?d.data():{};const n=NM.name||loginName();
+    if(n!==UNAME){UNAME=n;st(K("name"),n);renderHeader();schedSync();leagueUpdate().catch(()=>{})}
+    if(NM.rej){toast("👤","لم يُقبل الاسم المقترح: "+NM.rej,"تستطيع اقتراح اسم آخر من الإعدادات");nref(UID).update({rej:""}).catch(()=>{})}
+    if($("stNameBox"))$("stNameBox").innerHTML=nameBoxHTML(loginName()),bindNameBox();
+  },()=>{});
+}
+function nameBoxHTML(login){
+  const okAt=tsOf(NM.okAt),left=Math.ceil((okAt+NAME_WAIT*DAY-Date.now())/DAY);
+  let body;
+  if(NM.pending)body=`<p>طلبت تغيير اسمك إلى <b>${esc(NM.pending)}</b>، وهو بانتظار موافقة المشرف.</p><button class="btn sec" id="stNameCancel" style="margin-top:6px">إلغاء الطلب</button>`;
+  else if(!isAdmin()&&okAt&&left>0)body=`<p class="rnote">تستطيع تغيير اسمك مرة أخرى بعد ${left} ${left===1?"يوم":left===2?"يومين":left<=10?"أيام":"يومًا"}.</p>`;
+  else body=`<div class="strow"><input id="stName" class="stin" maxlength="40" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">${isAdmin()?"حفظ":"إرسال"}</button></div>
+   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل ٧ أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
+  return `<h3>👤 الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
+}
+function bindNameBox(){
+  const c=$("stNameCancel");if(c)c.onclick=async()=>{try{await nref(UID).set({pending:"",reqAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){toast("⚠️","تعذّر الإلغاء","")}};
+  const b=$("stNameBtn");if(!b)return;
+  b.onclick=async()=>{
+    const v=$("stName").value.replace(/\s+/g," ").trim().slice(0,40),m=$("stNameMsg");
+    if(!v){$("stName").focus();return}if(v===UNAME){m.textContent="هذا اسمك الحالي";m.className="stmsg bad";return}
+    b.disabled=true;
+    try{
+      if(isAdmin())await nref(UID).set({name:v,pending:"",okAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+      else{await nref(UID).set({pending:v,reqAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});toast("📨","أُرسل اسمك للموافقة",v)}
+    }catch(e){m.textContent=e.code==="permission-denied"?"لا يمكن تغيير الاسم الآن، حاول لاحقًا":"تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad";b.disabled=false}
+  };
+}
+// للمشرف: طلبات تغيير الأسماء
+let NAMEREQ=[];
+async function loadNameReqs(){
+  if(!isAdmin())return;
+  try{const q=await db.collection("names").get();NAMEREQ=q.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.pending)}catch(e){NAMEREQ=[]}
+  const b=$("uBadge");if(b){b.textContent=NAMEREQ.length;b.classList.toggle("on",NAMEREQ.length>0)}
+}
+function nameReqHTML(){
+  if(!NAMEREQ.length)return"";
+  return `<div class="rsec"><h3>👤 طلبات تغيير الاسم (${NAMEREQ.length})</h3>${NAMEREQ.map(r=>{const u=USERS.find(x=>x.id===r.id);
+    return `<div class="nreq"><div><b>${esc(r.pending)}</b><small>بدلًا من: ${esc(r.name||(u&&u.name)||"—")}</small></div>
+     <button class="btn nok" data-u="${esc(r.id)}">قبول</button><button class="btn nno" data-u="${esc(r.id)}">رفض</button></div>`}).join("")}</div>`;
+}
+function bindNameReqs(){
+  document.querySelectorAll(".nreq .nok,.nreq .nno").forEach(b=>b.onclick=async()=>{
+    const r=NAMEREQ.find(x=>x.id===b.dataset.u);if(!r)return;const ok=b.classList.contains("nok");b.disabled=true;
+    try{await nref(r.id).set(ok?{name:r.pending,pending:"",okAt:firebase.firestore.FieldValue.serverTimestamp()}:{pending:"",rej:r.pending},{merge:true});
+      toast(ok?"✅":"🚫",ok?"قُبل الاسم":"رُفض الاسم",r.pending);await loadNameReqs();renderUserList()}
+    catch(e){b.disabled=false;await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
+  });
 }
 
 /* ================= شاشة الدخول ================= */
@@ -1457,14 +1513,15 @@ async function offerLegacy(cloudEmpty){
 }
 async function onLogin(user){
   UID=user.uid;loadState();
-  UNAME=st(K("name"))||user.displayName||(user.email||"").split("@")[0];st(K("name"),UNAME);
+  UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
   await loadCourses();MY_COURSES=await myCourses();
   const saved=st(K("course"));
   await loadWords(MY_COURSES.includes(saved)?saved:(isAdmin()&&MY_COURSES.includes("b2")?"b2":MY_COURSES[0]));
   renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
-  try{const {d,name}=await cloudGet();if(name){UNAME=name;st(K("name"),name);renderHeader()}if(isAdmin())await offerLegacy(!d)}catch(e){}
+  try{const {d}=await cloudGet();if(isAdmin())await offerLegacy(!d)}catch(e){}
+  loadNameReqs();
   startMessages();
   $("usersBtn").style.display=isAdmin()?"":"none";
   await syncNow(true);
@@ -1580,6 +1637,7 @@ async function renderUsers(){
   try{
     const [us,fs]=await Promise.all([db.collection("users").get(),db.collection("feedback").get()]);
     USERS=us.docs.filter(d=>d.id!==UID).map(d=>({id:d.id,...d.data()})).map(u=>({...u,st:ustatus(u.sum)}));
+    await loadNameReqs();
     FEEDS={};fs.docs.forEach(d=>FEEDS[d.id]=d.data());
   }catch(e){el.innerHTML=`<div class="err">تعذّر التحميل: ${e.code==="permission-denied"?"حدّث قواعد الأمان في Firebase":esc(e.message)}</div>`;return}
   uOpen?renderUser():renderUserList();
@@ -1588,7 +1646,7 @@ function renderUserList(){
   const el=$("users"),cnt=k=>USERS.filter(u=>u.st===k).length;
   const fb=Object.values(FEEDS),avg=fb.length?(fb.reduce((a,f)=>a+f.stars,0)/fb.length).toFixed(1):"—";
   const list=USERS.filter(u=>uFilter==="all"||u.st===uFilter).sort((a,b)=>((b.sum||{}).last||0)-((a.sum||{}).last||0));
-  el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><button class="btn" id="uReload">↻ تحديث</button></div>
+  el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><button class="btn" id="uReload">↻ تحديث</button></div>${nameReqHTML()}
   <div class="gstats">
    <div class="gstat"><b style="color:#16a34a">${cnt("active")+cnt("regular")}</b><span>نشيط ومتابع</span></div>
    <div class="gstat"><b style="color:#dc2626">${cnt("idle")}</b><span>خامل</span></div>
@@ -1598,7 +1656,7 @@ function renderUserList(){
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
    <div class="top"><b>${esc(u.name||"مستخدم")}</b><span class="ust">${UST[u.st][0]}</span></div>
    <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
-  $("uReload").onclick=()=>renderUsers();
+  $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};bindNameReqs();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
   el.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
 }

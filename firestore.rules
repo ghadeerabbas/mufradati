@@ -12,12 +12,34 @@ service cloud.firestore {
     // المناهج المعيّنة لكل مستخدم: يعيّنها المدير وحده، ويقرؤها المستخدم
     match /assign/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isAdmin(); }
 
+    // الاسم الظاهر: يقترحه المستخدم، ويوافق عليه المدير، ويُغيَّر مرة كل ٧ أيام
+    match /names/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow write: if isAdmin();
+      allow create: if isMe(uid)
+        && request.resource.data.keys().hasOnly(["pending","reqAt"])
+        && request.resource.data.pending is string && request.resource.data.pending.size() <= 40
+        && request.resource.data.reqAt == request.time;
+      allow update: if isMe(uid) && (
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["rej"]) && request.resource.data.rej == "")
+        || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(["pending","reqAt"])
+            && request.resource.data.pending is string && request.resource.data.pending.size() <= 40
+            && request.resource.data.reqAt == request.time
+            && (!("okAt" in resource.data) || request.time > resource.data.okAt + duration.value(7, "d"))));
+    }
+    // الاسم الذي يظهر في الدوري: الموافَق عليه، وإلا فاسم الدخول
+    function shownName(uid, n) {
+      let p = /databases/$(database)/documents/names/$(uid);
+      return (exists(p) && get(p).data.get("name", "") != "" && n == get(p).data.name)
+        || ((!exists(p) || get(p).data.get("name", "") == "") && n == request.auth.token.email.split("@")[0]);
+    }
+
     // الدوري الأسبوعي: يراه كل المسجَّلين، ويكتب كل مستخدم سطره وحده
     match /lg/{week}/m/{uid} {
       allow read: if signedIn();
       allow create, update: if isMe(uid)
         && request.resource.data.keys().hasOnly(["name","av","tier","grp","b","xp","ts"])
-        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.name is string && shownName(uid, request.resource.data.name)
         && request.resource.data.av is string && request.resource.data.av.size() <= 8
         && request.resource.data.tier is int && request.resource.data.tier >= 0 && request.resource.data.tier <= 9
         && request.resource.data.grp is int && request.resource.data.grp >= 0 && request.resource.data.grp < 1000
