@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
         s.setJavaScriptEnabled(true);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
-        s.setCacheMode(WebSettings.LOAD_DEFAULT);
+        s.setCacheMode(WebSettings.LOAD_NO_CACHE);                     // لا نسخ قديمة مخزّنة
         s.setMediaPlaybackRequiresUserGesture(false);
 
         // نوافذ التأكيد والإدخال (تصفير التقدّم، الشراء...) تعمل عبر هذا
@@ -48,14 +48,14 @@ public class MainActivity extends Activity {
                     v.loadDataWithBaseURL(null,
                         "<html dir='rtl'><body style='background:#1f2a5a;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh'>"
                         + "<h2>لا يوجد اتصال بالإنترنت</h2><p>تأكّد من الاتصال ثم اضغط للمحاولة مجددًا</p>"
-                        + "<button onclick=\"location.href='" + HOME + "'\" style='font-size:18px;padding:10px 24px;border:0;border-radius:12px'>إعادة المحاولة</button></body></html>",
+                        + "<button onclick=\"location.href='" + HOME + "?t='+Date.now()\" style='font-size:18px;padding:10px 24px;border:0;border-radius:12px'>إعادة المحاولة</button></body></html>",
                         "text/html", "utf-8", null);
                 }
             }
         });
 
         if (state != null) web.restoreState(state);
-        else web.loadUrl(HOME);
+        else web.loadUrl(HOME + "?t=" + System.currentTimeMillis());   // دائمًا آخر نسخة من الموقع
     }
 
     @Override
