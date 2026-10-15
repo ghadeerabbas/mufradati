@@ -417,7 +417,7 @@ const K=n=>"muf_"+UID+"_"+n;                // مفاتيح التخزين لك�
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));LGME=null;LGC={at:0,rows:null};
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGME=null;LGC={at:0,rows:null};
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
 const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));
@@ -1075,7 +1075,10 @@ function zones(n){
   const up=n<=4?1:n<=9?2:Math.round(n*.25),down=n<5?0:n<10?1:Math.round(n*.17);
   return {up,down};
 }
-const initialTier=()=>{const m=measure().total;return m<15?0:m<30?1:m<45?2:m<60?3:4};
+// الجميع يبدؤون من البرونزي ويصعدون بجهدهم؛ والمقياس يجمع المتقاربين داخل الدوري الواحد
+const initialTier=()=>0;
+// الإصدار ٢: إعادة من بدأ في دوري أعلى إلى البرونزي مرة واحدة
+function migrateLG(){if((LG.v||1)<2){if(LG.tier!=null)LG.tier=0;LG.v=2;LG.ts=Date.now()}}
 const lgref=w=>db.collection("lg").doc(w).collection("m");
 let LGME=null,LGC={at:0,rows:null};
 async function myLeagueDoc(w){
@@ -1144,7 +1147,7 @@ const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,30,20][realRank-1]||0);
 async function leagueSettle(){
   if(!UID)return;
   const cur=weekId(Date.now());
-  if(LG.tier==null){LG.tier=initialTier();LG.w=cur;LG.ts=Date.now();save();schedSync();return}
+  if(LG.tier==null){LG.tier=initialTier();LG.v=2;LG.w=cur;LG.ts=Date.now();save();schedSync();return}
   if(LG.w===cur)return;
   const last=weekId(weekStart(Date.now())-3*DAY);let res=null;
   const me=await lgref(last).doc(UID).get();
@@ -1170,6 +1173,7 @@ async function leagueUpdate(){
   const ws=weekStart(Date.now()),w=weekId(ws),xp=weekXP(ws);
   let me=await myLeagueDoc(w);
   if(!me){if(!xp)return;me=LGME={w,tier:LG.tier,grp:await chooseGroup(w,LG.tier),b:band(),xp:-1,name:""}}
+  else if(me.tier!==LG.tier){me.tier=LG.tier;me.grp=await chooseGroup(w,LG.tier);me.xp=-1}   // نُقل إلى دوري آخر
   const av=String(E.avatar||"🎓").slice(0,8);
   if(me.xp===xp&&me.name===UNAME&&me.av===av)return;
   await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
@@ -1341,6 +1345,7 @@ function mergeIn(d){
   if(d.E&&(d.E.ts||0)>(E.ts||0))Object.assign(E,d.E);
   if(d.R&&(d.R.ts||0)>(R.ts||0))R=d.R;
   if(d.LG&&(d.LG.ts||0)>(LG.ts||0))LG=Object.assign({tier:null,w:"",hist:[],ts:0},d.LG);
+  migrateLG();
   save();
 }
 const uref=()=>db.collection("users").doc(UID);
