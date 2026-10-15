@@ -776,7 +776,7 @@ function schedSync(){if(!UID)return;clearTimeout(syncTimer);syncTimer=setTimeout
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
-  return `<div class="rsec sync"><h3>☁️ حسابي</h3><p>${esc(UNAME)} · ${esc((auth.currentUser||{}).email||"")}</p>
+  return `<div class="rsec sync"><h3>☁️ حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
   <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="renameBtn">تغيير الاسم</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
   <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
@@ -790,37 +790,27 @@ function bindSync(){
 
 /* ================= شاشة الدخول ================= */
 const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-password":"اكتب كلمة السر","auth/weak-password":"كلمة السر قصيرة (٦ أحرف على الأقل)",
- "auth/email-already-in-use":"هذا البريد مسجّل مسبقًا، اختر تسجيل الدخول","auth/invalid-credential":"البريد أو كلمة السر غير صحيحة",
+ "auth/email-already-in-use":"هذا البريد مسجّل مسبقًا، اختر تسجيل الدخول","auth/invalid-credential":"اسم المستخدم أو كلمة السر غير صحيح",
  "auth/wrong-password":"كلمة السر غير صحيحة","auth/user-not-found":"لا يوجد حساب بهذا البريد","auth/too-many-requests":"محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة",
  "auth/popup-closed-by-user":"أُغلقت نافذة غوغل قبل الإكمال","auth/network-request-failed":"لا يوجد اتصال بالإنترنت","auth/unauthorized-domain":"هذا الموقع غير مضاف إلى النطاقات المسموح بها في Firebase"};
-let loginMode="in";
+const DOMAIN="@mufradati.app";               // اسم المستخدم يتحوّل داخليًا إلى عنوان بهذا النطاق
 function showLogin(msg){
   $("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
-   <div class="ltabs"><button data-m="in" class="${loginMode==="in"?"on":""}">تسجيل الدخول</button><button data-m="up" class="${loginMode==="up"?"on":""}">حساب جديد</button></div>
-   ${loginMode==="up"?'<input id="lName" placeholder="اسمك" autocomplete="name">':""}
-   <input id="lMail" type="email" placeholder="البريد الإلكتروني" autocomplete="email" dir="ltr">
-   <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="${loginMode==="up"?"new-password":"current-password"}" dir="ltr">
-   <button class="btn lgo" id="lGo">${loginMode==="up"?"إنشاء الحساب":"دخول"}</button>
-   ${loginMode==="in"?'<button class="link" id="lForgot">نسيت كلمة السر؟</button>':""}
-   <div class="or">أو</div>
-   <button class="btn gbtn" id="lGoogle"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 38.2 44 33 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg> المتابعة بحساب غوغل</button>
-   <div class="lmsg" id="lMsg">${msg?esc(msg):""}</div></div>`;
-  document.querySelectorAll(".ltabs button").forEach(b=>b.onclick=()=>{loginMode=b.dataset.m;showLogin()});
+   <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr">
+   <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr">
+   <button class="btn lgo" id="lGo">دخول</button>
+   <div class="lmsg" id="lMsg">${msg?esc(msg):""}</div>
+   <p class="sub" style="margin-top:4px;font-size:.78rem">لا تملك حسابًا؟ اطلبه من غدير.</p></div>`;
   const m=t=>{$("lMsg").textContent=t};
-  const busy=on=>document.querySelectorAll("#login .btn").forEach(b=>b.disabled=on);
-  $("lGo").onclick=async()=>{
-    const mail=$("lMail").value.trim(),pass=$("lPass").value;busy(true);m("…");
-    try{
-      if(loginMode==="up"){const name=($("lName").value||"").trim();if(!name){m("اكتب اسمك");busy(false);return}
-        const c=await auth.createUserWithEmailAndPassword(mail,pass);await c.user.updateProfile({displayName:name});st("muf_newname",name)}
-      else await auth.signInWithEmailAndPassword(mail,pass);
-    }catch(e){m(AERR[e.code]||e.message);busy(false)}
+  const go=async()=>{
+    const u=$("lUser").value.trim().toLowerCase(),pass=$("lPass").value;
+    if(!u||!pass){m("اكتب اسم المستخدم وكلمة السر");return}
+    $("lGo").disabled=true;m("…");
+    try{await auth.signInWithEmailAndPassword(u.includes("@")?u:u+DOMAIN,pass)}
+    catch(e){m(e.code==="auth/invalid-email"?"اسم المستخدم يُكتب بأحرف إنجليزية وأرقام فقط":AERR[e.code]||e.message);$("lGo").disabled=false}
   };
-  if($("lForgot"))$("lForgot").onclick=async()=>{const mail=$("lMail").value.trim();if(!mail){m("اكتب بريدك أولًا ثم اضغط هنا");return}
-    try{await auth.sendPasswordResetEmail(mail);m("أرسلنا رابط تغيير كلمة السر إلى بريدك ✓")}catch(e){m(AERR[e.code]||e.message)}};
-  $("lGoogle").onclick=async()=>{busy(true);const pr=new firebase.auth.GoogleAuthProvider();
-    try{await auth.signInWithPopup(pr)}catch(e){if(e.code==="auth/popup-blocked"||e.code==="auth/operation-not-supported-in-this-environment")await auth.signInWithRedirect(pr);else{m(AERR[e.code]||e.message);busy(false)}}};
+  $("lGo").onclick=go;$("lPass").onkeydown=e=>{if(e.key==="Enter")go()};
 }
 // استيراد التقدّم القديم (قبل الحسابات) مرة واحدة
 async function offerLegacy(cloudEmpty){
@@ -835,7 +825,7 @@ async function offerLegacy(cloudEmpty){
 }
 async function onLogin(user){
   UID=user.uid;loadState();
-  UNAME=st(K("name"))||user.displayName||st("muf_newname")||(user.email||"").split("@")[0];st(K("name"),UNAME);
+  UNAME=st(K("name"))||user.displayName||(user.email||"").split("@")[0];st(K("name"),UNAME);
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
   try{const {d,name}=await cloudGet();if(name){UNAME=name;st(K("name"),name);renderHeader()}await offerLegacy(!d)}catch(e){}
