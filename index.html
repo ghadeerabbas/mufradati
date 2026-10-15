@@ -705,7 +705,7 @@ function equip(cat,v,silent){
 }
 
 /* ================= المزامنة مع المستودع ================= */
-const REPO="ghadeerabbas/mufradati",PFILE="progress.json",API=`https://api.github.com/repos/${REPO}/contents/${PFILE}`;
+const REPO="ghadeerabbas/mufradati",PFILE="progress.json",BR="data",API=`https://api.github.com/repos/${REPO}/contents/${PFILE}`;
 let syncTimer=null,syncing=false;
 const tok=()=>st("muf_token")||"";
 const b64e=t=>btoa(unescape(encodeURIComponent(t))),b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,""))));
@@ -715,12 +715,12 @@ function packLog(L){const K=[],ix={},F=[];let p=0;for(const[t,k,r,n]of L){if(ix[
 function unpackLog(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let p=0;for(let i=0;i<o.F.length;i+=4){p+=o.F[i];L.push([p*1000,o.K[o.F[i+1]],o.F[i+2],o.F[i+3]])}return L}
 async function getRemote(){
   const h={Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"};
-  const r=await fetch(API+"?ref=main&t="+Date.now(),{headers:h,cache:"no-store"});
+  const r=await fetch(API+"?ref="+BR+"&t="+Date.now(),{headers:h,cache:"no-store"});
   if(r.status===404)return {sha:null,data:null};
   if(!r.ok)throw new Error(r.status===401?"المفتاح غير صالح أو منتهي":"خطأ "+r.status);
   const j=await r.json();let txt;
   if(j.content)txt=b64d(j.content);
-  else{const rr=await fetch(API+"?ref=main&t="+Date.now(),{headers:{...h,Accept:"application/vnd.github.raw+json"},cache:"no-store"});txt=await rr.text()}
+  else{const rr=await fetch(API+"?ref="+BR+"&t="+Date.now(),{headers:{...h,Accept:"application/vnd.github.raw+json"},cache:"no-store"});txt=await rr.text()}
   return {sha:j.sha,data:JSON.parse(txt)};
 }
 function mergeIn(d){
@@ -741,9 +741,12 @@ async function syncNow(manual){
   try{
     for(let attempt=0;attempt<2;attempt++){
       const {sha,data}=await getRemote();mergeIn(data);
-      const body={updated:new Date().toISOString(),P,LOG:packLog(LOG),QLOG,QA,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E};
+      const core={P,LOG:packLog(LOG),QLOG,QA,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E};
+      // لا ترفع شيئًا إن لم يتغيّر
+      if(data){const{updated,...rc}=data;if(JSON.stringify(rc)===JSON.stringify(core)){setSyncStat("✓ آخر مزامنة: "+new Date().toLocaleString("ar",{weekday:"long",hour:"2-digit",minute:"2-digit"}),"ok");break}}
+      const body={updated:new Date().toISOString(),...core};
       const r=await fetch(API,{method:"PUT",headers:{Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"},
-        body:JSON.stringify({message:"تحديث التقدّم",content:b64e(JSON.stringify(body)),branch:"main",...(sha?{sha}:{})})});
+        body:JSON.stringify({message:"تحديث التقدّم",content:b64e(JSON.stringify(body)),branch:BR,...(sha?{sha}:{})})});
       if(r.ok){setSyncStat("✓ آخر مزامنة: "+new Date().toLocaleString("ar",{weekday:"long",hour:"2-digit",minute:"2-digit"}),"ok");break}
       if((r.status!==409&&r.status!==422)||attempt)throw new Error(r.status===401||r.status===403?"المفتاح لا يملك صلاحية الكتابة":"خطأ "+r.status);
     }
