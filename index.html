@@ -269,11 +269,12 @@ let W=[],DAYS=[];
 let P=jget("muf_progress",{});              // تقدّم كل كلمة
 let LOG=jget("muf_log",[]);                 // [وقت، كلمة، تقييم، جديدة]
 let QLOG=jget("muf_qlog",[]);               // [وقت، صحيح، عدد] لكل اختبار مكتمل
+let QA=jget("muf_qa",[]);                   // [وقت، كلمة، صحيح] لكل سؤال
 let BUY=jget("muf_buy",[]);                 // مشتريات {id,item,ts}
 let S=Object.assign({limit:15,dir:"de",goal:30,ts:0},jget("muf_settings",{}));
 let E=Object.assign({theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",dark:0,ts:0},jget("muf_equip",{}));
 const save=()=>{st("muf_progress",JSON.stringify(P));st("muf_settings",JSON.stringify(S));st("muf_log",JSON.stringify(LOG));
-  st("muf_qlog",JSON.stringify(QLOG));st("muf_buy",JSON.stringify(BUY));st("muf_equip",JSON.stringify(E))};
+  st("muf_qlog",JSON.stringify(QLOG));st("muf_qa",JSON.stringify(QA));st("muf_buy",JSON.stringify(BUY));st("muf_equip",JSON.stringify(E))};
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
@@ -531,7 +532,7 @@ function bindSettings(){
   $("sLim").onchange=e=>{S.limit=+e.target.value;set();buildQueue();showCard()};
   $("sGoal").onchange=e=>{S.goal=+e.target.value;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
-  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟ (تبقى مشترياتك، لكن الجواهر المكتسبة من المراجعات ستُحذف)")){P={};LOG=[];QLOG=[];S.newCount=0;save();econ();renderHeader();buildQueue();showCard()}};
+  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟ (تبقى مشترياتك، لكن الجواهر المكتسبة من المراجعات ستُحذف)")){P={};LOG=[];QLOG=[];QA=[];S.newCount=0;save();econ();renderHeader();buildQueue();showCard()}};
 }
 
 /* ================= القائمة ================= */
@@ -546,7 +547,22 @@ function renderList(){
 
 /* ================= الاختبار ================= */
 let qz=[],qi=0,qs=0,streakQ=0;
-function startQuiz(){qz=shuffle(uniq(filtered())).slice(0,10);qi=0;qs=0;streakQ=0;showQ()}
+// درجة الصعوبة: النسيان والصعبة في المراجعة، والأخطاء في الاختبار
+function hardScores(){
+  const sc={};LOG.forEach(x=>{if(x[2]===0)sc[x[1]]=(sc[x[1]]||0)+2;else if(x[2]===1)sc[x[1]]=(sc[x[1]]||0)+1});
+  QA.forEach(x=>{if(!x[2])sc[x[1]]=(sc[x[1]]||0)+2});return sc;
+}
+// ٦٠٪ صعبة لم تُختبر، ٢٠٪ صعبة اختُبرت، ٢٠٪ من باقي الكلمات
+function startQuiz(){
+  const N=10,all=uniq(filtered()),sc=hardScores(),seen=new Set(QA.map(x=>x[1]));
+  const byScore=a=>shuffle(a).sort((x,y)=>sc[y.k]-sc[x.k]);
+  const hard=all.filter(w=>sc[w.k]>0);
+  const A=byScore(hard.filter(w=>!seen.has(w.k))),B=byScore(hard.filter(w=>seen.has(w.k))),C=shuffle(all.filter(w=>!sc[w.k]));
+  const pick=[],take=(arr,n)=>{for(const w of arr){if(n<=0)break;if(!pick.includes(w)){pick.push(w);n--}}};
+  take(A,6);take(B,2);take(C,2);
+  take(A,N-pick.length);take(B,N-pick.length);take(C,N-pick.length);
+  qz=shuffle(pick);qi=0;qs=0;streakQ=0;showQ();
+}
 function showQ(){
   const el=$("quiz");
   if(qz.length<4){el.innerHTML='<div class="box done">لا توجد كلمات كافية في هذا الاختيار.</div>';return}
@@ -560,10 +576,10 @@ function showQ(){
   const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
   const opts=shuffle([w,...wrong]);
   el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span></div>
-   <div class="box"><div class="qword de">${artHTML(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
+   <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${artHTML(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
-    const ok=b.dataset.k===w.k;if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
+    const ok=b.dataset.k===w.k;QA.push([Date.now(),w.k,ok?1:0]);if(QA.length>30000)QA=QA.slice(-30000);save();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
     $("qnext").innerHTML=`<div class="ex de" style="margin-top:8px">${esc(w.ex)}</div><div class="exar">${esc(w.exar)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
@@ -712,6 +728,7 @@ function mergeIn(d){
   for(const k in d.P||{}){const a=P[k],b=d.P[k];if(!a||(b.t||0)>(a.t||0))P[k]=b}
   const sl=new Set(LOG.map(x=>Math.round(x[0]/1000)+"|"+x[1]));
   unpackLog(d.LOG).forEach(x=>{if(!sl.has(Math.round(x[0]/1000)+"|"+x[1]))LOG.push(x)});LOG.sort((a,b)=>a[0]-b[0]);
+  const sa=new Set(QA.map(x=>x[0]+"|"+x[1]));(d.QA||[]).forEach(x=>{if(!sa.has(x[0]+"|"+x[1]))QA.push(x)});QA.sort((a,b)=>a[0]-b[0]);
   const sq=new Set(QLOG.map(x=>x[0]));(d.QLOG||[]).forEach(x=>{if(!sq.has(x[0]))QLOG.push(x)});QLOG.sort((a,b)=>a[0]-b[0]);
   const sb=new Set(BUY.map(x=>x.id));(d.BUY||[]).forEach(x=>{if(!sb.has(x.id))BUY.push(x)});
   if(d.S&&(d.S.ts||0)>(S.ts||0)){S.limit=d.S.limit;S.dir=d.S.dir;S.goal=d.S.goal||S.goal;S.ts=d.S.ts}
@@ -724,7 +741,7 @@ async function syncNow(manual){
   try{
     for(let attempt=0;attempt<2;attempt++){
       const {sha,data}=await getRemote();mergeIn(data);
-      const body={updated:new Date().toISOString(),P,LOG:packLog(LOG),QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E};
+      const body={updated:new Date().toISOString(),P,LOG:packLog(LOG),QLOG,QA,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E};
       const r=await fetch(API,{method:"PUT",headers:{Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"},
         body:JSON.stringify({message:"تحديث التقدّم",content:b64e(JSON.stringify(body)),branch:"main",...(sha?{sha}:{})})});
       if(r.ok){setSyncStat("✓ آخر مزامنة: "+new Date().toLocaleString("ar",{weekday:"long",hour:"2-digit",minute:"2-digit"}),"ok");break}
