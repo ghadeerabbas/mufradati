@@ -1695,10 +1695,26 @@ function bindNameBox(){
 }
 // للمشرف: طلبات تغيير الأسماء
 let NAMEREQ=[];
+let JOINS=[];
 async function loadNameReqs(){
   if(!isAdmin())return;
   try{const q=await db.collection("names").get();NAMEREQ=q.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.pending)}catch(e){NAMEREQ=[]}
-  const b=$("uBadge");if(b){b.textContent=NAMEREQ.length;b.classList.toggle("on",NAMEREQ.length>0)}
+  try{const q=await db.collection("join").get();JOINS=q.docs.map(d=>({id:d.id,...d.data()}))}catch(e){JOINS=[]}
+  const n=NAMEREQ.length+JOINS.length,b=$("uBadge");if(b){b.textContent=n;b.classList.toggle("on",n>0)}
+}
+function joinHTML(){
+  if(!JOINS.length)return"";
+  return `<div class="rsec"><h3>🆕 حسابات تنتظر التفعيل (${JOINS.length})</h3>${JOINS.map(j=>`<div class="nreq"><div><b dir="ltr">${esc(j.name||j.id)}</b><small>${fmt(j.ts)}</small></div>
+    <button class="btn nok jok" data-u="${esc(j.id)}">تفعيل</button><button class="btn nno jno" data-u="${esc(j.id)}">رفض</button></div>`).join("")}
+   <p class="rnote">فعّل فقط الحسابات التي أنشأتها أنت لمستخدميك.</p></div>`;
+}
+function bindJoins(){
+  document.querySelectorAll(".jok,.jno").forEach(b=>b.onclick=async()=>{
+    const u=b.dataset.u,ok=b.classList.contains("jok");b.disabled=true;
+    try{const bt=db.batch();if(ok)bt.set(db.collection("members").doc(u),{ts:firebase.firestore.FieldValue.serverTimestamp()});bt.delete(db.collection("join").doc(u));await bt.commit();
+      toast(ok?"✅":"🚫",ok?"فُعّل الحساب":"رُفض الطلب","");await loadNameReqs();renderUserList()}
+    catch(e){b.disabled=false;await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
+  });
 }
 // هل الاسم المقترح مأخوذ؟ تُتجاهَل الأحرف الكبيرة والصغيرة والمسافات
 const normName=x=>String(x||"").toLowerCase().replace(/\s+/g,"");
@@ -1801,7 +1817,24 @@ async function offerLegacy(cloudEmpty){
     mergeIn(L);if(G)mergeIn(G);st("muf_legacy_done","1");
   }else st("muf_legacy_done","1");
 }
+// تفعيل الحسابات: الحساب الجديد لا يعمل حتى يفعّله المشرف (المستخدمون القدامى مفعّلون تلقائيًا)
+async function accountActive(user){
+  if(((user.email||"").toLowerCase())===ADMIN)return true;
+  let m;try{m=await db.collection("members").doc(user.uid).get()}catch(e){return true}   // قواعد قديمة لا تعرف التفعيل
+  if(m.exists)return true;
+  try{const u=await db.collection("users").doc(user.uid).get();if(u.exists)return true}catch(e){}
+  try{await db.collection("join").doc(user.uid).set({name:(user.email||"").split("@")[0].slice(0,60),ts:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
+  return false;
+}
+function showPending(user){
+  $("login").style.display="flex";
+  $("login").innerHTML=`<div class="lbox"><div class="logo">⏳</div><h1 style="font-size:1.2rem">حسابك بانتظار التفعيل</h1>
+   <p class="sub">أُرسل طلب تفعيل حسابك <b dir="ltr">${esc((user.email||"").split("@")[0])}</b> إلى المشرف. حاول مرة أخرى بعد قليل.</p>
+   <button class="btn lgo" id="pdAgain">تحقّق الآن</button><button class="link" id="pdOut">تسجيل الخروج</button></div>`;
+  $("pdAgain").onclick=()=>location.reload();$("pdOut").onclick=async()=>{await auth.signOut();location.reload()};
+}
 async function onLogin(user){
+  if(!await accountActive(user))return showPending(user);
   UID=user.uid;loadState();
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
   await loadCourses();MY_COURSES=await myCourses();
@@ -1959,7 +1992,7 @@ function renderUserList(){
   const el=$("users"),cnt=k=>USERS.filter(u=>u.st===k).length;
   const fb=Object.values(FEEDS),avg=fb.length?(fb.reduce((a,f)=>a+f.stars,0)/fb.length).toFixed(1):"—";
   const list=USERS.filter(u=>uFilter==="all"||u.st===uFilter).sort((a,b)=>((b.sum||{}).last||0)-((a.sum||{}).last||0));
-  el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><button class="btn" id="uReload">↻ تحديث</button></div>${nameReqHTML()}
+  el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><button class="btn" id="uReload">↻ تحديث</button></div>${joinHTML()}${nameReqHTML()}
   <div class="gstats">
    <div class="gstat"><b style="color:#16a34a">${cnt("active")+cnt("regular")}</b><span>نشيط ومتابع</span></div>
    <div class="gstat"><b style="color:#dc2626">${cnt("idle")}</b><span>خامل</span></div>
@@ -1969,7 +2002,7 @@ function renderUserList(){
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
    <div class="top"><b>${esc(u.name||"مستخدم")}</b><span class="ust">${UST[u.st][0]}</span></div>
    <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
-  $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};bindNameReqs();
+  $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};bindNameReqs();bindJoins();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
   el.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
 }

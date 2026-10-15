@@ -14,10 +14,12 @@ android {
     }
     signingConfigs {
         release {
-            storeFile file("../mufradati.keystore")
-            storePassword "mufradati"
+            // المفتاح محميّ بكلمة سرّ محفوظة في أسرار GitHub (KS_PASS)، ولا تظهر في الملفات
+            storeFile file("../release.p12")
+            storeType "pkcs12"
+            storePassword System.getenv("KS_PASS")
             keyAlias "mufradati"
-            keyPassword "mufradati"
+            keyPassword System.getenv("KS_PASS")
         }
     }
     buildTypes {

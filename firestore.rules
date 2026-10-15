@@ -3,7 +3,22 @@ service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function isAdmin() { return signedIn() && request.auth.token.email == "ghadeer@mufradati.app"; }
-    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+    // الحساب المفعّل: المشرف، أو من فعّله المشرف، أو المستخدمون القدامى (لهم سجلّ تقدّم)
+    function active() {
+      return isAdmin() || (signedIn() && (exists(/databases/$(database)/documents/members/$(request.auth.uid))
+        || exists(/databases/$(database)/documents/users/$(request.auth.uid))));
+    }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid && active(); }
+
+    // التفعيل: يقرأ المستخدم حالته، ويطلب التفعيل، والمشرف وحده يفعّل
+    match /members/{uid} { allow read: if isAdmin() || (signedIn() && request.auth.uid == uid); allow write: if isAdmin(); }
+    match /join/{uid} {
+      allow read, delete: if isAdmin();
+      allow create, update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(["name","ts"])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.ts == request.time;
+    }
 
     // تقدّم كل مستخدم: يكتبه هو وحده، ويقرؤه هو والمدير
     match /users/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
@@ -25,7 +40,7 @@ service cloud.firestore {
 
     // الملف العام: يراه كل المسجَّلين، ويكتبه صاحبه وحده
     match /pub/{uid} {
-      allow read: if signedIn();
+      allow read: if active();
       allow write: if isMe(uid)
         && request.resource.data.keys().hasOnly(["name","av","nc","fr","lv","xp","streak","best","tier","title","alv","stk","ts"])
         && request.resource.data.name is string && shownName(uid, request.resource.data.name)
@@ -58,7 +73,7 @@ service cloud.firestore {
 
     // الدوري الأسبوعي: يراه كل المسجَّلين، ويكتب كل مستخدم سطره وحده
     match /lg/{week}/m/{uid} {
-      allow read: if signedIn();
+      allow read: if active();
       allow create, update: if isMe(uid)
         && request.resource.data.keys().hasOnly(["name","av","fr","st","nc","solo","tier","grp","b","xp","ts"])
         && (!("solo" in request.resource.data) || (request.resource.data.solo is bool && isAdmin()))
