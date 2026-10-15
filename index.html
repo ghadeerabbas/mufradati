@@ -860,13 +860,18 @@ function clozeOf(w){
   return null;
 }
 const normT=s=>String(s).normalize("NFC").replace(/[‘’]/g,"'").replace(/\s+/g," ").trim();
+// التصحيح مرن: تكفي الكلمة الأساسية (الفعل أو الاسم) مكتوبة صحيحة، دون etwas وsich وأمثالها،
+// ولا يهمّ حجم الأحرف ولا علامات الترقيم. وتبقى الأداة ملاحظةً لا خطأ.
+const FILL=new Set(["etwas","etw.","etw","jemandem","jemanden","jemand","jdm.","jdn.","jmdm.","jmdn.","jdm","jdn","jmd.","sich","einen","eine","einem","einer","ein"]);
+const coreOf=s=>normT(s).replace(/[.,!?;:"„“]+/g,"").replace(ART,"").split(" ").filter(t=>t&&!FILL.has(t.toLowerCase())).join(" ");
 function checkTyped(w,v){
-  v=normT(v);const ans=answersOf(w).map(normT);
-  if(ans.includes(v))return {ok:1,a:v};
-  const lo=ans.find(a=>a.toLowerCase()===v.toLowerCase());if(lo)return {ok:0,a:lo,why:"انتبه إلى الأحرف الكبيرة والصغيرة"};
-  const na=ans.find(a=>ART.test(a)&&a.replace(ART,"").toLowerCase()===v.replace(ART,"").toLowerCase());
-  if(na)return {ok:0,a:na,why:ART.test(v)?"الأداة غير صحيحة":"لا تنسَ الأداة"};
-  return {ok:0,a:ans[0]};
+  v=normT(v);const ans=answersOf(w).map(normT),key=coreOf(v).toLowerCase();
+  const a=ans.find(x=>coreOf(x).toLowerCase()===key&&key);
+  if(!a)return {ok:0,a:ans[0]};
+  const nn=nounOf(w),m=v.match(ART);let note="";
+  if(nn&&!m)note="تذكّر الأداة: "+nn.art+" "+nn.noun;
+  else if(nn&&m&&m[1].toLowerCase()!==nn.art)note="الكلمة صحيحة، لكن الأداة الصحيحة: "+nn.art;
+  return {ok:1,a,note};
 }
 // يُظهر الجواب الصحيح ويضع خطًّا تحت الأحرف التي أخطأ فيها
 function diffHTML(a,b){
@@ -948,7 +953,7 @@ function gameView(){
     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${artHTML(lemmaOf(o))}</button>`).join("")}`;
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
     <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
-  else if(q.kind==="type")body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?" مع أداتها":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
+  else if(q.kind==="type")body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
     <input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <button class="btn next" id="gCheck">تحقّق</button>`;
@@ -979,7 +984,8 @@ function answered(ok,el,auto){
   const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++;floatAt(el,"+1 💎")}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
   QA.push([Date.now(),w.k,ok?1:0]);if(QA.length>30000)QA=QA.slice(-30000);save();markStudied();
   let fb="";
-  if(q.kind==="type"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>`:`<div class="gres bad">${r.why?esc(r.why):"الجواب الصحيح:"}</div><div class="gans de">${diffHTML(r.a,GM.typed.v)}</div>`}
+  if(q.kind==="type"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
+    :`<div class="gres bad">الجواب الصحيح:</div><div class="gans de">${diffHTML(coreOf(r.a)||r.a,coreOf(GM.typed.v))}</div>`}
   else if(q.kind==="art"&&!ok){const nn=nounOf(w);fb=`<div class="gres bad">الصحيح: <span class="de art-${nn.art}">${esc(nn.art+" "+nn.noun)}</span></div>`}
   fb+=`<div class="gword"><span class="de">${artHTML(w.de)}</span> ${sayBtn(w.de)} <span class="m">${esc(w.ar)}</span></div>`;
   if(q.kind!=="cloze")fb+=exPairs(w);
