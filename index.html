@@ -1327,7 +1327,7 @@ async function leagueUpdate(){
   else if(me.tier!==LG.tier){me.tier=LG.tier;me.grp=await chooseGroup(w,LG.tier);me.xp=-1}   // نُقل إلى دوري آخر
   // الإطار والملصق ولون الاسم: ما يستعمله المتعلّم من المتجر، تلقائيًا
   const av=String(E.avatar||"🎓").slice(0,8),lf=E.lgFrame??E.frame,fr=owned("frame",lf)?String(lf||"none").slice(0,16):"none",stk=String(stkVal(E.lgSticker??E.sticker)).slice(0,8),
-    solo=isAdmin()&&!!E.lgSolo,nc=isAdmin()?"admin":(E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:"");
+    solo=isAdmin()&&!!E.lgSolo,nc=myNc();
   if(me.xp===xp&&me.name===UNAME&&me.av===av&&me.fr===fr&&me.st===stk&&me.nc===nc&&!!me.solo===solo)return;
   await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,fr,st:stk,nc,...(solo?{solo:true}:{}),tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
   Object.assign(me,{xp,name:UNAME,av,fr,st:stk,nc,solo});LGC.at=0;
@@ -1614,11 +1614,13 @@ function renderSettings(){
 
 /* ================= الملف العام: ما يراه اللاعبون الآخرون عند الضغط على اسمك في الدوري ================= */
 const pref=u=>db.collection("pub").doc(u);
+// لون اسمي: ما اخترته من المتجر، وإلا فشارة المشرف للمشرف، وإلا فاللون العادي
+const myNc=()=>E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:(isAdmin()?"admin":"");
 let PUBLAST="";
 function pubData(){
   const e=econ(),alv={};achList().forEach(a=>{if(e.alv[a.id])alv[a.id]=e.alv[a.id]});
   const lf=E.lgFrame??E.frame;
-  return {name:UNAME.slice(0,60),av:String(E.avatar||"🎓").slice(0,8),nc:isAdmin()?"admin":(E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:""),
+  return {name:UNAME.slice(0,60),av:String(E.avatar||"🎓").slice(0,8),nc:myNc(),
     fr:owned("frame",lf)?String(lf||"none").slice(0,16):"none",lv:e.lv,xp:e.xp,streak:e.s.streak,best:e.s.best,tier:LG.tier??0,
     title:(itemOf("title",E.title)||{}).val||"",alv,stk:SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id)).map(x=>x.val)};
 }
