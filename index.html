@@ -63,7 +63,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .flip.on{transform:rotateY(180deg)}
 .face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--line);border-top:6px solid var(--tc,var(--navy));border-radius:18px;min-height:280px;padding:22px 18px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.07);position:relative}
 .face.back{transform:rotateY(180deg)}
-.t-n{--tc:var(--tn)}.t-v{--tc:var(--tv)}.t-a{--tc:var(--ta)}.t-e{--tc:var(--te)}
+.t-n{--tc:var(--tn)}.t-v{--tc:var(--tv)}.t-a{--tc:var(--ta)}.t-e{--tc:var(--te)}.t-p{--tc:#64748b}
+.ex,.exar,.item .e,.item .ea{white-space:pre-line}
 .word{font-size:1.65rem;font-weight:700;color:var(--hd)}
 .art-der{color:var(--der)}.art-die{color:var(--die)}.art-das{color:var(--das)}
 .ar{font-size:1.35rem;font-weight:700;color:var(--rd)}
@@ -290,7 +291,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
   <section id="list" class="panel">
     <div class="filters">
       <input type="search" id="q" placeholder="ابحث بالألمانية أو العربية">
-      <select id="fType"><option value="all">كل الأنواع</option><option value="n">اسم</option><option value="v">فعل</option><option value="a">صفة/ظرف</option><option value="e">تعبير</option></select>
+      <select id="fType"><option value="all">كل الأنواع</option><option value="n">اسم</option><option value="v">فعل</option><option value="a">صفة/ظرف</option><option value="p">أداة/ضمير</option><option value="e">تعبير</option></select>
     </div>
     <div class="count" id="lcount"></div>
     <div id="litems"></div>
@@ -309,7 +310,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 /* ================= أساسيات ================= */
-const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",e:"تعبير"};
+const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",p:"أداة/ضمير",e:"تعبير"};
 const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 const $=id=>document.getElementById(id);
 function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null}}
