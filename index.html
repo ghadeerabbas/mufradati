@@ -125,6 +125,15 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 
 <script>
 const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",e:"تعبير"};
+// اليوم الأول، الثاني ... حتى ٩٩
+function ordinal(n){
+  const u=["","الأول","الثاني","الثالث","الرابع","الخامس","السادس","السابع","الثامن","التاسع"],
+   t=["","العاشر","العشرون","الثلاثون","الأربعون","الخمسون","الستون","السبعون","الثمانون","التسعون"];
+  if(n<10)return u[n];if(n===10)return t[1];if(n===11)return "الحادي عشر";if(n<20)return u[n-10]+" عشر";
+  const a=n%10,b=n/10|0;if(n>99)return String(n);
+  return a?(a===1?"الحادي":u[a])+" و"+t[b]:t[b];
+}
+const dayName=n=>"اليوم "+ordinal(n);
 const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120]; // فترات المراجعة بالأيام
 const $=id=>document.getElementById(id);
 function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null}}
@@ -143,7 +152,7 @@ fetch("words.json?v="+Date.now()).then(r=>r.json()).then(d=>{
   DAYS=d.days;
   const seen={};
   W=d.words.map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else seen[k]=w.day;return r});
-  DAYS.forEach(x=>$("fDay").insertAdjacentHTML("beforeend",`<option value="${x.day}">اليوم ${x.day} · ${esc(x.title)}</option>`));
+  DAYS.forEach(x=>$("fDay").insertAdjacentHTML("beforeend",`<option value="${x.day}">${dayName(x.day)}</option>`));
   init();
 }).catch(()=>{$("review").innerHTML='<div class="err">تعذّر تحميل المفردات. تأكّد من الاتصال ثم أعد تحميل الصفحة.</div>'});
 
@@ -164,7 +173,7 @@ function tags(w){
   return `<span class="tag ${w.lvl}">${w.lvl}</span><span class="tag">${TYPE[w.t]||""}</span>`+
    w.s.map(s=>`<span class="tag de">${esc(s)}</span>`).join("")+
    (w.core==1?'<span class="tag core">★ أساسية</span>':"")+
-   (w.rep?`<span class="tag rep">مكرر · أول ظهور: اليوم ${w.rep}</span>`:"");
+   (w.rep?`<span class="tag rep">مكرر · أول ظهور: ${dayName(w.rep)}</span>`:"");
 }
 
 /* ===== المراجعة بالتكرار المتباعد ===== */
@@ -308,7 +317,7 @@ function renderReport(){
   <div class="rsec"><h3>النشاط في آخر ١٤ يومًا (عدد المراجعات)</h3>${colChart(act,lb14)}</div>
   <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>٧٠٪ فأكثر</span><span><i style="background:var(--red)"></i>أقل من ٧٠٪</span></div></div>
   <div class="rsec"><h3>المراجعات المستحقّة في الأيام القادمة</h3>${colChart(fc,fl)}</div>
-  <div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:"اليوم "+d.day+" · "+esc(d.date),list:f.filter(w=>w.day===d.day)})))}</div>
+  <div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>
   <div class="rsec"><h3>حسب المستوى والنوع</h3>${groupRows([{name:"B1",list:f.filter(w=>w.lvl==="B1")},{name:"B2",list:f.filter(w=>w.lvl==="B2")},{name:"★ الأساسية",list:f.filter(w=>w.core==1)}])}
    ${groupRows(Object.keys(TYPE).map(t=>({name:TYPE[t],list:f.filter(w=>w.t===t)})))}</div>
   <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`;
