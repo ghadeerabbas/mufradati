@@ -684,7 +684,6 @@ function celebrate(prev){
   if(!prev)return;
   if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!","+"+(e.lv*5)+" 💎");confetti(120)}
   achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u+" · +"+a.L[k-1][1]+" 💎");confetti(60)}});
-  const g=S.goal||30;if(prev.todayN<g&&e.todayN>=g){toast("🎯","أتممت هدف اليوم!","استمر هكذا");confetti(100)}
   if(e.s.streak>prev.s.streak&&prev.todayN===0)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
 }
 
@@ -738,7 +737,7 @@ function reviewHome(){
 }
 function reviewPills(){
   const u=uniq(filtered()),now=Date.now();
-  return `<div class="pills"><span class="pill">${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>P[w.k]&&P[w.k].due<=now).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span><span class="pill">هدف اليوم ${(EC||econ()).todayN} / ${S.goal}</span></div>`;
+  return `<div class="pills"><span class="pill">${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>P[w.k]&&P[w.k].due<=now).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span></div>`;
 }
 function showCard(){
   const el=$("review");
@@ -806,12 +805,10 @@ function settingsHTML(){
   const o=(arr,v)=>arr.map(n=>`<option ${n==v?"selected":""}>${n}</option>`).join("");
   const btns=(id,arr,v)=>`<span class="numpicks" id="${id}">${arr.map(n=>`<button type="button" class="numpick${n==v?" on":""}" data-v="${n}">${n}</button>`).join("")}</span>`;
   return `<div class="settings">
-   <div class="limrow">هدف المراجعات اليومي: ${btns("sGoal",[20,30,50,80,100],S.goal)}</div>
    الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select></div>`;
 }
 function bindSettings(){
   const set=()=>{S.ts=Date.now();save();schedSync()};
-  $("sGoal").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.goal)return;S.goal=+b.dataset.v;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
 }
 // التذكير اليومي: في تطبيق أندرويد فقط، ويُحفظ على الجهاز نفسه
