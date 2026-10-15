@@ -182,7 +182,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 .nc-gold,.nc-fire,.nc-rainbow{-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
 .nc-gold{background-image:linear-gradient(90deg,#a8820f,#f9e27d,#c9a84a,#fff3c4,#a8820f)}.nc-fire{background-image:linear-gradient(90deg,#d00000,#ff6d00,#ffb703,#ff6d00)}
 .nc-rainbow{background-image:linear-gradient(90deg,#e11d48,#f59e0b,#10b981,#3b82f6,#a855f7)}
-.nc-black{color:#000}[data-dark] .nc-black{color:#000;text-shadow:0 0 1px #fff,0 0 3px #ffffffcc}
+[data-dark] .nc-crimson{color:#ff4d6d}
 .botl{font-size:.68rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:8px;padding:0 6px}
 .lgline{font-size:.72rem;text-align:center;margin:4px 0;font-weight:700}.lgline.up{color:var(--green)}.lgline.down{color:var(--rd)}
 .lgrules{margin-top:8px;font-size:.82rem}.lgrules summary{cursor:pointer;color:var(--hd);font-weight:600}.lgrules ul{padding-right:18px;margin-top:6px;line-height:1.7}
@@ -492,19 +492,19 @@ const SHOP=[
  {id:"gems",cat:"confetti",name:"جواهر",price:800,old:100,val:"💎"},
  {id:"fireworks",cat:"confetti",name:"ألعاب نارية",price:1000,old:120,val:"🎆"},
  // مستهلكات
- // ألوان الاسم في الدوري (الأسود للمشرف وحده)
+ // ألوان الاسم في الدوري (القرمزي للمشرف وحده، والعادي أسود نهارًا وأبيض ليلًا)
  ...[["none","اللون العادي",0],["red","أحمر",150],["green","أخضر",150],["blue","أزرق",150],["orange","برتقالي",250],["purple","بنفسجي",250],["pink","وردي",350],["teal","فيروزي",350],
-     ["brown","بنّي",500],["crimson","قرمزي",700],["gold","ذهبي لامع",1200],["fire","ناري",1500],["rainbow","قوس قزح",2000]].map(([id,n,p])=>({id,cat:"namecolor",name:n,price:p,val:"🎨"})),
+     ["brown","بنّي",500],["gold","ذهبي لامع",1200],["fire","ناري",1500],["rainbow","قوس قزح",2000]].map(([id,n,p])=>({id,cat:"namecolor",name:n,price:p,val:"🎨"})),
  {id:"freeze",cat:"power",name:"تجميد السلسلة",price:300,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
 ];
 // كل هدايا المتجر تنفتح بالصعود في الدوري (رقم الدوري الذي يفتح كل غرض؛ ما لم يُذكر يكون مفتوحًا)
-const NCOL={red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,gold:1,fire:1,rainbow:1,black:1};
+const NCOL={red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,gold:1,fire:1,rainbow:1};
 const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10:4,av11:5,av12:7,av13:9},
  title:{t1:1,t2:2,t3:3,t4:4,t5:5,t6:7,t7:9},
  theme:{emerald:2,royal:3,ocean:4,sunset:6,lux:8},
  sticker:{s0:0,s1:0,s2:0,s3:1,s4:1,s5:1,s6:2,s7:2,s8:3,s9:3,s10:4,s11:5,s12:5,s13:6,s14:8,s15:9},
  confetti:{stars:1,hearts:2,gems:4,fireworks:6},
- namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,crimson:4,gold:5,fire:7,rainbow:9}};
+ namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,gold:5,fire:7,rainbow:9}};
 SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t});
 const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
@@ -1222,7 +1222,7 @@ async function leagueUpdate(){
   else if(me.tier!==LG.tier){me.tier=LG.tier;me.grp=await chooseGroup(w,LG.tier);me.xp=-1}   // نُقل إلى دوري آخر
   // الإطار والملصق ولون الاسم: ما يستعمله المتعلّم من المتجر، تلقائيًا
   const av=String(E.avatar||"🎓").slice(0,8),fr=owned("frame",E.frame)?String(E.frame||"none").slice(0,16):"none",stk=String(E.sticker||"").slice(0,8),
-    nc=isAdmin()?"black":(E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:"");
+    nc=isAdmin()?"crimson":(E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:"");
   if(me.xp===xp&&me.name===UNAME&&me.av===av&&me.fr===fr&&me.st===stk&&me.nc===nc)return;
   await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,fr,st:stk,nc,tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
   Object.assign(me,{xp,name:UNAME,av,fr,st:stk,nc});LGC.at=0;

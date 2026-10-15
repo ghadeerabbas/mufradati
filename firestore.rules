@@ -51,7 +51,7 @@ service cloud.firestore {
       allow create, update: if isMe(uid)
         && request.resource.data.keys().hasOnly(["name","av","fr","st","nc","tier","grp","b","xp","ts"])
         && (!("nc" in request.resource.data) || (request.resource.data.nc is string && request.resource.data.nc.size() <= 16
-            && (request.resource.data.nc != "black" || isAdmin())))
+            && (!(request.resource.data.nc in ["crimson", "black"]) || isAdmin())))
         && (!("fr" in request.resource.data) || (request.resource.data.fr is string && request.resource.data.fr.size() <= 16))
         && (!("st" in request.resource.data) || (request.resource.data.st is string && request.resource.data.st.size() <= 8))
         && request.resource.data.name is string && shownName(uid, request.resource.data.name)
