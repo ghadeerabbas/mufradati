@@ -65,6 +65,10 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .face.back{transform:rotateY(180deg)}
 .t-n{--tc:var(--tn)}.t-v{--tc:var(--tv)}.t-a{--tc:var(--ta)}.t-e{--tc:var(--te)}.t-p{--tc:#64748b}
 .ex,.exar,.item .e,.item .ea{white-space:pre-line}
+.exs{display:flex;flex-direction:column;gap:6px;text-align:center}
+.exp{background:var(--soft);border-radius:10px;padding:7px 10px}
+.exd{font-size:.98rem}.exa{font-size:.92rem;color:var(--muted);margin-top:2px}
+.exs.list{text-align:right;margin-top:6px}.exs.list .exp{padding:5px 9px}.exs.list .exd{font-size:.9rem;text-align:left}.exs.list .exa{font-size:.86rem}
 .word{font-size:1.65rem;font-weight:700;color:var(--hd)}
 .art-der{color:var(--der)}.art-die{color:var(--die)}.art-das{color:var(--das)}
 .ar{font-size:1.35rem;font-weight:700;color:var(--rd)}
@@ -479,6 +483,13 @@ function artHTML(de){
   const m=de.match(/^(der|die|das)\s/i);
   return m?`<span class="art-${m[1].toLowerCase()}">${esc(de)}</span>`:esc(de);
 }
+// كلّ جملة ألمانية وتحتها ترجمتها مباشرة
+function exPairs(w,mode){
+  const a=String(w.ex||"").split("\n"),b=String(w.exar||"").split("\n");
+  if(!w.ex)return"";
+  const pairs=a.length===b.length?a.map((x,i)=>[x,b[i]]):[[w.ex,w.exar]];
+  return `<div class="exs ${mode||""}">${pairs.map(([x,y])=>`<div class="exp"><div class="exd de">${esc(x)}</div><div class="exa">${esc(y)}</div></div>`).join("")}</div>`;
+}
 function tags(w){
   return `<span class="tag ${w.lvl}">${w.lvl}</span><span class="tag">${TYPE[w.t]||""}</span>`+
    w.s.map(s=>`<span class="tag de">${esc(s)}</span>`).join("")+
@@ -566,7 +577,7 @@ function showCard(){
   <div class="scene fr-${E.frame}"><div class="flip" id="flip">
    <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
    <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${artHTML(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
-    <div class="ex de">${esc(cur.ex)}</div><div class="exar">${esc(cur.exar)}</div></div>
+    ${exPairs(cur)}</div>
   </div></div><div id="rate"></div>`+settingsHTML();
   $("flip").onclick=flip;bindSettings();
 }
@@ -638,7 +649,7 @@ function renderList(){
   $("lcount").textContent=r.length+" كلمة";
   $("litems").innerHTML=r.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
    return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg}</span><span class="m">${esc(w.ar)}</span></div>
-   <div class="e de">${esc(w.ex)}</div><div class="ea">${esc(w.exar)}</div><div class="tags">${tags(w)}</div></div>`}).join("");
+   ${exPairs(w,"list")}<div class="tags">${tags(w)}</div></div>`}).join("");
 }
 
 /* ================= الاختبار ================= */
@@ -677,7 +688,7 @@ function showQ(){
     if(document.querySelector(".opt.ok"))return;
     const ok=b.dataset.k===w.k;QA.push([Date.now(),w.k,ok?1:0]);if(QA.length>30000)QA=QA.slice(-30000);save();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
-    $("qnext").innerHTML=`<div class="ex de" style="margin-top:8px">${esc(w.ex)}</div><div class="exar">${esc(w.exar)}</div><button class="btn next" id="nx">التالي</button>`;
+    $("qnext").innerHTML=`<div style="margin-top:8px">${exPairs(w)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
   });
 }
