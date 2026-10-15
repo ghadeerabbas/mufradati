@@ -109,6 +109,10 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .done h2{color:var(--green);margin:6px 0}
 .settings{margin-top:16px;font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .settings select{flex:none;min-width:auto;padding:4px 8px}
+.limrow{flex-basis:100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:.9rem;min-width:44px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+.chip.on{background:var(--navy2);border-color:var(--navy2);color:#fff;font-weight:700}
 .link{background:none;border:0;color:var(--rd);font-size:.85rem;text-decoration:underline}
 /* ===== القائمة ===== */
 .item{background:var(--card);border:1px solid var(--line);border-right:4px solid var(--tc,var(--navy));border-radius:12px;padding:10px 12px;margin-bottom:8px}
@@ -692,14 +696,14 @@ async function resetProgress(){
 }
 function settingsHTML(){
   const o=(arr,v)=>arr.map(n=>`<option ${n==v?"selected":""}>${n}</option>`).join("");
-  return `<div class="settings">كلمات جديدة يوميًا: <select id="sLim">${o([5,10,15,20,30,50],S.limit)}</select>
+  return `<div class="settings"><div class="limrow">كلمات جديدة يوميًا: <span class="chips" id="sLim">${[5,10,15,20,30,50].map(n=>`<button type="button" class="chip${n==S.limit?" on":""}" data-v="${n}">${n}</button>`).join("")}</span></div>
    هدف المراجعات اليومي: <select id="sGoal">${o([20,30,50,80,100],S.goal)}</select>
    الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
    <button class="link" id="sReset">تصفير التقدّم</button></div>`;
 }
 function bindSettings(){
   const set=()=>{S.ts=Date.now();save();schedSync()};
-  $("sLim").onchange=e=>{S.limit=+e.target.value;set();buildQueue();showCard()};
+  $("sLim").onclick=e=>{const b=e.target.closest(".chip");if(!b||+b.dataset.v===S.limit)return;S.limit=+b.dataset.v;set();buildQueue();showCard()};
   $("sGoal").onchange=e=>{S.goal=+e.target.value;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
   $("sReset").onclick=resetProgress;
