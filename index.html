@@ -197,11 +197,12 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 
 .nc-red{color:#e53935}.nc-green{color:#2e9e44}.nc-blue{color:#2f6fdf}.nc-orange{color:#f57c00}.nc-purple{color:#8e44ad}.nc-pink{color:#e84393}.nc-teal{color:#0a9396}.nc-brown{color:#8d5a2b}.nc-crimson{color:#b0103a}
 [data-dark] .nc-crimson{color:#ff4d6d}
-/* الأسماء المميّزة: شارة أنيقة واضحة في الوضعين */
-.nc-silver,.nc-gold,.nc-emerald,.nc-sapphire,.nc-admin{display:inline-block;width:fit-content;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:0 9px;border-radius:9px;font-weight:800;line-height:1.55;letter-spacing:.2px}
-.nc-silver,.nc-gold,.nc-emerald,.nc-sapphire{background:#111827;border:1.5px solid var(--c);color:var(--c);box-shadow:0 0 7px var(--g)}
-.nc-silver{--c:#e2e8f0;--g:rgba(226,232,240,.45)}.nc-gold{--c:#fbbf24;--g:rgba(251,191,36,.5)}.nc-emerald{--c:#34d399;--g:rgba(52,211,153,.45)}.nc-sapphire{--c:#60a5fa;--g:rgba(96,165,250,.5)}
-.nc-admin{background:#fff;color:#000!important;font-weight:900!important;border:2px solid #8b1538;box-shadow:0 0 0 1px rgba(139,21,56,.15)}
+/* الأسماء المميّزة: لون غني مع توهّج من اللون نفسه، واضح في الوضعين */
+.nc-silver,.nc-gold,.nc-emerald,.nc-sapphire{font-weight:900!important;letter-spacing:.3px;color:var(--c);text-shadow:0 0 1px var(--d),0 0 7px var(--g),0 0 14px var(--g)}
+.nc-silver{--c:#8e9aa8;--d:#5b6673;--g:rgba(148,163,184,.55)}.nc-gold{--c:#e0a800;--d:#9a7300;--g:rgba(245,190,40,.6)}.nc-emerald{--c:#10b06a;--d:#076b40;--g:rgba(16,185,129,.5)}.nc-sapphire{--c:#2f6fe8;--d:#1b4ab0;--g:rgba(59,130,246,.55)}
+[data-dark] .nc-silver{--c:#d5dbe3}[data-dark] .nc-gold{--c:#ffcc33}[data-dark] .nc-emerald{--c:#34d399}[data-dark] .nc-sapphire{--c:#6ea2ff}
+/* اسم المشرف باللون العادي: شارة بيضاء بحافة خمرية */
+.nc-admin{display:inline-block;width:fit-content;justify-self:start;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:0 9px;border-radius:9px;line-height:1.55;background:#fff;color:#000!important;font-weight:900!important;border:2px solid #8b1538;box-shadow:0 0 0 1px rgba(139,21,56,.15)}
 .botl{font-size:.68rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:8px;padding:0 6px}
 .lgline{font-size:.72rem;text-align:center;margin:4px 0;font-weight:700}.lgline.up{color:var(--green)}.lgline.down{color:var(--rd)}
 .lgrules{margin-top:8px;font-size:.82rem}.lgrules summary{cursor:pointer;color:var(--hd);font-weight:600}.lgrules ul{padding-right:18px;margin-top:6px;line-height:1.7}
@@ -540,7 +541,7 @@ const ACH=[
  {id:"mem",ic:"🌳",n:"حديقة الكلمات",u:"كلمة محفوظة",v:s=>s.mem,L:[[10,20],[50,50],[100,100],[250,200],[500,400],[1000,700],[2000,1000],[3000,1500]]},
  {id:"mast",ic:"💎",n:"الكلمات الراسخة",u:"كلمة راسخة",v:s=>s.mast,L:[[10,30],[50,150],[100,250],[250,500],[500,800],[1000,1200]]},
  {id:"streak",ic:"🔥",n:"السلسلة",u:"يومًا متتاليًا",v:s=>s.best,L:[[3,20],[7,50],[14,100],[30,200],[60,400],[100,700],[200,1000],[365,1500]]},
- {id:"perfect",ic:"🎯",n:"الأيام المثالية",u:"يومًا بلا نسيان (٢٠ مراجعة فأكثر)",v:s=>s.perfect,L:[[1,30],[5,60],[10,100],[25,200],[50,400],[100,700]]},
+ {id:"perfect",ic:"🎯",n:"الأيام المثالية",u:"يومًا بلا نسيان (20 مراجعة فأكثر)",v:s=>s.perfect,L:[[1,30],[5,60],[10,100],[25,200],[50,400],[100,700]]},
  {id:"marathon",ic:"🏃",n:"الماراثون",u:"مراجعة في يوم واحد",v:s=>s.maxDay,L:[[50,25],[100,50],[200,100],[300,150],[500,250]]},
  {id:"quiz",ic:"🧩",n:"محبّ الاختبارات",u:"اختبارًا وتمرينًا مكتملًا",v:s=>s.quizzes,L:[[10,30],[25,50],[50,80],[100,150],[250,300],[500,500]]},
  {id:"qfull",ic:"🥇",n:"العلامة الكاملة",u:"اختبارًا أو تمرينًا بلا خطأ",v:s=>s.qfull,L:[[1,20],[5,40],[10,70],[25,150],[50,300],[100,500]]},
@@ -554,7 +555,7 @@ const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:
  s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
 const achList=()=>ACH.filter(a=>!a.b2||useDays());
 const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
-const lvlNeed=l=>200*l;                         // كل مستوى يحتاج ٢٠٠ نقطة أكثر من سابقه
+const lvlNeed=l=>200*l;                         // كل مستوى يحتاج 200 نقطة أكثر من سابقه
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -708,13 +709,13 @@ function celebrate(prev){
 
 /* ================= المراجعة ================= */
 let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
-/* --- الطاقة: ٣٠ وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل ٤٨ دقيقة) --- */
+/* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
 const EN_MAX=30,EN_STEP=DAY/EN_MAX,ST_COST=10,ST_WORDS=5,ST_MAX=4;
 const enNow=()=>Math.min(EN_MAX,Math.max(0,(EN.v||0)+Math.floor((Date.now()-(EN.t||0))/EN_STEP)));
 const enNext=()=>enNow()>=EN_MAX?0:EN_STEP-((Date.now()-(EN.t||0))%EN_STEP);
 function enSet(v){const now=Date.now(),full=enNow()>=EN_MAX,frac=full?0:(now-(EN.t||0))%EN_STEP;EN={v:Math.min(EN_MAX,Math.max(0,v)),t:now-frac};save();schedSync();renderEnergy()}
 function renderEnergy(){const b=$("hEn");if(!b)return;const n=enNow();b.textContent=(n<ST_COST?"🪫 ":"🔋 ")+n;b.classList.toggle("low",n<ST_COST)}
-/* --- المسار: ٤ محطات يوميًا، كل محطة ٥ كلمات جديدة تتعلّمها ثم تراجعها --- */
+/* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
 const stToday=()=>STN.filter(x=>dkey(x[0])===today()).length;
 let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0;
 function buildQueue(){
@@ -777,21 +778,19 @@ function reviewHome(){
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
   const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><div class="big">🏆</div><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
   const node=i=>`<div class="stn ${i<done?"ok":i===done?"cur":"lock"}"><span>${i<done?"✓":i+1}</span><small>${i<done?"اكتملت":i===done?"التالية":"🔒"}</small></div>`;
-  const nextMin=Math.ceil((ST_COST-en-1)*EN_STEP/60000+enNext()/60000);
   el.innerHTML=reviewPills()+msg+`
   <div class="rsec rvbox"><h3>🛤️ مسار اليوم</h3>
    <div class="path">${[0,1,2,3].map(i=>node(i)+(i<3?`<i class="pl ${i<done?"ok":""}"></i>`:"")).join("")}</div>
-   <p class="rnote">كل محطة ${ST_WORDS} كلمات جديدة: تتعلّمها ثم تراجعها. تحتاج ${ST_COST} 🔋، ولا تُحسب إلا إذا أكملتها.</p>
    ${done>=ST_MAX?'<p class="stok">🎉 أنهيت مسار اليوم: '+(ST_MAX*ST_WORDS)+' كلمة جديدة. عُد غدًا، وراجع ما تعلّمته الآن.</p>'
      :!fresh?'<p class="rnote">تعلّمت كل كلمات هذا الاختيار. اختر يومًا أو منهجًا آخر من الأعلى.</p>'
-     :`<button class="btn next" id="stStart" ${en<ST_COST?"disabled":""}>ابدأ المحطة ${done+1} · ${ST_COST} 🔋</button>${en<ST_COST?`<p class="rnote" style="margin-top:6px">طاقتك ${en} من ${EN_MAX}. تكفي لمحطة بعد قرابة ${nextMin} دقيقة، أو راجع كلمات لتكسب طاقة.</p>`:""}`}
+     :`<button class="btn next" id="stStart" ${en<ST_COST?"disabled":""}>${en<ST_COST?"🪫 ":""}ابدأ المحطة ${done+1}</button>`}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>🔁 مراجعة ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
-     <input type="range" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
+     <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <div class="rvticks">${Array.from({length:max/10+1},(_,i)=>`<span>${i*10}</span>`).join("")}</div>
-     <button class="btn next" id="rvGo">ابدأ المراجعة</button><p class="rnote" style="margin-top:6px">كل ٥ كلمات تراجعها تعطيك وحدة طاقة 🔋</p></div>`:""}
+     <button class="btn next" id="rvGo">ابدأ المراجعة</button></div>`:""}
   </div>`:""}`+settingsHTML();
   bindSettings();
   const sb=$("stStart");if(sb)sb.onclick=startStation;
@@ -885,7 +884,7 @@ function reminderHTML(){
 }
 
 /* ================= القائمة ================= */
-// القائمة صفحاتٍ: ٢٠ كلمة في كل صفحة، لتبقى خفيفة وسريعة
+// القائمة صفحاتٍ: 20 كلمة في كل صفحة، لتبقى خفيفة وسريعة
 let LPAGE=0;const LSIZE=20;
 function pagerHTML(pages){
   if(pages<=1)return"";
@@ -910,7 +909,7 @@ function hardScores(){
   const sc={};LOG.forEach(x=>{if(x[2]===0)sc[x[1]]=(sc[x[1]]||0)+2;else if(x[2]===1)sc[x[1]]=(sc[x[1]]||0)+1});
   QA.forEach(x=>{if(!x[2])sc[x[1]]=(sc[x[1]]||0)+2});return sc;
 }
-// ٦٠٪ صعبة لم تُختبر، ٢٠٪ صعبة اختُبرت، ٢٠٪ من باقي الكلمات
+// 60% صعبة لم تُختبر، 20% صعبة اختُبرت، 20% من باقي الكلمات
 function startQuiz(){
   const N=10,all=uniq(filtered()),sc=hardScores(),seen=new Set(QA.map(x=>x[1]));
   const byScore=a=>shuffle(a).sort((x,y)=>sc[y.k]-sc[x.k]);
@@ -1017,7 +1016,7 @@ function diffHTML(a,b){
   while(i<n){if(j<m&&a[i]===b[j]){h+=esc(a[i]);i++;j++}else if(j<m&&d[i][j+1]>=d[i+1][j])j++;else{h+=`<u>${esc(a[i])}</u>`;i++}}
   return h;
 }
-// ٦٠٪ من الكلمات الصعبة عليه، والباقي عشوائي
+// 60% من الكلمات الصعبة عليه، والباقي عشوائي
 function pickWords(list,n){
   const sc=hardScores(),hard=shuffle(list.filter(w=>sc[w.k]>0)).sort((a,b)=>sc[b.k]-sc[a.k]),rest=shuffle(list.filter(w=>!sc[w.k]));
   const out=[...hard.slice(0,Math.round(n*.6))];
@@ -1028,7 +1027,7 @@ const GAMES=[
  {id:"cloze",ic:"✍️",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
  {id:"art",ic:"🎯",n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
  {id:"type",ic:"⌨️",n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
- {id:"match",ic:"🧩",n:"المطابقة السريعة",d:"طابق ٦ كلمات بمعانيها بأسرع ما يمكن"},
+ {id:"match",ic:"🧩",n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
  {id:"s5",ic:"⏱️",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
 ];
 function gamePool(id){
@@ -1049,7 +1048,7 @@ function renderGames(){
   const bm=bestMatch();
   el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
-     <em>${ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"٥ دقائق":n+" كلمة متاحة"):"لا كلمات كافية في هذا الاختيار"}</em></button>`}).join("")}</div>
+     <em>${ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"لا كلمات كافية في هذا الاختيار"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ كلمات الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = 💎 وخبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
 }
@@ -1189,7 +1188,7 @@ function markStudied(){try{if(window.MufApp&&MufApp.markStudied)MufApp.markStudi
 }
 
 /* ================= المقياس والدوري ================= */
-// مقياس المتعلّم من ١٠٠ (يراه المدير فقط): التقدّم ٣٠، والخبرة ٢٠، ومدة التعلّم ٢٠، والانتظام ١٥، والدقّة ١٥
+// مقياس المتعلّم من 100 (يراه المدير فقط): التقدّم 30، والخبرة 20، ومدة التعلّم 20، والانتظام 15، والدقّة 15
 const MPARTS={prog:["التقدّم (كلمات محفوظة)",30],xp:["الخبرة",20],dur:["مدة التعلّم (أيام الدراسة)",20],reg:["الانتظام (السلسلة ونشاط أسبوعين)",15],acc:["الدقّة",15]};
 function measure(){
   const e=econ(),days=Object.keys(e.per).length,now=Date.now();
@@ -1226,7 +1225,7 @@ function zones(n){
 }
 // الجميع يبدؤون من البرونزي ويصعدون بجهدهم؛ والمقياس يجمع المتقاربين داخل الدوري الواحد
 const initialTier=()=>0;
-// الإصدار ٢: إعادة من بدأ في دوري أعلى إلى البرونزي مرة واحدة
+// الإصدار 2: إعادة من بدأ في دوري أعلى إلى البرونزي مرة واحدة
 function migrateLG(){if((LG.v||1)<2){if(LG.tier!=null)LG.tier=0;LG.v=2;LG.ts=Date.now()}}
 const lgref=w=>db.collection("lg").doc(w).collection("m");
 let LGME=null,LGC={at:0,rows:null};
@@ -1244,8 +1243,8 @@ async function chooseGroup(w,tier){
   const ks=Object.keys(gs).map(Number);return ks.length?Math.max(...ks)+1:0;
 }
 // تطبيق نتيجة الأسبوع الماضي مرة واحدة: صعود أو هبوط وجوائز
-// المجموعة: إن قلّ المتعلّمون الحقيقيون عن ٥ تُضمّ إليهم أقرب الدوريات المتجاورة،
-// ثم تُكمَل حتى ١٠ بمنافسين آليّين ظاهرين بأنهم آليّون
+// المجموعة: إن قلّ المتعلّمون الحقيقيون عن 5 تُضمّ إليهم أقرب الدوريات المتجاورة،
+// ثم تُكمَل حتى 10 بمنافسين آليّين ظاهرين بأنهم آليّون
 const MINR=5,TARGET=10;
 function clusters(members){
   // من اختار الدوري التجريبي يبقى وحده مع الآليّين، ولا يدخل مجموعات الآخرين
@@ -1404,8 +1403,8 @@ function renderReport(){
   </div>
   <div class="rsec"><h3>مراحل الحفظ</h3>${sb.html}${legend}</div>
   <div class="rsec"><h3>خريطة النشاط</h3>${heatmap(e.per)}</div>
-  <div class="rsec"><h3>النشاط في آخر ١٤ يومًا (عدد المراجعات)</h3>${colChart(act,lb14)}</div>
-  <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>٧٠٪ فأكثر</span><span><i style="background:var(--red)"></i>أقل من ٧٠٪</span></div></div>
+  <div class="rsec"><h3>النشاط في آخر 14 يومًا (عدد المراجعات)</h3>${colChart(act,lb14)}</div>
+  <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>70% فأكثر</span><span><i style="background:var(--red)"></i>أقل من 70%</span></div></div>
   <div class="rsec"><h3>المراجعات المستحقّة في الأيام القادمة</h3>${colChart(fc,fl)}</div>
   ${useDays()?`<div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>`:""}
   ${useSubj()?`<div class="rsec"><h3>التقدّم حسب المادة</h3>${groupRows([...new Set(W.map(w=>w.subj).filter(Boolean))].map(x=>({name:x,list:f.filter(w=>w.subj===x)})))}</div>`:""}
@@ -1580,7 +1579,7 @@ function renderSettings(){
   <div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
    <input id="pwCur" class="stin" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password">
-   <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (٦ أحرف على الأقل)" autocomplete="new-password">
+   <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
   ${isAdmin()?`<div class="rsec"><h3>🏆 مشاركتك في الدوري</h3><div class="numpicks" id="stSolo"><button type="button" class="numpick${E.lgSolo?"":" on"}" data-v="0">مع المستخدمين</button><button type="button" class="numpick${E.lgSolo?" on":""}" data-v="1">وحدي مع الآليّين (تجربة)</button></div>
@@ -1602,7 +1601,7 @@ function renderSettings(){
   $("pwBtn").onclick=async()=>{
     const cur=$("pwCur").value,n1=$("pwNew").value,n2=$("pwNew2").value,m=$("pwMsg"),say=(t,ok)=>{m.textContent=t;m.className="stmsg "+(ok?"ok":"bad")};
     if(!cur)return say("اكتب كلمة المرور الحالية");
-    if(n1.length<6)return say("كلمة المرور الجديدة قصيرة: ٦ أحرف على الأقل");
+    if(n1.length<6)return say("كلمة المرور الجديدة قصيرة: 6 أحرف على الأقل");
     if(n1!==n2)return say("كلمتا المرور الجديدتان غير متطابقتين");
     $("pwBtn").disabled=true;say("جارٍ التغيير…",true);
     try{const u=auth.currentUser;await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,cur));await u.updatePassword(n1);
@@ -1646,7 +1645,7 @@ async function showPlayer(row){
   $("pcClose").onclick=close;
 }
 
-/* ================= الاسم الظاهر: يوافق عليه المشرف، ويُغيَّر مرة كل ٧ أيام ================= */
+/* ================= الاسم الظاهر: يوافق عليه المشرف، ويُغيَّر مرة كل 7 أيام ================= */
 const nref=u=>db.collection("names").doc(u),NAME_WAIT=7;
 let NM={},nmUnsub=null;
 const loginName=()=>((auth.currentUser||{}).email||"").split("@")[0];
@@ -1666,7 +1665,7 @@ function nameBoxHTML(login){
   if(NM.pending)body=`<p>طلبت تغيير اسمك إلى <b>${esc(NM.pending)}</b>، وهو بانتظار موافقة المشرف.</p><button class="btn sec" id="stNameCancel" style="margin-top:6px">إلغاء الطلب</button>`;
   else if(!isAdmin()&&okAt&&left>0)body=`<p class="rnote">تستطيع تغيير اسمك مرة أخرى بعد ${left} ${left===1?"يوم":left===2?"يومين":left<=10?"أيام":"يومًا"}.</p>`;
   else body=`<div class="strow"><input id="stName" class="stin" maxlength="40" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">${isAdmin()?"حفظ":"إرسال"}</button></div>
-   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل ٧ أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
+   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل 7 أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
   return `<h3>👤 الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
 }
 function bindNameBox(){
@@ -1745,7 +1744,7 @@ async function bindGiftBox(uid){
 }
 
 /* ================= شاشة الدخول ================= */
-const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-password":"اكتب كلمة السر","auth/weak-password":"كلمة السر قصيرة (٦ أحرف على الأقل)",
+const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-password":"اكتب كلمة السر","auth/weak-password":"كلمة السر قصيرة (6 أحرف على الأقل)",
  "auth/email-already-in-use":"هذا البريد مسجّل مسبقًا، اختر تسجيل الدخول","auth/invalid-credential":"اسم المستخدم أو كلمة السر غير صحيح",
  "auth/wrong-password":"كلمة السر غير صحيحة","auth/user-not-found":"لا يوجد حساب بهذا البريد","auth/too-many-requests":"محاولات كثيرة، انتظر قليلًا ثم أعد المحاولة",
  "auth/popup-closed-by-user":"أُغلقت نافذة غوغل قبل الإكمال","auth/network-request-failed":"لا يوجد اتصال بالإنترنت","auth/unauthorized-domain":"هذا الموقع غير مضاف إلى النطاقات المسموح بها في Firebase"};
@@ -1958,7 +1957,7 @@ function renderUser(){
    <div class="kpi"><b>💎 ${sm.gems}</b><span>جواهر</span></div>
   </div>
   ${sm.ms?`<div class="rsec"><h3>📏 المقياس: ${sm.ms.total} من 100${sm.lg!=null?" · "+TIERS[sm.lg][1]+" "+tierName(sm.lg):""}</h3>${Object.keys(MPARTS).map(k=>`<div class="mbar"><span>${MPARTS[k][0]}</span><i><b style="width:${(sm.ms.parts[k]||0)/MPARTS[k][1]*100}%"></b></i><em>${sm.ms.parts[k]||0}/${MPARTS[k][1]}</em></div>`).join("")}<p class="rnote" style="margin-top:6px">يراه المدير وحده، ويُستعمل لوضع المتعلّمين المتقاربين في مجموعة واحدة من الدوري.</p></div>`:""}
-  <div class="rsec"><h3>نشاطه في آخر ١٤ يومًا</h3>${colChart(sm.d14,lb)}</div>
+  <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
@@ -2019,7 +2018,7 @@ function init(){
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
   $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
-  $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,(n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة · ":"")+"المحطة تحتاج "+ST_COST+"، وكل ٥ كلمات تراجعها تعطيك وحدة")};
+  $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
   setInterval(()=>{if(UID)renderEnergy()},30000);
   $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
