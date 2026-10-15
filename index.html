@@ -492,8 +492,8 @@ function buildQueue(){
   sessTotal=queue.length;sessDone=0;
 }
 function reviewPills(){
-  const u=uniq(W),now=Date.now();
-  return `<div class="pills"><span class="pill">المجموع ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>P[w.k]&&P[w.k].due<=now).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span><span class="pill">هدف اليوم ${(EC||econ()).todayN} / ${S.goal}</span></div>`;
+  const u=uniq(filtered()),now=Date.now();
+  return `<div class="pills"><span class="pill">${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>P[w.k]&&P[w.k].due<=now).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span><span class="pill">هدف اليوم ${(EC||econ()).todayN} / ${S.goal}</span></div>`;
 }
 function showCard(){
   const el=$("review");
