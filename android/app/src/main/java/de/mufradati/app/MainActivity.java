@@ -83,6 +83,7 @@ public class MainActivity extends Activity {
             Reminder.set(MainActivity.this, on, hour, minute);
         }
         @JavascriptInterface public void markStudied(String day) { Reminder.markStudied(MainActivity.this, day); }
+        @JavascriptInterface public void exit() { runOnUiThread(MainActivity.this::finish); }
     }
 
     @Override

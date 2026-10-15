@@ -2031,9 +2031,32 @@ function init(){
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
 
+/* ================= زر الرجوع في الهاتف ================= */
+// نحجز خطوة في سجلّ التصفّح، فيصل زر الرجوع إلى التطبيق بدل أن يغلقه
+let EXITING=false;
+const trapBack=()=>{try{history.pushState({muf:1},"")}catch(e){}};
+function goTab(id){const b=document.querySelector(`nav button[data-p=${id}]`);if(b)b.click()}
+function exitApp(){EXITING=true;if(window.MufApp&&MufApp.exit){try{MufApp.exit();return}catch(e){}}history.back()}
+async function handleBack(){
+  const m=$("fbModal");if(m&&m.style.display==="flex"){m.style.display="none";m.innerHTML="";return}
+  const dlg=document.querySelector(".uidlg");if(dlg){const c=dlg.querySelector(".uino")||dlg.querySelector(".uiok");if(c)c.click();return}
+  if(!UID){if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return}
+  const on=document.querySelector(".panel.on"),id=on?on.id:"review";
+  if(id==="review"){
+    if(STS){if(await uiConfirm("الخروج من المحطة؟ لن تُحسب كلماتها.")){STS=null;reviewHome()}return}
+    if(queue.length){if(await uiConfirm("إنهاء المراجعة الآن؟")){queue=[];RVDONE=null;sessTotal=0;reviewHome()}return}
+    if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return;
+  }
+  if(id==="games"&&GM&&!GM.done){if(await uiConfirm("الخروج من التمرين؟")){stopTick();GM=null;renderGames()}return}
+  if(id==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
+  if(id==="users"&&uOpen){uOpen=null;renderUserList();return}
+  goTab("review");scrollTo(0,0);
+}
+window.addEventListener("popstate",()=>{if(EXITING)return;trapBack();handleBack()});
+
 // البدء بعد تعريف كل شيء
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
-init();
+init();trapBack();
 auth.onAuthStateChanged(u=>{if(u)onLogin(u);else showLogin()});
 </script>
 </body>
