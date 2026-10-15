@@ -60,6 +60,33 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .opt.ok{background:#e6f1e8;border-color:var(--green)}.opt.no{background:#f8e7e8;border-color:var(--red)}
 .next{background:var(--navy);color:#fff;width:100%;margin-top:6px}
 .err{color:var(--red);text-align:center;padding:30px}
+/* التقارير */
+.rnote{font-size:.8rem;color:var(--muted);margin-bottom:10px}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.kpi b{display:block;font-size:1.5rem;color:var(--navy);line-height:1.3}
+.kpi span{font-size:.8rem;color:var(--muted)}
+.kpi.g b{color:var(--green)}.kpi.r b{color:var(--red)}.kpi.o b{color:var(--orange)}.kpi.y b{color:#8a6d1c}
+.rsec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
+.rsec h3{font-size:1rem;color:var(--navy);margin-bottom:8px}
+.stack{display:flex;height:14px;border-radius:7px;overflow:hidden;background:#eee;margin:4px 0}
+.stack i{display:block;height:100%}
+.c-new{background:#d9dce6}.c-learn{background:var(--orange)}.c-ok{background:var(--green)}.c-master{background:var(--navy)}
+.legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:4px;vertical-align:middle}
+.row{display:flex;justify-content:space-between;font-size:.85rem;margin-top:8px}
+.row small{color:var(--muted)}
+.cols{display:flex;align-items:flex-end;gap:4px;height:120px;border-bottom:1px solid var(--line);padding-top:16px}
+.col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
+.col .bar{width:100%;max-width:26px;border-radius:5px 5px 0 0;background:var(--navy);min-height:2px}
+.col .bar.bad{background:var(--red)}
+.col em{font-style:normal;font-size:.68rem;color:var(--muted);position:absolute;top:-16px}
+.lbls{display:flex;gap:4px;margin-top:3px}
+.lbls span{flex:1;text-align:center;font-size:.65rem;color:var(--muted);white-space:nowrap;overflow:hidden}
+.hw{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:.9rem}
+.hw:last-child{border:0}
+.hw .m{color:var(--red)}.hw small{color:var(--muted)}
+.empty{font-size:.85rem;color:var(--muted);text-align:center;padding:8px}
 </style>
 </head>
 <body>
@@ -70,6 +97,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
     <button data-p="review" class="on">المراجعة</button>
     <button data-p="list">القائمة</button>
     <button data-p="quiz">الاختبار</button>
+    <button data-p="report">التقارير</button>
   </nav>
 </header>
 <main>
@@ -91,6 +119,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
   </section>
 
   <section id="quiz" class="panel"></section>
+
+  <section id="report" class="panel"></section>
 </main>
 
 <script>
@@ -101,7 +131,8 @@ function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorag
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
-let W=[],DAYS=[],P={},S={limit:15,dir:"de"};
+let W=[],DAYS=[],P={},S={limit:15,dir:"de"},LOG=[];
+try{LOG=JSON.parse(st("muf_log")||"[]")}catch(e){}
 try{P=JSON.parse(st("muf_progress")||"{}")}catch(e){}
 try{Object.assign(S,JSON.parse(st("muf_settings")||"{}"))}catch(e){}
 const save=()=>{st("muf_progress",JSON.stringify(P));st("muf_settings",JSON.stringify(S))};
@@ -178,6 +209,7 @@ function rate(r){
   let box=old?old.box:0;
   if(r===0)box=0;else if(r===1)box=Math.max(1,box);else box=Math.min(box+(r===2?1:2),8);
   P[cur.k]={box,due:r===0?now:now+IV[box]*DAY};save();
+  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>30000)LOG=LOG.slice(-30000);st("muf_log",JSON.stringify(LOG));
   queue.shift();
   if(r===0)queue.splice(Math.min(3,queue.length),0,cur); // تعود بعد بطاقات قليلة
   stats();showCard();
@@ -192,7 +224,7 @@ function settingsHTML(){
 function bindSettings(){
   $("sLim").onchange=e=>{S.limit=+e.target.value;save();buildQueue();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;save();showCard()};
-  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟")){P={};S.newCount=0;save();buildQueue();showCard()}};
+  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟")){P={};LOG=[];S.newCount=0;save();st("muf_log","[]");buildQueue();showCard()}};
 }
 
 /* ===== القائمة ===== */
@@ -225,11 +257,68 @@ function showQ(){
   });
 }
 
-function refresh(){buildQueue();showCard();renderList();startQuiz();stats()}
+/* ===== التقارير ===== */
+const dkey=t=>{const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const stage=w=>{const p=P[w.k];return !p?0:p.box>=7?3:p.box>=4?2:1}; // 0 جديدة 1 قيد التعلّم 2 محفوظة 3 راسخة
+const SN=["جديدة","قيد التعلّم","محفوظة","راسخة"],SC=["c-new","c-learn","c-ok","c-master"];
+function stackBar(list){
+  const c=[0,0,0,0];list.forEach(w=>c[stage(w)]++);const n=list.length||1;
+  return {c,html:`<div class="stack">${[3,2,1,0].map(i=>c[i]?`<i class="${SC[i]}" style="width:${c[i]/n*100}%"></i>`:"").join("")}</div>`};
+}
+function colChart(vals,labels,bad){
+  const mx=Math.max(1,...vals);
+  return `<div class="cols">${vals.map((v,i)=>`<div class="col"><em>${v||""}</em><div class="bar ${bad&&bad[i]?"bad":""}" style="height:${v/mx*100}%"></div></div>`).join("")}</div>
+  <div class="lbls">${labels.map(l=>`<span>${l}</span>`).join("")}</div>`;
+}
+function renderReport(){
+  const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k));
+  const L=LOG.filter(x=>fk.has(x[1]));
+  const sb=stackBar(f),c=sb.c;
+  const total=L.length,correct=L.filter(x=>x[2]>=2).length;
+  // أيام النشاط والسلسلة
+  const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(x[3])days[d].nw++});
+  let streak=0;for(let t=now;;t-=DAY){if(days[dkey(t)])streak++;else if(dkey(t)!==dkey(now))break;if(streak>3650)break}
+  const td=days[dkey(now)]||{n:0,ok:0,nw:0};
+  // آخر ١٤ يومًا
+  const d14=[...Array(14)].map((_,i)=>now-(13-i)*DAY);
+  const act=d14.map(t=>(days[dkey(t)]||{n:0}).n);
+  const acc=d14.map(t=>{const d=days[dkey(t)];return d&&d.n?Math.round(d.ok/d.n*100):0});
+  const lb14=d14.map(t=>new Date(t).getDate());
+  // توقّع الأيام السبعة القادمة
+  const sod=new Date();sod.setHours(0,0,0,0);
+  const fc=[...Array(7)].map((_,i)=>f.filter(w=>{const p=P[w.k];if(!p)return false;const e=sod.getTime()+(i+1)*DAY;return i===0?p.due<e:p.due>=e-DAY&&p.due<e}).length);
+  const fl=["اليوم","غدًا",...[2,3,4,5,6].map(i=>new Date(sod.getTime()+i*DAY).toLocaleDateString("ar",{weekday:"short"}))];
+  // الأصعب
+  const miss={};L.forEach(x=>{if(x[2]===0)miss[x[1]]=(miss[x[1]]||0)+1});
+  const hard=f.filter(w=>miss[w.k]).sort((a,b)=>miss[b.k]-miss[a.k]).slice(0,10);
+  // حسب اليوم والمستوى والنوع
+  const groupRows=(groups)=>groups.filter(g=>g.list.length).map(g=>{const s=stackBar(g.list);const done=s.c[2]+s.c[3];
+    return `<div class="row"><span>${g.name}</span><small>${done} من ${g.list.length} محفوظة · ${g.list.length-s.c[0]} بدأت</small></div>${s.html}`}).join("");
+  const legend=`<div class="legend">${[0,1,2,3].map(i=>`<span><i class="${SC[i]}"></i>${SN[i]} ${c[i]}</span>`).join("")}</div>`;
+  el.innerHTML=`<div class="rnote">التقرير يتبع الفلاتر أعلاه. الكلمة "محفوظة" بعد وصولها إلى مراجعة أسبوعية، و"راسخة" بعد وصولها إلى مراجعة شهرية.</div>
+  <div class="kpis">
+   <div class="kpi g"><b>${c[2]+c[3]}</b><span>كلمة محفوظة من ${f.length}</span></div>
+   <div class="kpi"><b>${f.length?Math.round((c[2]+c[3])/f.length*100):0}%</b><span>نسبة الإنجاز</span></div>
+   <div class="kpi y"><b>${streak}</b><span>أيام متتالية من المراجعة</span></div>
+   <div class="kpi ${total&&correct/total<.7?"r":"g"}"><b>${total?Math.round(correct/total*100):0}%</b><span>نسبة الإجابات الصحيحة</span></div>
+   <div class="kpi"><b>${td.n}</b><span>مراجعة اليوم (${td.nw} جديدة)</span></div>
+   <div class="kpi o"><b>${total}</b><span>مجموع المراجعات</span></div>
+  </div>
+  <div class="rsec"><h3>مراحل الحفظ</h3>${sb.html}${legend}</div>
+  <div class="rsec"><h3>النشاط في آخر ١٤ يومًا (عدد المراجعات)</h3>${colChart(act,lb14)}</div>
+  <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>٧٠٪ فأكثر</span><span><i style="background:var(--red)"></i>أقل من ٧٠٪</span></div></div>
+  <div class="rsec"><h3>المراجعات المستحقّة في الأيام القادمة</h3>${colChart(fc,fl)}</div>
+  <div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:"اليوم "+d.day+" · "+esc(d.date),list:f.filter(w=>w.day===d.day)})))}</div>
+  <div class="rsec"><h3>حسب المستوى والنوع</h3>${groupRows([{name:"B1",list:f.filter(w=>w.lvl==="B1")},{name:"B2",list:f.filter(w=>w.lvl==="B2")},{name:"★ الأساسية",list:f.filter(w=>w.core==1)}])}
+   ${groupRows(Object.keys(TYPE).map(t=>({name:TYPE[t],list:f.filter(w=>w.t===t)})))}</div>
+  <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`;
+}
+
+function refresh(){buildQueue();showCard();renderList();startQuiz();stats();renderReport()}
 function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on");$(b.dataset.p).classList.add("on");scrollTo(0,0)});
+    b.classList.add("on");$(b.dataset.p).classList.add("on");if(b.dataset.p==="report")renderReport();scrollTo(0,0)});
   ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("q").oninput=renderList;$("fType").onchange=renderList;
   refresh();
