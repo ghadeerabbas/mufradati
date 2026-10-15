@@ -250,6 +250,14 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 #fbModal{position:fixed;inset:0;z-index:85;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:20px}
 #fbModal .lbox{gap:12px}
 #fbModal textarea{font:inherit;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);min-height:70px;-webkit-user-select:text;user-select:text}
+/* نوافذ التأكيد */
+.uidlg{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .15s}
+.uibox{background:var(--card);color:var(--ink);border-radius:18px;padding:20px;width:min(380px,100%);box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.uimsg{white-space:pre-line;font-size:.98rem;line-height:1.8}
+.uiin{width:100%;margin-top:12px;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);-webkit-user-select:text;user-select:text}
+.uibtns{display:flex;gap:8px;justify-content:flex-start;margin-top:16px}
+.uibtns .btn{padding:9px 18px;font-size:.95rem}
+.uiok{background:var(--navy);color:#fff}.uino{background:var(--soft);color:var(--hd)}
 /* إشعارات وقصاصات */
 #toasts{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:6px;width:min(92vw,420px);pointer-events:none}
 .toast{background:var(--card);color:var(--ink);border:2px solid var(--gold);border-radius:14px;padding:10px 14px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center;animation:tin .4s;font-size:.9rem}
@@ -321,6 +329,26 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 /* ================= أساسيات ================= */
+// نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
+function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={}){
+  return new Promise(res=>{
+    const m=document.createElement("div");m.className="uidlg";
+    m.innerHTML=`<div class="uibox"><div class="uimsg"></div>${input?'<input class="uiin" dir="auto" autocomplete="off" autocapitalize="none">':""}
+      <div class="uibtns">${cancel?`<button class="btn uino">${cancel}</button>`:""}<button class="btn uiok">${ok}</button></div></div>`;
+    m.querySelector(".uimsg").textContent=msg;
+    const inp=m.querySelector(".uiin");if(inp)inp.value=def;
+    const done=v=>{m.remove();res(v)};
+    m.querySelector(".uiok").onclick=()=>done(input?inp.value:true);
+    const no=m.querySelector(".uino");if(no)no.onclick=()=>done(input?null:false);
+    m.onclick=e=>{if(e.target===m&&cancel)done(input?null:false)};
+    if(inp)inp.onkeydown=e=>{if(e.key==="Enter")done(inp.value)};
+    document.body.appendChild(m);(inp||m.querySelector(".uiok")).focus();
+  });
+}
+const uiConfirm=msg=>uiDialog(msg);
+const uiPrompt=(msg,def)=>uiDialog(msg,{input:true,def:def||""});
+const uiAlert=msg=>uiDialog(msg,{cancel:""});
+
 const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",p:"أداة/ضمير",e:"تعبير"};
 const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 const $=id=>document.getElementById(id);
@@ -619,9 +647,9 @@ function rate(r,btn){
 // تصفير التقدّم: تأكيد بكتابة اسم المستخدم، ثم يُمسح محليًّا وفي الحساب معًا
 async function resetProgress(){
   const uname=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
-  if(!confirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والمستوى، والسلسلة.\nتبقى جواهرك ومشترياتك كما هي.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
-  const v=(prompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
-  if(v!==uname.toLowerCase()){if(v)alert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
+  if(!await uiConfirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والمستوى، والسلسلة.\nتبقى جواهرك ومشترياتك كما هي.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
+  const v=(await uiPrompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
+  if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
   const e0=econ();
   R={bank:e0.earned,ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:Date.now()};
   P={};LOG=[];QLOG=[];QA=[];S.newCount=0;save();
@@ -632,7 +660,7 @@ async function resetProgress(){
     b.set(uref().collection("data").doc("log"),{v:JSON.stringify(packLog([]))});
     b.set(uref().collection("data").doc("qa"),{v:JSON.stringify(packQA([]))});
     await b.commit();
-  }catch(e){alert("حُذف التقدّم من هذا الجهاز، لكن تعذّر حذفه من حسابك الآن. تأكّد من الاتصال وأعد المحاولة.");}
+  }catch(e){await uiAlert("حُذف التقدّم من هذا الجهاز، لكن تعذّر حذفه من حسابك الآن. تأكّد من الاتصال وأعد المحاولة.");}
   econ();renderHeader();buildQueue();showCard();toast("🗑️","تمّ تصفير التقدّم","بداية جديدة!");
 }
 function settingsHTML(){
@@ -806,9 +834,9 @@ function renderShop(){
   el.querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>equip(shopCat,b.dataset.eq));
   el.querySelectorAll("[data-uneq]").forEach(b=>b.onclick=()=>equip("sticker",""));
 }
-function buy(cat,id){
+async function buy(cat,id){
   const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price)return;
-  if(!confirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
+  if(!await uiConfirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
   const prev=e;BUY.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),item:cat+":"+id,p:it.price,ts:Date.now()});save();
   toast(it.val&&it.cat!=="title"?it.val:"🛍️","تمّ الشراء!",it.name);confetti(50);
   if(cat!=="power")equip(cat,cat==="avatar"?it.val:id,true);
@@ -882,9 +910,9 @@ function bindSync(){
   document.querySelectorAll("[data-course]").forEach(b=>b.onclick=async()=>{const c=b.dataset.course;if(c===COURSE)return;st(K("course"),c);
     await loadWords(c);econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة")});
   if($("syncBtn"))$("syncBtn").onclick=()=>syncNow(true);
-  if($("renameBtn"))$("renameBtn").onclick=async()=>{const v=(prompt("اسمك:",UNAME)||"").trim();if(!v)return;UNAME=v;st(K("name"),v);
+  if($("renameBtn"))$("renameBtn").onclick=async()=>{const v=(await uiPrompt("اسمك:",UNAME)||"").trim();if(!v)return;UNAME=v;st(K("name"),v);
     try{await auth.currentUser.updateProfile({displayName:v})}catch(e){}renderHeader();await syncNow();renderPanel(document.querySelector(".panel.on").id)};
-  if($("outBtn"))$("outBtn").onclick=async()=>{if(!confirm("تسجيل الخروج من هذا الجهاز؟ تقدّمك محفوظ في حسابك."))return;await syncNow();await auth.signOut();location.reload()};
+  if($("outBtn"))$("outBtn").onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من هذا الجهاز؟ تقدّمك محفوظ في حسابك."))return;await syncNow();await auth.signOut();location.reload()};
 }
 
 /* ================= شاشة الدخول ================= */
@@ -918,7 +946,7 @@ async function offerLegacy(cloudEmpty){
   let G=null;try{const r=await fetch("https://raw.githubusercontent.com/ghadeerabbas/mufradati/data/progress.json?t="+Date.now(),{cache:"no-store"});if(r.ok)G=await r.json()}catch(e){}
   const nL=Object.keys(L.P).length,nG=G?Object.keys(G.P||{}).length:0;
   if(!nL&&!nG){st("muf_legacy_done","1");return}
-  if(confirm(`وُجد تقدّم سابق محفوظ قبل إنشاء الحسابات (${Math.max(nL,nG)} كلمة).\nهل هذا التقدّم لك؟ اضغط موافق لنقله إلى حسابك.`)){
+  if(await uiConfirm(`وُجد تقدّم سابق محفوظ قبل إنشاء الحسابات (${Math.max(nL,nG)} كلمة).\nهل هذا التقدّم لك؟ اضغط موافق لنقله إلى حسابك.`)){
     mergeIn(L);if(G)mergeIn(G);st("muf_legacy_done","1");
   }else st("muf_legacy_done","1");
 }
