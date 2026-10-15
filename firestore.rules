@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.email == "ghadeer@mufradati.app"; }
+    function isMe(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // تقدّم كل مستخدم: له وحده
+    match /users/{uid} { allow read, write: if isMe(uid); }
+    match /users/{uid}/{rest=**} { allow read, write: if isMe(uid); }
+
+    // الرسائل: رسالة واحدة من المستخدم ثم ينتظر رد المدير
+    match /threads/{uid} {
+      function userSend() {
+        let d = request.resource.data;
+        return d.keys().hasOnly(["name","state","lastFrom","unreadUser","updated","lastMsg"])
+          && d.state == "waiting" && d.lastFrom == "user" && d.unreadUser == false
+          && d.updated == request.time && d.name is string && d.name.size() <= 60;
+      }
+      allow read: if isAdmin() || isMe(uid);
+      allow create: if isMe(uid) && userSend();
+      allow update: if isAdmin()
+        || (isMe(uid) && resource.data.state == "open" && userSend())
+        || (isMe(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["unreadUser"])
+            && request.resource.data.unreadUser == false);
+      allow delete: if false;
+
+      match /msgs/{mid} {
+        function validMsg(from) {
+          let d = request.resource.data;
+          return d.keys().hasOnly(["from","text","ts"]) && d.from == from
+            && d.text is string && d.text.size() > 0 && d.text.size() <= 500 && d.ts == request.time
+            && getAfter(/databases/$(database)/documents/threads/$(uid)).data.lastMsg == mid;
+        }
+        allow read: if isAdmin() || isMe(uid);
+        allow create: if (isAdmin() && validMsg("admin"))
+          || (isMe(uid) && validMsg("user")
+              && (!exists(/databases/$(database)/documents/threads/$(uid))
+                  || get(/databases/$(database)/documents/threads/$(uid)).data.state == "open")
+              && getAfter(/databases/$(database)/documents/threads/$(uid)).data.state == "waiting");
+        allow update, delete: if false;
+      }
+    }
+  }
+}

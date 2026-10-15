@@ -204,6 +204,25 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .or{color:var(--muted);font-size:.8rem}
 .lmsg{font-size:.85rem;color:var(--rd);min-height:1.2em}
 .avatar{cursor:pointer}
+/* الرسائل */
+.mbtn{position:relative}
+.mbadge{position:absolute;top:-4px;left:-6px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:800;border-radius:9px;min-width:16px;padding:0 4px;line-height:16px;display:none}
+.mbadge.on{display:block}
+.mhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mhead h2{font-size:1.1rem;color:var(--hd);flex:1}
+.mhead .btn{background:var(--soft);color:var(--hd);padding:6px 12px;font-size:.85rem}
+.chat{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.bub{max-width:85%;padding:9px 12px;border-radius:14px;font-size:.95rem;white-space:pre-wrap;word-wrap:break-word;-webkit-user-select:text;user-select:text}
+.bub small{display:block;font-size:.68rem;opacity:.7;margin-top:3px}
+.bub.me{align-self:flex-start;background:var(--navy);color:#fff;border-bottom-right-radius:4px}
+.bub.them{align-self:flex-end;background:var(--card);border:1px solid var(--line);border-bottom-left-radius:4px}
+.compose textarea{width:100%;font:inherit;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);min-height:90px;resize:vertical}
+.compose .row2{display:flex;justify-content:space-between;align-items:center;margin-top:6px;font-size:.78rem;color:var(--muted)}
+.compose .btn{background:var(--navy);color:#fff;padding:8px 18px}
+.wait{background:var(--soft);border-radius:12px;padding:12px;text-align:center;font-size:.9rem;color:var(--hd)}
+.th{display:flex;justify-content:space-between;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.th b{color:var(--hd)}.th small{color:var(--muted);font-size:.75rem}
+.th .need{background:#ef4444;color:#fff;font-size:.7rem;border-radius:10px;padding:1px 8px;font-weight:700}
 /* إشعارات وقصاصات */
 #toasts{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:6px;width:min(92vw,420px);pointer-events:none}
 .toast{background:var(--card);color:var(--ink);border:2px solid var(--gold);border-radius:14px;padding:10px 14px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center;animation:tin .4s;font-size:.9rem}
@@ -229,6 +248,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
       <div class="ring" title="هدف اليوم"><svg width="38" height="38"><circle cx="19" cy="19" r="15" stroke="rgba(255,255,255,.2)" stroke-width="4" fill="none"/><circle id="hRing" cx="19" cy="19" r="15" stroke="#7bd88f" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94.2" style="transition:stroke-dashoffset .6s"/></svg><b id="hRingT">0</b></div>
       <span class="chip fire" id="hFire">🔥 0</span>
       <span class="chip" id="hGem">💎 0</span>
+      <button class="iconbtn mbtn" id="msgBtn" title="الرسائل">✉️<span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="darkBtn" title="الوضع الليلي">🌙</button>
     </div>
   </div>
@@ -263,6 +283,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
   <section id="report" class="panel"></section>
   <section id="rewards" class="panel"></section>
   <section id="shop" class="panel"></section>
+  <section id="messages" class="panel"></section>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -832,12 +853,95 @@ async function onLogin(user){
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
   try{const {d,name}=await cloudGet();if(name){UNAME=name;st(K("name"),name);renderHeader()}await offerLegacy(!d)}catch(e){}
+  startMessages();
   await syncNow(true);
+}
+
+/* ================= الرسائل ================= */
+const ADMIN="ghadeer"+DOMAIN,MAXLEN=500;
+const isAdmin=()=>((auth.currentUser||{}).email||"").toLowerCase()===ADMIN;
+const tref=u=>db.collection("threads").doc(u);
+let TH=null,MSGS=[],ADM_TH=[],openTh=null,openMsgs=[],unsubs=[];
+const tsMs=t=>t&&t.toMillis?t.toMillis():Date.now();
+const fmt=t=>new Date(tsMs(t)).toLocaleString("ar",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+function setBadge(n){const b=$("mBadge");b.textContent=n>9?"9+":n;b.classList.toggle("on",n>0)}
+function startMessages(){
+  unsubs.forEach(f=>f());unsubs=[];
+  if(isAdmin()){
+    unsubs.push(db.collection("threads").onSnapshot(q=>{
+      const prev=ADM_TH.filter(t=>t.state==="waiting").length;
+      ADM_TH=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.state==="waiting")-(a.state==="waiting")||tsMs(b.updated)-tsMs(a.updated));
+      const n=ADM_TH.filter(t=>t.state==="waiting").length;setBadge(n);
+      if(n>prev&&prev>=0&&q.metadata&&!q.metadata.hasPendingWrites)toast("✉️","رسالة جديدة","");
+      if($("messages").classList.contains("on")&&!openTh)renderMessages();
+    },()=>{}));
+  }else{
+    unsubs.push(tref(UID).onSnapshot(d=>{
+      const was=TH&&TH.unreadUser;TH=d.exists?d.data():null;setBadge(TH&&TH.unreadUser?1:0);
+      if(TH&&TH.unreadUser&&!was)toast("✉️","وصلك رد من غدير","افتح الرسائل لقراءته");
+      if($("messages").classList.contains("on"))renderMessages();
+    },()=>{}));
+    unsubs.push(tref(UID).collection("msgs").orderBy("ts").onSnapshot(q=>{MSGS=q.docs.map(d=>d.data());if($("messages").classList.contains("on"))renderMessages()},()=>{}));
+  }
+}
+function chatHTML(list,mine){
+  return `<div class="chat">${list.length?list.map(m=>`<div class="bub ${m.from===mine?"me":"them"}">${esc(m.text)}<small>${fmt(m.ts)}</small></div>`).join(""):'<div class="empty">لا رسائل بعد.</div>'}</div>`;
+}
+function composeHTML(ph){
+  return `<div class="compose"><textarea id="mText" maxlength="${MAXLEN}" placeholder="${ph}"></textarea>
+   <div class="row2"><span id="mCount">0 / ${MAXLEN}</span><button class="btn" id="mSend">إرسال</button></div></div>`;
+}
+function bindCompose(send){
+  const t=$("mText");if(!t)return;
+  t.oninput=()=>{$("mCount").textContent=t.value.length+" / "+MAXLEN};
+  $("mSend").onclick=async()=>{const v=t.value.trim();if(!v)return;$("mSend").disabled=true;
+    try{await send(v.slice(0,MAXLEN));t.value=""}catch(e){toast("⚠️","تعذّر الإرسال",e.code==="permission-denied"?"لا يمكنك الإرسال الآن":"تحقّق من الاتصال");$("mSend").disabled=false}};
+}
+function renderMessages(){
+  const el=$("messages");
+  if(isAdmin())return openTh?renderAdminThread():renderInbox();
+  const waiting=TH&&TH.state==="waiting";
+  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة غدير</h2></div>${chatHTML(MSGS,"user")}
+   ${waiting?'<div class="wait">⏳ رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ غدير.</div>':composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
+  if(TH&&TH.unreadUser)tref(UID).update({unreadUser:false}).catch(()=>{});
+  bindCompose(async v=>{
+    const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
+    const r=tref(UID).collection("msgs").doc();
+    b.set(r,{from:"user",text:v,ts:now});
+    b.set(tref(UID),{name:UNAME,state:"waiting",lastFrom:"user",unreadUser:false,updated:now,lastMsg:r.id});
+    await b.commit();toast("✅","أُرسلت رسالتك","سيصلك الرد هنا");
+  });
+}
+function renderInbox(){
+  const el=$("messages");
+  el.innerHTML=`<div class="mhead"><h2>✉️ رسائل المستخدمين</h2></div>
+   ${ADM_TH.length?ADM_TH.map(t=>`<div class="th" data-u="${esc(t.id)}"><div><b>${esc(t.name||"مستخدم")}</b><br><small>${fmt(t.updated)}</small></div>${t.state==="waiting"?'<span class="need">ينتظر ردّك</span>':'<small>تمّ الرد ✓</small>'}</div>`).join(""):'<div class="empty">لا رسائل بعد.</div>'}`;
+  el.querySelectorAll(".th").forEach(d=>d.onclick=()=>openThread(d.dataset.u));
+}
+let thUnsub=null;
+function openThread(u){
+  openTh=u;openMsgs=[];if(thUnsub)thUnsub();
+  thUnsub=tref(u).collection("msgs").orderBy("ts").onSnapshot(q=>{openMsgs=q.docs.map(d=>d.data());renderAdminThread()},()=>{});
+  renderAdminThread();
+}
+function renderAdminThread(){
+  const el=$("messages"),t=ADM_TH.find(x=>x.id===openTh)||{};
+  el.innerHTML=`<div class="mhead"><h2>${esc(t.name||"مستخدم")}</h2><button class="btn" id="mBack">→ رجوع</button></div>${chatHTML(openMsgs,"admin")}
+   ${composeHTML(t.state==="waiting"?"اكتب ردّك":"أرسل رسالة أو استفسارًا (يُفتح له الإرسال مرة واحدة)")}`;
+  $("mBack").onclick=()=>{openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox()};
+  bindCompose(async v=>{
+    const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
+    const r=tref(openTh).collection("msgs").doc();
+    b.set(r,{from:"admin",text:v,ts:now});
+    b.set(tref(openTh),{state:"open",lastFrom:"admin",unreadUser:true,updated:now,lastMsg:r.id},{merge:true});
+    await b.commit();
+  });
 }
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="shop")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="shop"||p==="messages")?"none":"";
+  if(p==="messages"){renderMessages();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
 function refresh(){buildQueue();showCard();renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
@@ -848,6 +952,7 @@ function init(){
   ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("q").oninput=renderList;$("fType").onchange=renderList;
   $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
+  $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>document.querySelector('nav button[data-p=rewards]').click();
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
