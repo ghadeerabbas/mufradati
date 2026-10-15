@@ -823,9 +823,6 @@ function renderRewards(){
    <div class="gstat"><b>✨ ${e.earned}</b><span>جواهر مكتسبة</span></div>
    <div class="gstat"><b>🏆 ${e.got.size}/${achList().length}</b><span>إنجازات</span></div>
   </div>
-  <div class="rsec"><h3>كيف تكسب الجواهر؟</h3><div style="font-size:.85rem;line-height:1.9">
-   صعبة +١ · عرفتها أو سهلة +٢ · كلمة جديدة +١ إضافية<br>كلمة تصل إلى "محفوظة" +٥ · تصل إلى "راسخة" +١٥<br>
-   ٢٠ مراجعة في اليوم +٥ · ٥٠ مراجعة +١٠ · ١٠٠ مراجعة +١٥<br>كل إجابة صحيحة في الاختبار +١ · كل مستوى جديد +٥ × رقمه · وكل إنجاز له جائزته</div></div>
   <div class="rsec"><h3>الإنجازات</h3><div class="achs">${achList().map(a=>{const v=Math.min(a.v(s),a.need),g=e.got.has(a.id);
    return `<div class="ach ${g?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}</b><small>${a.d} · ${g?"✓ تحقّق":"+"+a.g+" 💎"}</small>${g||a.need===1?"":`<div class="mini"><i style="width:${v/a.need*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
