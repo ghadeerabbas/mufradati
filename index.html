@@ -164,6 +164,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .pach i{position:absolute;bottom:-3px;left:-3px;font-style:normal;font-size:.6rem;font-weight:800;background:var(--gold);color:#222;border-radius:8px;padding:0 4px}
 .mclr{display:flex;gap:6px;margin-bottom:8px}.mclr .btn{flex:1;font-size:.8rem;padding:8px 6px;background:var(--soft);color:var(--rd)}
 .th.sel{background:rgba(201,168,74,.15)}.th .ck{font-size:1.1rem;margin-left:8px}.mclr .btn:disabled{opacity:.4}
+.nreq small.ntaken{display:block;color:var(--rd);font-weight:700}.nreq small.nfree{display:block;color:var(--green)}
 .strow{display:flex;gap:8px;margin-top:6px}.stin{display:block;width:100%;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin-top:6px}
 .strow .stin{margin-top:0;flex:1}.stbtn{background:var(--navy);color:#fff}.stmsg{font-size:.85rem;margin-top:6px;text-align:center}.stmsg.ok{color:var(--green)}.stmsg.bad{color:var(--rd)}
 #settings .numpicks{margin-top:4px}
@@ -1699,15 +1700,26 @@ async function loadNameReqs(){
   try{const q=await db.collection("names").get();NAMEREQ=q.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.pending)}catch(e){NAMEREQ=[]}
   const b=$("uBadge");if(b){b.textContent=NAMEREQ.length;b.classList.toggle("on",NAMEREQ.length>0)}
 }
+// هل الاسم المقترح مأخوذ؟ تُتجاهَل الأحرف الكبيرة والصغيرة والمسافات
+const normName=x=>String(x||"").toLowerCase().replace(/\s+/g,"");
+function nameOwners(r){
+  const n=normName(r.pending),all=[...USERS.map(u=>({id:u.id,name:u.name})),{id:UID,name:UNAME}];
+  const own=all.filter(u=>u.id!==r.id&&normName(u.name)===n).map(u=>u.name);
+  NAMEREQ.forEach(x=>{if(x.id!==r.id&&normName(x.pending)===n){const u=USERS.find(y=>y.id===x.id);own.push("طلب "+((u&&u.name)||"مستخدم"))}});
+  return own;
+}
 function nameReqHTML(){
   if(!NAMEREQ.length)return"";
-  return `<div class="rsec"><h3>👤 طلبات تغيير الاسم (${NAMEREQ.length})</h3>${NAMEREQ.map(r=>{const u=USERS.find(x=>x.id===r.id);
-    return `<div class="nreq"><div><b>${esc(r.pending)}</b><small>بدلًا من: ${esc(r.name||(u&&u.name)||"—")}</small></div>
+  return `<div class="rsec"><h3>👤 طلبات تغيير الاسم (${NAMEREQ.length})</h3>${NAMEREQ.map(r=>{const u=USERS.find(x=>x.id===r.id),own=nameOwners(r);
+    return `<div class="nreq"><div><b>${esc(r.pending)}</b><small>بدلًا من: ${esc(r.name||(u&&u.name)||"—")}</small>
+      ${own.length?`<small class="ntaken">⚠️ مستخدم عند: ${own.map(esc).join("، ")}</small>`:'<small class="nfree">✓ متاح</small>'}</div>
      <button class="btn nok" data-u="${esc(r.id)}">قبول</button><button class="btn nno" data-u="${esc(r.id)}">رفض</button></div>`}).join("")}</div>`;
 }
 function bindNameReqs(){
   document.querySelectorAll(".nreq .nok,.nreq .nno").forEach(b=>b.onclick=async()=>{
-    const r=NAMEREQ.find(x=>x.id===b.dataset.u);if(!r)return;const ok=b.classList.contains("nok");b.disabled=true;
+    const r=NAMEREQ.find(x=>x.id===b.dataset.u);if(!r)return;const ok=b.classList.contains("nok");
+    if(ok){const own=nameOwners(r);if(own.length&&!await uiConfirm("الاسم «"+r.pending+"» مستخدم عند: "+own.join("، ")+".\nهل تريد قبوله رغم ذلك؟"))return}
+    b.disabled=true;
     try{await nref(r.id).set(ok?{name:r.pending,pending:"",okAt:firebase.firestore.FieldValue.serverTimestamp()}:{pending:"",rej:r.pending},{merge:true});
       toast(ok?"✅":"🚫",ok?"قُبل الاسم":"رُفض الاسم",r.pending);await loadNameReqs();renderUserList()}
     catch(e){b.disabled=false;await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
@@ -2072,6 +2084,8 @@ async function handleBack(){
   goTab("review");scrollTo(0,0);
 }
 window.addEventListener("popstate",()=>{if(EXITING)return;trapBack();handleBack()});
+window.mufBack=()=>{handleBack()};
+document.addEventListener("click",()=>{if(!(history.state&&history.state.muf))trapBack()},true);
 
 // البدء بعد تعريف كل شيء
 if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});

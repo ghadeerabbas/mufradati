@@ -100,7 +100,9 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (web.canGoBack()) web.goBack();
-        else super.onBackPressed();
+        // زر الرجوع تتولّاه الصفحة: تأكيد الخروج من المحطة أو المراجعة أو التطبيق
+        web.evaluateJavascript("(function(){try{if(window.mufBack){mufBack();return 'ok'}}catch(e){}return 'no'})()", v -> {
+            if (!"\"ok\"".equals(v)) { if (web.canGoBack()) web.goBack(); else finish(); }
+        });
     }
 }
