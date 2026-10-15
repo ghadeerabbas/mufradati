@@ -6,108 +6,223 @@
 <meta name="theme-color" content="#1f2a5a">
 <title>مفرداتي</title>
 <style>
-:root{--navy:#1f2a5a;--navy2:#33407a;--red:#a01f26;--gold:#c9a84a;--paper:#f7f5ef;--card:#fff;--ink:#20242e;--muted:#6b7180;--line:#e2ddd0;--green:#2a6b3a;--orange:#c2541b}
+:root{--navy:#1f2a5a;--navy2:#33407a;--red:#a01f26;--gold:#c9a84a;--paper:#f7f5ef;--card:#fff;--ink:#20242e;--muted:#6b7180;--line:#e2ddd0;--green:#2a6b3a;--orange:#c2541b;
+ --hd:var(--navy);--rd:var(--red);--soft:#eef0f7;--der:#2563eb;--die:#dc2626;--das:#16a34a;
+ --tn:#4f46e5;--tv:#ea580c;--ta:#0d9488;--te:#9333ea}
+[data-theme=emerald]{--navy:#0f4c3a;--navy2:#1d6b54;--red:#b5452f;--gold:#d4af37}
+[data-theme=royal]{--navy:#3b1f6b;--navy2:#5a3596;--red:#c2185b;--gold:#f0c14b}
+[data-theme=ocean]{--navy:#0b4f6c;--navy2:#1b7499;--red:#e4572e;--gold:#ffc857}
+[data-theme=sunset]{--navy:#7a2e1f;--navy2:#a3472f;--red:#b8326a;--gold:#f4a261}
+[data-theme=lux]{--navy:#241b12;--navy2:#43352a;--red:#8c1c13;--gold:#e0b84f}
+[data-dark]{--paper:#13151d;--card:#1d2030;--ink:#e8e9f0;--muted:#9aa0b4;--line:#2e3245;--soft:#262a3d;--hd:#c9d1ff;--rd:#ff8a8a;--green:#4ade80;--orange:#fb923c;
+ --der:#60a5fa;--die:#f87171;--das:#4ade80;--tn:#818cf8;--tv:#fb923c;--ta:#2dd4bf;--te:#c084fc}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:"Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;min-height:100dvh}
+body{font-family:"Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;min-height:100dvh;transition:background .3s}
 .de{direction:ltr;unicode-bidi:isolate}
-header{background:var(--navy);color:#fff;padding:14px 16px 0;text-align:center;position:sticky;top:0;z-index:5}
-header h1{font-size:1.3rem;letter-spacing:.5px}
-header h1 span{color:var(--gold)}
-.stats{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px;font-size:.8rem}
-.stats b{background:rgba(255,255,255,.12);padding:2px 10px;border-radius:20px;font-weight:600}
-nav{display:flex;border-top:1px solid rgba(255,255,255,.15)}
-nav button{flex:1;background:none;border:0;color:#cfd4ea;padding:10px 4px;font:inherit;font-size:.95rem;cursor:pointer;border-bottom:3px solid transparent}
+button{font:inherit;cursor:pointer}
+/* ===== الرأس ===== */
+header{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(0,0,0,.18)}
+.hrow{display:flex;align-items:center;gap:10px;padding:10px 14px 8px;max-width:720px;margin:0 auto}
+.avatar{width:46px;height:46px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid var(--gold);display:grid;place-items:center;font-size:1.6rem;flex:none;position:relative}
+.avatar .lv{position:absolute;bottom:-6px;left:-4px;background:var(--gold);color:#222;font-size:.62rem;font-weight:800;border-radius:9px;padding:0 5px;line-height:1.5}
+.who{flex:1;min-width:0}
+.who .ttl{font-size:.82rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.who .ttl span{color:var(--gold)}
+.xpbar{height:7px;border-radius:4px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:3px}
+.xpbar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#fff3c4);border-radius:4px;transition:width .6s}
+.who small{font-size:.66rem;opacity:.8}
+.chips{display:flex;gap:6px;align-items:center;flex:none}
+.chip{background:rgba(255,255,255,.14);border-radius:14px;padding:2px 8px;font-size:.85rem;font-weight:700;white-space:nowrap}
+.chip.fire.on{background:rgba(255,140,0,.35)}
+.ring{width:38px;height:38px;flex:none;position:relative}
+.ring svg{transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:.6rem}
+.iconbtn{background:none;border:0;color:#fff;font-size:1.1rem;padding:2px}
+nav{display:flex;border-top:1px solid rgba(255,255,255,.12);max-width:720px;margin:0 auto}
+nav button{flex:1;background:none;border:0;color:#cfd4ea;padding:6px 2px 7px;font-size:.72rem;border-bottom:3px solid transparent;line-height:1.3}
+nav button i{display:block;font-style:normal;font-size:1.05rem}
 nav button.on{color:#fff;border-bottom-color:var(--gold);font-weight:700}
-main{max-width:720px;margin:0 auto;padding:14px 16px 40px}
-.panel{display:none}.panel.on{display:block}
+main{max-width:720px;margin:0 auto;padding:14px 16px 60px}
+.panel{display:none;animation:fade .25s}.panel.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);flex:1;min-width:120px}
-.btn{font:inherit;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
+select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);flex:1;min-width:120px}
+.btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600}
 .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
-/* المراجعة */
-.qinfo{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:8px}
-.flash{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--navy);border-radius:16px;min-height:260px;padding:22px 18px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 2px 10px rgba(31,42,90,.06)}
-.flash .word{font-size:1.6rem;font-weight:700;color:var(--navy)}
-.flash .ar{font-size:1.35rem;font-weight:700;color:var(--red)}
-.flash .ex{font-size:.98rem;background:var(--paper);border-radius:10px;padding:8px 10px}
-.flash .exar{font-size:.95rem;color:var(--muted)}
-.flash .hint{font-size:.8rem;color:var(--muted)}
+.pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.pill{font-size:.78rem;background:var(--soft);color:var(--hd);border-radius:12px;padding:2px 10px;font-weight:600}
+/* ===== المراجعة ===== */
+.sess{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.82rem;color:var(--muted)}
+.sbar{flex:1;height:10px;background:var(--soft);border-radius:6px;overflow:hidden}
+.sbar i{display:block;height:100%;background:linear-gradient(90deg,var(--green),#7bd88f);border-radius:6px;transition:width .4s}
+.scene{perspective:1200px;position:relative}
+.flip{display:grid;transition:transform .55s cubic-bezier(.3,.7,.3,1.2);transform-style:preserve-3d;cursor:pointer}
+.flip.on{transform:rotateY(180deg)}
+.face{grid-area:1/1;backface-visibility:hidden;-webkit-backface-visibility:hidden;background:var(--card);border:1px solid var(--line);border-top:6px solid var(--tc,var(--navy));border-radius:18px;min-height:280px;padding:22px 18px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.07);position:relative}
+.face.back{transform:rotateY(180deg)}
+.t-n{--tc:var(--tn)}.t-v{--tc:var(--tv)}.t-a{--tc:var(--ta)}.t-e{--tc:var(--te)}
+.word{font-size:1.65rem;font-weight:700;color:var(--hd)}
+.art-der{color:var(--der)}.art-die{color:var(--die)}.art-das{color:var(--das)}
+.ar{font-size:1.35rem;font-weight:700;color:var(--rd)}
+.ex{font-size:.98rem;background:var(--soft);border-radius:10px;padding:8px 10px}
+.exar{font-size:.95rem;color:var(--muted)}
+.hint{font-size:.8rem;color:var(--muted)}
+.stk{position:absolute;top:8px;left:10px;font-size:1.6rem;transform:rotate(-12deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
+.typedot{position:absolute;top:10px;right:12px;font-size:.7rem;font-weight:700;color:var(--tc)}
+/* إطارات المتجر */
+.fr-gold .face{border:3px solid var(--gold);border-top-width:6px;box-shadow:0 0 0 4px rgba(201,168,74,.18),0 6px 18px rgba(0,0,0,.1)}
+.fr-neon .face{border:2px solid #22d3ee;box-shadow:0 0 12px #22d3ee88,0 0 26px #a855f766}
+.fr-wood .face{border:5px solid #8b5a2b;border-top-width:7px;box-shadow:inset 0 0 0 2px #c08a50}
+.fr-stars .face{background-image:radial-gradient(var(--gold) 1px,transparent 1.5px);background-size:22px 22px;background-color:var(--card)}
+.fr-rainbow .face{border:3px solid transparent;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,#f43f5e,#f59e0b,#10b981,#3b82f6,#a855f7) border-box}
 .tags{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
-.tag{font-size:.72rem;padding:1px 8px;border-radius:10px;background:#eef0f7;color:var(--navy2);font-weight:600}
-.tag.B2{background:#f8e7e8;color:var(--red)}.tag.B1{background:#e6f1e8;color:var(--green)}
-.tag.core{background:#f6efd9;color:#8a6d1c}.tag.rep{background:#fde9dc;color:var(--orange)}
+.tag{font-size:.72rem;padding:1px 8px;border-radius:10px;background:var(--soft);color:var(--hd);font-weight:600}
+.tag.B2{color:var(--rd)}.tag.B1{color:var(--green)}
+.tag.core{color:#b08a1c}.tag.rep{color:var(--orange)}
 .rate{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-.rate button{color:#fff;font-size:.95rem;padding:12px 4px}
+.rate button{color:#fff;font-size:.95rem;padding:12px 4px;transition:transform .1s}
+.rate button:active{transform:scale(.94)}
 .rate small{display:block;font-size:.7rem;font-weight:400;opacity:.85}
-.r0{background:var(--red)}.r1{background:var(--orange)}.r2{background:var(--green)}.r3{background:var(--navy)}
-.done{text-align:center;padding:40px 16px}
-.done h2{color:var(--green);margin-bottom:8px}
+.r0{background:#c0392b}.r1{background:#d97706}.r2{background:#2a8a4a}.r3{background:#2563eb}
+.flash-ok{animation:okf .5s}.flash-no{animation:nof .5s}
+@keyframes okf{30%{box-shadow:0 0 0 6px #22c55e88}}
+@keyframes nof{20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.float{position:fixed;z-index:60;font-weight:800;font-size:1.2rem;color:var(--gold);pointer-events:none;animation:up 1s forwards;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+@keyframes up{to{transform:translateY(-70px);opacity:0}}
+.done{text-align:center;padding:30px 16px}
+.done .big{font-size:3rem}
+.done h2{color:var(--green);margin:6px 0}
 .settings{margin-top:16px;font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .settings select{flex:none;min-width:auto;padding:4px 8px}
-.link{background:none;border:0;color:var(--red);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline}
-/* القائمة */
-.item{background:var(--card);border:1px solid var(--line);border-right:4px solid var(--navy);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.link{background:none;border:0;color:var(--rd);font-size:.85rem;text-decoration:underline}
+/* ===== القائمة ===== */
+.item{background:var(--card);border:1px solid var(--line);border-right:4px solid var(--tc,var(--navy));border-radius:12px;padding:10px 12px;margin-bottom:8px}
 .item .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
-.item .w{font-weight:700;color:var(--navy);font-size:1.08rem}
-.item .m{color:var(--red);font-weight:600}
+.item .w{font-weight:700;color:var(--hd);font-size:1.08rem}
+.item .m{color:var(--rd);font-weight:600}
 .item .e{font-size:.9rem;margin-top:4px}
 .item .ea{font-size:.88rem;color:var(--muted)}
 .item .tags{justify-content:flex-start;margin-top:4px}
 .count{font-size:.85rem;color:var(--muted);margin-bottom:8px}
-/* الاختبار */
-.qword{font-size:1.5rem;font-weight:700;color:var(--navy);text-align:center;margin:8px 0 14px}
-.opt{display:block;width:100%;text-align:right;background:#fff;border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
-.opt.ok{background:#e6f1e8;border-color:var(--green)}.opt.no{background:#f8e7e8;border-color:var(--red)}
+/* ===== الاختبار ===== */
+.qword{font-size:1.5rem;font-weight:700;color:var(--hd);text-align:center;margin:8px 0 14px}
+.opt{display:block;width:100%;text-align:right;background:var(--card);color:var(--ink);border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
+.opt.ok{background:#22c55e22;border-color:var(--green)}.opt.no{background:#ef444422;border-color:var(--red)}
 .next{background:var(--navy);color:#fff;width:100%;margin-top:6px}
-.err{color:var(--red);text-align:center;padding:30px}
-/* التقارير */
+.err{color:var(--rd);text-align:center;padding:30px}
+/* ===== التقارير ===== */
 .rnote{font-size:.8rem;color:var(--muted);margin-bottom:10px}
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
-.kpi b{display:block;font-size:1.5rem;color:var(--navy);line-height:1.3}
+.kpi b{display:block;font-size:1.5rem;color:var(--hd);line-height:1.3}
 .kpi span{font-size:.8rem;color:var(--muted)}
-.kpi.g b{color:var(--green)}.kpi.r b{color:var(--red)}.kpi.o b{color:var(--orange)}.kpi.y b{color:#8a6d1c}
+.kpi.g b{color:var(--green)}.kpi.r b{color:var(--rd)}.kpi.o b{color:var(--orange)}.kpi.y b{color:#c99a1c}
 .rsec{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-bottom:12px}
-.rsec h3{font-size:1rem;color:var(--navy);margin-bottom:8px}
-.stack{display:flex;height:14px;border-radius:7px;overflow:hidden;background:#eee;margin:4px 0}
+.rsec h3{font-size:1rem;color:var(--hd);margin-bottom:8px}
+.stack{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--soft);margin:4px 0}
 .stack i{display:block;height:100%}
-.c-new{background:#d9dce6}.c-learn{background:var(--orange)}.c-ok{background:var(--green)}.c-master{background:var(--navy)}
+.c-new{background:#c7cbd8}.c-learn{background:var(--orange)}.c-ok{background:var(--green)}.c-master{background:var(--navy2)}
 .legend{display:flex;gap:10px;flex-wrap:wrap;font-size:.75rem;color:var(--muted)}
 .legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-left:4px;vertical-align:middle}
 .row{display:flex;justify-content:space-between;font-size:.85rem;margin-top:8px}
 .row small{color:var(--muted)}
 .cols{display:flex;align-items:flex-end;gap:4px;height:120px;border-bottom:1px solid var(--line);padding-top:16px}
 .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;position:relative}
-.col .bar{width:100%;max-width:26px;border-radius:5px 5px 0 0;background:var(--navy);min-height:2px}
+.col .bar{width:100%;max-width:26px;border-radius:5px 5px 0 0;background:var(--navy2);min-height:2px}
 .col .bar.bad{background:var(--red)}
 .col em{font-style:normal;font-size:.68rem;color:var(--muted);position:absolute;top:-16px}
 .lbls{display:flex;gap:4px;margin-top:3px}
 .lbls span{flex:1;text-align:center;font-size:.65rem;color:var(--muted);white-space:nowrap;overflow:hidden}
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px;direction:ltr;overflow-x:auto;padding-bottom:4px}
+.heat i{width:13px;height:13px;border-radius:3px;background:var(--soft)}
+.heat i.h1{background:#9be9a8}.heat i.h2{background:#40c463}.heat i.h3{background:#30a14e}.heat i.h4{background:#216e39}
+.heat i.today{outline:2px solid var(--gold)}
 .hw{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:.9rem}
 .hw:last-child{border:0}
-.hw .m{color:var(--red)}.hw small{color:var(--muted)}
+.hw .m{color:var(--rd)}.hw small{color:var(--muted)}
 .empty{font-size:.85rem;color:var(--muted);text-align:center;padding:8px}
-.sync input{width:100%;font:inherit;font-size:.85rem;padding:8px 10px;border:1px solid var(--line);border-radius:10px;direction:ltr;margin:6px 0}
+.sync input{width:100%;font:inherit;font-size:.85rem;padding:8px 10px;border:1px solid var(--line);border-radius:10px;direction:ltr;margin:6px 0;background:var(--card);color:var(--ink)}
 .sync .btns{display:flex;gap:8px;flex-wrap:wrap}
 .sync .btn{background:var(--navy);color:#fff;font-size:.9rem;padding:8px 14px}
-.sync .btn.sec{background:#eef0f7;color:var(--navy)}
+.sync .btn.sec{background:var(--soft);color:var(--hd)}
 .sync p{font-size:.82rem;color:var(--muted)}
-.sstat{font-size:.85rem;margin-top:6px}.sstat.ok{color:var(--green)}.sstat.bad{color:var(--red)}
+.sstat{font-size:.85rem;margin-top:6px}.sstat.ok{color:var(--green)}.sstat.bad{color:var(--rd)}
+/* ===== الجوائز ===== */
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:18px;padding:16px;display:flex;gap:14px;align-items:center;margin-bottom:12px}
+.hero .av{font-size:2.6rem;width:70px;height:70px;border-radius:50%;background:rgba(255,255,255,.14);display:grid;place-items:center;border:3px solid var(--gold);flex:none}
+.hero h2{font-size:1.1rem}.hero p{font-size:.82rem;opacity:.85}
+.hero .xpbar{height:10px}
+.gstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.gstat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px;text-align:center}
+.gstat b{display:block;font-size:1.3rem;color:var(--hd)}.gstat span{font-size:.72rem;color:var(--muted)}
+.achs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.ach{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center}
+.ach .ic{font-size:1.7rem;flex:none}
+.ach b{font-size:.85rem;display:block;color:var(--hd);line-height:1.4}
+.ach small{font-size:.7rem;color:var(--muted);display:block;line-height:1.4}
+.ach.lock{opacity:.55}.ach.lock .ic{filter:grayscale(1)}
+.ach.got{border-color:var(--gold);background:linear-gradient(135deg,var(--card),rgba(201,168,74,.12))}
+.mini{height:5px;background:var(--soft);border-radius:3px;margin-top:4px;overflow:hidden}
+.mini i{display:block;height:100%;background:var(--gold)}
+.album{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.album span{aspect-ratio:1;display:grid;place-items:center;font-size:1.6rem;background:var(--soft);border-radius:10px}
+.album span.no{opacity:.25;filter:grayscale(1)}
+/* ===== المتجر ===== */
+.bal{display:flex;justify-content:space-between;align-items:center;background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff;border-radius:16px;padding:14px 16px;margin-bottom:12px}
+.bal b{font-size:1.7rem}
+.bal small{display:block;font-size:.75rem;opacity:.85}
+.cats{display:flex;gap:6px;overflow-x:auto;margin-bottom:12px;padding-bottom:4px}
+.cats button{flex:none;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:4px 12px;font-size:.85rem}
+.cats button.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.shop{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.si{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 10px;text-align:center;display:flex;flex-direction:column;gap:6px;align-items:center}
+.si .pv{font-size:2rem;height:52px;display:grid;place-items:center;width:100%;border-radius:10px}
+.si .nm{font-size:.85rem;font-weight:700;color:var(--hd)}
+.si .btn{width:100%;padding:7px;font-size:.85rem}
+.buy{background:linear-gradient(135deg,#7c3aed,#2563eb);color:#fff}
+.buy:disabled{background:#9ca3af;opacity:.7}
+.eq{background:var(--soft);color:var(--hd)}
+.eqd{background:var(--green);color:#fff}
+.si.mine{border-color:var(--green)}
+.sw{display:flex;gap:3px;justify-content:center}.sw i{width:16px;height:16px;border-radius:50%}
+/* إشعارات وقصاصات */
+#toasts{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:80;display:flex;flex-direction:column;gap:6px;width:min(92vw,420px);pointer-events:none}
+.toast{background:var(--card);color:var(--ink);border:2px solid var(--gold);border-radius:14px;padding:10px 14px;box-shadow:0 6px 24px rgba(0,0,0,.25);display:flex;gap:10px;align-items:center;animation:tin .4s;font-size:.9rem}
+.toast .ic{font-size:1.8rem}
+.toast b{display:block;color:var(--hd)}
+@keyframes tin{from{transform:translateY(-30px);opacity:0}}
+.cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 </style>
 </head>
 <body>
+<div id="toasts"></div>
 <header>
-  <h1>مفردا<span>تي</span></h1>
-  <div class="stats"><b id="sAll">…</b><b id="sDue">…</b><b id="sLearned">…</b></div>
+  <div class="hrow">
+    <div class="avatar" id="hAv">🎓<span class="lv" id="hLv">1</span></div>
+    <div class="who">
+      <div class="ttl" id="hTitle">مفرداتي</div>
+      <div class="xpbar"><i id="hXp" style="width:0"></i></div>
+      <small id="hXpT"></small>
+    </div>
+    <div class="chips">
+      <div class="ring" title="هدف اليوم"><svg width="38" height="38"><circle cx="19" cy="19" r="15" stroke="rgba(255,255,255,.2)" stroke-width="4" fill="none"/><circle id="hRing" cx="19" cy="19" r="15" stroke="#7bd88f" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94.2" style="transition:stroke-dashoffset .6s"/></svg><b id="hRingT">0</b></div>
+      <span class="chip fire" id="hFire">🔥 0</span>
+      <span class="chip" id="hGem">💎 0</span>
+      <button class="iconbtn" id="darkBtn" title="الوضع الليلي">🌙</button>
+    </div>
+  </div>
   <nav>
-    <button data-p="review" class="on">المراجعة</button>
-    <button data-p="list">القائمة</button>
-    <button data-p="quiz">الاختبار</button>
-    <button data-p="report">التقارير</button>
+    <button data-p="review" class="on"><i>🃏</i>المراجعة</button>
+    <button data-p="list"><i>📚</i>القائمة</button>
+    <button data-p="quiz"><i>❓</i>الاختبار</button>
+    <button data-p="report"><i>📊</i>التقارير</button>
+    <button data-p="rewards"><i>🏆</i>الجوائز</button>
+    <button data-p="shop"><i>🛍️</i>المتجر</button>
   </nav>
 </header>
 <main>
-  <div class="filters">
+  <div class="filters" id="mainFilters">
     <select id="fDay"><option value="all">كل الأيام</option></select>
     <select id="fLvl"><option value="all">كل المستويات</option><option>B1</option><option>B2</option></select>
     <select id="fCore"><option value="all">كل الكلمات</option><option value="1">الأساسية فقط ★</option></select>
@@ -125,13 +240,22 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
   </section>
 
   <section id="quiz" class="panel"></section>
-
   <section id="report" class="panel"></section>
+  <section id="rewards" class="panel"></section>
+  <section id="shop" class="panel"></section>
 </main>
 
 <script>
+/* ================= أساسيات ================= */
 const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",e:"تعبير"};
-// اليوم الأول، الثاني ... حتى ٩٩
+const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
+const $=id=>document.getElementById(id);
+function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const jget=(k,d)=>{try{return JSON.parse(st(k)||"null")??d}catch(e){return d}};
+const dkey=t=>{const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
+const today=()=>dkey(Date.now());
 function ordinal(n){
   const u=["","الأول","الثاني","الثالث","الرابع","الخامس","السادس","السابع","الثامن","التاسع"],
    t=["","العاشر","العشرون","الثلاثون","الأربعون","الخمسون","الستون","السبعون","الثمانون","التسعون"];
@@ -140,24 +264,132 @@ function ordinal(n){
   return a?(a===1?"الحادي":u[a])+" و"+t[b]:t[b];
 }
 const dayName=n=>"اليوم "+ordinal(n);
-const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120]; // فترات المراجعة بالأيام
-const $=id=>document.getElementById(id);
-function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null}}
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 
-let W=[],DAYS=[],P={},S={limit:15,dir:"de"},LOG=[];
-try{LOG=JSON.parse(st("muf_log")||"[]")}catch(e){}
-try{P=JSON.parse(st("muf_progress")||"{}")}catch(e){}
-try{Object.assign(S,JSON.parse(st("muf_settings")||"{}"))}catch(e){}
-const save=()=>{st("muf_progress",JSON.stringify(P));st("muf_settings",JSON.stringify(S))};
+let W=[],DAYS=[];
+let P=jget("muf_progress",{});              // تقدّم كل كلمة
+let LOG=jget("muf_log",[]);                 // [وقت، كلمة، تقييم، جديدة]
+let QLOG=jget("muf_qlog",[]);               // [وقت، صحيح، عدد] لكل اختبار مكتمل
+let BUY=jget("muf_buy",[]);                 // مشتريات {id,item,ts}
+let S=Object.assign({limit:15,dir:"de",goal:30,ts:0},jget("muf_settings",{}));
+let E=Object.assign({theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",dark:0,ts:0},jget("muf_equip",{}));
+const save=()=>{st("muf_progress",JSON.stringify(P));st("muf_settings",JSON.stringify(S));st("muf_log",JSON.stringify(LOG));
+  st("muf_qlog",JSON.stringify(QLOG));st("muf_buy",JSON.stringify(BUY));st("muf_equip",JSON.stringify(E))};
 const key=w=>w.de.trim().toLowerCase();
-const today=()=>new Date().toISOString().slice(0,10);
+const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
+/* ================= المتجر: الكتالوج ================= */
+const SHOP=[
+ // الصور الرمزية
+ ...[["🎓",0],["🦊",30],["🐱",30],["🦉",40],["🐼",40],["🐧",40],["🦁",60],["🐯",60],["🤖",80],["🧠",80],["🚀",100],["🐉",120],["🦄",120],["👑",200]]
+   .map(([v,p],i)=>({id:"av"+i,cat:"avatar",name:"رمز "+v,val:v,price:p})),
+ // الألقاب
+ ...[["مبتدئ طموح",0],["طالب مجتهد",60],["صديق الأفعال",80],["صائد الأسماء",80],["عاشق الألمانية",120],["سيّد der die das",150],["بطل B2",250],["أستاذ المفردات",400]]
+   .map(([v,p],i)=>({id:"t"+i,cat:"title",name:v,val:v,price:p})),
+ // السمات
+ {id:"classic",cat:"theme",name:"الكلاسيكي",price:0,sw:["#1f2a5a","#a01f26","#c9a84a"]},
+ {id:"emerald",cat:"theme",name:"الزمرّدي",price:150,sw:["#0f4c3a","#b5452f","#d4af37"]},
+ {id:"royal",cat:"theme",name:"البنفسجي الملكي",price:150,sw:["#3b1f6b","#c2185b","#f0c14b"]},
+ {id:"ocean",cat:"theme",name:"المحيط",price:150,sw:["#0b4f6c","#e4572e","#ffc857"]},
+ {id:"sunset",cat:"theme",name:"الغروب",price:200,sw:["#7a2e1f","#b8326a","#f4a261"]},
+ {id:"lux",cat:"theme",name:"الذهبي الفاخر",price:300,sw:["#241b12","#8c1c13","#e0b84f"]},
+ // إطارات البطاقة
+ {id:"none",cat:"frame",name:"بلا إطار",price:0,val:"▭"},
+ {id:"gold",cat:"frame",name:"إطار ذهبي",price:100,val:"🖼️"},
+ {id:"wood",cat:"frame",name:"إطار خشبي",price:120,val:"🪵"},
+ {id:"neon",cat:"frame",name:"إطار نيون",price:150,val:"💠"},
+ {id:"stars",cat:"frame",name:"سماء النجوم",price:180,val:"✨"},
+ {id:"rainbow",cat:"frame",name:"قوس قزح",price:220,val:"🌈"},
+ // الملصقات
+ ...[["🌸",20],["⭐",20],["💡",25],["🍀",25],["🎈",25],["☕",30],["🍕",30],["🥨",40],["🌙",40],["🌈",40],["🎻",50],["🏰",60],["🇩🇪",60],["🦋",60],["🏆",100],["💎",150]]
+   .map(([v,p],i)=>({id:"s"+i,cat:"sticker",name:"ملصق "+v,val:v,price:p})),
+ // الاحتفالات
+ {id:"squares",cat:"confetti",name:"قصاصات ملوّنة",price:0,val:"🎊"},
+ {id:"stars",cat:"confetti",name:"نجوم",price:60,val:"⭐"},
+ {id:"hearts",cat:"confetti",name:"قلوب",price:60,val:"💖"},
+ {id:"gems",cat:"confetti",name:"جواهر",price:100,val:"💎"},
+ {id:"fireworks",cat:"confetti",name:"ألعاب نارية",price:120,val:"🎆"},
+ // مستهلكات
+ {id:"freeze",cat:"power",name:"تجميد السلسلة",price:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
+];
+const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
+const EQKEY={avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
+const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
+const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.some(b=>b.item===cat+":"+id))};
+
+/* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
+const GEM=[0,1,2,2],XPR=[2,5,10,10];
+const ACH=[
+ {id:"first",ic:"👣",n:"أول خطوة",d:"أول مراجعة",g:5,v:s=>s.reviews,need:1},
+ {id:"r100",ic:"💯",n:"مئة مراجعة",d:"١٠٠ مراجعة",g:20,v:s=>s.reviews,need:100},
+ {id:"r500",ic:"📖",n:"قارئ نهم",d:"٥٠٠ مراجعة",g:50,v:s=>s.reviews,need:500},
+ {id:"r1000",ic:"📚",n:"ألف مراجعة",d:"١٠٠٠ مراجعة",g:100,v:s=>s.reviews,need:1000},
+ {id:"r5000",ic:"🏛️",n:"مكتبة متنقّلة",d:"٥٠٠٠ مراجعة",g:300,v:s=>s.reviews,need:5000},
+ {id:"m10",ic:"🌱",n:"البذرة",d:"١٠ كلمات محفوظة",g:20,v:s=>s.mem,need:10},
+ {id:"m50",ic:"🌿",n:"النبتة",d:"٥٠ كلمة محفوظة",g:50,v:s=>s.mem,need:50},
+ {id:"m100",ic:"🌳",n:"الشجرة",d:"١٠٠ كلمة محفوظة",g:100,v:s=>s.mem,need:100},
+ {id:"m250",ic:"🌲",n:"الغابة",d:"٢٥٠ كلمة محفوظة",g:200,v:s=>s.mem,need:250},
+ {id:"m500",ic:"🏔️",n:"قمّة الجبل",d:"٥٠٠ كلمة محفوظة",g:400,v:s=>s.mem,need:500},
+ {id:"x50",ic:"💎",n:"راسخ",d:"٥٠ كلمة راسخة",g:150,v:s=>s.mast,need:50},
+ {id:"s3",ic:"🔥",n:"شرارة",d:"سلسلة ٣ أيام",g:20,v:s=>s.best,need:3},
+ {id:"s7",ic:"🔥",n:"أسبوع كامل",d:"سلسلة ٧ أيام",g:50,v:s=>s.best,need:7},
+ {id:"s14",ic:"☄️",n:"لا يتوقّف",d:"سلسلة ١٤ يومًا",g:100,v:s=>s.best,need:14},
+ {id:"s30",ic:"🌋",n:"شهر من النار",d:"سلسلة ٣٠ يومًا",g:200,v:s=>s.best,need:30},
+ {id:"s60",ic:"⚡",n:"عزيمة حديدية",d:"سلسلة ٦٠ يومًا",g:400,v:s=>s.best,need:60},
+ {id:"s100",ic:"👑",n:"أسطورة",d:"سلسلة ١٠٠ يوم",g:700,v:s=>s.best,need:100},
+ {id:"perfect",ic:"🎯",n:"يوم مثالي",d:"٢٠ مراجعة أو أكثر دون أي نسيان",g:30,v:s=>s.perfect,need:1},
+ {id:"marathon",ic:"🏃",n:"ماراثون",d:"١٠٠ مراجعة في يوم واحد",g:50,v:s=>s.maxDay,need:100},
+ {id:"q10",ic:"🧩",n:"محبّ الاختبارات",d:"١٠ اختبارات مكتملة",g:30,v:s=>s.quizzes,need:10},
+ {id:"qfull",ic:"🥇",n:"العلامة الكاملة",d:"١٠ من ١٠ في اختبار",g:20,v:s=>s.qfull,need:1},
+ {id:"dayall",ic:"📅",n:"يوم مكتمل",d:"بدء كل كلمات يوم من الأيام",g:50,v:s=>s.dayAll,need:1},
+ {id:"owl",ic:"🦉",n:"بومة الليل",d:"مراجعة بعد الحادية عشرة ليلًا",g:10,v:s=>s.night,need:1},
+ {id:"bird",ic:"🐦",n:"الطائر المبكر",d:"مراجعة قبل السابعة صباحًا",g:10,v:s=>s.early,need:1},
+ {id:"shop5",ic:"🛍️",n:"جامع التحف",d:"شراء ٥ أغراض من المتجر",g:30,v:s=>s.items,need:5},
+];
+const lvlNeed=l=>100+(l-1)*50;
+let EC=null;
+function econ(){
+  const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};
+  let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={};
+  const L=[...LOG].sort((a,b)=>a[0]-b[0]);
+  for(const [t,k,r,nw] of L){
+    s.reviews++;gems+=GEM[r]+(nw?1:0);xp+=XPR[r];
+    let b=box[k]||0;b=r===0?0:r===1?Math.max(1,b):Math.min(b+(r===2?1:2),8);box[k]=b;
+    if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=20}
+    if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=50}
+    const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
+    const h=new Date(t).getHours();if(h>=23||h<4)s.night=1;if(h>=4&&h<7)s.early=1;
+  }
+  s.mem=r4.size;s.mast=r7.size;
+  for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect=1;
+    gems+=(x.n>=20?5:0)+(x.n>=50?10:0)+(x.n>=100?15:0);xp+=(x.n>=20?30:0)}
+  for(const q of QLOG){gems+=q[1];xp+=q[1]*5;if(q[2]>=10&&q[1]===q[2])s.qfull=1}
+  // الأيام المكتملة
+  if(W.length){const started=k=>!!P[k];for(const d of DAYS){const ws=W.filter(w=>w.day===d.day);if(ws.length&&ws.every(w=>started(w.k))){s.dayAll=1;break}}}
+  // السلسلة مع التجميد
+  const fz=BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)).sort();
+  const days=Object.keys(per).sort();let fi=0,avail=0;
+  if(days.length){
+    let t=new Date(days[0]+"T12:00:00").getTime();const end=today();
+    for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
+      if(per[d])s.streak++;else if(d!==end){if(avail>0)avail--;else s.streak=0}
+      s.best=Math.max(s.best,s.streak);if(d>=end)break}
+  }
+  while(fi<fz.length){avail++;fi++}
+  s.freezes=avail;
+  s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
+  // المستوى
+  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;gems+=lv*5}
+  const got=ACH.filter(a=>a.v(s)>=a.need);gems+=got.reduce((a,b)=>a+b.g,0);
+  const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(it?it.price:0)},0);
+  const td=per[today()]||{n:0};
+  EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got.map(a=>a.id)),todayN:td.n,per};
+  return EC;
+}
+
+/* ================= تحميل المفردات ================= */
 fetch("words.json?v="+Date.now()).then(r=>r.json()).then(d=>{
-  DAYS=d.days;
-  const seen={};
-  W=d.words.map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else seen[k]=w.day;return r});
+  DAYS=d.days;const seen={};
+  W=d.words.map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else if(seen[k]===undefined)seen[k]=w.day;return r});
   DAYS.forEach(x=>$("fDay").insertAdjacentHTML("beforeend",`<option value="${x.day}">${dayName(x.day)}</option>`));
   init();
 }).catch(()=>{$("review").innerHTML='<div class="err">تعذّر تحميل المفردات. تأكّد من الاتصال ثم أعد تحميل الصفحة.</div>'});
@@ -166,14 +398,9 @@ function filtered(){
   const d=$("fDay").value,l=$("fLvl").value,c=$("fCore").value;
   return W.filter(w=>(d==="all"||w.day==d)&&(l==="all"||w.lvl===l)&&(c==="all"||w.core==1));
 }
-// كلمة مكرّرة: تُراجَع مرة واحدة (تقدّمها مشترك)
-const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
-
-function stats(){
-  const u=uniq(W),now=Date.now();
-  $("sAll").textContent="المجموع: "+u.length;
-  $("sDue").textContent="للمراجعة اليوم: "+u.filter(w=>P[w.k]&&P[w.k].due<=now).length;
-  $("sLearned").textContent="محفوظة: "+u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
+function artHTML(de){
+  const m=de.match(/^(der|die|das)\s/i);
+  return m?`<span class="art-${m[1].toLowerCase()}">${esc(de)}</span>`:esc(de);
 }
 function tags(w){
   return `<span class="tag ${w.lvl}">${w.lvl}</span><span class="tag">${TYPE[w.t]||""}</span>`+
@@ -182,99 +409,169 @@ function tags(w){
    (w.rep?`<span class="tag rep">مكرر · أول ظهور: ${dayName(w.rep)}</span>`:"");
 }
 
-/* ===== المراجعة بالتكرار المتباعد ===== */
-let queue=[],cur=null,flipped=false,newToday=0;
+/* ================= الرأس والمظهر ================= */
+function applyLook(){
+  const r=document.documentElement;
+  if(E.theme&&E.theme!=="classic")r.dataset.theme=E.theme;else delete r.dataset.theme;
+  if(E.dark)r.dataset.dark="1";else delete r.dataset.dark;
+  $("darkBtn").textContent=E.dark?"☀️":"🌙";
+  document.querySelector('meta[name=theme-color]').content=getComputedStyle(r).getPropertyValue("--navy").trim()||"#1f2a5a";
+}
+function renderHeader(){
+  const e=EC||econ(),t=itemOf("title",E.title);
+  $("hAv").innerHTML=esc(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
+  $("hTitle").innerHTML=`<span>المستوى ${e.lv}</span> · ${esc(t?t.val:"مبتدئ طموح")}`;
+  $("hXp").style.width=(e.rest/e.need*100)+"%";
+  $("hXpT").textContent=`${e.rest} / ${e.need} نقطة خبرة`;
+  const g=Math.min(1,e.todayN/(S.goal||30));
+  $("hRing").style.strokeDashoffset=94.2*(1-g);$("hRing").setAttribute("stroke",g>=1?"#ffd34d":"#7bd88f");
+  $("hRingT").textContent=g>=1?"✓":e.todayN;
+  $("hFire").textContent="🔥 "+e.s.streak;$("hFire").classList.toggle("on",e.s.streak>0);
+  $("hGem").textContent="💎 "+e.gems;
+}
+
+/* ================= احتفالات وإشعارات ================= */
+function toast(ic,title,sub){
+  const t=document.createElement("div");t.className="toast";t.innerHTML=`<span class="ic">${ic}</span><div><b>${title}</b>${sub?`<span>${sub}</span>`:""}</div>`;
+  $("toasts").appendChild(t);setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3200);
+}
+function confetti(n=80){
+  const st={squares:null,stars:["⭐","🌟","✨"],hearts:["💖","💗","❤️","💕"],gems:["💎","💠","✨"],fireworks:["🎆","🎇","✨","🎉"]}[E.confetti]||null;
+  const cols=["#f43f5e","#f59e0b","#10b981","#3b82f6","#a855f7","#ffd34d"];
+  for(let i=0;i<n;i++){const c=document.createElement("div");c.className="cf";
+    if(st){c.textContent=st[i%st.length];c.style.fontSize=(14+Math.random()*16)+"px"}
+    else{c.style.width=c.style.height=(6+Math.random()*7)+"px";c.style.background=cols[i%cols.length];c.style.borderRadius=Math.random()<.4?"50%":"2px"}
+    c.style.left=Math.random()*100+"vw";c.style.animationDuration=(1.8+Math.random()*1.8)+"s";c.style.animationDelay=Math.random()*.6+"s";
+    document.body.appendChild(c);setTimeout(()=>c.remove(),4500)}
+}
+function floatAt(el,txt){
+  if(!el)return;const r=el.getBoundingClientRect(),f=document.createElement("div");f.className="float";f.textContent=txt;
+  f.style.left=(r.left+r.width/2-20)+"px";f.style.top=(r.top-10)+"px";document.body.appendChild(f);setTimeout(()=>f.remove(),1000);
+}
+// يقارن الحالة الجديدة بالسابقة ليحتفل بما تحقّق
+function celebrate(prev){
+  const e=econ();renderHeader();
+  if(!prev)return;
+  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!","+"+(e.lv*5)+" 💎");confetti(120)}
+  ACH.forEach(a=>{if(e.got.has(a.id)&&!prev.got.has(a.id)){toast(a.ic,"إنجاز جديد: "+a.n,a.d+" · +"+a.g+" 💎");confetti(60)}});
+  const g=S.goal||30;if(prev.todayN<g&&e.todayN>=g){toast("🎯","أتممت هدف اليوم!","استمر هكذا");confetti(100)}
+  if(e.s.streak>prev.s.streak&&prev.todayN===0)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
+}
+
+/* ================= المراجعة ================= */
+let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 function buildQueue(){
   const now=Date.now(),f=uniq(filtered());
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
   const due=shuffle(f.filter(w=>P[w.k]&&P[w.k].due<=now)).sort((a,b)=>P[a.k].due-P[b.k].due);
   const left=Math.max(0,S.limit-(S.newCount||0));
-  const fresh=f.filter(w=>!P[w.k]).slice(0,left);
-  queue=[...due,...fresh];
+  queue=[...due,...f.filter(w=>!P[w.k]).slice(0,left)];
+  sessTotal=queue.length;sessDone=0;
+}
+function reviewPills(){
+  const u=uniq(W),now=Date.now();
+  return `<div class="pills"><span class="pill">المجموع ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>P[w.k]&&P[w.k].due<=now).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span><span class="pill">هدف اليوم ${(EC||econ()).todayN} / ${S.goal}</span></div>`;
 }
 function showCard(){
   const el=$("review");
   if(!queue.length){
     const f=uniq(filtered()),nxt=f.filter(w=>P[w.k]).map(w=>P[w.k].due).sort((a,b)=>a-b)[0];
-    el.innerHTML=`<div class="box done"><h2>أحسنت! انتهت مراجعة اليوم ✓</h2><p>${nxt?"المراجعة القادمة: "+new Date(nxt).toLocaleDateString("ar",{weekday:"long",day:"numeric",month:"long"}):"لا كلمات جديدة في هذا الاختيار."}</p></div>`+settingsHTML();
-    bindSettings();stats();return;
+    el.innerHTML=reviewPills()+`<div class="box done"><div class="big">🏆</div><h2>أحسنت! انتهت مراجعة اليوم</h2><p>${nxt?"المراجعة القادمة: "+new Date(nxt).toLocaleDateString("ar",{weekday:"long",day:"numeric",month:"long"}):"لا كلمات جديدة في هذا الاختيار."}</p>
+     <p style="margin-top:8px;font-size:.85rem;color:var(--muted)">تريد المزيد؟ جرّب الاختبار أو زد عدد الكلمات الجديدة من الإعدادات أدناه.</p></div>`+settingsHTML();
+    bindSettings();return;
   }
   cur=queue[0];flipped=false;
-  const isNew=!P[cur.k],front=S.dir==="de"?`<div class="word de">${esc(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
-  el.innerHTML=`<div class="qinfo"><span>المتبقي: ${queue.length}</span><span>${isNew?"كلمة جديدة":"مراجعة"}</span></div>
-  <div class="flash" id="card">${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
-  <div id="rate"></div>`+settingsHTML();
-  $("card").onclick=flip;bindSettings();
+  const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${esc(E.sticker)}</span>`:"";
+  const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
+  const pct=sessTotal?sessDone/sessTotal*100:0;
+  el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span></div>
+  <div class="scene fr-${E.frame}"><div class="flip" id="flip">
+   <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
+   <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${artHTML(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
+    <div class="ex de">${esc(cur.ex)}</div><div class="exar">${esc(cur.exar)}</div></div>
+  </div></div><div id="rate"></div>`+settingsHTML();
+  $("flip").onclick=flip;bindSettings();
 }
 function flip(){
-  if(flipped)return;flipped=true;
-  $("card").innerHTML=`<div class="word de">${esc(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
-   <div class="ex de">${esc(cur.ex)}</div><div class="exar">${esc(cur.exar)}</div><div class="tags">${tags(cur)}</div>`;
+  if(flipped)return;flipped=true;$("flip").classList.add("on");
   const b=(P[cur.k]||{box:0}).box,d=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
   $("rate").innerHTML=`<div class="rate">
    <button class="btn r0" data-r="0">نسيت<small>الآن</small></button>
    <button class="btn r1" data-r="1">صعبة<small>${d(1)}</small></button>
    <button class="btn r2" data-r="2">عرفتها<small>${d(IV[Math.min(b+1,8)])}</small></button>
    <button class="btn r3" data-r="3">سهلة<small>${d(IV[Math.min(b+2,8)])}</small></button></div>`;
-  document.querySelectorAll(".rate button").forEach(x=>x.onclick=()=>rate(+x.dataset.r));
+  document.querySelectorAll(".rate button").forEach(x=>x.onclick=()=>rate(+x.dataset.r,x));
 }
-function rate(r){
-  const now=Date.now(),old=P[cur.k];
-  if(!old){S.newCount=(S.newCount||0)+1}
+function rate(r,btn){
+  const now=Date.now(),old=P[cur.k],prev=EC||econ();
+  if(!old)S.newCount=(S.newCount||0)+1;
   let box=old?old.box:0;
   if(r===0)box=0;else if(r===1)box=Math.max(1,box);else box=Math.min(box+(r===2?1:2),8);
-  P[cur.k]={box,due:r===0?now:now+IV[box]*DAY,t:now};save();
-  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>30000)LOG=LOG.slice(-30000);st("muf_log",JSON.stringify(LOG));schedSync();
-  queue.shift();
-  if(r===0)queue.splice(Math.min(3,queue.length),0,cur); // تعود بعد بطاقات قليلة
-  stats();showCard();
+  P[cur.k]={box,due:r===0?now:now+IV[box]*DAY,t:now};
+  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>60000)LOG=LOG.slice(-60000);
+  save();
+  const g=GEM[r]+(old?0:1);if(g)floatAt(btn,"+"+g+" 💎");
+  const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
+  queue.shift();sessDone++;
+  if(r===0){queue.splice(Math.min(3,queue.length),0,cur);sessTotal++}
+  celebrate(prev);
+  if(!queue.length)confetti(140);
+  schedSync();
+  setTimeout(showCard,r===0?380:220);
 }
 function settingsHTML(){
-  return `<div class="settings">كلمات جديدة يوميًا:
-   <select id="sLim">${[5,10,15,20,30,50].map(n=>`<option ${n==S.limit?"selected":""}>${n}</option>`).join("")}</select>
-   الوجه الأمامي:
-   <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
+  const o=(arr,v)=>arr.map(n=>`<option ${n==v?"selected":""}>${n}</option>`).join("");
+  return `<div class="settings">كلمات جديدة يوميًا: <select id="sLim">${o([5,10,15,20,30,50],S.limit)}</select>
+   هدف المراجعات اليومي: <select id="sGoal">${o([20,30,50,80,100],S.goal)}</select>
+   الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
    <button class="link" id="sReset">تصفير التقدّم</button></div>`;
 }
 function bindSettings(){
-  $("sLim").onchange=e=>{S.limit=+e.target.value;save();buildQueue();showCard()};
-  $("sDir").onchange=e=>{S.dir=e.target.value;save();showCard()};
-  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟")){P={};LOG=[];S.newCount=0;save();st("muf_log","[]");buildQueue();showCard()}};
+  const set=()=>{S.ts=Date.now();save();schedSync()};
+  $("sLim").onchange=e=>{S.limit=+e.target.value;set();buildQueue();showCard()};
+  $("sGoal").onchange=e=>{S.goal=+e.target.value;set();renderHeader();showCard()};
+  $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
+  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟ (تبقى مشترياتك، لكن الجواهر المكتسبة من المراجعات ستُحذف)")){P={};LOG=[];QLOG=[];S.newCount=0;save();econ();renderHeader();buildQueue();showCard()}};
 }
 
-/* ===== القائمة ===== */
+/* ================= القائمة ================= */
 function renderList(){
   const q=$("q").value.trim().toLowerCase(),t=$("fType").value;
   const r=filtered().filter(w=>(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));
   $("lcount").textContent=r.length+" كلمة";
-  $("litems").innerHTML=r.map(w=>`<div class="item"><div class="top"><span class="w de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span></div>
-   <div class="e de">${esc(w.ex)}</div><div class="ea">${esc(w.exar)}</div><div class="tags">${tags(w)}</div></div>`).join("");
+  $("litems").innerHTML=r.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
+   return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg}</span><span class="m">${esc(w.ar)}</span></div>
+   <div class="e de">${esc(w.ex)}</div><div class="ea">${esc(w.exar)}</div><div class="tags">${tags(w)}</div></div>`}).join("");
 }
 
-/* ===== الاختبار ===== */
-let qz=[],qi=0,qs=0;
-function startQuiz(){qz=shuffle(uniq(filtered())).slice(0,10);qi=0;qs=0;showQ()}
+/* ================= الاختبار ================= */
+let qz=[],qi=0,qs=0,streakQ=0;
+function startQuiz(){qz=shuffle(uniq(filtered())).slice(0,10);qi=0;qs=0;streakQ=0;showQ()}
 function showQ(){
   const el=$("quiz");
   if(qz.length<4){el.innerHTML='<div class="box done">لا توجد كلمات كافية في هذا الاختيار.</div>';return}
-  if(qi>=qz.length){el.innerHTML=`<div class="box done"><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button></div>`;$("again").onclick=startQuiz;return}
+  if(qi>=qz.length){
+    const prev=EC||econ();QLOG.push([Date.now(),qs,qz.length]);save();celebrate(prev);schedSync();
+    const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
+    el.innerHTML=`<div class="box done"><div class="big">${star}</div><h2>النتيجة: ${qs} من ${qz.length}</h2><p>+${qs} 💎</p><button class="btn next" id="again">اختبار جديد</button></div>`;
+    if(qs===qz.length)confetti(150);
+    $("again").onclick=startQuiz;return}
   const w=qz[qi],pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar);
   const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
   const opts=shuffle([w,...wrong]);
-  el.innerHTML=`<div class="qinfo"><span>السؤال ${qi+1} من ${qz.length}</span><span>الصحيح: ${qs}</span></div>
-   <div class="box"><div class="qword de">${esc(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
+  el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span></div>
+   <div class="box"><div class="qword de">${artHTML(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
-    const ok=b.dataset.k===w.k;if(ok)qs++;else b.classList.add("no");
+    const ok=b.dataset.k===w.k;if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
-    $("qnext").innerHTML=`<div class="ex de" style="margin-top:8px">${esc(w.ex)}</div><div class="ea">${esc(w.exar)}</div><button class="btn next" id="nx">التالي</button>`;
+    $("qnext").innerHTML=`<div class="ex de" style="margin-top:8px">${esc(w.ex)}</div><div class="exar">${esc(w.exar)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
   });
 }
 
-/* ===== التقارير ===== */
-const dkey=t=>{const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-const stage=w=>{const p=P[w.k];return !p?0:p.box>=7?3:p.box>=4?2:1}; // 0 جديدة 1 قيد التعلّم 2 محفوظة 3 راسخة
+/* ================= التقارير ================= */
+const stage=w=>{const p=P[w.k];return !p?0:p.box>=7?3:p.box>=4?2:1};
 const SN=["جديدة","قيد التعلّم","محفوظة","راسخة"],SC=["c-new","c-learn","c-ok","c-master"];
 function stackBar(list){
   const c=[0,0,0,0];list.forEach(w=>c[stage(w)]++);const n=list.length||1;
@@ -285,86 +582,157 @@ function colChart(vals,labels,bad){
   return `<div class="cols">${vals.map((v,i)=>`<div class="col"><em>${v||""}</em><div class="bar ${bad&&bad[i]?"bad":""}" style="height:${v/mx*100}%"></div></div>`).join("")}</div>
   <div class="lbls">${labels.map(l=>`<span>${l}</span>`).join("")}</div>`;
 }
+function heatmap(per){
+  const end=new Date();end.setHours(12,0,0,0);const start=new Date(end.getTime()-125*DAY);start.setDate(start.getDate()-start.getDay());
+  let h="";for(let t=start.getTime();t<=end.getTime();t+=DAY){const d=dkey(t),n=(per[d]||{n:0}).n;
+    const c=n===0?"":n<10?"h1":n<30?"h2":n<60?"h3":"h4";h+=`<i class="${c} ${d===today()?"today":""}" title="${d}: ${n}"></i>`}
+  return `<div class="heat">${h}</div><div class="legend" style="margin-top:6px"><span>أقل</span><span><i style="background:var(--soft)"></i><i style="background:#9be9a8"></i><i style="background:#40c463"></i><i style="background:#30a14e"></i><i style="background:#216e39"></i></span><span>أكثر</span></div>`;
+}
 function renderReport(){
   const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k));
-  const L=LOG.filter(x=>fk.has(x[1]));
-  const sb=stackBar(f),c=sb.c;
+  const L=LOG.filter(x=>fk.has(x[1])),sb=stackBar(f),c=sb.c,e=EC||econ();
   const total=L.length,correct=L.filter(x=>x[2]>=2).length;
-  // أيام النشاط والسلسلة
   const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(x[3])days[d].nw++});
-  let streak=0;for(let t=now;;t-=DAY){if(days[dkey(t)])streak++;else if(dkey(t)!==dkey(now))break;if(streak>3650)break}
-  const td=days[dkey(now)]||{n:0,ok:0,nw:0};
-  // آخر ١٤ يومًا
+  const td=days[today()]||{n:0,ok:0,nw:0};
   const d14=[...Array(14)].map((_,i)=>now-(13-i)*DAY);
   const act=d14.map(t=>(days[dkey(t)]||{n:0}).n);
   const acc=d14.map(t=>{const d=days[dkey(t)];return d&&d.n?Math.round(d.ok/d.n*100):0});
   const lb14=d14.map(t=>new Date(t).getDate());
-  // توقّع الأيام السبعة القادمة
   const sod=new Date();sod.setHours(0,0,0,0);
-  const fc=[...Array(7)].map((_,i)=>f.filter(w=>{const p=P[w.k];if(!p)return false;const e=sod.getTime()+(i+1)*DAY;return i===0?p.due<e:p.due>=e-DAY&&p.due<e}).length);
+  const fc=[...Array(7)].map((_,i)=>f.filter(w=>{const p=P[w.k];if(!p)return false;const en=sod.getTime()+(i+1)*DAY;return i===0?p.due<en:p.due>=en-DAY&&p.due<en}).length);
   const fl=["اليوم","غدًا",...[2,3,4,5,6].map(i=>new Date(sod.getTime()+i*DAY).toLocaleDateString("ar",{weekday:"short"}))];
-  // الأصعب
   const miss={};L.forEach(x=>{if(x[2]===0)miss[x[1]]=(miss[x[1]]||0)+1});
   const hard=f.filter(w=>miss[w.k]).sort((a,b)=>miss[b.k]-miss[a.k]).slice(0,10);
-  // حسب اليوم والمستوى والنوع
-  const groupRows=(groups)=>groups.filter(g=>g.list.length).map(g=>{const s=stackBar(g.list);const done=s.c[2]+s.c[3];
-    return `<div class="row"><span>${g.name}</span><small>${done} من ${g.list.length} محفوظة · ${g.list.length-s.c[0]} بدأت</small></div>${s.html}`}).join("");
+  const groupRows=g=>g.filter(x=>x.list.length).map(x=>{const s=stackBar(x.list);const done=s.c[2]+s.c[3];
+    return `<div class="row"><span>${x.name}</span><small>${done} من ${x.list.length} محفوظة · ${x.list.length-s.c[0]} بدأت</small></div>${s.html}`}).join("");
   const legend=`<div class="legend">${[0,1,2,3].map(i=>`<span><i class="${SC[i]}"></i>${SN[i]} ${c[i]}</span>`).join("")}</div>`;
   el.innerHTML=`<div class="rnote">التقرير يتبع الفلاتر أعلاه. الكلمة "محفوظة" بعد وصولها إلى مراجعة أسبوعية، و"راسخة" بعد وصولها إلى مراجعة شهرية.</div>
   <div class="kpis">
    <div class="kpi g"><b>${c[2]+c[3]}</b><span>كلمة محفوظة من ${f.length}</span></div>
    <div class="kpi"><b>${f.length?Math.round((c[2]+c[3])/f.length*100):0}%</b><span>نسبة الإنجاز</span></div>
-   <div class="kpi y"><b>${streak}</b><span>أيام متتالية من المراجعة</span></div>
+   <div class="kpi y"><b>🔥 ${e.s.streak}</b><span>أيام متتالية (الأفضل ${e.s.best})</span></div>
    <div class="kpi ${total&&correct/total<.7?"r":"g"}"><b>${total?Math.round(correct/total*100):0}%</b><span>نسبة الإجابات الصحيحة</span></div>
    <div class="kpi"><b>${td.n}</b><span>مراجعة اليوم (${td.nw} جديدة)</span></div>
    <div class="kpi o"><b>${total}</b><span>مجموع المراجعات</span></div>
   </div>
   <div class="rsec"><h3>مراحل الحفظ</h3>${sb.html}${legend}</div>
+  <div class="rsec"><h3>خريطة النشاط</h3>${heatmap(e.per)}</div>
   <div class="rsec"><h3>النشاط في آخر ١٤ يومًا (عدد المراجعات)</h3>${colChart(act,lb14)}</div>
   <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>٧٠٪ فأكثر</span><span><i style="background:var(--red)"></i>أقل من ٧٠٪</span></div></div>
   <div class="rsec"><h3>المراجعات المستحقّة في الأيام القادمة</h3>${colChart(fc,fl)}</div>
   <div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>
   <div class="rsec"><h3>حسب المستوى والنوع</h3>${groupRows([{name:"B1",list:f.filter(w=>w.lvl==="B1")},{name:"B2",list:f.filter(w=>w.lvl==="B2")},{name:"★ الأساسية",list:f.filter(w=>w.core==1)}])}
    ${groupRows(Object.keys(TYPE).map(t=>({name:TYPE[t],list:f.filter(w=>w.t===t)})))}</div>
-  <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`+syncHTML();
+  <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`+syncHTML();
   bindSync();
 }
 
-/* ===== المزامنة مع المستودع ===== */
+/* ================= الجوائز ================= */
+function renderRewards(){
+  const e=econ(),t=itemOf("title",E.title),s=e.s;
+  const stickers=SHOP.filter(x=>x.cat==="sticker");
+  const el=$("rewards");
+  el.innerHTML=`<div class="hero"><div class="av">${esc(E.avatar)}</div><div style="flex:1">
+   <h2>المستوى ${e.lv} · ${esc(t?t.val:"")}</h2><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
+   <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
+  <div class="gstats">
+   <div class="gstat"><b>🔥 ${s.streak}</b><span>السلسلة الحالية</span></div>
+   <div class="gstat"><b>🏅 ${s.best}</b><span>أفضل سلسلة</span></div>
+   <div class="gstat"><b>❄️ ${s.freezes}</b><span>تجميد متاح</span></div>
+   <div class="gstat"><b>💎 ${e.gems}</b><span>رصيد الجواهر</span></div>
+   <div class="gstat"><b>✨ ${e.earned}</b><span>جواهر مكتسبة</span></div>
+   <div class="gstat"><b>🏆 ${e.got.size}/${ACH.length}</b><span>إنجازات</span></div>
+  </div>
+  <div class="rsec"><h3>كيف تكسب الجواهر؟</h3><div style="font-size:.85rem;line-height:1.9">
+   صعبة +١ · عرفتها أو سهلة +٢ · كلمة جديدة +١ إضافية<br>كلمة تصل إلى "محفوظة" +٥ · تصل إلى "راسخة" +١٥<br>
+   ٢٠ مراجعة في اليوم +٥ · ٥٠ مراجعة +١٠ · ١٠٠ مراجعة +١٥<br>كل إجابة صحيحة في الاختبار +١ · كل مستوى جديد +٥ × رقمه · وكل إنجاز له جائزته</div></div>
+  <div class="rsec"><h3>الإنجازات</h3><div class="achs">${ACH.map(a=>{const v=Math.min(a.v(s),a.need),g=e.got.has(a.id);
+   return `<div class="ach ${g?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}</b><small>${a.d} · ${g?"✓ تحقّق":"+"+a.g+" 💎"}</small>${g||a.need===1?"":`<div class="mini"><i style="width:${v/a.need*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
+  <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
+   <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${x.val}</span>`).join("")}</div>
+   <p style="font-size:.78rem;color:var(--muted);margin-top:6px">اشترِ الملصقات من المتجر، وثبّت أحدها ليظهر على بطاقاتك.</p></div>`;
+}
+
+/* ================= المتجر ================= */
+let shopCat="avatar";
+function renderShop(){
+  const e=econ(),el=$("shop");
+  const items=SHOP.filter(x=>x.cat===shopCat);
+  el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمراجعة 💪</small></div></div>
+  <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}</div>
+  <div class="shop">${items.map(it=>{
+    const mine=it.cat!=="power"&&owned(it.cat,it.id),ek=EQKEY[it.cat];
+    const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
+    const pv=it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:esc(it.val);
+    let btn;
+    if(it.cat==="power")btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
+    else if(!mine)btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
+    else if(isEq)btn=it.cat==="sticker"?`<button class="btn eqd" data-uneq="1">مثبّت ✓ (إزالة)</button>`:`<button class="btn eqd" disabled>مُستخدم ✓</button>`;
+    else btn=`<button class="btn eq" data-eq="${esc(eqv)}">استخدام</button>`;
+    return `<div class="si ${mine?"mine":""}"><div class="pv" style="${it.cat==="theme"?"background:"+it.sw[0]:""}">${pv}</div><div class="nm">${esc(it.name)}</div>${it.desc?`<small style="font-size:.7rem;color:var(--muted)">${it.desc} · لديك ${e.s.freezes}</small>`:""}${btn}</div>`}).join("")}</div>`;
+  el.querySelectorAll(".cats button").forEach(b=>b.onclick=()=>{shopCat=b.dataset.c;renderShop()});
+  el.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buy(shopCat,b.dataset.buy));
+  el.querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>equip(shopCat,b.dataset.eq));
+  el.querySelectorAll("[data-uneq]").forEach(b=>b.onclick=()=>equip("sticker",""));
+}
+function buy(cat,id){
+  const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price)return;
+  if(!confirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
+  const prev=e;BUY.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),item:cat+":"+id,ts:Date.now()});save();
+  toast(it.val&&it.cat!=="title"?it.val:"🛍️","تمّ الشراء!",it.name);confetti(50);
+  if(cat!=="power")equip(cat,cat==="avatar"?it.val:id,true);
+  celebrate(prev);renderShop();schedSync();
+}
+function equip(cat,v,silent){
+  const k=EQKEY[cat];if(!k)return;E[k]=v;E.ts=Date.now();save();applyLook();econ();renderHeader();
+  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync();
+}
+
+/* ================= المزامنة مع المستودع ================= */
 const REPO="ghadeerabbas/mufradati",PFILE="progress.json",API=`https://api.github.com/repos/${REPO}/contents/${PFILE}`;
 let syncTimer=null,syncing=false;
 const tok=()=>st("muf_token")||"";
 const b64e=t=>btoa(unescape(encodeURIComponent(t))),b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,""))));
 function setSyncStat(msg,cls){st("muf_sync_msg",msg);const e=$("sStat");if(e){e.textContent=msg;e.className="sstat "+(cls||"")}}
+// ضغط السجلّ لتصغير الملف
+function packLog(L){const K=[],ix={},F=[];let p=0;for(const[t,k,r,n]of L){if(ix[k]===undefined){ix[k]=K.length;K.push(k)}const s=Math.round(t/1000);F.push(s-p,ix[k],r,n);p=s}return{K,F}}
+function unpackLog(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let p=0;for(let i=0;i<o.F.length;i+=4){p+=o.F[i];L.push([p*1000,o.K[o.F[i+1]],o.F[i+2],o.F[i+3]])}return L}
 async function getRemote(){
-  const r=await fetch(API+"?ref=main&t="+Date.now(),{headers:{Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"},cache:"no-store"});
+  const h={Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"};
+  const r=await fetch(API+"?ref=main&t="+Date.now(),{headers:h,cache:"no-store"});
   if(r.status===404)return {sha:null,data:null};
   if(!r.ok)throw new Error(r.status===401?"المفتاح غير صالح أو منتهي":"خطأ "+r.status);
-  const j=await r.json();return {sha:j.sha,data:JSON.parse(b64d(j.content))};
+  const j=await r.json();let txt;
+  if(j.content)txt=b64d(j.content);
+  else{const rr=await fetch(API+"?ref=main&t="+Date.now(),{headers:{...h,Accept:"application/vnd.github.raw+json"},cache:"no-store"});txt=await rr.text()}
+  return {sha:j.sha,data:JSON.parse(txt)};
 }
 function mergeIn(d){
   if(!d)return;
   for(const k in d.P||{}){const a=P[k],b=d.P[k];if(!a||(b.t||0)>(a.t||0))P[k]=b}
-  const seen=new Set(LOG.map(x=>x[0]+"|"+x[1]));
-  (d.LOG||[]).forEach(x=>{if(!seen.has(x[0]+"|"+x[1]))LOG.push(x)});
-  LOG.sort((a,b)=>a[0]-b[0]);if(LOG.length>30000)LOG=LOG.slice(-30000);
-  if(d.S){S.limit=d.S.limit||S.limit;S.dir=d.S.dir||S.dir}
-  save();st("muf_log",JSON.stringify(LOG));
+  const sl=new Set(LOG.map(x=>Math.round(x[0]/1000)+"|"+x[1]));
+  unpackLog(d.LOG).forEach(x=>{if(!sl.has(Math.round(x[0]/1000)+"|"+x[1]))LOG.push(x)});LOG.sort((a,b)=>a[0]-b[0]);
+  const sq=new Set(QLOG.map(x=>x[0]));(d.QLOG||[]).forEach(x=>{if(!sq.has(x[0]))QLOG.push(x)});QLOG.sort((a,b)=>a[0]-b[0]);
+  const sb=new Set(BUY.map(x=>x.id));(d.BUY||[]).forEach(x=>{if(!sb.has(x.id))BUY.push(x)});
+  if(d.S&&(d.S.ts||0)>(S.ts||0)){S.limit=d.S.limit;S.dir=d.S.dir;S.goal=d.S.goal||S.goal;S.ts=d.S.ts}
+  if(d.E&&(d.E.ts||0)>(E.ts||0))Object.assign(E,d.E);
+  save();
 }
 async function syncNow(manual){
-  if(!tok()||syncing)return;syncing=true;clearTimeout(syncTimer);
-  setSyncStat("جارٍ المزامنة…");
+  if(!tok()||syncing)return;syncing=true;clearTimeout(syncTimer);syncTimer=null;
+  setSyncStat("جارٍ المزامنة…");const prev=EC;
   try{
     for(let attempt=0;attempt<2;attempt++){
       const {sha,data}=await getRemote();mergeIn(data);
-      const body={updated:new Date().toISOString(),P,LOG,S:{limit:S.limit,dir:S.dir}};
+      const body={updated:new Date().toISOString(),P,LOG:packLog(LOG),QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E};
       const r=await fetch(API,{method:"PUT",headers:{Authorization:"Bearer "+tok(),Accept:"application/vnd.github+json"},
         body:JSON.stringify({message:"تحديث التقدّم",content:b64e(JSON.stringify(body)),branch:"main",...(sha?{sha}:{})})});
       if(r.ok){setSyncStat("✓ آخر مزامنة: "+new Date().toLocaleString("ar",{weekday:"long",hour:"2-digit",minute:"2-digit"}),"ok");break}
-      if(r.status!==409&&r.status!==422||attempt)throw new Error(r.status===401||r.status===403?"المفتاح لا يملك صلاحية الكتابة":"خطأ "+r.status);
+      if((r.status!==409&&r.status!==422)||attempt)throw new Error(r.status===401||r.status===403?"المفتاح لا يملك صلاحية الكتابة":"خطأ "+r.status);
     }
-    stats();if(manual){buildQueue();showCard()}
-    if($("report").classList.contains("on"))renderReport();
+    applyLook();econ();renderHeader();
+    if(manual){buildQueue();showCard()}
+    const on=document.querySelector(".panel.on");if(on&&on.id!=="review")renderPanel(on.id);
   }catch(e){setSyncStat("✗ تعذّرت المزامنة: "+e.message,"bad")}
   syncing=false;
 }
@@ -372,7 +740,7 @@ function schedSync(){if(!tok())return;clearTimeout(syncTimer);syncTimer=setTimeo
 function syncHTML(){
   const has=!!tok(),msg=st("muf_sync_msg")||"";
   return `<div class="rsec sync"><h3>🔄 المزامنة مع المستودع</h3>
-  ${has?`<p>تُحفظ مراجعاتك في المستودع تلقائيًا بعد دقيقة من آخر بطاقة، ويُدمج تقدّم الهاتف والحاسوب معًا.</p>
+  ${has?`<p>تُحفظ مراجعاتك وجواهرك ومشترياتك في المستودع تلقائيًا بعد دقيقة من آخر نشاط، ويُدمج تقدّم الهاتف والحاسوب معًا.</p>
    <div class="btns"><button class="btn" id="syncBtn">مزامنة الآن</button><button class="btn sec" id="tokDel">حذف المفتاح من هذا الجهاز</button></div>`
   :`<p>الصق مفتاح الوصول الذي أنشأته في غيت هب. يُحفظ في هذا المتصفح فقط.</p>
    <input type="password" id="tokIn" placeholder="github_pat_..." autocomplete="off">
@@ -385,13 +753,20 @@ function bindSync(){
   if($("tokSave"))$("tokSave").onclick=()=>{const v=$("tokIn").value.trim();if(!v)return;st("muf_token",v);renderReport();syncNow(true)};
 }
 
-function refresh(){buildQueue();showCard();renderList();startQuiz();stats();renderReport()}
+/* ================= التشغيل ================= */
+function renderPanel(p){
+  $("mainFilters").style.display=(p==="rewards"||p==="shop")?"none":"";
+  if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
+}
+function refresh(){buildQueue();showCard();renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
 function init(){
+  applyLook();econ();renderHeader();
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on");$(b.dataset.p).classList.add("on");if(b.dataset.p==="report")renderReport();scrollTo(0,0)});
+    b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("q").oninput=renderList;$("fType").onchange=renderList;
+  $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
   refresh();
   if(tok())syncNow(true);
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
