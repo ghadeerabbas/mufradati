@@ -489,6 +489,13 @@ const SHOP=[
  // مستهلكات
  {id:"freeze",cat:"power",name:"تجميد السلسلة",price:300,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
 ];
+// كل هدايا المتجر تنفتح بالصعود في الدوري (رقم الدوري الذي يفتح كل غرض؛ ما لم يُذكر يكون مفتوحًا)
+const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10:4,av11:5,av12:7,av13:9},
+ title:{t1:1,t2:2,t3:3,t4:4,t5:5,t6:7,t7:9},
+ theme:{emerald:2,royal:3,ocean:4,sunset:6,lux:8},
+ sticker:{s0:0,s1:0,s2:0,s3:1,s4:1,s5:1,s6:2,s7:2,s8:3,s9:3,s10:4,s11:5,s12:5,s13:6,s14:8,s15:9},
+ confetti:{stars:1,hearts:2,gems:4,fireworks:6}};
+SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t});
 const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
 const EQKEY={avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
 const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
@@ -1087,7 +1094,7 @@ const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3",
 const tierName=i=>"الدوري "+TIERS[i][0];
 // أعلى دوري وصله المتعلّم: يفتح إطارات المتجر، ولا تُقفل إن نزل بعدها
 const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier+h.mv));
-const frameLocked=it=>it.cat==="frame"&&(it.tier||0)>bestTier();
+const itemLocked=it=>it.cat!=="power"&&(it.tier||0)>bestTier();
 const GROUP_MAX=20,PROMO_MIN=100;
 function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()}
 const weekId=t=>dkey(weekStart(t));
@@ -1191,7 +1198,7 @@ async function leagueSettle(){
   LG.w=cur;if(res)LG.hist=[...(LG.hist||[]),res].slice(-52);LG.ts=Date.now();save();schedSync();
   if(res){celebrate(prev);
     const t=res.tier+res.mv;
-    if(res.mv>0){const nf=SHOP.filter(x=>x.cat==="frame"&&x.tier===t);if(nf.length)setTimeout(()=>toast("🖼️","انفتحت إطارات جديدة في المتجر",nf.map(x=>x.name).join("، ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
+    if(res.mv>0){const nf=SHOP.filter(x=>x.tier===t&&x.cat!=="power");if(nf.length)setTimeout(()=>toast("🎁","انفتحت "+nf.length+" هدايا جديدة في المتجر",nf.map(x=>x.cat==="title"||x.cat==="theme"||x.cat==="frame"?x.name:x.val).join(" ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
     else if(res.mv<0)toast("⬇️","نزلت إلى "+tierName(t),"المركز "+res.rank+" من "+res.n+" · عُد أقوى هذا الأسبوع");
     else toast(TIERS[t][1],"بقيت في "+tierName(t),"المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));
   }
@@ -1339,14 +1346,14 @@ function renderShop(){
   const items=SHOP.filter(x=>x.cat===shopCat);
   el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمراجعة 💪</small></div></div>
   <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}</div>
-  ${shopCat==="frame"?`<p class="rnote" style="margin-bottom:8px">كلما صعدت في الدوري انفتحت إطارات أجمل. أعلى دوري وصلته: ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
+  ${shopCat!=="power"?`<p class="rnote" style="margin-bottom:8px">كلما صعدت في الدوري انفتحت هدايا أجمل. أعلى دوري وصلته: ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
   <div class="shop">${items.map(it=>{
     const mine=it.cat!=="power"&&owned(it.cat,it.id),ek=EQKEY[it.cat];
     const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
     const pv=it.cat==="frame"?`<div class="frmini fr-${it.id}"></div>`:it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:esc(it.val);
     let btn;
     if(it.cat==="power")btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
-    else if(!mine&&frameLocked(it))btn=`<button class="btn buy" disabled>🔒 ${TIERS[it.tier][1]} ${TIERS[it.tier][0]}</button>`;
+    else if(!mine&&itemLocked(it))btn=`<button class="btn buy" disabled>🔒 ${TIERS[it.tier][1]} ${TIERS[it.tier][0]}</button>`;
     else if(!mine)btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
     else if(isEq)btn=it.cat==="sticker"?`<button class="btn eqd" data-uneq="1">مثبّت ✓ (إزالة)</button>`:`<button class="btn eqd" disabled>مُستخدم ✓</button>`;
     else btn=`<button class="btn eq" data-eq="${esc(eqv)}">استخدام</button>`;
@@ -1357,7 +1364,7 @@ function renderShop(){
   el.querySelectorAll("[data-uneq]").forEach(b=>b.onclick=()=>equip("sticker",""));
 }
 async function buy(cat,id){
-  const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price||frameLocked(it))return;
+  const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price||itemLocked(it))return;
   if(!await uiConfirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
   const prev=e;BUY.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),item:cat+":"+id,p:it.price,ts:Date.now()});save();
   toast(it.val&&it.cat!=="title"?it.val:"🛍️","تمّ الشراء!",it.name);confetti(50);
