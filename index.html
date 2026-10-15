@@ -129,6 +129,37 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .opt.ok{background:#22c55e22;border-color:var(--green)}.opt.no{background:#ef444422;border-color:var(--red)}
 .next{background:var(--navy);color:#fff;width:100%;margin-top:6px}
 .err{color:var(--rd);text-align:center;padding:30px}
+/* ===== النطق والتمارين والدوري ===== */
+.say{background:none;border:0;font-size:1.05rem;padding:0 4px;cursor:pointer;vertical-align:middle;line-height:1;opacity:.85}
+.exd .say{font-size:.9rem}
+.gcards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.gcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--ink)}
+.gcard:disabled{opacity:.45}.gcard .gic{font-size:2rem}.gcard b{font-size:.98rem;color:var(--hd)}.gcard small{font-size:.75rem;color:var(--muted)}.gcard em{font-style:normal;font-size:.72rem;color:var(--green);margin-top:2px}
+.gcard:last-child:nth-child(odd){grid-column:1/-1}
+.ghint{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:6px}
+.gopt{display:block;width:100%;text-align:right;background:var(--card);color:var(--ink);border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
+.gopt.ok{background:#22c55e22;border-color:var(--green)}.gopt.no{background:#ef444422;border-color:var(--red)}
+.cloze{font-size:1.15rem;line-height:1.9;text-align:left;margin:6px 0}.cloze-ar{font-size:.9rem;color:var(--muted);margin-bottom:12px}
+.blank{display:inline-block;min-width:70px;border-bottom:2px solid var(--gold);text-align:center;font-weight:700;color:var(--hd)}.blank.good{color:var(--green);border-color:var(--green)}.blank.bad{color:var(--rd);border-color:var(--red)}
+.arts{display:flex;gap:8px;margin-top:10px}.artb{flex:1;font-size:1.2rem;font-weight:800;background:var(--card);border:2px solid var(--line)}
+.artb.art-der{color:#2563eb}.artb.art-die{color:#dc2626}.artb.art-das{color:#16a34a}.artb.ok{background:#22c55e33;border-color:var(--green)}.artb.no{background:#ef444433;border-color:var(--red)}
+.gin{width:100%;font:inherit;font-size:1.2rem;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);text-align:left;margin-top:8px}
+.gin.good{border-color:var(--green)}.gin.bad{border-color:var(--red)}
+.ukeys{display:flex;gap:6px;justify-content:center;margin:8px 0;flex-wrap:wrap;direction:ltr}.ukeys button{min-width:40px;padding:7px 0;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-size:1.05rem}
+.gres{text-align:center;font-weight:700;margin-top:10px}.gres.good{color:var(--green)}.gres.bad{color:var(--rd)}
+.gans{text-align:center;font-size:1.3rem;font-weight:700;color:var(--hd);margin:4px 0}.gans u{color:var(--rd);text-decoration-thickness:2px}
+.gword{display:flex;gap:6px;align-items:baseline;justify-content:center;flex-wrap:wrap;margin:10px 0 4px;font-weight:700}.gword .m{color:var(--rd)}
+.gtime{font-weight:700;color:var(--ink)}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mgrid>div{display:flex;flex-direction:column;gap:8px}
+.mb{min-height:52px;padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:.95rem;font-weight:600}
+.mb.sel{border-color:var(--gold);background:#c9a84a22}.mb.gone{visibility:hidden}
+.lghead{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lgic{font-size:2.2rem}.lghead b{display:block;font-size:1.05rem;color:var(--hd)}.lghead small{font-size:.78rem;color:var(--muted)}
+.tiers{display:flex;justify-content:space-between;margin:6px 0 10px;font-size:1.05rem}.tiers span{opacity:.9}.tiers .lock{opacity:.25;filter:grayscale(1)}.tiers .on{transform:scale(1.35)}
+.lgrow{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;font-size:.9rem}.lgrow b{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lgrow .rk{width:24px;text-align:center;font-weight:700}.lgrow .xp{font-size:.8rem;color:var(--muted)}.lgrow.up{background:#22c55e14}.lgrow.down{background:#ef444414}.lgrow.me{outline:2px solid var(--gold)}
+.lgline{font-size:.72rem;text-align:center;margin:4px 0;font-weight:700}.lgline.up{color:var(--green)}.lgline.down{color:var(--rd)}
+.lgrules{margin-top:8px;font-size:.82rem}.lgrules summary{cursor:pointer;color:var(--hd);font-weight:600}.lgrules ul{padding-right:18px;margin-top:6px;line-height:1.7}
+.mbar{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:4px 0}.mbar span{width:46%}.mbar i{flex:1;height:8px;border-radius:4px;background:var(--soft);position:relative;overflow:hidden}.mbar i b{position:absolute;inset:0 auto 0 0;background:var(--navy2);border-radius:4px}.mbar em{font-style:normal;width:44px;text-align:left}
 /* ===== التقارير ===== */
 .rnote{font-size:.8rem;color:var(--muted);margin-bottom:10px}
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
@@ -297,6 +328,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
     <button data-p="review" class="on"><i>🃏</i>المراجعة</button>
     <button data-p="list"><i>📚</i>القائمة</button>
     <button data-p="quiz"><i>❓</i>الاختبار</button>
+    <button data-p="games"><i>🎮</i>تمارين</button>
     <button data-p="report"><i>📊</i>التقارير</button>
     <button data-p="rewards"><i>🏆</i>الجوائز</button>
     <button data-p="shop"><i>🛍️</i>المتجر</button>
@@ -323,6 +355,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
   </section>
 
   <section id="quiz" class="panel"></section>
+  <section id="games" class="panel"></section>
   <section id="report" class="panel"></section>
   <section id="rewards" class="panel"></section>
   <section id="shop" class="panel"></section>
@@ -376,14 +409,14 @@ const dayName=n=>"اليوم "+ordinal(n);
 let W=[],DAYS=[];
 let UID=null,UNAME="";                       // المستخدم الحالي
 const K=n=>"muf_"+UID+"_"+n;                // مفاتيح التخزين لكل مستخدم
-let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0}; // R: جواهر محفوظة من قبل التصفير
+let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));LGME=null;LGC={at:0,rows:null};
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
 const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));
-  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E))};
+  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG))};
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
@@ -492,6 +525,7 @@ function econ(){
   let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=lv*5}
   const got=achList().filter(a=>a.v(s)>=a.need),paid=new Set(R.ach||[]);gems+=got.filter(a=>!paid.has(a.id)).reduce((a,b)=>a+b.g,0);
   gems+=R.bank||0;
+  gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
   EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got.map(a=>a.id)),todayN:td.n,per};
@@ -555,7 +589,7 @@ function exPairs(w,mode){
   const a=String(w.ex||"").split("\n"),b=String(w.exar||"").split("\n");
   if(!w.ex)return"";
   const pairs=a.length===b.length?a.map((x,i)=>[x,b[i]]):[[w.ex,w.exar]];
-  return `<div class="exs ${mode||""}">${pairs.map(([x,y])=>`<div class="exp"><div class="exd de">${esc(x)}</div><div class="exa">${esc(y)}</div></div>`).join("")}</div>`;
+  return `<div class="exs ${mode||""}">${pairs.map(([x,y])=>`<div class="exp"><div class="exd de">${sayBtn(x)}${esc(x)}</div><div class="exa">${esc(y)}</div></div>`).join("")}</div>`;
 }
 function tags(w){
   return (w.lvl?`<span class="tag ${w.lvl}">${w.lvl}</span>`:"")+(w.subj&&useSubj()?`<span class="tag">📚 ${esc(w.subj)}</span>`:"")+`<span class="tag">${TYPE[w.t]||""}</span>`+
@@ -638,12 +672,12 @@ function showCard(){
   }
   cur=queue[0];flipped=false;
   const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${esc(E.sticker)}</span>`:"";
-  const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
+  const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
   el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span></div>
   <div class="scene fr-${E.frame}"><div class="flip" id="flip">
    <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
-   <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${artHTML(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
+   <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
     ${exPairs(cur)}</div>
   </div></div><div id="rate"></div>`+settingsHTML();
   $("flip").onclick=flip;bindSettings();
@@ -664,7 +698,7 @@ function rate(r,btn){
   let box=old?old.box:0;
   if(r===0)box=0;else if(r===1)box=Math.max(1,box);else box=Math.min(box+(r===2?1:2),8);
   P[cur.k]={box,due:r===0?now:now+IV[box]*DAY,t:now};
-  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>60000)LOG=LOG.slice(-60000);
+  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>60000)LOG=LOG.slice(-60000);markStudied();
   save();
   const g=GEM[r]+(old?0:1);if(g)floatAt(btn,"+"+g+" 💎");
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
@@ -683,11 +717,11 @@ async function resetProgress(){
   if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
   const e0=econ();
   R={bank:e0.earned,ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:Date.now()};
-  P={};LOG=[];QLOG=[];QA=[];S.newCount=0;save();
+  P={};LOG=[];QLOG=[];QA=[];S.newCount=0;LG.hist=[];LG.ts=Date.now();save();
   try{
     clearTimeout(syncTimer);syncTimer=null;
     const b=db.batch();
-    b.set(uref(),{main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R}),sum:summary(),name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    b.set(uref(),{main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R,LG}),sum:summary(),name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
     b.set(uref().collection("data").doc("log"),{v:JSON.stringify(packLog([]))});
     b.set(uref().collection("data").doc("qa"),{v:JSON.stringify(packQA([]))});
     await b.commit();
@@ -699,6 +733,7 @@ function settingsHTML(){
   const btns=(id,arr,v)=>`<span class="numpicks" id="${id}">${arr.map(n=>`<button type="button" class="numpick${n==v?" on":""}" data-v="${n}">${n}</button>`).join("")}</span>`;
   return `<div class="settings"><div class="limrow">كلمات جديدة يوميًا: ${btns("sLim",[5,10,15,20,30,50],S.limit)}</div>
    <div class="limrow">هدف المراجعات اليومي: ${btns("sGoal",[20,30,50,80,100],S.goal)}</div>
+   ${reminderHTML()}
    الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
    <button class="link" id="sReset">تصفير التقدّم</button></div>`;
 }
@@ -708,6 +743,17 @@ function bindSettings(){
   $("sGoal").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.goal)return;S.goal=+b.dataset.v;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
   $("sReset").onclick=resetProgress;
+  const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
+    try{st("muf_rem",JSON.stringify(r));MufApp.setReminder(r.on,r.h,0)}catch(err){}
+    rm.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
+    toast("🔔",r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
+}
+// التذكير اليومي: في تطبيق أندرويد فقط، ويُحفظ على الجهاز نفسه
+const REM=()=>Object.assign({on:false,h:19},jget("muf_rem",{}));
+function reminderHTML(){
+  if(!(window.MufApp&&MufApp.setReminder))return "";
+  const r=REM(),opt=[["off","إيقاف"],[8,"8:00"],[12,"12:00"],[17,"17:00"],[19,"19:00"],[21,"21:00"]];
+  return `<div class="limrow">🔔 التذكير اليومي: <span class="numpicks" id="sRem">${opt.map(([v,l])=>`<button type="button" class="numpick${(v==="off"?!r.on:r.on&&r.h===v)?" on":""}" data-v="${v}">${l}</button>`).join("")}</span></div>`;
 }
 
 /* ================= القائمة ================= */
@@ -716,7 +762,7 @@ function renderList(){
   const r=filtered().filter(w=>(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));
   $("lcount").textContent=r.length+" كلمة";
   $("litems").innerHTML=r.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
-   return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg}</span><span class="m">${esc(w.ar)}</span></div>
+   return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>
    ${exPairs(w,"list")}<div class="tags">${tags(w)}</div></div>`}).join("");
 }
 
@@ -751,14 +797,359 @@ function showQ(){
   const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
   const opts=shuffle([w,...wrong]);
   el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span></div>
-   <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${artHTML(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
+   <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
-    const ok=b.dataset.k===w.k;QA.push([Date.now(),w.k,ok?1:0]);if(QA.length>30000)QA=QA.slice(-30000);save();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
+    const ok=b.dataset.k===w.k;QA.push([Date.now(),w.k,ok?1:0]);markStudied();if(QA.length>30000)QA=QA.slice(-30000);save();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
     $("qnext").innerHTML=`<div style="margin-top:8px">${exPairs(w)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
   });
+}
+
+/* ================= النطق ================= */
+// يُنطق النص الألماني: في تطبيق أندرويد عبر محرّك النطق في الهاتف، وفي المتصفح عبر نطق المتصفح
+function speakable(s){
+  return String(s||"").replace(/\([^)]*\)/g," ").split(",").map(p=>p.trim())
+    .filter((p,i)=>i===0||(!/^[-–]/.test(p)&&p.replace(/[^A-Za-zÄÖÜäöüß]/g,"").length>=3)).join(", ").replace(/\s+/g," ").trim();
+}
+let DE_VOICE=null;
+function pickVoice(){try{const v=speechSynthesis.getVoices();DE_VOICE=v.find(x=>/^de([-_]|$)/i.test(x.lang))||null}catch(e){}}
+if("speechSynthesis" in window){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
+const hasNative=()=>!!(window.MufApp&&MufApp.speak);
+const canSpeak=()=>hasNative()||("speechSynthesis" in window);
+function speak(t){
+  t=speakable(t);if(!t)return;
+  if(hasNative()){try{MufApp.speak(t);return}catch(e){}}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(DE_VOICE)u.voice=DE_VOICE;u.rate=.9;speechSynthesis.speak(u)}catch(e){}
+}
+const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">🔊</button>`:"";
+// يعمل قبل أي ضغطة أخرى، فلا يقلب البطاقة ولا يختار جوابًا
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".say");if(!b)return;e.stopPropagation();e.preventDefault();speak(b.dataset.say)},true);
+
+/* ================= التمارين ================= */
+const ART=/^(der|die|das)\s+/i;
+const lemmaOf=w=>String(w.de).split(",")[0].replace(/\([^)]*\)/g,"").split("/")[0].replace(/\s+/g," ").trim();
+const answersOf=w=>String(w.de).split(",")[0].replace(/\([^)]*\)/g,"").split("/").map(s=>s.replace(/\s+/g," ").trim()).filter(Boolean);
+function nounOf(w){
+  if(w.t!=="n")return null;const m=lemmaOf(w).match(/^(der|die|das)\s+(.+)$/i);
+  return m?{art:m[1].toLowerCase(),noun:m[2]}:null;
+}
+// جملة المثال مع فراغ مكان الكلمة، من جمل الكلمة نفسها فقط
+function clozeOf(w){
+  if(!w.ex)return null;
+  const L=lemmaOf(w).replace(ART,"").replace(/^sich\s+/i,"");
+  if(!L||/\s/.test(L))return null;
+  const forms=new Set([L.toLowerCase()]);
+  // ما بين القوسين يُقبل فقط إن كان صيغة للكلمة نفسها (مثل: fährt، hohen)، لا كلمة مرافقة لها
+  const fold=x=>x.toLowerCase().replace(/ä/g,"a").replace(/ö/g,"o").replace(/ü/g,"u"),STOP=new Set(["sich","etwas","ein","eine","einen","einem","einer","der","die","das","den","dem","des","pl","jemandem","jemanden","in","an","auf","mit","bei","zu","von","für","über","aus"]);
+  if(STOP.has(L.toLowerCase()))return null;
+  (String(w.de).match(/\(([^)]*)\)/g)||[]).forEach(p=>p.slice(1,-1).split(/[\s,;/….]+/).forEach(f=>{const lf=f.toLowerCase();if(f.length>2&&!STOP.has(lf)&&fold(f).slice(0,2)===fold(L).slice(0,2))forms.add(lf)}));
+  String(w.de).split(",").slice(1).forEach(p=>{p=p.trim().replace(ART,"");if(/^[A-Za-zÄÖÜäöüß]{3,}$/.test(p))forms.add(p.toLowerCase())});
+  const stem=L.toLowerCase().replace(/(en|n|e)$/,"");
+  // أولًا الصيغ المكتوبة نفسها، ثم الصيغ القريبة منها (مثل: Bäume ← Bäumen)
+  const exact=t=>forms.has(t),near=t=>(stem.length>=4&&t.startsWith(stem)&&t.length<=stem.length+3)||[...forms].some(f=>f.length>=4&&t.startsWith(f)&&t.length-f.length<=2);
+  const ex=String(w.ex).split("\n"),ar=String(w.exar||"").split("\n");
+  for(const test of [exact,near])for(let i=0;i<ex.length;i++){
+    const re=/[A-Za-zÄÖÜäöüß]+/g;let m;
+    while((m=re.exec(ex[i]))){
+      if(test(m[0].toLowerCase()))return {pre:ex[i].slice(0,m.index),post:ex[i].slice(m.index+m[0].length),word:m[0],full:ex[i],ar:ex.length===ar.length?ar[i]:(ex.length===1?w.exar:"")};
+    }
+  }
+  return null;
+}
+const normT=s=>String(s).normalize("NFC").replace(/[‘’]/g,"'").replace(/\s+/g," ").trim();
+function checkTyped(w,v){
+  v=normT(v);const ans=answersOf(w).map(normT);
+  if(ans.includes(v))return {ok:1,a:v};
+  const lo=ans.find(a=>a.toLowerCase()===v.toLowerCase());if(lo)return {ok:0,a:lo,why:"انتبه إلى الأحرف الكبيرة والصغيرة"};
+  const na=ans.find(a=>ART.test(a)&&a.replace(ART,"").toLowerCase()===v.replace(ART,"").toLowerCase());
+  if(na)return {ok:0,a:na,why:ART.test(v)?"الأداة غير صحيحة":"لا تنسَ الأداة"};
+  return {ok:0,a:ans[0]};
+}
+// يُظهر الجواب الصحيح ويضع خطًّا تحت الأحرف التي أخطأ فيها
+function diffHTML(a,b){
+  const n=a.length,m=b.length,d=[...Array(n+1)].map(()=>new Array(m+1).fill(0));
+  for(let i=n-1;i>=0;i--)for(let j=m-1;j>=0;j--)d[i][j]=a[i]===b[j]?d[i+1][j+1]+1:Math.max(d[i+1][j],d[i][j+1]);
+  let i=0,j=0,h="";
+  while(i<n){if(j<m&&a[i]===b[j]){h+=esc(a[i]);i++;j++}else if(j<m&&d[i][j+1]>=d[i+1][j])j++;else{h+=`<u>${esc(a[i])}</u>`;i++}}
+  return h;
+}
+// ٦٠٪ من الكلمات الصعبة عليه، والباقي عشوائي
+function pickWords(list,n){
+  const sc=hardScores(),hard=shuffle(list.filter(w=>sc[w.k]>0)).sort((a,b)=>sc[b.k]-sc[a.k]),rest=shuffle(list.filter(w=>!sc[w.k]));
+  const out=[...hard.slice(0,Math.round(n*.6))];
+  for(const w of [...rest,...hard])if(out.length<n&&!out.includes(w))out.push(w);
+  return shuffle(out);
+}
+const GAMES=[
+ {id:"cloze",ic:"✍️",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
+ {id:"art",ic:"🎯",n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
+ {id:"type",ic:"⌨️",n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
+ {id:"match",ic:"🧩",n:"المطابقة السريعة",d:"طابق ٦ كلمات بمعانيها بأسرع ما يمكن"},
+ {id:"s5",ic:"⏱️",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
+];
+function gamePool(id){
+  const all=uniq(filtered());
+  if(id==="cloze")return all.filter(w=>clozeOf(w));
+  if(id==="art")return all.filter(w=>nounOf(w));
+  if(id==="type")return all.filter(w=>answersOf(w).length);
+  return all;
+}
+const gameMin={cloze:4,art:4,type:4,match:6,s5:4};
+let GM=null,GTICK=null;
+const stopTick=()=>{clearInterval(GTICK);GTICK=null};
+const bestMatch=()=>{const t=QLOG.filter(q=>q[3]==="match"&&q[1]===q[2]&&q[4]).map(q=>q[4]);return t.length?Math.min(...t):0};
+const secs=ms=>(ms/1000).toFixed(1).replace(".",",")+" ث";
+function renderGames(){
+  const el=$("games");
+  if(GM){gameView();return}
+  const bm=bestMatch();
+  el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
+    return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
+     <em>${ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"٥ دقائق":n+" كلمة متاحة"):"لا كلمات كافية في هذا الاختيار"}</em></button>`}).join("")}</div>
+   <p class="rnote" style="margin-top:10px">التمارين تأخذ كلمات الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = 💎 وخبرة.</p>`;
+  el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
+}
+function startGame(id){
+  const pool=gamePool(id);stopTick();
+  GM={id,ok:0,n:0,i:0,t0:Date.now(),done:false};
+  if(id==="match"){GM.words=pickWords(pool,6);GM.left=new Set(GM.words.map(w=>w.k));GM.miss=0;GM.sel=null;GM.ar=shuffle([...GM.words]);GM.de=shuffle([...GM.words])}
+  else if(id==="s5"){GM.end=Date.now()+5*60*1000;stopTick();GTICK=setInterval(()=>{if(!GM||GM.id!=="s5"){stopTick();return}
+      if(Date.now()>=GM.end){finishGame();return}const r=$("gTime");if(r)r.textContent=clock(GM.end-Date.now())},500);GM.q=nextMixed()}
+  else{GM.list=pickWords(pool,10);GM.q=makeQ(id,GM.list[0])}
+  gameView();scrollTo(0,0);
+}
+const clock=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+function makeQ(kind,w){
+  if(kind==="mc"){const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(pool.filter(x=>x.t===w.t));return {kind,w,opts:shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)])}}
+  if(kind==="cloze"){const pool=uniq(W).filter(x=>x.k!==w.k&&lemmaOf(x)!==lemmaOf(w)),same=shuffle(pool.filter(x=>x.t===w.t));return {kind,w,c:clozeOf(w),opts:shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)])}}
+  return {kind,w};
+}
+function nextMixed(){
+  const kinds=[["mc",uniq(filtered())],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
+  const [kind,pool]=kinds[Math.random()*kinds.length|0];
+  const last=GM&&GM.q?GM.q.w.k:null;const cand=pickWords(pool.filter(w=>w.k!==last),1);
+  return makeQ(kind,cand[0]||pool[0]);
+}
+function gameHead(){
+  if(GM.id==="s5")return `<div class="sess"><span class="gtime">⏱️ <b id="gTime">${clock(GM.end-Date.now())}</b></span><span>✓ ${GM.ok} من ${GM.n}</span><button class="link" id="gQuit">إنهاء</button></div>`;
+  if(GM.id==="match")return `<div class="sess"><span class="gtime">⏱️ <b id="gTime">0,0 ث</b></span><span>أخطاء: ${GM.miss}</span><button class="link" id="gQuit">إنهاء</button></div>`;
+  return `<div class="sess"><div class="sbar"><i style="width:${GM.i/GM.list.length*100}%"></i></div><span>${GM.i+1} من ${GM.list.length} · ✓ ${GM.ok}</span><button class="link" id="gQuit">إنهاء</button></div>`;
+}
+function gameView(){
+  const el=$("games");
+  if(GM.done){gameResult();return}
+  if(GM.id==="match"){matchView();return}
+  const q=GM.q,w=q.w;let body="";
+  if(q.kind==="mc")body=`<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}`;
+  else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?`<div class="cloze-ar">${esc(q.c.ar)}</div>`:""}
+    ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${artHTML(lemmaOf(o))}</button>`).join("")}`;
+  else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
+    <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
+  else if(q.kind==="type")body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?" مع أداتها":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
+    <input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
+    <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
+    <button class="btn next" id="gCheck">تحقّق</button>`;
+  el.innerHTML=gameHead()+`<div class="box" id="gBox">${body}<div id="gFb"></div></div>`;
+  $("gQuit").onclick=finishGame;
+  if(q.kind==="mc"||q.kind==="cloze")el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
+    if(GM.answered)return;const ok=b.dataset.k===w.k;
+    el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
+    if(q.kind==="cloze"){const bl=$("gBlank");bl.textContent=q.c.word;bl.classList.add(ok?"good":"bad")}
+    answered(ok,b);
+  });
+  if(q.kind==="art")el.querySelectorAll(".artb").forEach(b=>b.onclick=()=>{
+    if(GM.answered)return;const nn=nounOf(w),ok=b.dataset.a===nn.art;
+    el.querySelectorAll(".artb").forEach(x=>{if(x.dataset.a===nn.art)x.classList.add("ok");else if(x===b)x.classList.add("no")});
+    answered(ok,b,ok?600:0);
+  });
+  if(q.kind==="type"){
+    const inp=$("gIn");setTimeout(()=>inp.focus(),50);
+    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1)});
+    const go=()=>{if(GM.answered)return;if(!inp.value.trim()){inp.focus();return}
+      const r=checkTyped(w,inp.value);inp.disabled=true;inp.classList.add(r.ok?"good":"bad");$("gCheck").style.display="none";
+      GM.typed={r,v:normT(inp.value)};answered(!!r.ok,inp)};
+    $("gCheck").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
+  }
+}
+// بعد كل جواب: يُسجَّل للكلمات الصعبة، ثم يظهر التصحيح وزر التالي
+function answered(ok,el,auto){
+  const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++;floatAt(el,"+1 💎")}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
+  QA.push([Date.now(),w.k,ok?1:0]);if(QA.length>30000)QA=QA.slice(-30000);save();markStudied();
+  let fb="";
+  if(q.kind==="type"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>`:`<div class="gres bad">${r.why?esc(r.why):"الجواب الصحيح:"}</div><div class="gans de">${diffHTML(r.a,GM.typed.v)}</div>`}
+  else if(q.kind==="art"&&!ok){const nn=nounOf(w);fb=`<div class="gres bad">الصحيح: <span class="de art-${nn.art}">${esc(nn.art+" "+nn.noun)}</span></div>`}
+  fb+=`<div class="gword"><span class="de">${artHTML(w.de)}</span> ${sayBtn(w.de)} <span class="m">${esc(w.ar)}</span></div>`;
+  if(q.kind!=="cloze")fb+=exPairs(w);
+  $("gFb").innerHTML=fb+`<button class="btn next" id="gNext">التالي</button>`;
+  $("gNext").onclick=nextQ;
+  if(auto&&ok)GM.autoT=setTimeout(nextQ,auto);
+}
+function nextQ(){
+  if(!GM)return;clearTimeout(GM.autoT);GM.answered=false;GM.typed=null;
+  if(GM.id==="s5"){if(Date.now()>=GM.end)return finishGame();GM.q=nextMixed();gameView();return}
+  GM.i++;if(GM.i>=GM.list.length)return finishGame();
+  GM.q=makeQ(GM.id,GM.list[GM.i]);gameView();
+}
+function matchView(){
+  const el=$("games");
+  el.innerHTML=gameHead()+`<p class="ghint">اضغط كلمة ثم معناها. ✓ ${6-GM.left.size} من 6</p><div class="mgrid">
+   <div>${GM.de.map(w=>`<button class="mb de ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}">${esc(lemmaOf(w))}</button>`).join("")}</div>
+   <div>${GM.ar.map(w=>`<button class="mb ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===w.k?"sel":""}" data-side="ar" data-k="${esc(w.k)}">${esc(w.ar)}</button>`).join("")}</div></div>`;
+  $("gQuit").onclick=()=>{stopTick();GM=null;renderGames()};
+  if(!GTICK)GTICK=setInterval(()=>{if(!GM||GM.id!=="match"||GM.done){stopTick();return}const t=$("gTime");if(t)t.textContent=secs(Date.now()-GM.t0)},100);
+  el.querySelectorAll(".mb").forEach(b=>b.onclick=()=>{
+    if(!GM.left.has(b.dataset.k))return;
+    const s={side:b.dataset.side,k:b.dataset.k};
+    if(GM.sel&&GM.sel.side===s.side&&GM.sel.k===s.k){GM.sel=null;return matchView()}
+    if(s.side==="de")speak(GM.de.find(w=>w.k===s.k).de);
+    if(!GM.sel||GM.sel.side===s.side){GM.sel=s;return matchView()}
+    const ok=GM.sel.k===s.k;
+    QA.push([Date.now(),s.k,ok?1:0]);
+    if(ok){GM.left.delete(s.k);GM.sel=null;if(!GM.left.size){GM.ms=Date.now()-GM.t0;return finishGame()}matchView()}
+    else{GM.miss++;QA.push([Date.now()+1,GM.sel.k,0]);GM.sel=null;matchView();const g=el.querySelector(".mgrid");if(g)g.classList.add("flash-no")}
+    save();
+  });
+}
+function finishGame(){
+  if(!GM||GM.done)return;stopTick();clearTimeout(GM.autoT);
+  const prev=EC||econ();
+  if(GM.id==="match"){
+    if(GM.left.size){GM=null;renderGames();return}            // خرج قبل أن ينهي
+    GM.ok=Math.max(0,6-GM.miss);GM.n=6;GM.best=bestMatch();
+    QLOG.push([Date.now(),GM.ok,6,"match",GM.ms]);
+  }else{
+    if(!GM.n){GM=null;renderGames();return}
+    QLOG.push([Date.now(),GM.ok,GM.n,GM.id]);
+  }
+  GM.done=true;save();markStudied();celebrate(prev);schedSync();gameView();
+}
+function gameResult(){
+  const g=GAMES.find(x=>x.id===GM.id),pct=GM.n?GM.ok/GM.n:0;
+  const rec=GM.id==="match"&&GM.ok===6&&(!GM.best||GM.ms<GM.best);
+  $("games").innerHTML=`<div class="box done"><div class="big">${rec?"🏅":pct===1?"🏆":pct>=.8?"🥇":pct>=.6?"🥈":"🥉"}</div><h2>${g.ic} ${g.n}</h2>
+   <p style="font-size:1.1rem;margin:6px 0">${GM.id==="match"?`الوقت: <b>${secs(GM.ms)}</b> · أخطاء: ${GM.miss}`:`النتيجة: <b>${GM.ok}</b> من ${GM.n}`}</p>
+   ${rec?'<p style="color:var(--green);font-weight:700">رقم قياسي جديد!</p>':GM.id==="match"&&GM.best?`<p class="rnote">أفضل وقت لك: ${secs(GM.best)}</p>`:""}
+   <p>+${GM.ok} 💎</p><button class="btn next" id="gAgain">مرة أخرى</button><button class="btn" id="gBack" style="width:100%;margin-top:8px">كل التمارين</button></div>`;
+  if(pct===1||rec)confetti(120);
+  $("gAgain").onclick=()=>startGame(GM.id);$("gBack").onclick=()=>{GM=null;renderGames()};
+}
+function markStudied(){try{if(window.MufApp&&MufApp.markStudied)MufApp.markStudied(today())}catch(e){}
+}
+
+/* ================= المقياس والدوري ================= */
+// مقياس المتعلّم من ١٠٠ (يراه المدير فقط): التقدّم ٣٠، والخبرة ٢٠، ومدة التعلّم ٢٠، والانتظام ١٥، والدقّة ١٥
+const MPARTS={prog:["التقدّم (كلمات محفوظة)",30],xp:["الخبرة",20],dur:["مدة التعلّم (أيام الدراسة)",20],reg:["الانتظام (السلسلة ونشاط أسبوعين)",15],acc:["الدقّة",15]};
+function measure(){
+  const e=econ(),days=Object.keys(e.per).length,now=Date.now();
+  const act14=[...Array(14)].filter((_,i)=>e.per[dkey(now-i*DAY)]).length;
+  const ok=LOG.filter(x=>x[2]>=2).length,acc=LOG.length?ok/LOG.length:0;
+  const p={prog:Math.min(e.s.mem/300,1)*30,xp:Math.min(e.xp/5000,1)*20,dur:Math.min(days/60,1)*20,
+    reg:Math.min(e.s.best/30,1)*5+Math.min(act14/10,1)*10,acc:acc*Math.min(LOG.length/30,1)*15};
+  const parts={};let total=0;for(const k in p){parts[k]=Math.round(p[k]);total+=p[k]}
+  return {total:Math.round(total),parts};
+}
+const band=()=>Math.min(5,Math.floor(measure().total/20));
+const TIERS=[["البرونزي","🥉"],["الفضّي","🥈"],["الذهبي","🥇"],["الياقوت الأزرق","💙"],["الياقوت الأحمر","❤️"],["الزمرّدي","💚"],["الجَمَشت","💜"],["اللؤلؤي","🤍"],["السَّبَج","🖤"],["الماسي","💎"]];
+const tierName=i=>"الدوري "+TIERS[i][0];
+const GROUP_MAX=20,PROMO_MIN=100;
+function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()}
+const weekId=t=>dkey(weekStart(t));
+// خبرة الأسبوع: من المراجعات والاختبارات والتمارين في هذا الأسبوع
+function weekXP(ws){
+  const we=ws+7*DAY,per={};let xp=0;
+  for(const x of LOG)if(x[0]>=ws&&x[0]<we){xp+=XPR[x[2]];const d=dkey(x[0]);per[d]=(per[d]||0)+1}
+  for(const d in per)if(per[d]>=20)xp+=30;
+  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1]*5;
+  return xp;
+}
+// منطقة الصعود والهبوط حسب حجم المجموعة (قرابة الربع يصعد، وقرابة السدس يهبط)
+function zones(n){
+  const up=n<=4?1:n<=9?2:Math.round(n*.25),down=n<5?0:n<10?1:Math.round(n*.17);
+  return {up,down};
+}
+const prize=(rank,n,xp)=>xp<PROMO_MIN?0:n>=3?([50,30,20][rank-1]||0):(rank===1?20:0);
+const initialTier=()=>{const m=measure().total;return m<15?0:m<30?1:m<45?2:m<60?3:4};
+const lgref=w=>db.collection("lg").doc(w).collection("m");
+let LGME=null,LGC={at:0,rows:null};
+async function myLeagueDoc(w){
+  if(LGME&&LGME.w===w)return LGME;
+  const d=await lgref(w).doc(UID).get();LGME=d.exists?{w,...d.data()}:null;return LGME;
+}
+// يختار مجموعة من نفس الدوري متقاربة في المقياس، وينشئ مجموعة جديدة إن امتلأت أو ابتعدت
+async function chooseGroup(w,tier){
+  const q=await lgref(w).where("tier","==",tier).get(),gs={};
+  q.docs.forEach(d=>{const x=d.data();(gs[x.grp]=gs[x.grp]||[]).push(x.b||0)});
+  const my=band(),all=q.docs.length;let best=null,bd=1e9;
+  for(const g in gs){if(gs[g].length>=GROUP_MAX)continue;const avg=gs[g].reduce((a,b)=>a+b,0)/gs[g].length,dd=Math.abs(avg-my);if(dd<bd){bd=dd;best=+g}}
+  if(best!=null&&!(bd>=2&&all>=10))return best;
+  const ks=Object.keys(gs).map(Number);return ks.length?Math.max(...ks)+1:0;
+}
+// تطبيق نتيجة الأسبوع الماضي مرة واحدة: صعود أو هبوط وجوائز
+async function leagueSettle(){
+  if(!UID)return;
+  const cur=weekId(Date.now());
+  if(LG.tier==null){LG.tier=initialTier();LG.w=cur;LG.ts=Date.now();save();schedSync();return}
+  if(LG.w===cur)return;
+  const last=weekId(weekStart(Date.now())-3*DAY);let res=null;
+  const me=await lgref(last).doc(UID).get();
+  if(me.exists){
+    const m=me.data(),q=await lgref(last).where("tier","==",m.tier).where("grp","==",m.grp).get();
+    const rows=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.xp-a.xp);
+    const n=rows.length,rank=rows.findIndex(r=>r.id===UID)+1,{up,down}=zones(n);
+    let mv=0;if(rank<=up&&m.xp>=PROMO_MIN&&m.tier<9)mv=1;else if(down&&rank>n-down&&m.tier>0)mv=-1;
+    res={w:last,tier:m.tier,rank,n,mv,g:prize(rank,n,m.xp),xp:m.xp};
+    LG.tier=m.tier+mv;
+  }
+  const prev=EC||econ();
+  LG.w=cur;if(res)LG.hist=[...(LG.hist||[]),res].slice(-52);LG.ts=Date.now();save();schedSync();
+  if(res){celebrate(prev);
+    const t=res.tier+res.mv;
+    if(res.mv>0){toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
+    else if(res.mv<0)toast("⬇️","نزلت إلى "+tierName(t),"المركز "+res.rank+" من "+res.n+" · عُد أقوى هذا الأسبوع");
+    else toast(TIERS[t][1],"بقيت في "+tierName(t),"المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));
+  }
+}
+// ينضمّ إلى دوري الأسبوع عند أول خبرة، ثم يحدّث خبرته
+async function leagueUpdate(){
+  if(!UID||LG.tier==null)return;
+  const ws=weekStart(Date.now()),w=weekId(ws),xp=weekXP(ws);
+  let me=await myLeagueDoc(w);
+  if(!me){if(!xp)return;me=LGME={w,tier:LG.tier,grp:await chooseGroup(w,LG.tier),b:band(),xp:-1,name:""}}
+  const av=String(E.avatar||"🎓").slice(0,8);
+  if(me.xp===xp&&me.name===UNAME&&me.av===av)return;
+  await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
+  Object.assign(me,{xp,name:UNAME,av});LGC.at=0;
+}
+async function leagueRows(){
+  const w=weekId(Date.now());
+  if(LGC.rows&&LGC.w===w&&Date.now()-LGC.at<60000)return LGC.rows;
+  const me=await myLeagueDoc(w);let rows=[];
+  if(me){const q=await lgref(w).where("tier","==",me.tier).where("grp","==",me.grp).get();rows=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.xp-a.xp)}
+  LGC={at:Date.now(),rows,w};return rows;
+}
+function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
+async function fillLeague(){
+  const box=$("lgBox");if(!box)return;
+  let rows;
+  try{await leagueSettle();await leagueUpdate();rows=await leagueRows()}
+  catch(e){box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
+  if(!$("lgBox"))return;
+  const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n);
+  const lastRes=(LG.hist||[]).slice(-1)[0];
+  const row=(r,i)=>{const z=i<up&&r.xp>=PROMO_MIN&&t<9?"up":down&&i>=n-down&&t>0?"down":"";
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة الهبوط</div>':""}<div class="lgrow ${z} ${r.id===UID?"me":""}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b>${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}</b><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة الصعود</div>':""}`};
+  box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
+   <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
+   ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
+   ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
+   <details class="lgrules"><summary>كيف يعمل الدوري؟</summary><ul>
+    <li>كل أسبوع من الإثنين إلى الأحد تتنافس مع مجموعة من المتعلّمين القريبين من مستواك، حتى ${GROUP_MAX} متعلّمًا.</li>
+    <li>الترتيب بحسب الخبرة التي تكسبها هذا الأسبوع من المراجعة والاختبارات والتمارين.</li>
+    <li>الأوائل في منطقة الصعود ينتقلون إلى الدوري الأعلى، بشرط ${PROMO_MIN} خبرة على الأقل، والأواخر في منطقة الهبوط ينزلون.</li>
+    <li>جوائز نهاية الأسبوع: الأول ٥٠ 💎، والثاني ٣٠، والثالث ٢٠.</li>
+    <li>الدوريات من الأدنى إلى الأعلى: ${TIERS.map(x=>x[1]+" "+x[0]).join("، ")}.</li></ul></details>`;
 }
 
 /* ================= التقارير ================= */
@@ -823,7 +1214,7 @@ function renderRewards(){
   const e=econ(),t=itemOf("title",E.title),s=e.s;
   const stickers=SHOP.filter(x=>x.cat==="sticker");
   const el=$("rewards");
-  el.innerHTML=`<div class="hero"><div class="av">${esc(E.avatar)}</div><div style="flex:1">
+  el.innerHTML=leagueHTML()+`<div class="hero"><div class="av">${esc(E.avatar)}</div><div style="flex:1">
    <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv} · ${esc(t?t.val:"")}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
    <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
   <div class="gstats">
@@ -839,7 +1230,7 @@ function renderRewards(){
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
    <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${x.val}</span>`).join("")}</div>
    <p style="font-size:.78rem;color:var(--muted);margin-top:6px">اشترِ الملصقات من المتجر، وثبّت أحدها ليظهر على بطاقاتك.</p></div>`+syncHTML();
-  bindSync();
+  bindSync();fillLeague();
 }
 
 /* ================= المتجر ================= */
@@ -897,6 +1288,7 @@ function mergeIn(d){
   if(d.S&&(d.S.ts||0)>(S.ts||0)){S.limit=d.S.limit;S.dir=d.S.dir;S.goal=d.S.goal||S.goal;S.ts=d.S.ts}
   if(d.E&&(d.E.ts||0)>(E.ts||0))Object.assign(E,d.E);
   if(d.R&&(d.R.ts||0)>(R.ts||0))R=d.R;
+  if(d.LG&&(d.LG.ts||0)>(LG.ts||0))LG=Object.assign({tier:null,w:"",hist:[],ts:0},d.LG);
   save();
 }
 const uref=()=>db.collection("users").doc(UID);
@@ -911,7 +1303,7 @@ async function syncNow(manual){
   if(!UID||syncing)return;syncing=true;clearTimeout(syncTimer);syncTimer=null;setCloud("جارٍ الحفظ…");
   try{
     const {raw,d}=await cloudGet();mergeIn(d);
-    const now={main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R}),log:JSON.stringify(packLog(LOG)),qa:JSON.stringify(packQA(QA))};
+    const now={main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R,LG}),log:JSON.stringify(packLog(LOG)),qa:JSON.stringify(packQA(QA))};
     const b=db.batch();let n=0;
     const sum=summary(),sumS=JSON.stringify(sum);
     if(now.main!==raw.main||sumS!==raw.sum){b.set(uref(),{main:now.main,sum,name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});n++}
@@ -919,6 +1311,7 @@ async function syncNow(manual){
     if(now.qa!==raw.qa){b.set(uref().collection("data").doc("qa"),{v:now.qa});n++}
     if(n)await b.commit();
     lastSync=Date.now();syncErr="";setCloud();
+    leagueSettle().then(leagueUpdate).catch(()=>{});
     applyLook();econ();renderHeader();
     if(manual){buildQueue();showCard()}
     const on=document.querySelector(".panel.on");if(on&&on.id!=="review")renderPanel(on.id);
@@ -1082,7 +1475,7 @@ function summary(){
   return {course:COURSE,last:LOG.length?LOG[LOG.length-1][0]:0,first:LOG.length?LOG[0][0]:0,days:days.length,
     total:e.s.reviews,acc:LOG.length?Math.round(ok/LOG.length*100):0,started:u.filter(w=>P[w.k]).length,
     mem:u.filter(w=>P[w.k]&&P[w.k].box>=4).length,words:u.length,streak:e.s.streak,best:e.s.best,
-    lv:e.lv,gems:e.gems,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now};
+    lv:e.lv,gems:e.gems,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier};
 }
 
 /* ================= تقارير المستخدمين (للمدير) ================= */
@@ -1118,7 +1511,7 @@ function renderUserList(){
   <div class="ufilter"><button data-f="all" class="${uFilter==="all"?"on":""}">الكل</button>${Object.keys(UST).map(k=>cnt(k)?`<button data-f="${k}" class="${uFilter===k?"on":""}">${UST[k][0]} ${cnt(k)}</button>`:"").join("")}</div>
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
    <div class="top"><b>${esc(u.name||"مستخدم")}</b><span class="ust">${UST[u.st][0]}</span></div>
-   <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
+   <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
   $("uReload").onclick=()=>renderUsers();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
   el.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
@@ -1142,6 +1535,7 @@ function renderUser(){
    <div class="kpi"><b>${sm.lv}</b><span>المستوى · ${sm.ach} إنجاز</span></div>
    <div class="kpi"><b>💎 ${sm.gems}</b><span>جواهر</span></div>
   </div>
+  ${sm.ms?`<div class="rsec"><h3>📏 المقياس: ${sm.ms.total} من 100${sm.lg!=null?" · "+TIERS[sm.lg][1]+" "+tierName(sm.lg):""}</h3>${Object.keys(MPARTS).map(k=>`<div class="mbar"><span>${MPARTS[k][0]}</span><i><b style="width:${(sm.ms.parts[k]||0)/MPARTS[k][1]*100}%"></b></i><em>${sm.ms.parts[k]||0}/${MPARTS[k][1]}</em></div>`).join("")}<p class="rnote" style="margin-top:6px">يراه المدير وحده، ويُستعمل لوضع المتعلّمين المتقاربين في مجموعة واحدة من الدوري.</p></div>`:""}
   <div class="rsec"><h3>نشاطه في آخر ١٤ يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
@@ -1189,6 +1583,7 @@ function renderPanel(p){
   $("mainFilters").style.display=(p==="rewards"||p==="shop"||p==="messages"||p==="users")?"none":"";
   if(p==="messages"){renderMessages();return}
   if(p==="users"){renderUsers();return}
+  if(p==="games"){renderGames();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
 function refresh(){buildQueue();showCard();renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}

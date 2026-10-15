@@ -12,6 +12,21 @@ service cloud.firestore {
     // المناهج المعيّنة لكل مستخدم: يعيّنها المدير وحده، ويقرؤها المستخدم
     match /assign/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isAdmin(); }
 
+    // الدوري الأسبوعي: يراه كل المسجَّلين، ويكتب كل مستخدم سطره وحده
+    match /lg/{week}/m/{uid} {
+      allow read: if signedIn();
+      allow create, update: if isMe(uid)
+        && request.resource.data.keys().hasOnly(["name","av","tier","grp","b","xp","ts"])
+        && request.resource.data.name is string && request.resource.data.name.size() <= 60
+        && request.resource.data.av is string && request.resource.data.av.size() <= 8
+        && request.resource.data.tier is int && request.resource.data.tier >= 0 && request.resource.data.tier <= 9
+        && request.resource.data.grp is int && request.resource.data.grp >= 0 && request.resource.data.grp < 1000
+        && request.resource.data.b is int && request.resource.data.b >= 0 && request.resource.data.b <= 5
+        && request.resource.data.xp is int && request.resource.data.xp >= 0 && request.resource.data.xp <= 100000
+        && request.resource.data.ts == request.time;
+      allow delete: if false;
+    }
+
     // التقييم: مرة واحدة لكل مستخدم، ويقرؤه هو والمدير
     match /feedback/{uid} {
       allow read: if isMe(uid) || isAdmin();

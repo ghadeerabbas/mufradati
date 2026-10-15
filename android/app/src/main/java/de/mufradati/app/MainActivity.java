@@ -11,12 +11,19 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.webkit.JavascriptInterface;
+import android.speech.tts.TextToSpeech;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import java.util.Locale;
 
 // تطبيق مفرداتي: يعرض الموقع بملء الشاشة، فيتحدّث تلقائيًّا مع كل تحديث للموقع.
 public class MainActivity extends Activity {
     private static final String HOME = "https://ghadeerabbas.github.io/mufradati/";
     private static final String HOST = "ghadeerabbas.github.io";
     private WebView web;
+    private TextToSpeech tts;
+    private boolean ttsReady = false;
 
     @Override
     protected void onCreate(Bundle state) {
@@ -31,6 +38,13 @@ public class MainActivity extends Activity {
         s.setDatabaseEnabled(true);
         s.setCacheMode(WebSettings.LOAD_NO_CACHE);                     // لا نسخ قديمة مخزّنة
         s.setMediaPlaybackRequiresUserGesture(false);
+
+        // النطق الألماني من محرّك النطق في الهاتف
+        tts = new TextToSpeech(this, st -> {
+            if (st == TextToSpeech.SUCCESS) { tts.setLanguage(Locale.GERMANY); tts.setSpeechRate(0.9f); ttsReady = true; }
+        });
+        // جسر بين الموقع والتطبيق: النطق والتذكير اليومي
+        web.addJavascriptInterface(new Bridge(), "MufApp");
 
         // نوافذ التأكيد والإدخال (تصفير التقدّم، الشراء...) تعمل عبر هذا
         web.setWebChromeClient(new WebChromeClient());
@@ -56,6 +70,25 @@ public class MainActivity extends Activity {
 
         if (state != null) web.restoreState(state);
         else web.loadUrl(HOME + "?t=" + System.currentTimeMillis());   // دائمًا آخر نسخة من الموقع
+    }
+
+    public class Bridge {
+        @JavascriptInterface public void speak(String text) {
+            if (ttsReady && text != null) tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "muf");
+        }
+        @JavascriptInterface public void setReminder(boolean on, int hour, int minute) {
+            if (on && Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED)
+                runOnUiThread(() -> requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1));
+            Reminder.set(MainActivity.this, on, hour, minute);
+        }
+        @JavascriptInterface public void markStudied(String day) { Reminder.markStudied(MainActivity.this, day); }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (tts != null) tts.shutdown();
+        super.onDestroy();
     }
 
     @Override
