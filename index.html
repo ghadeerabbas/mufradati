@@ -434,13 +434,16 @@ function econ(){
 }
 
 /* ================= تحميل المفردات ================= */
-fetch("words.json?v="+Date.now()).then(r=>r.json()).then(d=>{
-  DAYS=d.days;const seen={};
-  W=d.words.map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else if(seen[k]===undefined)seen[k]=w.day;return r});
-  DAYS.forEach(x=>$("fDay").insertAdjacentHTML("beforeend",`<option value="${x.day}">${dayName(x.day)}</option>`));
-  init();
-  auth.onAuthStateChanged(u=>{if(u)onLogin(u);else showLogin()});
-}).catch(()=>{$("review").innerHTML='<div class="err">تعذّر تحميل المفردات. تأكّد من الاتصال ثم أعد تحميل الصفحة.</div>'});
+/* المنهج: غدير يدرس B2، وباقي المستخدمين يبدؤون من A1 */
+const COURSES={b2:{file:"words.json",name:"B2 (منهجي)"},a1:{file:"words-a1.json",name:"A1 (المستخدمون)"}};
+let COURSE="a1";
+async function loadWords(c){
+  COURSE=c;
+  const d=await fetch(COURSES[c].file+"?v="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():{days:[],words:[]}).catch(()=>({days:[],words:[]}));
+  DAYS=d.days||[];const seen={};
+  W=(d.words||[]).map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else if(seen[k]===undefined)seen[k]=w.day;return r});
+  $("fDay").innerHTML='<option value="all">كل الأيام</option>'+DAYS.map(x=>`<option value="${x.day}">${dayName(x.day)}</option>`).join("");
+}
 
 function filtered(){
   const d=$("fDay").value,l=$("fLvl").value,c=$("fCore").value;
@@ -522,6 +525,7 @@ function reviewPills(){
 }
 function showCard(){
   const el=$("review");
+  if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
   if(!queue.length){
     const f=uniq(filtered()),nxt=f.filter(w=>P[w.k]).map(w=>P[w.k].due).sort((a,b)=>a-b)[0];
     el.innerHTML=reviewPills()+`<div class="box done"><div class="big">🏆</div><h2>أحسنت! انتهت مراجعة اليوم</h2><p>${nxt?"المراجعة القادمة: "+new Date(nxt).toLocaleDateString("ar",{weekday:"long",day:"numeric",month:"long"}):"لا كلمات جديدة في هذا الاختيار."}</p>
@@ -804,9 +808,13 @@ function syncHTML(){
   return `<div class="rsec sync"><h3>☁️ حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
   <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="renameBtn">تغيير الاسم</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
-  <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
+  <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`+(isAdmin()?`
+  <div class="rsec sync"><h3>📘 المنهج المعروض لك</h3><p>تدرس أنت منهج B2، وباقي المستخدمين منهج A1. تستطيع التبديل لمعاينة منهجهم.</p>
+  <div class="btns">${Object.keys(COURSES).map(c=>`<button class="btn ${c===COURSE?"":"sec"}" data-course="${c}">${COURSES[c].name}</button>`).join("")}</div></div>`:"");
 }
 function bindSync(){
+  document.querySelectorAll("[data-course]").forEach(b=>b.onclick=async()=>{const c=b.dataset.course;if(c===COURSE)return;st(K("course"),c);
+    await loadWords(c);econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة")});
   if($("syncBtn"))$("syncBtn").onclick=()=>syncNow(true);
   if($("renameBtn"))$("renameBtn").onclick=async()=>{const v=(prompt("اسمك:",UNAME)||"").trim();if(!v)return;UNAME=v;st(K("name"),v);
     try{await auth.currentUser.updateProfile({displayName:v})}catch(e){}renderHeader();await syncNow();renderPanel(document.querySelector(".panel.on").id)};
@@ -851,9 +859,10 @@ async function offerLegacy(cloudEmpty){
 async function onLogin(user){
   UID=user.uid;loadState();
   UNAME=st(K("name"))||user.displayName||(user.email||"").split("@")[0];st(K("name"),UNAME);
+  await loadWords(isAdmin()?(st(K("course"))||"b2"):"a1");
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
-  try{const {d,name}=await cloudGet();if(name){UNAME=name;st(K("name"),name);renderHeader()}await offerLegacy(!d)}catch(e){}
+  try{const {d,name}=await cloudGet();if(name){UNAME=name;st(K("name"),name);renderHeader()}if(isAdmin())await offerLegacy(!d)}catch(e){}
   startMessages();
   await syncNow(true);
 }
@@ -957,6 +966,10 @@ function init(){
   $("hAv").onclick=()=>document.querySelector('nav button[data-p=rewards]').click();
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
+
+// البدء بعد تعريف كل شيء
+init();
+auth.onAuthStateChanged(u=>{if(u)onLogin(u);else showLogin()});
 </script>
 </body>
 </html>
