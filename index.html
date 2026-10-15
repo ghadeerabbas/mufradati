@@ -56,10 +56,6 @@ main{max-width:720px;margin:0 auto;padding:14px 16px 60px}
 .panel{display:none;animation:fade .25s}.panel.on{display:block}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-#mainFilters{flex-direction:column;gap:8px}#mainFilters select{display:none!important}
-.chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:inherit;font-size:.88rem;padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
-.chip.on{background:var(--navy2);border-color:var(--navy2);color:#fff;font-weight:600}
 select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);flex:1;min-width:120px}
 .btn{border:0;border-radius:12px;padding:10px 14px;font-weight:600}
 .box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
@@ -1191,21 +1187,6 @@ function renderPanel(p){
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
 function refresh(){buildQueue();showCard();renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
-// خيارات المراجعة أزرارًا بدل القوائم المنسدلة: كل قائمة يقابلها صفّ أزرار يتبعها في الظهور والقيمة
-function syncChips(sel){
-  const box=$(sel.id+"C");if(!box)return;
-  box.style.display=sel.style.display==="none"||sel.options.length<2?"none":"";
-  box.innerHTML=[...sel.options].map(o=>`<button type="button" class="chip${o.value===sel.value?" on":""}" data-v="${esc(o.value)}">${esc(o.textContent)}</button>`).join("");
-}
-function initChips(){
-  ["fCourse","fDay","fSubj","fLvl","fCore"].forEach(id=>{
-    const sel=$(id),box=document.createElement("div");box.className="chips";box.id=id+"C";sel.after(box);
-    box.onclick=e=>{const b=e.target.closest(".chip");if(!b||b.dataset.v===sel.value)return;
-      sel.value=b.dataset.v;syncChips(sel);sel.dispatchEvent(new Event("change"))};
-    new MutationObserver(()=>syncChips(sel)).observe(sel,{attributes:true,childList:true,subtree:true});
-    sel.addEventListener("change",()=>syncChips(sel));syncChips(sel);
-  });
-}
 function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
@@ -1217,7 +1198,6 @@ function init(){
   $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>document.querySelector('nav button[data-p=rewards]').click();
-  initChips();
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
 
