@@ -12,6 +12,17 @@ service cloud.firestore {
     // المناهج المعيّنة لكل مستخدم: يعيّنها المدير وحده، ويقرؤها المستخدم
     match /assign/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isAdmin(); }
 
+    // هدايا الجواهر: يرسلها المدير وحده، ويقرؤها صاحبها والمدير
+    match /gifts/{uid}/g/{gid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(["g","note","ts"])
+        && request.resource.data.g is int && request.resource.data.g >= 1 && request.resource.data.g <= 100000
+        && request.resource.data.note is string && request.resource.data.note.size() <= 100
+        && request.resource.data.ts == request.time;
+      allow update, delete: if isAdmin();
+    }
+
     // الاسم الظاهر: يقترحه المستخدم، ويوافق عليه المدير، ويُغيَّر مرة كل ٧ أيام
     match /names/{uid} {
       allow read: if isMe(uid) || isAdmin();

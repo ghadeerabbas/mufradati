@@ -554,6 +554,7 @@ function econ(){
   for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++){const id=a.id+":"+i;got.push(id);if(!paid.has(id))gems+=a.L[i-1][1]}}
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
+  gems+=giftSum();                                      // هدايا المشرف
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
   EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got),alv,todayN:td.n,per};
@@ -737,7 +738,7 @@ async function resetProgress(){
   const v=(await uiPrompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
   if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
   const e0=econ();
-  R={bank:e0.earned,ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:Date.now()};
+  R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:Date.now()};
   P={};LOG=[];QLOG=[];QA=[];S.newCount=0;LG.hist=[];LG.ts=Date.now();save();
   try{
     clearTimeout(syncTimer);syncTimer=null;
@@ -1443,9 +1444,10 @@ function renderSettings(){
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (٦ أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
+  ${isAdmin()?`<div class="rsec" id="giftBox">${giftBoxHTML(UID)}</div>`:""}
   <div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`;
-  $("stReset").onclick=resetProgress;bindNameBox();
+  $("stReset").onclick=resetProgress;bindNameBox();if(isAdmin())bindGiftBox(UID);
   const cs=$("stCourse");if(cs)cs.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.dataset.v===COURSE)return;
     cs.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));switchCourse(b.dataset.v)};
   const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
@@ -1523,6 +1525,46 @@ function bindNameReqs(){
   });
 }
 
+/* ================= هدايا الجواهر من المشرف ================= */
+let GIFTS=[],giftUnsub=null;
+const giftSum=()=>GIFTS.reduce((a,g)=>a+(g.g||0),0);
+const gref=u=>db.collection("gifts").doc(u).collection("g");
+function watchGifts(){
+  if(giftUnsub)giftUnsub();GIFTS=[];
+  giftUnsub=gref(UID).onSnapshot(q=>{
+    GIFTS=q.docs.map(d=>({id:d.id,...d.data()}));
+    const seen=new Set(jget(K("giftSeen"),[])),fresh=GIFTS.filter(g=>!seen.has(g.id));
+    econ();renderHeader();
+    const on=document.querySelector(".panel.on");if(on&&(on.id==="shop"||on.id==="profile"))renderPanel(on.id);
+    if(fresh.length&&!isAdmin()){const n=fresh.reduce((a,g)=>a+g.g,0),note=fresh.map(g=>g.note).filter(Boolean)[0];toast("🎁","وصلتك هدية: "+n+" 💎",note||"من المشرف");confetti(100)}
+    st(K("giftSeen"),JSON.stringify(GIFTS.map(g=>g.id)));
+  },()=>{});
+}
+function giftBoxHTML(uid){
+  return `<h3>🎁 إضافة جواهر${uid===UID?" لنفسك":""}</h3>
+   <div class="numpicks" id="gfAmt">${[50,100,250,500,1000,5000].map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>
+   <div class="strow" style="margin-top:8px"><input id="gfN" class="stin" type="number" min="1" max="100000" inputmode="numeric" placeholder="أو اكتب العدد"><input id="gfNote" class="stin" maxlength="100" placeholder="ملاحظة (اختياري)"></div>
+   <button class="btn stbtn" id="gfSend" style="width:100%;margin-top:8px">إرسال الجواهر</button><div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
+}
+async function bindGiftBox(uid){
+  const box=$("giftBox");if(!box)return;
+  const hist=async()=>{try{const q=uid===UID?{docs:GIFTS.map(g=>({data:()=>g}))}:await gref(uid).get();const l=q.docs.map(d=>d.data());
+    $("gfHist").textContent=l.length?"أُرسل له حتى الآن: "+l.reduce((a,g)=>a+(g.g||0),0)+" 💎 في "+l.length+" مرة":""}catch(e){}};
+  hist();
+  $("gfAmt").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;$("gfN").value=b.dataset.v;$("gfAmt").querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b))};
+  $("gfSend").onclick=async()=>{
+    const n=Math.floor(+$("gfN").value),m=$("gfMsg"),note=$("gfNote").value.trim().slice(0,100);
+    if(!(n>=1&&n<=100000)){m.textContent="اختر عددًا بين 1 و100000";m.className="stmsg bad";return}
+    if(!await uiConfirm(`إرسال ${n} 💎${uid===UID?" لنفسك":""}؟`))return;
+    $("gfSend").disabled=true;
+    try{await gref(uid).add({g:n,note,ts:firebase.firestore.FieldValue.serverTimestamp()});
+      m.textContent="✓ أُرسلت "+n+" 💎";m.className="stmsg ok";$("gfN").value="";$("gfNote").value="";
+      $("gfAmt").querySelectorAll(".numpick").forEach(x=>x.classList.remove("on"));setTimeout(hist,500)}
+    catch(e){m.textContent=e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase":"تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad"}
+    $("gfSend").disabled=false;
+  };
+}
+
 /* ================= شاشة الدخول ================= */
 const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-password":"اكتب كلمة السر","auth/weak-password":"كلمة السر قصيرة (٦ أحرف على الأقل)",
  "auth/email-already-in-use":"هذا البريد مسجّل مسبقًا، اختر تسجيل الدخول","auth/invalid-credential":"اسم المستخدم أو كلمة السر غير صحيح",
@@ -1568,7 +1610,7 @@ async function onLogin(user){
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
   try{const {d}=await cloudGet();if(isAdmin())await offerLegacy(!d)}catch(e){}
-  loadNameReqs();
+  loadNameReqs();watchGifts();
   startMessages();
   $("usersBtn").style.display=isAdmin()?"":"none";
   await syncNow(true);
@@ -1729,10 +1771,11 @@ function renderUser(){
   ${sm.ms?`<div class="rsec"><h3>📏 المقياس: ${sm.ms.total} من 100${sm.lg!=null?" · "+TIERS[sm.lg][1]+" "+tierName(sm.lg):""}</h3>${Object.keys(MPARTS).map(k=>`<div class="mbar"><span>${MPARTS[k][0]}</span><i><b style="width:${(sm.ms.parts[k]||0)/MPARTS[k][1]*100}%"></b></i><em>${sm.ms.parts[k]||0}/${MPARTS[k][1]}</em></div>`).join("")}<p class="rnote" style="margin-top:6px">يراه المدير وحده، ويُستعمل لوضع المتعلّمين المتقاربين في مجموعة واحدة من الدوري.</p></div>`:""}
   <div class="rsec"><h3>نشاطه في آخر ١٤ يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
+  <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
-  renderAssign(u.id);
+  renderAssign(u.id);bindGiftBox(u.id);
 }
 
 async function renderAssign(uid){
