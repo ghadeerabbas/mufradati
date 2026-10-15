@@ -331,13 +331,13 @@ const dayName=n=>"اليوم "+ordinal(n);
 let W=[],DAYS=[];
 let UID=null,UNAME="";                       // المستخدم الحالي
 const K=n=>"muf_"+UID+"_"+n;                // مفاتيح التخزين لكل مستخدم
-let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={};
+let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",dark:0,ts:0};
 function loadState(){
-  P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
-const save=()=>{if(!UID)return;st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));
+const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));
   st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E))};
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
@@ -444,8 +444,9 @@ function econ(){
   s.freezes=avail;
   s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
   // المستوى
-  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;gems+=lv*5}
-  const got=achList().filter(a=>a.v(s)>=a.need);gems+=got.reduce((a,b)=>a+b.g,0);
+  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=lv*5}
+  const got=achList().filter(a=>a.v(s)>=a.need),paid=new Set(R.ach||[]);gems+=got.filter(a=>!paid.has(a.id)).reduce((a,b)=>a+b.g,0);
+  gems+=R.bank||0;
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
   EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got.map(a=>a.id)),todayN:td.n,per};
@@ -599,14 +600,16 @@ function rate(r,btn){
 // تصفير التقدّم: تأكيد بكتابة اسم المستخدم، ثم يُمسح محليًّا وفي الحساب معًا
 async function resetProgress(){
   const uname=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
-  if(!confirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والجواهر المكتسبة منها، والسلسلة.\nتبقى مشترياتك من المتجر.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
+  if(!confirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والمستوى، والسلسلة.\nتبقى جواهرك ومشترياتك كما هي.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
   const v=(prompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
   if(v!==uname.toLowerCase()){if(v)alert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
+  const e0=econ();
+  R={bank:e0.earned,ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:Date.now()};
   P={};LOG=[];QLOG=[];QA=[];S.newCount=0;save();
   try{
     clearTimeout(syncTimer);syncTimer=null;
     const b=db.batch();
-    b.set(uref(),{main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E}),sum:summary(),name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    b.set(uref(),{main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R}),sum:summary(),name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
     b.set(uref().collection("data").doc("log"),{v:JSON.stringify(packLog([]))});
     b.set(uref().collection("data").doc("qa"),{v:JSON.stringify(packQA([]))});
     await b.commit();
@@ -816,6 +819,7 @@ function mergeIn(d){
   const sb=new Set(BUY.map(x=>x.id));(d.BUY||[]).forEach(x=>{if(!sb.has(x.id))BUY.push(x)});
   if(d.S&&(d.S.ts||0)>(S.ts||0)){S.limit=d.S.limit;S.dir=d.S.dir;S.goal=d.S.goal||S.goal;S.ts=d.S.ts}
   if(d.E&&(d.E.ts||0)>(E.ts||0))Object.assign(E,d.E);
+  if(d.R&&(d.R.ts||0)>(R.ts||0))R=d.R;
   save();
 }
 const uref=()=>db.collection("users").doc(UID);
@@ -830,7 +834,7 @@ async function syncNow(manual){
   if(!UID||syncing)return;syncing=true;clearTimeout(syncTimer);syncTimer=null;setCloud("جارٍ الحفظ…");
   try{
     const {raw,d}=await cloudGet();mergeIn(d);
-    const now={main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E}),log:JSON.stringify(packLog(LOG)),qa:JSON.stringify(packQA(QA))};
+    const now={main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R}),log:JSON.stringify(packLog(LOG)),qa:JSON.stringify(packQA(QA))};
     const b=db.batch();let n=0;
     const sum=summary(),sumS=JSON.stringify(sum);
     if(now.main!==raw.main||sumS!==raw.sum){b.set(uref(),{main:now.main,sum,name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});n++}
