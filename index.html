@@ -163,6 +163,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .pach{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}.pach span{position:relative;font-size:1.5rem;text-align:center;padding:4px 0;background:var(--soft);border-radius:10px}.pach span.no{opacity:.25;filter:grayscale(1)}
 .pach i{position:absolute;bottom:-3px;left:-3px;font-style:normal;font-size:.6rem;font-weight:800;background:var(--gold);color:#222;border-radius:8px;padding:0 4px}
 .mclr{display:flex;gap:6px;margin-bottom:8px}.mclr .btn{flex:1;font-size:.8rem;padding:8px 6px;background:var(--soft);color:var(--rd)}
+.th.sel{background:rgba(201,168,74,.15)}.th .ck{font-size:1.1rem;margin-left:8px}.mclr .btn:disabled{opacity:.4}
 .strow{display:flex;gap:8px;margin-top:6px}.stin{display:block;width:100%;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin-top:6px}
 .strow .stin{margin-top:0;flex:1}.stbtn{background:var(--navy);color:#fff}.stmsg{font-size:.85rem;margin-top:6px;text-align:center}.stmsg.ok{color:var(--green)}.stmsg.bad{color:var(--rd)}
 #settings .numpicks{margin-top:4px}
@@ -759,9 +760,15 @@ function stationView(){
       $("stGo").onclick=()=>S_.q.length?stationView():finishStation();
     });
   }
-  $("stQuit").onclick=async()=>{if(await uiConfirm("ستخرج من المحطة دون حفظها، ولن تُحسب كلماتها. هل تريد الخروج؟")){STS=null;reviewHome()}};
+  $("stQuit").onclick=quitStation;
 }
 // لا يُحفظ شيء من المحطة إلا عند إكمالها
+// الخروج قبل الإكمال: لا تُحسب المحطة، ويُستعاد نصف الطاقة
+async function quitStation(){
+  if(!STS)return;
+  if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها، وستستعيد "+(ST_COST/2)+" طاقة فقط من "+ST_COST+". هل تريد الخروج؟"))return;
+  STS=null;enSet(enNow()+ST_COST/2);toast("🔋","استعدت "+(ST_COST/2)+" طاقة","");reviewHome();
+}
 function finishStation(){
   const S_=STS,now=Date.now(),prev=EC||econ();
   S_.words.forEach((w,i)=>{const r=S_.miss.has(w.k)?1:2,box=1;P[w.k]={box,due:now+IV[box]*DAY,t:now+i};LOG.push([now+i,w.k,r,1])});
@@ -794,7 +801,6 @@ function reviewHome(){
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
-     <div class="rvticks">${Array.from({length:max/10+1},(_,i)=>`<span>${i*10}</span>`).join("")}</div>
      <button class="btn next" id="rvGo">ابدأ المراجعة</button></div>`:""}
   </div>`:""}`+settingsHTML();
   bindSettings();
@@ -1814,7 +1820,7 @@ function startMessages(){
     unsubs.push(db.collection("threads").onSnapshot(q=>{
       const prev=ADM_TH.filter(t=>t.state==="waiting").length;
       ADM_TH=q.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.state==="waiting")-(a.state==="waiting")||tsMs(b.updated)-tsMs(a.updated));
-      const n=ADM_TH.filter(t=>t.state==="waiting").length;setBadge(n);
+      const n=ADM_TH.filter(t=>t.state==="waiting"&&!thHidden(t)).length;setBadge(n);
       if(n>prev&&prev>=0&&q.metadata&&!q.metadata.hasPendingWrites)toast("✉️","رسالة جديدة","");
       if($("messages").classList.contains("on")&&!openTh)renderMessages();
     },()=>{}));
@@ -1858,11 +1864,23 @@ function renderMessages(){
     await b.commit();toast("✅","أُرسلت رسالتك","سيصلك الرد هنا");
   });
 }
+// المحادثة الممسوحة من عندي تختفي من القائمة حتى تصل رسالة جديدة
+const thHidden=t=>t.adminClr&&tsMs(t.adminClr)>=tsMs(t.updated);
+let THSEL=null;   // وضع التحديد: مجموعة المحادثات المختارة
 function renderInbox(){
-  const el=$("messages");
-  el.innerHTML=`<div class="mhead"><h2>✉️ رسائل المستخدمين</h2></div>
-   ${ADM_TH.length?ADM_TH.map(t=>`<div class="th" data-u="${esc(t.id)}"><div><b>${esc(t.name||"مستخدم")}</b><br><small>${fmt(t.updated)}</small></div>${t.state==="waiting"?'<span class="need">ينتظر ردّك</span>':'<small>تمّ الرد ✓</small>'}</div>`).join(""):'<div class="empty">لا رسائل بعد.</div>'}`;
-  el.querySelectorAll(".th").forEach(d=>d.onclick=()=>openThread(d.dataset.u));
+  const el=$("messages"),list=ADM_TH.filter(t=>!thHidden(t)),sel=THSEL;
+  el.innerHTML=`<div class="mhead"><h2>✉️ رسائل المستخدمين</h2>${list.length?`<button class="btn" id="thSel">${sel?"إلغاء":"تحديد"}</button>`:""}</div>
+   ${sel?`<div class="mclr"><button class="btn" id="thAll">${sel.size===list.length?"إلغاء الكل":"تحديد الكل"}</button><button class="btn" id="thDelMe" ${sel.size?"":"disabled"}>🗑️ حذف من عندي (${sel.size})</button><button class="btn" id="thDelAll" ${sel.size?"":"disabled"}>🗑️ من عندي وعنده</button></div>`:""}
+   ${list.length?list.map(t=>`<div class="th ${sel&&sel.has(t.id)?"sel":""}" data-u="${esc(t.id)}">${sel?`<span class="ck">${sel.has(t.id)?"☑️":"⬜"}</span>`:""}<div style="flex:1"><b>${esc(t.name||"مستخدم")}</b><br><small>${fmt(t.updated)}</small></div>${t.state==="waiting"?'<span class="need">ينتظر ردّك</span>':'<small>تمّ الرد ✓</small>'}</div>`).join(""):'<div class="empty">لا رسائل بعد.</div>'}`;
+  el.querySelectorAll(".th").forEach(d=>d.onclick=()=>{if(!THSEL)return openThread(d.dataset.u);const u=d.dataset.u;THSEL.has(u)?THSEL.delete(u):THSEL.add(u);renderInbox()});
+  const b=$("thSel");if(b)b.onclick=()=>{THSEL=THSEL?null:new Set;renderInbox()};
+  if(!sel)return;
+  $("thAll").onclick=()=>{THSEL=sel.size===list.length?new Set:new Set(list.map(t=>t.id));renderInbox()};
+  $("thDelMe").onclick=async()=>{if(!await uiConfirm("حذف "+sel.size+" محادثة من عندك فقط؟ تبقى عند المستخدمين، وتعود إليك إن أرسلوا من جديد."))return;
+    try{const bt=db.batch();sel.forEach(u=>bt.update(tref(u),{adminClr:firebase.firestore.FieldValue.serverTimestamp()}));await bt.commit();THSEL=null;toast("🗑️","حُذفت من عندك","")}catch(e){toast("⚠️","تعذّر الحذف","")}};
+  $("thDelAll").onclick=async()=>{if(!await uiConfirm("حذف "+sel.size+" محادثة نهائيًا من عندك وعند المستخدمين؟"))return;
+    try{for(const u of sel){const q=await tref(u).collection("msgs").get(),bt=db.batch();q.docs.forEach(d=>bt.delete(d.ref));bt.delete(tref(u));await bt.commit()}THSEL=null;toast("🗑️","حُذفت من الطرفين","")}
+    catch(e){toast("⚠️","تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
 }
 let thUnsub=null;
 function openThread(u){
@@ -1878,9 +1896,10 @@ function renderAdminThread(){
    ${composeHTML(t.state==="waiting"?"اكتب ردّك":"أرسل رسالة أو استفسارًا (يُفتح له الإرسال مرة واحدة)")}`;
   $("mBack").onclick=()=>{openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox()};
   const me=$("mClrMe");if(me)me.onclick=async()=>{if(!await uiConfirm("مسح المحادثة من عندك فقط؟ تبقى عند المستخدم."))return;
-    try{await tref(openTh).update({adminClr:firebase.firestore.FieldValue.serverTimestamp()});toast("🗑️","مُسحت من عندك","")}catch(e){toast("⚠️","تعذّر المسح","")}};
+    try{await tref(openTh).update({adminClr:firebase.firestore.FieldValue.serverTimestamp()});openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast("🗑️","مُسحت من عندك","")}catch(e){toast("⚠️","تعذّر المسح","")}};
   const al=$("mClrAll");if(al)al.onclick=async()=>{if(!await uiConfirm("حذف كل رسائل هذه المحادثة نهائيًا من عندك وعند المستخدم؟"))return;
-    try{const q=await tref(openTh).collection("msgs").get(),b=db.batch();q.docs.forEach(d=>b.delete(d.ref));await b.commit();toast("🗑️","حُذفت المحادثة من الطرفين","")}
+    try{const u=openTh,q=await tref(u).collection("msgs").get(),b=db.batch();q.docs.forEach(d=>b.delete(d.ref));b.delete(tref(u));await b.commit();
+      openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast("🗑️","حُذفت المحادثة من الطرفين","")}
     catch(e){toast("⚠️","تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
   bindCompose(async v=>{
     const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
@@ -2043,7 +2062,7 @@ async function handleBack(){
   if(!UID){if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return}
   const on=document.querySelector(".panel.on"),id=on?on.id:"review";
   if(id==="review"){
-    if(STS){if(await uiConfirm("الخروج من المحطة؟ لن تُحسب كلماتها.")){STS=null;reviewHome()}return}
+    if(STS){quitStation();return}
     if(queue.length){if(await uiConfirm("إنهاء المراجعة الآن؟")){queue=[];RVDONE=null;sessTotal=0;reviewHome()}return}
     if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return;
   }

@@ -105,7 +105,7 @@ service cloud.firestore {
             && request.resource.data.unreadUser == false)
         || (isMe(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["userClr"])
             && request.resource.data.userClr == request.time);
-      allow delete: if false;
+      allow delete: if isAdmin();
 
       match /msgs/{mid} {
         function validMsg(from) {
