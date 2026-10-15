@@ -130,6 +130,10 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .next{background:var(--navy);color:#fff;width:100%;margin-top:6px}
 .err{color:var(--rd);text-align:center;padding:30px}
 /* ===== النطق والتمارين والدوري ===== */
+.sth{font-size:1.15rem;color:var(--hd);margin-bottom:10px}
+.strow{display:flex;gap:8px;margin-top:6px}.stin{display:block;width:100%;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin-top:6px}
+.strow .stin{margin-top:0;flex:1}.stbtn{background:var(--navy);color:#fff}.stmsg{font-size:.85rem;margin-top:6px;text-align:center}.stmsg.ok{color:var(--green)}.stmsg.bad{color:var(--rd)}
+#settings .numpicks{margin-top:4px}
 .say{background:none;border:0;font-size:1.05rem;padding:0 4px;cursor:pointer;vertical-align:middle;line-height:1;opacity:.85}
 .exd .say{font-size:.9rem}
 .gcards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
@@ -320,12 +324,12 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
       <small id="hXpT"></small>
     </div>
     <div class="chips">
-      <div class="ring" title="هدف اليوم"><svg width="38" height="38"><circle cx="19" cy="19" r="15" stroke="rgba(255,255,255,.2)" stroke-width="4" fill="none"/><circle id="hRing" cx="19" cy="19" r="15" stroke="#7bd88f" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94.2" style="transition:stroke-dashoffset .6s"/></svg><b id="hRingT">0</b></div>
       <span class="chip fire" id="hFire">🔥 0</span>
       <span class="chip" id="hGem">💎 0</span>
       <button class="iconbtn" id="usersBtn" title="المستخدمون" style="display:none">👥</button>
       <button class="iconbtn mbtn" id="msgBtn" title="الرسائل">✉️<span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="darkBtn" title="الوضع الليلي">🌙</button>
+      <button class="iconbtn" id="setBtn" title="الإعدادات">⚙️</button>
     </div>
   </div>
   <nav>
@@ -340,7 +344,6 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 </header>
 <main>
   <div class="filters" id="mainFilters">
-    <select id="fCourse" style="display:none;flex-basis:100%"></select>
     <select id="fDay"><option value="all">كل الأيام</option></select>
     <select id="fSubj" style="display:none"><option value="all">كل المواد</option></select>
     <select id="fLvl"><option value="all">كل المستويات</option><option>B1</option><option>B2</option></select>
@@ -363,6 +366,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
   <section id="report" class="panel"></section>
   <section id="rewards" class="panel"></section>
   <section id="profile" class="panel"></section>
+  <section id="settings" class="panel"></section>
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
   <section id="users" class="panel"></section>
@@ -548,11 +552,7 @@ async function myCourses(){
   try{const d=await aref(UID).get();const c=d.exists?(d.data().courses||[]).filter(id=>COURSES[id]):[];if(c.length)return c}catch(e){}
   return DEF_COURSES;
 }
-function renderCourseSel(){
-  const sel=$("fCourse");
-  sel.innerHTML=MY_COURSES.map(id=>`<option value="${esc(id)}" ${id===COURSE?"selected":""}>📘 ${esc(COURSES[id].name)}</option>`).join("");
-  sel.style.display=MY_COURSES.length>1?"":"none";
-}
+function renderCourseSel(){const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
 async function switchCourse(c){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
   await loadWords(c);renderCourseSel();econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
@@ -610,9 +610,6 @@ function renderHeader(){
   $("hTitle").innerHTML=`<bdi>${esc(UNAME)}</bdi>`;$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
   $("hXpT").textContent=`✨ ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
-  const g=Math.min(1,e.todayN/(S.goal||30));
-  $("hRing").style.strokeDashoffset=94.2*(1-g);$("hRing").setAttribute("stroke",g>=1?"#ffd34d":"#7bd88f");
-  $("hRingT").textContent=g>=1?"✓":e.todayN;
   $("hFire").textContent="🔥 "+e.s.streak;$("hFire").classList.toggle("on",e.s.streak>0);
   $("hGem").textContent="💎 "+e.gems;
 }
@@ -731,7 +728,6 @@ function settingsHTML(){
   const btns=(id,arr,v)=>`<span class="numpicks" id="${id}">${arr.map(n=>`<button type="button" class="numpick${n==v?" on":""}" data-v="${n}">${n}</button>`).join("")}</span>`;
   return `<div class="settings"><div class="limrow">كلمات جديدة يوميًا: ${btns("sLim",[5,10,15,20,30,50],S.limit)}</div>
    <div class="limrow">هدف المراجعات اليومي: ${btns("sGoal",[20,30,50,80,100],S.goal)}</div>
-   ${reminderHTML()}
    الوجه الأمامي: <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
    <button class="link" id="sReset">تصفير التقدّم</button></div>`;
 }
@@ -741,17 +737,13 @@ function bindSettings(){
   $("sGoal").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===S.goal)return;S.goal=+b.dataset.v;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
   $("sReset").onclick=resetProgress;
-  const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
-    try{st("muf_rem",JSON.stringify(r));MufApp.setReminder(r.on,r.h,0)}catch(err){}
-    rm.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
-    toast("🔔",r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
 }
 // التذكير اليومي: في تطبيق أندرويد فقط، ويُحفظ على الجهاز نفسه
 const REM=()=>Object.assign({on:false,h:19},jget("muf_rem",{}));
 function reminderHTML(){
   if(!(window.MufApp&&MufApp.setReminder))return "";
   const r=REM(),opt=[["off","إيقاف"],[8,"8:00"],[12,"12:00"],[17,"17:00"],[19,"19:00"],[21,"21:00"]];
-  return `<div class="limrow">🔔 التذكير اليومي: <span class="numpicks" id="sRem">${opt.map(([v,l])=>`<button type="button" class="numpick${(v==="off"?!r.on:r.on&&r.h===v)?" on":""}" data-v="${v}">${l}</button>`).join("")}</span></div>`;
+  return `<div class="limrow"><span class="numpicks" id="sRem">${opt.map(([v,l])=>`<button type="button" class="numpick${(v==="off"?!r.on:r.on&&r.h===v)?" on":""}" data-v="${v}">${l}</button>`).join("")}</span></div>`;
 }
 
 /* ================= القائمة ================= */
@@ -1381,14 +1373,51 @@ function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.clas
 function syncHTML(){
   return `<div class="rsec sync"><h3>☁️ حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
-  <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="renameBtn">تغيير الاسم</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
+  <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
   <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
 }
 function bindSync(){
   if($("syncBtn"))$("syncBtn").onclick=()=>syncNow(true);
-  if($("renameBtn"))$("renameBtn").onclick=async()=>{const v=(await uiPrompt("اسمك:",UNAME)||"").trim();if(!v)return;UNAME=v;st(K("name"),v);
-    try{await auth.currentUser.updateProfile({displayName:v})}catch(e){}renderHeader();await syncNow();renderPanel(document.querySelector(".panel.on").id)};
   if($("outBtn"))$("outBtn").onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من هذا الجهاز؟ تقدّمك محفوظ في حسابك."))return;await syncNow();await auth.signOut();location.reload()};
+}
+
+/* ================= الإعدادات ================= */
+function renderSettings(){
+  const login=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
+  const courses=MY_COURSES.filter(id=>COURSES[id]);
+  $("settings").innerHTML=`<h2 class="sth">⚙️ الإعدادات</h2>
+  <div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
+    :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
+  <div class="rsec"><h3>🔔 التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
+    :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>
+  <div class="rsec"><h3>👤 الاسم الظاهر</h3><p class="rnote">يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>
+   <div class="strow"><input id="stName" class="stin" maxlength="40" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">حفظ</button></div></div>
+  <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
+   <input id="pwCur" class="stin" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password">
+   <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (٦ أحرف على الأقل)" autocomplete="new-password">
+   <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
+   <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>`;
+  const cs=$("stCourse");if(cs)cs.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.dataset.v===COURSE)return;
+    cs.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));switchCourse(b.dataset.v)};
+  const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
+    try{st("muf_rem",JSON.stringify(r));MufApp.setReminder(r.on,r.h,0)}catch(err){}
+    rm.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
+    toast("🔔",r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
+  $("stNameBtn").onclick=async()=>{const v=$("stName").value.replace(/\s+/g," ").trim().slice(0,40);
+    if(!v){$("stName").focus();return}if(v===UNAME)return;
+    UNAME=v;st(K("name"),v);try{await auth.currentUser.updateProfile({displayName:v})}catch(e){}
+    renderHeader();toast("👤","تغيّر اسمك الظاهر",v);await syncNow();leagueUpdate().catch(()=>{})};
+  $("pwBtn").onclick=async()=>{
+    const cur=$("pwCur").value,n1=$("pwNew").value,n2=$("pwNew2").value,m=$("pwMsg"),say=(t,ok)=>{m.textContent=t;m.className="stmsg "+(ok?"ok":"bad")};
+    if(!cur)return say("اكتب كلمة المرور الحالية");
+    if(n1.length<6)return say("كلمة المرور الجديدة قصيرة: ٦ أحرف على الأقل");
+    if(n1!==n2)return say("كلمتا المرور الجديدتان غير متطابقتين");
+    $("pwBtn").disabled=true;say("جارٍ التغيير…",true);
+    try{const u=auth.currentUser;await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,cur));await u.updatePassword(n1);
+      ["pwCur","pwNew","pwNew2"].forEach(id=>$(id).value="");say("✓ تغيّرت كلمة المرور. استعملها في المرة القادمة.",true)}
+    catch(e){say(e.code==="auth/invalid-credential"||e.code==="auth/wrong-password"?"كلمة المرور الحالية غير صحيحة":AERR[e.code]||"تعذّر التغيير، أعد المحاولة")}
+    $("pwBtn").disabled=false;
+  };
 }
 
 /* ================= شاشة الدخول ================= */
@@ -1637,8 +1666,9 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="shop"||p==="messages"||p==="users")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users")?"none":"";
   if(p==="profile"){renderProfile();return}
+  if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
@@ -1650,7 +1680,7 @@ function init(){
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
-  $("fCourse").onchange=e=>switchCourse(e.target.value);
+  $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
   $("q").oninput=renderList;$("fType").onchange=renderList;
   $("darkBtn").onclick=()=>{E.dark=E.dark?0:1;E.ts=Date.now();save();applyLook();schedSync()};
   $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
