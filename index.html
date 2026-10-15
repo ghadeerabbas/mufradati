@@ -387,11 +387,12 @@ const ACH=[
  {id:"marathon",ic:"🏃",n:"ماراثون",d:"١٠٠ مراجعة في يوم واحد",g:50,v:s=>s.maxDay,need:100},
  {id:"q10",ic:"🧩",n:"محبّ الاختبارات",d:"١٠ اختبارات مكتملة",g:30,v:s=>s.quizzes,need:10},
  {id:"qfull",ic:"🥇",n:"العلامة الكاملة",d:"١٠ من ١٠ في اختبار",g:20,v:s=>s.qfull,need:1},
- {id:"dayall",ic:"📅",n:"يوم مكتمل",d:"بدء كل كلمات يوم من الأيام",g:50,v:s=>s.dayAll,need:1},
+ {id:"dayall",ic:"📅",n:"يوم مكتمل",d:"بدء كل كلمات يوم من الأيام",g:50,v:s=>s.dayAll,need:1,b2:1},
  {id:"owl",ic:"🦉",n:"بومة الليل",d:"مراجعة بعد الحادية عشرة ليلًا",g:10,v:s=>s.night,need:1},
  {id:"bird",ic:"🐦",n:"الطائر المبكر",d:"مراجعة قبل السابعة صباحًا",g:10,v:s=>s.early,need:1},
  {id:"shop5",ic:"🛍️",n:"جامع التحف",d:"شراء ٥ أغراض من المتجر",g:30,v:s=>s.items,need:5},
 ];
+const achList=()=>ACH.filter(a=>!a.b2||useDays());
 const lvlNeed=l=>100+(l-1)*50;
 let EC=null;
 function econ(){
@@ -426,7 +427,7 @@ function econ(){
   s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
   // المستوى
   let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;gems+=lv*5}
-  const got=ACH.filter(a=>a.v(s)>=a.need);gems+=got.reduce((a,b)=>a+b.g,0);
+  const got=achList().filter(a=>a.v(s)>=a.need);gems+=got.reduce((a,b)=>a+b.g,0);
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
   EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got.map(a=>a.id)),todayN:td.n,per};
@@ -437,12 +438,14 @@ function econ(){
 /* المنهج: غدير يدرس B2، وباقي المستخدمين يبدؤون من A1 */
 const COURSES={b2:{file:"words.json",name:"B2 (منهجي)"},a1:{file:"words-a1.json",name:"A1 (المستخدمون)"}};
 let COURSE="a1";
+const useDays=()=>COURSE==="b2";              // تصنيف الأيام لمنهج غدير فقط
 async function loadWords(c){
   COURSE=c;
   const d=await fetch(COURSES[c].file+"?v="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():{days:[],words:[]}).catch(()=>({days:[],words:[]}));
   DAYS=d.days||[];const seen={};
   W=(d.words||[]).map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else if(seen[k]===undefined)seen[k]=w.day;return r});
   $("fDay").innerHTML='<option value="all">كل الأيام</option>'+DAYS.map(x=>`<option value="${x.day}">${dayName(x.day)}</option>`).join("");
+  $("fDay").value="all";$("fDay").style.display=useDays()?"":"none";
 }
 
 function filtered(){
@@ -457,7 +460,7 @@ function tags(w){
   return `<span class="tag ${w.lvl}">${w.lvl}</span><span class="tag">${TYPE[w.t]||""}</span>`+
    w.s.map(s=>`<span class="tag de">${esc(s)}</span>`).join("")+
    (w.core==1?'<span class="tag core">★ أساسية</span>':"")+
-   (w.rep?`<span class="tag rep">مكرر · أول ظهور: ${dayName(w.rep)}</span>`:"");
+   (w.rep&&useDays()?`<span class="tag rep">مكرر · أول ظهور: ${dayName(w.rep)}</span>`:"");
 }
 
 /* ================= الرأس والمظهر ================= */
@@ -687,7 +690,7 @@ function renderReport(){
   <div class="rsec"><h3>النشاط في آخر ١٤ يومًا (عدد المراجعات)</h3>${colChart(act,lb14)}</div>
   <div class="rsec"><h3>نسبة الإجابات الصحيحة يوميًا</h3>${colChart(acc,lb14,acc.map((v,i)=>act[i]&&v<70))}<div class="legend" style="margin-top:6px"><span><i class="c-master"></i>٧٠٪ فأكثر</span><span><i style="background:var(--red)"></i>أقل من ٧٠٪</span></div></div>
   <div class="rsec"><h3>المراجعات المستحقّة في الأيام القادمة</h3>${colChart(fc,fl)}</div>
-  <div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>
+  ${useDays()?`<div class="rsec"><h3>التقدّم حسب اليوم</h3>${groupRows(DAYS.map(d=>({name:dayName(d.day),list:f.filter(w=>w.day===d.day)})))}</div>`:""}
   <div class="rsec"><h3>حسب المستوى والنوع</h3>${groupRows([{name:"B1",list:f.filter(w=>w.lvl==="B1")},{name:"B2",list:f.filter(w=>w.lvl==="B2")},{name:"★ الأساسية",list:f.filter(w=>w.core==1)}])}
    ${groupRows(Object.keys(TYPE).map(t=>({name:TYPE[t],list:f.filter(w=>w.t===t)})))}</div>
   <div class="rsec"><h3>أصعب الكلمات عليك</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>نسيتها ${miss[w.k]}×</small></div>`).join(""):'<div class="empty">لا توجد بعد. ستظهر هنا الكلمات التي تضغط عليها "نسيت" أكثر من غيرها.</div>'}</div>`;
@@ -707,12 +710,12 @@ function renderRewards(){
    <div class="gstat"><b>❄️ ${s.freezes}</b><span>تجميد متاح</span></div>
    <div class="gstat"><b>💎 ${e.gems}</b><span>رصيد الجواهر</span></div>
    <div class="gstat"><b>✨ ${e.earned}</b><span>جواهر مكتسبة</span></div>
-   <div class="gstat"><b>🏆 ${e.got.size}/${ACH.length}</b><span>إنجازات</span></div>
+   <div class="gstat"><b>🏆 ${e.got.size}/${achList().length}</b><span>إنجازات</span></div>
   </div>
   <div class="rsec"><h3>كيف تكسب الجواهر؟</h3><div style="font-size:.85rem;line-height:1.9">
    صعبة +١ · عرفتها أو سهلة +٢ · كلمة جديدة +١ إضافية<br>كلمة تصل إلى "محفوظة" +٥ · تصل إلى "راسخة" +١٥<br>
    ٢٠ مراجعة في اليوم +٥ · ٥٠ مراجعة +١٠ · ١٠٠ مراجعة +١٥<br>كل إجابة صحيحة في الاختبار +١ · كل مستوى جديد +٥ × رقمه · وكل إنجاز له جائزته</div></div>
-  <div class="rsec"><h3>الإنجازات</h3><div class="achs">${ACH.map(a=>{const v=Math.min(a.v(s),a.need),g=e.got.has(a.id);
+  <div class="rsec"><h3>الإنجازات</h3><div class="achs">${achList().map(a=>{const v=Math.min(a.v(s),a.need),g=e.got.has(a.id);
    return `<div class="ach ${g?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}</b><small>${a.d} · ${g?"✓ تحقّق":"+"+a.g+" 💎"}</small>${g||a.need===1?"":`<div class="mini"><i style="width:${v/a.need*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
    <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${x.val}</span>`).join("")}</div>
