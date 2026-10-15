@@ -202,6 +202,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .lgo{background:var(--navy);color:#fff;padding:12px}
 .gbtn{background:var(--card);color:var(--ink);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;padding:11px}
 .or{color:var(--muted);font-size:.8rem}
+.tgbtn{display:block;text-decoration:none;background:#229ED9;color:#fff;padding:10px;margin-top:6px;font-size:.9rem}
 .lmsg{font-size:.85rem;color:var(--rd);min-height:1.2em}
 .avatar{cursor:pointer}
 /* الرسائل */
@@ -825,7 +826,7 @@ function showLogin(msg){
    <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr">
    <button class="btn lgo" id="lGo">دخول</button>
    <div class="lmsg" id="lMsg">${msg?esc(msg):""}</div>
-   <p class="sub" style="margin-top:4px;font-size:.78rem">لا تملك حسابًا؟ اطلبه من غدير.</p></div>`;
+   <a class="btn tgbtn" href="https://t.me/mufradati_de_bot?start=account" target="_blank" rel="noopener">✈️ لا تملك حسابًا؟ اطلبه عبر تيليغرام</a></div>`;
   const m=t=>{$("lMsg").textContent=t};
   const go=async()=>{
     const u=$("lUser").value.trim().toLowerCase(),pass=$("lPass").value;
