@@ -463,6 +463,10 @@ async function loadWords(c){
   W=(d.words||[]).map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else if(seen[k]===undefined)seen[k]=w.day;return r});
   $("fDay").innerHTML='<option value="all">كل الأيام</option>'+DAYS.map(x=>`<option value="${x.day}">${dayName(x.day)}</option>`).join("");
   $("fDay").value="all";$("fDay").style.display=useDays()?"":"none";
+  // المستويات حسب كلمات المنهج نفسه (A1، A2، B1، B2…)، وتُخفى الخانة إن كان فيه مستوى واحد
+  const lv=[...new Set(W.map(w=>w.lvl).filter(Boolean))].sort();
+  $("fLvl").innerHTML='<option value="all">كل المستويات</option>'+lv.map(l=>`<option>${esc(l)}</option>`).join("");
+  $("fLvl").value="all";$("fLvl").style.display=lv.length>1?"":"none";
 }
 
 function filtered(){
