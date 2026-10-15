@@ -596,6 +596,23 @@ function rate(r,btn){
   schedSync();
   setTimeout(showCard,r===0?380:220);
 }
+// تصفير التقدّم: تأكيد بكتابة اسم المستخدم، ثم يُمسح محليًّا وفي الحساب معًا
+async function resetProgress(){
+  const uname=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
+  if(!confirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والجواهر المكتسبة منها، والسلسلة.\nتبقى مشترياتك من المتجر.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
+  const v=(prompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
+  if(v!==uname.toLowerCase()){if(v)alert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
+  P={};LOG=[];QLOG=[];QA=[];S.newCount=0;save();
+  try{
+    clearTimeout(syncTimer);syncTimer=null;
+    const b=db.batch();
+    b.set(uref(),{main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E}),sum:summary(),name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
+    b.set(uref().collection("data").doc("log"),{v:JSON.stringify(packLog([]))});
+    b.set(uref().collection("data").doc("qa"),{v:JSON.stringify(packQA([]))});
+    await b.commit();
+  }catch(e){alert("حُذف التقدّم من هذا الجهاز، لكن تعذّر حذفه من حسابك الآن. تأكّد من الاتصال وأعد المحاولة.");}
+  econ();renderHeader();buildQueue();showCard();toast("🗑️","تمّ تصفير التقدّم","بداية جديدة!");
+}
 function settingsHTML(){
   const o=(arr,v)=>arr.map(n=>`<option ${n==v?"selected":""}>${n}</option>`).join("");
   return `<div class="settings">كلمات جديدة يوميًا: <select id="sLim">${o([5,10,15,20,30,50],S.limit)}</select>
@@ -608,7 +625,7 @@ function bindSettings(){
   $("sLim").onchange=e=>{S.limit=+e.target.value;set();buildQueue();showCard()};
   $("sGoal").onchange=e=>{S.goal=+e.target.value;set();renderHeader();showCard()};
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
-  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟ (تبقى مشترياتك، لكن الجواهر المكتسبة من المراجعات ستُحذف)")){P={};LOG=[];QLOG=[];QA=[];S.newCount=0;save();econ();renderHeader();buildQueue();showCard()}};
+  $("sReset").onclick=resetProgress;
 }
 
 /* ================= القائمة ================= */
