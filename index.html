@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a5a">
+<title>مفرداتي</title>
+<style>
+:root{--navy:#1f2a5a;--navy2:#33407a;--red:#a01f26;--gold:#c9a84a;--paper:#f7f5ef;--card:#fff;--ink:#20242e;--muted:#6b7180;--line:#e2ddd0;--green:#2a6b3a;--orange:#c2541b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;min-height:100dvh}
+.de{direction:ltr;unicode-bidi:isolate}
+header{background:var(--navy);color:#fff;padding:14px 16px 0;text-align:center;position:sticky;top:0;z-index:5}
+header h1{font-size:1.3rem;letter-spacing:.5px}
+header h1 span{color:var(--gold)}
+.stats{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin:6px 0 10px;font-size:.8rem}
+.stats b{background:rgba(255,255,255,.12);padding:2px 10px;border-radius:20px;font-weight:600}
+nav{display:flex;border-top:1px solid rgba(255,255,255,.15)}
+nav button{flex:1;background:none;border:0;color:#cfd4ea;padding:10px 4px;font:inherit;font-size:.95rem;cursor:pointer;border-bottom:3px solid transparent}
+nav button.on{color:#fff;border-bottom-color:var(--gold);font-weight:700}
+main{max-width:720px;margin:0 auto;padding:14px 16px 40px}
+.panel{display:none}.panel.on{display:block}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);flex:1;min-width:120px}
+.btn{font:inherit;border:0;border-radius:12px;padding:10px 14px;cursor:pointer;font-weight:600}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+/* المراجعة */
+.qinfo{display:flex;justify-content:space-between;font-size:.85rem;color:var(--muted);margin-bottom:8px}
+.flash{background:var(--card);border:1px solid var(--line);border-top:5px solid var(--navy);border-radius:16px;min-height:260px;padding:22px 18px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:10px;cursor:pointer;box-shadow:0 2px 10px rgba(31,42,90,.06)}
+.flash .word{font-size:1.6rem;font-weight:700;color:var(--navy)}
+.flash .ar{font-size:1.35rem;font-weight:700;color:var(--red)}
+.flash .ex{font-size:.98rem;background:var(--paper);border-radius:10px;padding:8px 10px}
+.flash .exar{font-size:.95rem;color:var(--muted)}
+.flash .hint{font-size:.8rem;color:var(--muted)}
+.tags{display:flex;gap:5px;justify-content:center;flex-wrap:wrap}
+.tag{font-size:.72rem;padding:1px 8px;border-radius:10px;background:#eef0f7;color:var(--navy2);font-weight:600}
+.tag.B2{background:#f8e7e8;color:var(--red)}.tag.B1{background:#e6f1e8;color:var(--green)}
+.tag.core{background:#f6efd9;color:#8a6d1c}.tag.rep{background:#fde9dc;color:var(--orange)}
+.rate{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.rate button{color:#fff;font-size:.95rem;padding:12px 4px}
+.rate small{display:block;font-size:.7rem;font-weight:400;opacity:.85}
+.r0{background:var(--red)}.r1{background:var(--orange)}.r2{background:var(--green)}.r3{background:var(--navy)}
+.done{text-align:center;padding:40px 16px}
+.done h2{color:var(--green);margin-bottom:8px}
+.settings{margin-top:16px;font-size:.85rem;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.settings select{flex:none;min-width:auto;padding:4px 8px}
+.link{background:none;border:0;color:var(--red);font:inherit;font-size:.85rem;cursor:pointer;text-decoration:underline}
+/* القائمة */
+.item{background:var(--card);border:1px solid var(--line);border-right:4px solid var(--navy);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.item .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.item .w{font-weight:700;color:var(--navy);font-size:1.08rem}
+.item .m{color:var(--red);font-weight:600}
+.item .e{font-size:.9rem;margin-top:4px}
+.item .ea{font-size:.88rem;color:var(--muted)}
+.item .tags{justify-content:flex-start;margin-top:4px}
+.count{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+/* الاختبار */
+.qword{font-size:1.5rem;font-weight:700;color:var(--navy);text-align:center;margin:8px 0 14px}
+.opt{display:block;width:100%;text-align:right;background:#fff;border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
+.opt.ok{background:#e6f1e8;border-color:var(--green)}.opt.no{background:#f8e7e8;border-color:var(--red)}
+.next{background:var(--navy);color:#fff;width:100%;margin-top:6px}
+.err{color:var(--red);text-align:center;padding:30px}
+</style>
+</head>
+<body>
+<header>
+  <h1>مفردا<span>تي</span></h1>
+  <div class="stats"><b id="sAll">…</b><b id="sDue">…</b><b id="sLearned">…</b></div>
+  <nav>
+    <button data-p="review" class="on">المراجعة</button>
+    <button data-p="list">القائمة</button>
+    <button data-p="quiz">الاختبار</button>
+  </nav>
+</header>
+<main>
+  <div class="filters">
+    <select id="fDay"><option value="all">كل الأيام</option></select>
+    <select id="fLvl"><option value="all">كل المستويات</option><option>B1</option><option>B2</option></select>
+    <select id="fCore"><option value="all">كل الكلمات</option><option value="1">الأساسية فقط ★</option></select>
+  </div>
+
+  <section id="review" class="panel on"></section>
+
+  <section id="list" class="panel">
+    <div class="filters">
+      <input type="search" id="q" placeholder="ابحث بالألمانية أو العربية">
+      <select id="fType"><option value="all">كل الأنواع</option><option value="n">اسم</option><option value="v">فعل</option><option value="a">صفة/ظرف</option><option value="e">تعبير</option></select>
+    </div>
+    <div class="count" id="lcount"></div>
+    <div id="litems"></div>
+  </section>
+
+  <section id="quiz" class="panel"></section>
+</main>
+
+<script>
+const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",e:"تعبير"};
+const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120]; // فترات المراجعة بالأيام
+const $=id=>document.getElementById(id);
+function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null}}
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+
+let W=[],DAYS=[],P={},S={limit:15,dir:"de"};
+try{P=JSON.parse(st("muf_progress")||"{}")}catch(e){}
+try{Object.assign(S,JSON.parse(st("muf_settings")||"{}"))}catch(e){}
+const save=()=>{st("muf_progress",JSON.stringify(P));st("muf_settings",JSON.stringify(S))};
+const key=w=>w.de.trim().toLowerCase();
+const today=()=>new Date().toISOString().slice(0,10);
+
+fetch("words.json?v="+Date.now()).then(r=>r.json()).then(d=>{
+  DAYS=d.days;
+  const seen={};
+  W=d.words.map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else seen[k]=w.day;return r});
+  DAYS.forEach(x=>$("fDay").insertAdjacentHTML("beforeend",`<option value="${x.day}">اليوم ${x.day} · ${esc(x.title)}</option>`));
+  init();
+}).catch(()=>{$("review").innerHTML='<div class="err">تعذّر تحميل المفردات. تأكّد من الاتصال ثم أعد تحميل الصفحة.</div>'});
+
+function filtered(){
+  const d=$("fDay").value,l=$("fLvl").value,c=$("fCore").value;
+  return W.filter(w=>(d==="all"||w.day==d)&&(l==="all"||w.lvl===l)&&(c==="all"||w.core==1));
+}
+// كلمة مكرّرة: تُراجَع مرة واحدة (تقدّمها مشترك)
+const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
+
+function stats(){
+  const u=uniq(W),now=Date.now();
+  $("sAll").textContent="المجموع: "+u.length;
+  $("sDue").textContent="للمراجعة اليوم: "+u.filter(w=>P[w.k]&&P[w.k].due<=now).length;
+  $("sLearned").textContent="محفوظة: "+u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
+}
+function tags(w){
+  return `<span class="tag ${w.lvl}">${w.lvl}</span><span class="tag">${TYPE[w.t]||""}</span>`+
+   w.s.map(s=>`<span class="tag de">${esc(s)}</span>`).join("")+
+   (w.core==1?'<span class="tag core">★ أساسية</span>':"")+
+   (w.rep?`<span class="tag rep">مكرر · أول ظهور: اليوم ${w.rep}</span>`:"");
+}
+
+/* ===== المراجعة بالتكرار المتباعد ===== */
+let queue=[],cur=null,flipped=false,newToday=0;
+function buildQueue(){
+  const now=Date.now(),f=uniq(filtered());
+  if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
+  const due=shuffle(f.filter(w=>P[w.k]&&P[w.k].due<=now)).sort((a,b)=>P[a.k].due-P[b.k].due);
+  const left=Math.max(0,S.limit-(S.newCount||0));
+  const fresh=f.filter(w=>!P[w.k]).slice(0,left);
+  queue=[...due,...fresh];
+}
+function showCard(){
+  const el=$("review");
+  if(!queue.length){
+    const f=uniq(filtered()),nxt=f.filter(w=>P[w.k]).map(w=>P[w.k].due).sort((a,b)=>a-b)[0];
+    el.innerHTML=`<div class="box done"><h2>أحسنت! انتهت مراجعة اليوم ✓</h2><p>${nxt?"المراجعة القادمة: "+new Date(nxt).toLocaleDateString("ar",{weekday:"long",day:"numeric",month:"long"}):"لا كلمات جديدة في هذا الاختيار."}</p></div>`+settingsHTML();
+    bindSettings();stats();return;
+  }
+  cur=queue[0];flipped=false;
+  const isNew=!P[cur.k],front=S.dir==="de"?`<div class="word de">${esc(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
+  el.innerHTML=`<div class="qinfo"><span>المتبقي: ${queue.length}</span><span>${isNew?"كلمة جديدة":"مراجعة"}</span></div>
+  <div class="flash" id="card">${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
+  <div id="rate"></div>`+settingsHTML();
+  $("card").onclick=flip;bindSettings();
+}
+function flip(){
+  if(flipped)return;flipped=true;
+  $("card").innerHTML=`<div class="word de">${esc(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
+   <div class="ex de">${esc(cur.ex)}</div><div class="exar">${esc(cur.exar)}</div><div class="tags">${tags(cur)}</div>`;
+  const b=(P[cur.k]||{box:0}).box,d=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
+  $("rate").innerHTML=`<div class="rate">
+   <button class="btn r0" data-r="0">نسيت<small>الآن</small></button>
+   <button class="btn r1" data-r="1">صعبة<small>${d(1)}</small></button>
+   <button class="btn r2" data-r="2">عرفتها<small>${d(IV[Math.min(b+1,8)])}</small></button>
+   <button class="btn r3" data-r="3">سهلة<small>${d(IV[Math.min(b+2,8)])}</small></button></div>`;
+  document.querySelectorAll(".rate button").forEach(x=>x.onclick=()=>rate(+x.dataset.r));
+}
+function rate(r){
+  const now=Date.now(),old=P[cur.k];
+  if(!old){S.newCount=(S.newCount||0)+1}
+  let box=old?old.box:0;
+  if(r===0)box=0;else if(r===1)box=Math.max(1,box);else box=Math.min(box+(r===2?1:2),8);
+  P[cur.k]={box,due:r===0?now:now+IV[box]*DAY};save();
+  queue.shift();
+  if(r===0)queue.splice(Math.min(3,queue.length),0,cur); // تعود بعد بطاقات قليلة
+  stats();showCard();
+}
+function settingsHTML(){
+  return `<div class="settings">كلمات جديدة يوميًا:
+   <select id="sLim">${[5,10,15,20,30,50].map(n=>`<option ${n==S.limit?"selected":""}>${n}</option>`).join("")}</select>
+   الوجه الأمامي:
+   <select id="sDir"><option value="de" ${S.dir==="de"?"selected":""}>الألمانية</option><option value="ar" ${S.dir==="ar"?"selected":""}>العربية</option></select>
+   <button class="link" id="sReset">تصفير التقدّم</button></div>`;
+}
+function bindSettings(){
+  $("sLim").onchange=e=>{S.limit=+e.target.value;save();buildQueue();showCard()};
+  $("sDir").onchange=e=>{S.dir=e.target.value;save();showCard()};
+  $("sReset").onclick=()=>{if(confirm("هل تريد حذف كل تقدّمك في المراجعة؟")){P={};S.newCount=0;save();buildQueue();showCard()}};
+}
+
+/* ===== القائمة ===== */
+function renderList(){
+  const q=$("q").value.trim().toLowerCase(),t=$("fType").value;
+  const r=filtered().filter(w=>(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));
+  $("lcount").textContent=r.length+" كلمة";
+  $("litems").innerHTML=r.map(w=>`<div class="item"><div class="top"><span class="w de">${esc(w.de)}</span><span class="m">${esc(w.ar)}</span></div>
+   <div class="e de">${esc(w.ex)}</div><div class="ea">${esc(w.exar)}</div><div class="tags">${tags(w)}</div></div>`).join("");
+}
+
+/* ===== الاختبار ===== */
+let qz=[],qi=0,qs=0;
+function startQuiz(){qz=shuffle(uniq(filtered())).slice(0,10);qi=0;qs=0;showQ()}
+function showQ(){
+  const el=$("quiz");
+  if(qz.length<4){el.innerHTML='<div class="box done">لا توجد كلمات كافية في هذا الاختيار.</div>';return}
+  if(qi>=qz.length){el.innerHTML=`<div class="box done"><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button></div>`;$("again").onclick=startQuiz;return}
+  const w=qz[qi],pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar);
+  const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
+  const opts=shuffle([w,...wrong]);
+  el.innerHTML=`<div class="qinfo"><span>السؤال ${qi+1} من ${qz.length}</span><span>الصحيح: ${qs}</span></div>
+   <div class="box"><div class="qword de">${esc(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
+  document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
+    if(document.querySelector(".opt.ok"))return;
+    const ok=b.dataset.k===w.k;if(ok)qs++;else b.classList.add("no");
+    document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
+    $("qnext").innerHTML=`<div class="ex de" style="margin-top:8px">${esc(w.ex)}</div><div class="ea">${esc(w.exar)}</div><button class="btn next" id="nx">التالي</button>`;
+    $("nx").onclick=()=>{qi++;showQ()};
+  });
+}
+
+function refresh(){buildQueue();showCard();renderList();startQuiz();stats()}
+function init(){
+  document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+    document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
+    b.classList.add("on");$(b.dataset.p).classList.add("on");scrollTo(0,0)});
+  ["fDay","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
+  $("q").oninput=renderList;$("fType").onchange=renderList;
+  refresh();
+}
+</script>
+</body>
+</html>
