@@ -177,7 +177,12 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 .tiers{display:flex;justify-content:space-between;margin:6px 0 10px;font-size:1.25rem}.tiers span{opacity:.9}.tiers .lock{opacity:.5}.tiers .on{transform:scale(1.35)}
 .lgrow{--tint:transparent;display:grid;grid-template-columns:24px 26px minmax(0,1fr) 30px 66px;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;font-size:.9rem;border:3px solid transparent;background:var(--tint);margin-bottom:3px}.lgrow b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lgrow .stc{text-align:center;font-size:1.25rem;line-height:1}.lgrow .av{text-align:center}
 .lgrow .rk{width:24px;text-align:center;font-weight:700}.lgrow .xp{font-size:.8rem;color:var(--muted);text-align:left;white-space:nowrap}.lgrow.up{--tint:#22c55e1c}.lgrow.down{--tint:#ef44441c}
-.lgst{margin-top:10px;font-size:.85rem}.lgst .numpicks{margin-top:6px}.lgst .numpick{font-size:1.2rem;min-width:42px;padding:4px 8px}.lgrow.me{outline:2px solid var(--gold)}
+
+.nc-red{color:#e53935}.nc-green{color:#2e9e44}.nc-blue{color:#2f6fdf}.nc-orange{color:#f57c00}.nc-purple{color:#8e44ad}.nc-pink{color:#e84393}.nc-teal{color:#0a9396}.nc-brown{color:#8d5a2b}.nc-crimson{color:#b0103a}
+.nc-gold,.nc-fire,.nc-rainbow{-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.nc-gold{background-image:linear-gradient(90deg,#a8820f,#f9e27d,#c9a84a,#fff3c4,#a8820f)}.nc-fire{background-image:linear-gradient(90deg,#d00000,#ff6d00,#ffb703,#ff6d00)}
+.nc-rainbow{background-image:linear-gradient(90deg,#e11d48,#f59e0b,#10b981,#3b82f6,#a855f7)}
+.nc-black{color:#000}[data-dark] .nc-black{color:#000;text-shadow:0 0 1px #fff,0 0 3px #ffffffcc}
 .botl{font-size:.68rem;font-weight:500;color:var(--muted);background:var(--soft);border-radius:8px;padding:0 6px}
 .lgline{font-size:.72rem;text-align:center;margin:4px 0;font-weight:700}.lgline.up{color:var(--green)}.lgline.down{color:var(--rd)}
 .lgrules{margin-top:8px;font-size:.82rem}.lgrules summary{cursor:pointer;color:var(--hd);font-weight:600}.lgrules ul{padding-right:18px;margin-top:6px;line-height:1.7}
@@ -435,7 +440,7 @@ let W=[],DAYS=[];
 let UID=null,UNAME="";                       // المستخدم الحالي
 const K=n=>"muf_"+UID+"_"+n;                // مفاتيح التخزين لكل مستخدم
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
-const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",dark:0,ts:0};
+const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
   R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGME=null;LGC={at:0,rows:null};
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
@@ -487,17 +492,22 @@ const SHOP=[
  {id:"gems",cat:"confetti",name:"جواهر",price:800,old:100,val:"💎"},
  {id:"fireworks",cat:"confetti",name:"ألعاب نارية",price:1000,old:120,val:"🎆"},
  // مستهلكات
+ // ألوان الاسم في الدوري (الأسود للمشرف وحده)
+ ...[["none","اللون العادي",0],["red","أحمر",150],["green","أخضر",150],["blue","أزرق",150],["orange","برتقالي",250],["purple","بنفسجي",250],["pink","وردي",350],["teal","فيروزي",350],
+     ["brown","بنّي",500],["crimson","قرمزي",700],["gold","ذهبي لامع",1200],["fire","ناري",1500],["rainbow","قوس قزح",2000]].map(([id,n,p])=>({id,cat:"namecolor",name:n,price:p,val:"🎨"})),
  {id:"freeze",cat:"power",name:"تجميد السلسلة",price:300,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
 ];
 // كل هدايا المتجر تنفتح بالصعود في الدوري (رقم الدوري الذي يفتح كل غرض؛ ما لم يُذكر يكون مفتوحًا)
+const NCOL={red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,gold:1,fire:1,rainbow:1,black:1};
 const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10:4,av11:5,av12:7,av13:9},
  title:{t1:1,t2:2,t3:3,t4:4,t5:5,t6:7,t7:9},
  theme:{emerald:2,royal:3,ocean:4,sunset:6,lux:8},
  sticker:{s0:0,s1:0,s2:0,s3:1,s4:1,s5:1,s6:2,s7:2,s8:3,s9:3,s10:4,s11:5,s12:5,s13:6,s14:8,s15:9},
- confetti:{stars:1,hearts:2,gems:4,fireworks:6}};
+ confetti:{stars:1,hearts:2,gems:4,fireworks:6},
+ namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,crimson:4,gold:5,fire:7,rainbow:9}};
 SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t});
-const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
-const EQKEY={avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
+const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
+const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
 const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
 const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.some(b=>b.item===cat+":"+id))};
 
@@ -1210,10 +1220,12 @@ async function leagueUpdate(){
   let me=await myLeagueDoc(w);
   if(!me){if(!xp)return;me=LGME={w,tier:LG.tier,grp:await chooseGroup(w,LG.tier),b:band(),xp:-1,name:""}}
   else if(me.tier!==LG.tier){me.tier=LG.tier;me.grp=await chooseGroup(w,LG.tier);me.xp=-1}   // نُقل إلى دوري آخر
-  const av=String(E.avatar||"🎓").slice(0,8),fr=owned("frame",E.frame)?String(E.frame||"none").slice(0,16):"none",stk=String(E.lgst||"").slice(0,8);
-  if(me.xp===xp&&me.name===UNAME&&me.av===av&&me.fr===fr&&me.st===stk)return;
-  await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,fr,st:stk,tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
-  Object.assign(me,{xp,name:UNAME,av,fr,st:stk});LGC.at=0;
+  // الإطار والملصق ولون الاسم: ما يستعمله المتعلّم من المتجر، تلقائيًا
+  const av=String(E.avatar||"🎓").slice(0,8),fr=owned("frame",E.frame)?String(E.frame||"none").slice(0,16):"none",stk=String(E.sticker||"").slice(0,8),
+    nc=isAdmin()?"black":(E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:"");
+  if(me.xp===xp&&me.name===UNAME&&me.av===av&&me.fr===fr&&me.st===stk&&me.nc===nc)return;
+  await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,fr,st:stk,nc,tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
+  Object.assign(me,{xp,name:UNAME,av,fr,st:stk,nc});LGC.at=0;
 }
 async function leagueRows(){
   const ws=weekStart(Date.now()),w=weekId(ws);
@@ -1222,18 +1234,6 @@ async function leagueRows(){
   LGC={at:Date.now(),rows,w};return rows;
 }
 function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
-// ملصقك الذي يظهر بجانب اسمك في الدوري، من ملصقاتك المشتراة
-function lgStickerHTML(){
-  const mine=SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id)),cur=E.lgst||"";
-  if(!mine.length)return `<div class="lgst rnote">اشترِ ملصقات من المتجر لتضع أحدها بجانب اسمك في الدوري.</div>`;
-  return `<div class="lgst"><b>ملصقك في الدوري:</b><div class="numpicks" id="lgSt"><button type="button" class="numpick${cur?"":" on"}" data-v="" style="font-size:.85rem">بدون</button>${mine.map(x=>`<button type="button" class="numpick${x.val===cur?" on":""}" data-v="${esc(x.val)}">${x.val}</button>`).join("")}</div></div>`;
-}
-function bindLgSticker(){
-  const b=$("lgSt");if(!b)return;
-  b.onclick=async e=>{const x=e.target.closest(".numpick");if(!x||x.dataset.v===(E.lgst||""))return;
-    E.lgst=x.dataset.v;E.ts=Date.now();save();schedSync();
-    try{await leagueUpdate();LGC.at=0}catch(err){}fillLeague()};
-}
 async function fillLeague(){
   const box=$("lgBox");if(!box)return;
   let rows;
@@ -1243,14 +1243,12 @@ async function fillLeague(){
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,z=i<up&&r.xp>=PROMO_MIN&&rt<9?"up":down&&i>=n-down&&rt>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة الهبوط</div>':""}<div class="lgrow ${z} ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b>${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${esc(r.st||"")}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة الصعود</div>':""}`};
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة الهبوط</div>':""}<div class="lgrow ${z} ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${esc(r.st||"")}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة الصعود</div>':""}`};
   box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
    ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
-   ${lgStickerHTML()}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
 `;
-  bindLgSticker();
 }
 
 /* ================= التقارير ================= */
@@ -1350,7 +1348,7 @@ function renderShop(){
   <div class="shop">${items.map(it=>{
     const mine=it.cat!=="power"&&owned(it.cat,it.id),ek=EQKEY[it.cat];
     const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
-    const pv=it.cat==="frame"?`<div class="frmini fr-${it.id}"></div>`:it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:esc(it.val);
+    const pv=it.cat==="namecolor"?`<span class="nc-${it.id}" style="font-size:1.25rem;font-weight:800">${esc(UNAME)}</span>`:it.cat==="frame"?`<div class="frmini fr-${it.id}"></div>`:it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:esc(it.val);
     let btn;
     if(it.cat==="power")btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
     else if(!mine&&itemLocked(it))btn=`<button class="btn buy" disabled>🔒 ${TIERS[it.tier][1]} ${TIERS[it.tier][0]}</button>`;
@@ -1373,7 +1371,7 @@ async function buy(cat,id){
 }
 function equip(cat,v,silent){
   const k=EQKEY[cat];if(!k)return;E[k]=v;E.ts=Date.now();save();applyLook();econ();renderHeader();
-  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync();if(cat==="frame"||cat==="avatar")leagueUpdate().catch(()=>{});
+  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync();if(cat==="frame"||cat==="avatar"||cat==="sticker"||cat==="namecolor")leagueUpdate().catch(()=>{});
 }
 
 /* ================= الحساب والمزامنة السحابية ================= */
