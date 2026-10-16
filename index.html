@@ -288,7 +288,8 @@ body.fbon main{padding-bottom:210px}
 .zn.mini.cur:before{top:24px;width:70px;height:64px;margin:-32px 0 0 -35px;border-width:4px;border-color:rgba(28,176,246,.45)}
 .zn.mini.cur:after{top:24px;width:72px;height:66px;margin:-33px 0 0 -36px;background:radial-gradient(closest-side,rgba(28,176,246,.35),rgba(28,176,246,0))}
 .zn.mini.lock .i3{width:24px;height:24px}.zn.mini .go{top:10px;left:auto;right:calc(100% + 12px);transform:none;color:#1cb0f6;font-size:.8rem;animation:none}.zn.mini .go:after{left:auto;right:-16px;bottom:auto;top:50%;margin:-7px 0 0;border-top-color:transparent;border-left-color:var(--card)}
-.mtgrid,.mgrid{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:1fr;gap:10px 10px}.mtgrid>.mt,.mgrid>.mb{height:100%;min-height:56px;display:flex;align-items:center;justify-content:center;text-align:center}
+.mtgrid,.mgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-rows:1fr;gap:10px 10px}.mtgrid>.mt,.mgrid>.mb{height:100%;min-height:56px;display:flex;align-items:center;justify-content:center;text-align:center;min-width:0}
+.mt span,.mb span{min-width:0;max-width:100%;overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}.mt.long,.mb.long{font-size:.82rem}
 .mt{width:100%;min-height:52px;background:var(--card);color:var(--ink);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;font-weight:700;font-size:1rem;padding:8px 6px;line-height:1.35;transition:transform .1s}
 .mt.de{direction:ltr}.mt.on{border-color:#1cb0f6;background:#1cb0f61f;transform:translateY(-2px)}
 .mt.ok{border-color:var(--green);background:#22c55e22;opacity:.55}.mt.no{border-color:var(--red);background:#ef444422;animation:nof .45s}
@@ -1031,7 +1032,7 @@ function drillView(){
     $("dBack").onclick=()=>{DRL=null;reviewHome();scrollTo(0,0)};return;
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
-    return `<button type="button" class="btn mt${side==="de"?" de":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}><span>${side==="de"?artHTML(lemmaOf(w)):esc(arLemma(w))}</span></button>`};
+    return `<button type="button" ${side==="de"?'lang="de"':""} class="btn mt${side==="de"?" de":""}${(side==="de"?lemmaOf(w):arLemma(w)).length>18?" long":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}><span>${side==="de"?artHTML(lemmaOf(w)):esc(arLemma(w))}</span></button>`};
   el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">اضغط كلمة ألمانية ثم معناها، أو العكس</p>
    <div class="mtgrid">${D.words.map((w,i)=>cell(w,"de")+cell(D.ar[i],"ar")).join("")}</div></div>`;
   el.querySelectorAll(".mt").forEach(b=>b.onclick=()=>{
@@ -1526,7 +1527,7 @@ function nextQ(){
 function matchView(){
   const el=$("games");
   el.innerHTML=gameHead()+`<p class="ghint">اضغط كلمة ثم معناها. ✓ ${6-GM.left.size} من 6</p><div class="mgrid">
-   ${GM.de.map((w,i)=>{const a_=GM.ar[i];return `<button class="mb de ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}"><span>${artHTML(lemmaOf(w))}</span></button><button class="mb ${GM.left.has(a_.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===a_.k?"sel":""}" data-side="ar" data-k="${esc(a_.k)}"><span>${esc(arLemma(a_))}</span></button>`}).join("")}</div>`;
+   ${GM.de.map((w,i)=>{const a_=GM.ar[i];return `<button lang="de" class="mb de${lemmaOf(w).length>18?" long":""} ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}"><span>${artHTML(lemmaOf(w))}</span></button><button class="mb${arLemma(a_).length>18?" long":""} ${GM.left.has(a_.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===a_.k?"sel":""}" data-side="ar" data-k="${esc(a_.k)}"><span>${esc(arLemma(a_))}</span></button>`}).join("")}</div>`;
   $("gQuit").onclick=()=>{stopTick();GM=null;renderGames()};
   if(!GTICK)GTICK=setInterval(()=>{if(!GM||GM.id!=="match"||GM.done){stopTick();return}const t=$("gTime");if(t)t.textContent=secs(Date.now()-GM.t0)},100);
   el.querySelectorAll(".mb").forEach(b=>b.onclick=()=>{
