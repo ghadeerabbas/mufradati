@@ -2079,6 +2079,7 @@ function renderPanel(p){
   $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users"||p==="cfgP"||p==="shopEd")?"none":"";
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
+  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
@@ -2100,7 +2101,8 @@ function init(){
   setInterval(()=>{if(UID)renderEnergy()},30000);
   $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
-  $("hAv").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
+  $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
+    document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
 }
 
