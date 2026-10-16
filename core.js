@@ -16,6 +16,9 @@ const DEF_CFG={
   items:[]     // أغراض أضافها المشرف: {id,cat,name,val,price,tier,streak,c,c2,badge}
 };
 let CFG=DEF_CFG;
+// «الدراسة الحرّة» للحساب الحالي: طاقة بلا حدود، ومحطات تتجدّد، ولا خبرة ولا جواهر من الدراسة
+// يضبطها التطبيق للمستخدم المسجّل، والخادم لكل طلب
+let FREEU=false;
 let XPR,LV_GEMS,STREAK_G,PROMO_MIN,UP_N,DOWN_N,GROUP_MAX,TARGET,EN_MAX,EN_STEP,ST_COST,ST_WORDS,ST_MAX,FZ_MAX,FZ_START;
 const _num=(v,d,lo,hi)=>{v=+v;return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):d};
 // يدمج إعدادات المشرف مع الافتراضية ويتحقّق من كل رقم (فلا يكسر خطأٌ التطبيقَ)
@@ -32,7 +35,8 @@ function applyCfg(c){
     energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
-    shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[]
+    shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
+    free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]   // حسابات «الدراسة الحرّة» يختارها المشرف
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
   GROUP_MAX=TARGET=CFG.league.group;EN_MAX=CFG.energy.max;EN_STEP=CFG.energy.minutes*60000;ST_COST=CFG.energy.stCost;
@@ -156,7 +160,9 @@ const streakBest=()=>Math.max((EC||econ()).s.best,R.sb||0);
 const GEM=[0,1,2,2];
 // خبرة كل تقييم: الكلمة الجديدة في المحطة 3 (أو 2 إن أخطأ فيها)، والمراجعة بحسب التقييم
 // علامة السجلّ: 0 مراجعة في موعدها، 1 كلمة جديدة من محطة، 2 تدريب (قبل موعدها أو للمرة الثانية في اليوم) بلا خبرة ولا جواهر
-const xpOf=(r,nw)=>nw===2?0:nw?(r>=2?CFG.xp.stOk:CFG.xp.stMiss):XPR[r];
+// أعلام السجلّ: 0 مراجعة مكافأة، 1 كلمة محطة، 2 تدريب، 3 مراجعة في الدراسة الحرّة، 4 كلمة محطة في الدراسة الحرّة (3 و4 بلا خبرة)
+const xpOf=(r,nw)=>nw>=2?0:nw?(r>=2?CFG.xp.stOk:CFG.xp.stMiss):XPR[r];
+const isNewF=x=>x[3]===1||x[3]===4,isRevF=x=>x[3]===0||x[3]===3;
 // خطوة المراجعة المتباعدة: التدريب لا يرفع الكلمة، لكن النسيان ينزلها
 function boxStep(b,r,practice){return r===0?0:r===1?Math.max(1,b):practice?Math.max(1,b):Math.min(b+(r===2?1:2),8)}
 // هل تُكافأ هذه المراجعة؟ فقط إن حلّ يوم موعدها، ولم تُكافأ الكلمة نفسها اليوم
@@ -202,16 +208,17 @@ function econ(){
   for(const [t,k,r,nw] of L){
     if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
     s.reviews++;xp+=xpOf(r,nw);
-    let b=nw?1:boxStep(box[k]||0,r,false);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);xp+=CFG.xp.mem}
-    if(b>=7&&!r7.has(k)){r7.add(k);xp+=CFG.xp.solid}
-    const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
+    const fr=nw>=3;   // الدراسة الحرّة: تُحفظ الكلمة وتُحسب، بلا خبرة
+    let b=nw===1||nw===4?1:boxStep(box[k]||0,r,false);box[k]=b;
+    if(b>=4&&!r4.has(k)){r4.add(k);if(!fr)xp+=CFG.xp.mem}
+    if(b>=7&&!r7.has(k)){r7.add(k);if(!fr)xp+=CFG.xp.solid}
+    const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0,f:0});x.n++;if(fr)x.f++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
     const h=hourOf(t);if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
   }
   s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
   for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
-    xp+=(x.n>=CFG.xp.dayN?CFG.xp.dayXp:0)}
-  for(const q of QLOG){xp+=q[1]*CFG.xp.quiz;if(q[2]>=5&&q[1]===q[2])s.qfull++}
+    xp+=(x.n-(x.f||0)>=CFG.xp.dayN?CFG.xp.dayXp:0)}
+  for(const q of QLOG){xp+=q[6]?0:q[1]*CFG.xp.quiz;if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
@@ -251,10 +258,11 @@ const enNext=()=>enNow()>=EN_MAX?0:EN_STEP-((Date.now()-(EN.t||0))%EN_STEP);
 function enAdd(d,at){const cur=enAt(at),frac=cur>=EN_MAX?0:(at-(EN.t||0))%EN_STEP;EN={v:Math.min(EN_MAX,Math.max(0,cur+d)),t:at-frac,rc:EN.rc||0,lt:EN.lt||0}}
 const gamesEnToday=at=>QLOG.filter(q=>q[5]===1&&dkey(q[0])===dkey(at)).length;
 const stTodayAt=at=>STN.filter(x=>dkey(x[0])===dkey(at)).length;
+const stMaxHit=at=>!FREEU&&stTodayAt(at)>=ST_MAX;   // في الدراسة الحرّة تتجدّد المحطات بلا حدّ يومي
 // المحطة التدريبية: مطابقة كلمات المحطة بعد إكمالها، واحدة لكل محطة مكتملة في اليوم
 const drillsTodayAt=at=>QLOG.filter(q=>q[3]==="drill"&&dkey(q[0])===dkey(at)).length;
 // كلفة المحطة: أول محطة في اليوم مجانية (إن فعّلها المشرف)
-const stCostAt=at=>CFG.energy.firstFree&&stTodayAt(at)===0?0:ST_COST;
+const stCostAt=at=>FREEU?0:CFG.energy.firstFree&&stTodayAt(at)===0?0:ST_COST;
 
 /* --- المقياس والدوري --- */
 function measure(){
@@ -273,9 +281,9 @@ const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier
 function weekXP(ws){
   const we=ws+7*DAY,per={};let xp=0;
   // السجلّ مرتّب زمنيًا: نقرأ من آخره حتى بداية الأسبوع فقط
-  for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we&&x[3]!==2){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
+  for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we&&x[3]<2){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
   for(const d in per)if(per[d]>=CFG.xp.dayN)xp+=CFG.xp.dayXp;
-  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1]*CFG.xp.quiz;
+  for(const q of QLOG)if(q[0]>=ws&&q[0]<we&&!q[6])xp+=q[1]*CFG.xp.quiz;
   return xp;
 }
 // عدد المتقدّمين والمتراجعين في كل دوري (من الأول إلى العاشر)
@@ -350,34 +358,35 @@ function applyAt(ev,T,now,ctx){
     const t=now,last=LOG.length?LOG[LOG.length-1][0]:0;
     if(ctx.server&&t<=last+500)return "time";
     const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,box=boxStep(b0,r,!ok);
-    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?0:2]);if(LOG.length>60000)LOG=LOG.slice(-60000);
-    if(ok&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
+    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);if(LOG.length>60000)LOG=LOG.slice(-60000);
+    if(ok&&!FREEU&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
     return true;
   }
   if(T==="stStart"){
-    const cost=stCostAt(now);if(stTodayAt(now)>=ST_MAX)return "max";
+    const cost=stCostAt(now);if(stMaxHit(now))return "max";
     if(CFG.station.drillReq&&drillsTodayAt(now)<stTodayAt(now))return "drill";   // التدريب بعد كل محطة شرط لفتح التالية
     if(enAt(now)<cost)return "energy";
     if(cost)enAdd(-cost,now);STV=now;return true;
   }
-  if(T==="stQuit"){if(!STV)return "none";if(stCostAt(STV))enAdd(CFG.energy.refund,now);STV=0;return true}   // المحطة المجانية لا يُستعاد منها شيء
+  if(T==="stQuit"){if(!STV)return "none";if(stCostAt(STV)&&!FREEU)enAdd(CFG.energy.refund,now);STV=0;return true}   // المحطة المجانية لا يُستعاد منها شيء
   if(T==="stDone"){
     if(!STV)return "none";if(ctx.server&&now-STV<10000)return "time";
     const ws=[...new Set((ev.words||[]).map(String))].slice(0,ST_WORDS);
     if(!ws.length||ws.some(k=>P[k]||(ctx.words&&!ctx.words.has(k))))return "word";
     const miss=new Set((ev.miss||[]).map(String));
-    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,1])});
-    const pw=new Set(R.pw||[]);STN.push([now,ws.length,ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;
+    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU?4:1])});
+    const pw=new Set(R.pw||[]);STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
   }
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
     if(!(total>=1&&total<=300&&ok>=0&&ok<=total))return "bad";
     if(ctx.server){const lq=QLOG.length?QLOG[QLOG.length-1][0]:0;if(now-lq<Math.min(total,20)*800)return "time";
       if(QLOG.filter(q=>dkey(q[0])===dkey(now)).length>=60)return "cap"}
-    if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(enAt(now)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,now)}
+    if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(!FREEU){if(enAt(now)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,now)}}
     const q=[now,ok,total,kind,Math.max(0,+ev.ms|0)];
     // طاقة التمارين: لكل تمرين أكمله حتى آخره، بحدّ أقصى في اليوم (الاختبار لا يعطي طاقة)
-    if(ev.full&&kind!=="quiz"&&CFG.energy.game&&gamesEnToday(now)<CFG.energy.gameMax){enAdd(CFG.energy.game,now);q.push(1)}
+    if(ev.full&&!FREEU&&kind!=="quiz"&&CFG.energy.game&&gamesEnToday(now)<CFG.energy.gameMax){enAdd(CFG.energy.game,now);q.push(1)}
+    if(FREEU){while(q.length<6)q.push(0);q.push(1)}   // q[6]=1: بلا خبرة
     QLOG.push(q);
     for(const a of (ev.qa||[]).slice(0,300))if(Array.isArray(a))QA.push([now,String(a[0]),a[1]?1:0]);
     if(QA.length>30000)QA=QA.slice(-30000);

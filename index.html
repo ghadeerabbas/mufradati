@@ -596,7 +596,7 @@ body.fbon main{padding-bottom:210px}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=9"></script>
+<script src="core.js?v=11"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -797,7 +797,7 @@ function celebrate(prev){
 let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
 const I3=k=>`<img class="i3" src="img/3d/${k}.png" alt="">`;   // أيقونة مجسّمة
-function renderEnergy(){const b=$("hEn");if(!b)return;const n=enNow();b.innerHTML=I3(n<ST_COST?"lowbat":"battery")+n;b.classList.toggle("low",n<ST_COST)}
+function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){b.innerHTML=I3("battery")+"∞";b.classList.remove("low");return}const n=enNow();b.innerHTML=I3(n<ST_COST?"lowbat":"battery")+n;b.classList.toggle("low",n<ST_COST)}
 /* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
 const stToday=()=>stTodayAt(Date.now());
 let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0,DRL=null;
@@ -845,7 +845,7 @@ async function noEnergy(){
 }
 function startStation(){
   const fresh=uniq(filtered()).filter(w=>!P[w.k]);
-  if(!fresh.length||stToday()>=ST_MAX)return;
+  syncFree();if(!fresh.length||stMaxHit(Date.now()))return;
   if(drillLock()){toast(I3("puzzle"),"أكمل تدريب المحطة "+stToday()+" أولًا","التدريب بعد كل محطة يفتح المحطة التالية");return}
   if(enNow()<stCostAt(Date.now())){noEnergy();return}
   if(ev({type:"stStart"})!==true)return;renderEnergy();
@@ -987,7 +987,7 @@ function resultView(){
   el.innerHTML=`<div class="box result"><img class="jmp" src="img/m/${acc===100?"trophy":acc>=60?"jump":"thumbs"}.png" alt="">
    <h2>${R_.title}</h2><p>${acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان"}</p>
    <div class="rcards"><div class="rcard"><small>الخبرة</small><b>${I3("sparkles")}${R_.xp}</b></div><div class="rcard acc"><small>الدقة</small><b>${I3("target")}${acc}%</b></div><div class="rcard tm"><small>الوقت</small><b>${I3("stopwatch")}${mmss(R_.ms)}</b></div></div>
-   ${R_.drill&&drillsToday()<stToday()?`<button class="btn next blue" id="resDrill">${I3("puzzle")} تدريب على كلماتها · ${CFG.energy.drill} طاقة</button>`:""}
+   ${R_.drill&&drillsToday()<stToday()?`<button class="btn next blue" id="resDrill">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}
    <button class="btn next" id="resGo">متابعة</button></div>`;
   if(!R_.shown){R_.shown=1;fx("done");confetti(acc===100?150:80)}
   $("resGo").onclick=()=>{RES=null;reviewHome();scrollTo(0,0)};
@@ -997,22 +997,26 @@ function resultView(){
 function lessonPop(o){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
   m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1><p class="rnote">${o.sub}</p>
-   <div class="ppills"><span>${I3("sparkles")} +${o.xp} خبرة</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":"مجانية"}</span></div>
-   <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ · +${o.xp} خبرة</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
+   <div class="ppills"><span>${I3("sparkles")} ${o.xp?"+"+o.xp+" خبرة":"بلا خبرة"}</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":"مجانية"}</span></div>
+   <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ${o.xp?" · +"+o.xp+" خبرة":""}</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
   m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();o.go()};
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
+const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID))};
+const drillCost=()=>FREEU?0:CFG.energy.drill;
+// في الدراسة الحرّة يبدأ المسار من جديد كلما اكتملت محطاته وتدريباتها
+const pathBase=()=>{if(!FREEU)return 0;const a=stToday(),d=drillsToday(),N=ST_MAX;return d>=a?Math.floor(a/N)*N:Math.floor((a-1)/N)*N};
 const drillLock=()=>!!CFG.station.drillReq&&drillsToday()<stToday();   // المحطة التالية مقفلة حتى يُنهى التدريب
 function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
   const st=STN.filter(x=>dkey(x[0])===dkey(Date.now())).sort((a,b)=>a[0]-b[0]);if(!st[j])return [];
   const ts=st[j][0],by=new Map(uniq(W).map(w=>[w.k,w]));
   const t0=Math.floor(ts/1000)*1000;   // السجلّ المحفوظ يقرّب الوقت إلى الثانية
-  return [...new Set(LOG.filter(x=>x[3]===1&&x[0]>=t0&&x[0]<t0+2000).map(x=>x[1]))].slice(0,ST_WORDS).map(k=>by.get(k)).filter(Boolean);
+  return [...new Set(LOG.filter(x=>isNewF(x)&&x[0]>=t0&&x[0]<t0+2000).map(x=>x[1]))].slice(0,ST_WORDS).map(k=>by.get(k)).filter(Boolean);
 }
 function startDrill(){
   const j=drillsToday();if(j>=stToday()){toast(I3("puzzle"),"أكمل محطة أولًا","التدريب يأتي بعد كل محطة");return}
-  const need=CFG.energy.drill;if(enNow()<need){toast(I3("lowbat"),"طاقتك لا تكفي للتدريب","يحتاج "+need+" طاقة، ولديك "+enNow());return}
+  syncFree();const need=drillCost();if(need&&enNow()<need){toast(I3("lowbat"),"طاقتك لا تكفي للتدريب","يحتاج "+need+" طاقة، ولديك "+enNow());return}
   const ws=stationWords(j);if(ws.length<2){toast(I3("warning"),"تعذّر تجهيز التدريب","لم أجد كلمات هذه المحطة");return}
   DRL={j,words:shuffle(ws),ar:shuffle([...ws]),sel:null,done:new Set,wrong:new Set,t0:Date.now(),fin:false};RVDONE=null;RES=null;CMB=0;drillView();scrollTo(0,0);
 }
@@ -1071,38 +1075,40 @@ function reviewHome(){
   if(RES)return resultView();
   const el=$("review"),f=uniq(filtered()),learned=f.filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
-  const done=stToday(),en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
+  syncFree();const PB=pathBase(),done=stToday()-PB,en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
   if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
-  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها · ${CFG.energy.drill} طاقة</button>`:""}</div>`:"";
+  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}</div>`:"";
   // المسار المتعرّج: المكتملة ذهبية، والتالية خضراء تنبض، والمقفلة رمادية
-  const N=ST_MAX,off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday(),dlow=en<CFG.energy.drill;
-  const dl=drillLock(),pend=drillsToday()<done;
+  const N=ST_MAX,off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday()-PB,dlow=en<drillCost();
+  const dl=drillLock(),pend=dn<done;
   const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N&&!dl?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":i===N-1?"trophy":"lock";
-    return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${i+1}</span></button>`};
+    return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost||FREEU?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${PB+i+1}</span></button>`};
   // بعد كل محطة محطة تدريبية صغيرة (مطابقة)، مكتملة أو متاحة أو مقفلة
   const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
   const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):"lock";
-    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب · ${CFG.energy.drill}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span></button>`};
+    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب${drillCost()?" · "+drillCost():""}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span></button>`};
   const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done]);pts.push([dx(i),dy(i),i<dn])}
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
-  const coach=pend&&(dl||done>=N)?"أحسنت! تدريب سريع على كلمات المحطة "+done+(done<N?" يفتح لك المحطة التالية":" يكمل مسار اليوم")+" "+I3("puzzle")
+  const coach=pend&&(dl||done>=N)?"أحسنت! تدريب سريع على كلمات المحطة "+(PB+done)+(done<N?" يفتح لك المحطة التالية":" يكمل مسار اليوم")+" "+I3("puzzle")
     :done>=N?"أنهيت مسار اليوم! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
     :!fresh?(allDone?"أنهيت كل كلمات منهجك! 🌟 اطلب منهجًا جديدًا.":"تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى.")
     :low?(dueN?"طاقتك لا تكفي للمحطة. راجع الكلمات المستحقّة لتكسب طاقة 🔋":"استرح قليلًا، فالطاقة تمتلئ مع الوقت ⏳")
+    :FREEU?"دراسة حرّة بلا حدود! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 📚"
     :!cost?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
     :done?"أحسنت! بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")+" اليوم 💪"
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   el.innerHTML=msg+`
-  <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
+  <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
   <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*SP+50}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}</div>
-   ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${done} · ${CFG.energy.drill} طاقة</button>`
+   ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}${drillCost()?" · "+drillCost()+" طاقة":""}</button>`
      :done>=N?'':!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${done+1}${cost?"":" · مجانية "+I3("gift")}</button>`}
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
+   ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}><small>${counts[id]}</small>${n}</button>`).join("")}</div>
@@ -1112,8 +1118,8 @@ function reviewHome(){
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
   </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
-  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:"المحطة "+(stToday()+1)+" من "+ST_MAX,sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
-  const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:ST_WORDS*CFG.xp.quiz,cost:CFG.energy.drill,blue:1,go:startDrill});
+  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+ST_MAX,sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
+  const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
@@ -1664,12 +1670,12 @@ function renderReport(){
   const box={},memAt={};
   for(const [t,k,r,nw] of L){const b=nw===1?1:boxStep(box[k]||0,r,nw===2);box[k]=b;if(b>=4&&!memAt[k])memAt[k]=t}
   const ws=weekStart(now),ms=now-30*DAY;
-  const per=from=>({nw:L.filter(x=>x[3]===1&&x[0]>=from).length,mem:Object.keys(memAt).filter(k=>memAt[k]>=from&&P[k]&&P[k].box>=4).length});
+  const per=from=>({nw:L.filter(x=>isNewF(x)&&x[0]>=from).length,mem:Object.keys(memAt).filter(k=>memAt[k]>=from&&P[k]&&P[k].box>=4).length});
   const wk=per(ws),mo=per(ms);
   // نسبة التذكّر: من المراجعات (لا الكلمات الجديدة) كم تذكّرت، لكل أسبوع من الأسابيع الستة الأخيرة
   const wks=[...Array(6)].map((_,i)=>weekStart(ws-(5-i)*7*DAY+DAY));
-  const rec=wks.map(a=>{const rs=L.filter(x=>x[3]===0&&x[0]>=a&&x[0]<a+7*DAY);return rs.length?Math.round(rs.filter(x=>x[2]>=2).length/rs.length*100):0});
-  const recN=wks.map(a=>L.filter(x=>x[3]===0&&x[0]>=a&&x[0]<a+7*DAY).length);
+  const rec=wks.map(a=>{const rs=L.filter(x=>isRevF(x)&&x[0]>=a&&x[0]<a+7*DAY);return rs.length?Math.round(rs.filter(x=>x[2]>=2).length/rs.length*100):0});
+  const recN=wks.map(a=>L.filter(x=>isRevF(x)&&x[0]>=a&&x[0]<a+7*DAY).length);
   const wl=wks.map((a,i)=>i===5?"الحالي":new Date(a+12*36e5).getDate()+"/"+(new Date(a+12*36e5).getMonth()+1));
   // الكلمات التي ينساها أكثر: النسيان في المراجعة والخطأ في الاختبار والتمارين
   const err={};L.forEach(x=>{if(x[2]===0)err[x[1]]=(err[x[1]]||0)+1});QA.forEach(x=>{if(!x[2]&&fk.has(x[1]))err[x[1]]=(err[x[1]]||0)+1});
@@ -1694,7 +1700,7 @@ function reportDetailsHTML(){
   const f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k));
   const L=LOG.filter(x=>fk.has(x[1])),sb=stackBar(f),c=sb.c,e=EC||econ();
   const total=L.length,correct=L.filter(x=>x[2]>=2).length;
-  const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(x[3]===1)days[d].nw++});
+  const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(isNewF(x))days[d].nw++});
   const td=days[today()]||{n:0,ok:0,nw:0};
   const d14=[...Array(14)].map((_,i)=>now-(13-i)*DAY);
   const act=d14.map(t=>(days[dkey(t)]||{n:0}).n);
@@ -1845,7 +1851,7 @@ const uref=()=>db.collection("users").doc(UID);
 const API="https://mufradati-api.afunogrv.workers.dev";
 // حدث جديد: يُطبَّق فورًا للعرض، ويُرسل إلى الخادم الذي يتحقّق منه ويحفظه
 function ev(e){
-  e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
+  syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
   EVQ.push(e);save();econ();schedSync(EVQ.length>=100?1000:0);return true;
 }
@@ -2189,7 +2195,7 @@ function renderCfg(){
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
   };
   $("cfgDef").onclick=async()=>{if(!await uiConfirm("إرجاع كل الأرقام إلى الافتراضي؟ (تبقى تعديلات المتجر)"))return;
-    const c={shop:CFG.shop,items:CFG.items};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
+    const c={shop:CFG.shop,items:CFG.items,free:CFG.free};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
 }
 
 /* ================= لوحة الإشراف: محرّر المتجر ================= */
@@ -2500,6 +2506,10 @@ function drawUsage(){
   $("usgDay").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;USGDAY=b.dataset.v;drawUsage()};
   $("usgRe").onclick=renderUsage;
 }
+async function setFree(uid,on){
+  const f=new Set(CFG.free||[]);on?f.add(uid):f.delete(uid);const c={...CFG,free:[...f]};
+  if(await saveCfg(c,on?"فُعّلت الدراسة الحرّة":"أُلغيت الدراسة الحرّة")){applyCfg(c);return true}return false;
+}
 async function renderUsers(){
   const el=$("users");
   if(!isAdmin()){el.innerHTML="";return}
@@ -2554,6 +2564,7 @@ function renderUser(){
   ${sm.ms?`<div class="rsec"><h3>📏 المقياس: ${sm.ms.total} من 100${sm.lg!=null?" · "+TIERS[sm.lg][1]+" "+tierName(sm.lg):""}</h3>${Object.keys(MPARTS).map(k=>`<div class="mbar"><span>${MPARTS[k][0]}</span><i><b style="width:${(sm.ms.parts[k]||0)/MPARTS[k][1]*100}%"></b></i><em>${sm.ms.parts[k]||0}/${MPARTS[k][1]}</em></div>`).join("")}<p class="rnote" style="margin-top:6px">يراه المدير وحده، ويُستعمل لوضع المتعلّمين المتقاربين في مجموعة واحدة من الدوري.</p></div>`:""}
   <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
+  <div class="rsec"><label class="hidepub"><input type="checkbox" id="uFree" ${(CFG.free||[]).includes(u.id)?"checked":""}><span><b>🎓 الدراسة الحرّة</b><small>طاقة بلا حدود، والمحطات تتجدّد كلما أنهاها بلا حدّ يومي، ولا يكسب من الدراسة خبرة ولا جواهر ولا تقدّمًا في الدوري. تحفظ كلماته ومراجعاته كالمعتاد.</small></span></label></div>
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
   <div class="rsec"><h3>${I3("trash")} حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
@@ -2561,6 +2572,7 @@ function renderUser(){
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   renderAssign(u.id);bindGiftBox(u.id);
+  {const cb=$("uFree");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setFree(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false}}
   $("uWipe").onclick=()=>wipeUser(u);
   $("uNmBtn").onclick=async()=>{
     const v=$("uNm").value.trim().replace(/\s+/g," "),m=$("uNmMsg");

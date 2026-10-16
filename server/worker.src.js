@@ -176,8 +176,10 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
+  FREEU = false;
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
+  FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   const [uDoc, coreD, logD, qaD, nameD, gifts] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
     fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`)]);
