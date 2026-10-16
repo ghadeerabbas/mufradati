@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 230">
+  <!-- الكروان: طائر رمليّ مخطّط بعينين صفراوين كبيرتين وساقين طويلتين -->
+  <defs>
+    <radialGradient id="kb" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#e9cf9f"/><stop offset=".6" stop-color="#c9a46a"/><stop offset="1" stop-color="#9a7444"/></radialGradient>
+    <radialGradient id="kh" cx="42%" cy="32%" r="70%"><stop offset="0" stop-color="#efd9ad"/><stop offset=".65" stop-color="#cfab72"/><stop offset="1" stop-color="#a27b4a"/></radialGradient>
+    <radialGradient id="kbl" cx="45%" cy="35%" r="70%"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#f1e2c4"/></radialGradient>
+    <linearGradient id="kw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a98152"/><stop offset="1" stop-color="#6e4e2c"/></linearGradient>
+    <radialGradient id="ke" cx="45%" cy="40%" r="60%"><stop offset="0" stop-color="#ffe76a"/><stop offset="1" stop-color="#f2b705"/></radialGradient>
+    <linearGradient id="kbk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd23f"/><stop offset=".55" stop-color="#f0b400"/><stop offset=".7" stop-color="#3a3026"/><stop offset="1" stop-color="#1f1a14"/></linearGradient>
+    <radialGradient id="ks" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#000" stop-opacity=".2"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+  </defs>
+  <ellipse cx="100" cy="220" rx="50" ry="8" fill="url(#ks)"/>
+  <!-- الساقان الطويلتان -->
+  <path d="M86 168 L82 214" stroke="#e8b923" stroke-width="7" stroke-linecap="round"/>
+  <path d="M114 168 L118 214" stroke="#e8b923" stroke-width="7" stroke-linecap="round"/>
+  <path d="M82 214 l-12 4 M82 214 l2 5 M82 214 l12 3" stroke="#d9a514" stroke-width="5" stroke-linecap="round"/>
+  <path d="M118 214 l12 4 M118 214 l-2 5 M118 214 l-12 3" stroke="#d9a514" stroke-width="5" stroke-linecap="round"/>
+  <!-- الجسم -->
+  <ellipse cx="100" cy="128" rx="54" ry="50" fill="url(#kb)"/>
+  <ellipse cx="100" cy="140" rx="32" ry="34" fill="url(#kbl)"/>
+  <!-- خطوط الريش -->
+  <g stroke="#8a6438" stroke-width="2.4" stroke-linecap="round" opacity=".55">
+    <path d="M86 122 l2 8"/><path d="M98 118 l1 9"/><path d="M110 121 l-1 8"/><path d="M92 136 l1 7"/><path d="M105 135 l0 7"/>
+  </g>
+  <!-- الجناحان مع شريط أبيض -->
+  <path d="M50 108 C34 126 38 160 64 170 C66 148 66 126 60 106Z" fill="url(#kw)"/>
+  <path d="M150 108 C166 126 162 160 136 170 C134 148 134 126 140 106Z" fill="url(#kw)"/>
+  <path d="M46 132 C50 140 56 146 64 148" stroke="#fffaf0" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M154 132 C150 140 144 146 136 148" stroke="#fffaf0" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- الرأس -->
+  <circle cx="100" cy="68" r="46" fill="url(#kh)"/>
+  <g stroke="#8a6438" stroke-width="2.2" stroke-linecap="round" opacity=".45">
+    <path d="M84 30 l3 7"/><path d="M100 26 l0 8"/><path d="M116 30 l-3 7"/>
+  </g>
+  <!-- الحاجبان الأبيضان (علامة الكروان) -->
+  <path d="M60 58 C70 48 84 48 92 56" stroke="#fffaf0" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <path d="M140 58 C130 48 116 48 108 56" stroke="#fffaf0" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <!-- العينان الصفراوان الكبيرتان -->
+  <circle cx="79" cy="74" r="17" fill="#fffaf0"/><circle cx="121" cy="74" r="17" fill="#fffaf0"/>
+  <circle cx="79" cy="75" r="14" fill="url(#ke)"/><circle cx="121" cy="75" r="14" fill="url(#ke)"/>
+  <circle cx="80" cy="76" r="7.5" fill="#1f1a14"/><circle cx="120" cy="76" r="7.5" fill="#1f1a14"/>
+  <circle cx="83" cy="72" r="3.2" fill="#fff"/><circle cx="123" cy="72" r="3.2" fill="#fff"/>
+  <circle cx="77" cy="80" r="1.5" fill="#fff" opacity=".8"/><circle cx="117" cy="80" r="1.5" fill="#fff" opacity=".8"/>
+  <!-- الخدّان -->
+  <ellipse cx="64" cy="94" rx="7" ry="4.5" fill="#ff9b8a" opacity=".6"/><ellipse cx="136" cy="94" rx="7" ry="4.5" fill="#ff9b8a" opacity=".6"/>
+  <!-- المنقار: أصفر بطرف أسود -->
+  <path d="M91 88 C95 85 105 85 109 88 L102.5 118 C101.5 121 98.5 121 97.5 118Z" fill="url(#kbk)"/>
+  <path d="M94 89 C97 87.5 100 87.5 101 88 L99 104Z" fill="#fff" opacity=".35"/>
+  <!-- لمعة -->
+  <ellipse cx="80" cy="36" rx="13" ry="7" fill="#fff" opacity=".3" transform="rotate(-25 80 36)"/>
+</svg>

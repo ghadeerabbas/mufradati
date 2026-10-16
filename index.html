@@ -790,7 +790,7 @@ function reviewHome(){
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   el.innerHTML=msg+`
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
-  <div class="coach"><img src="img/parrot.svg" alt=""><div class="bub">${coach}</div></div>
+  <div class="coach"><img src="img/mascot.svg" alt=""><div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*98+40}px">${[...Array(N)].map((_,i)=>node(i)).join("")}</div>
    ${done>=N?'':!fresh?(allDone?courseDoneHTML():'')
