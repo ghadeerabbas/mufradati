@@ -1279,7 +1279,7 @@ function renderProfile(){
 /* ================= المتجر ================= */
 let shopCat="avatar";
 function renderShop(){
-  const e=econ(),el=$("shop");
+  const e=econ(),el=$("shop"),oc=el.querySelector(".cats"),sx=oc?oc.scrollLeft:null;
   const items=SHOP.filter(x=>x.cat===shopCat);
   el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمراجعة 💪</small></div></div>
   <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}</div>
@@ -1295,6 +1295,8 @@ function renderShop(){
     else if(isEq)btn=it.cat==="sticker"?`<button class="btn eqd" data-uneq="1">مثبّت ✓ (إزالة)</button>`:`<button class="btn eqd" disabled>مُستخدم ✓</button>`;
     else btn=`<button class="btn eq" data-eq="${esc(eqv)}">استخدام</button>`;
     return `<div class="si ${mine?"mine":""}"><div class="pv" style="${it.cat==="theme"?"background:"+it.sw[0]:""}">${pv}</div><div class="nm">${esc(it.name)}</div>${it.desc?`<small style="font-size:.7rem;color:var(--muted)">${it.desc} · لديك ${e.s.freezes}</small>`:""}${btn}</div>`}).join("")}</div>`;
+  // يبقى شريط الأقسام حيث كان، ويظهر القسم المختار فيه
+  {const nc=el.querySelector(".cats");if(nc){if(sx!=null)nc.scrollLeft=sx;const on=nc.querySelector(".on");if(on){const r=on.getBoundingClientRect(),cr=nc.getBoundingClientRect();if(r.left<cr.left||r.right>cr.right)on.scrollIntoView({inline:"nearest",block:"nearest"})}}}
   el.querySelectorAll(".cats button").forEach(b=>b.onclick=()=>{shopCat=b.dataset.c;renderShop()});
   el.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buy(shopCat,b.dataset.buy));
   el.querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>equip(shopCat,b.dataset.eq));
