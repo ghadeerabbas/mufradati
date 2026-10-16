@@ -238,9 +238,9 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.mgrid>div{display:flex;flex-direction:column;gap:8px}
 .mb{min-height:52px;padding:8px;border-radius:12px;border:2px solid var(--line);background:var(--card);color:var(--ink);font-size:.95rem;font-weight:600}
 .mb.sel{border-color:var(--gold);background:#c9a84a22}.mb.gone{visibility:hidden}
-.lghead{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lgic{font-size:2.2rem}.lghead b{display:block;font-size:1.05rem;color:var(--hd)}.lghead small{font-size:.78rem;color:var(--muted)}
-svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
-.tiers{display:flex;justify-content:space-between;margin:6px 0 10px;font-size:1.25rem}.tiers span{opacity:.9}.tiers .lock{opacity:.5}.tiers .on{transform:scale(1.35)}
+.lghead{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lgic{font-size:3rem;line-height:1;animation:bob 2.4s ease-in-out infinite}.lghead b{display:block;font-size:1.05rem;color:var(--hd)}.lghead small{font-size:.78rem;color:var(--muted)}
+svg.cup{width:1.25em;height:1.25em;vertical-align:-.28em;display:inline-block;filter:drop-shadow(0 2px 1px rgba(0,0,0,.18))}
+.tiers{display:flex;justify-content:space-between;margin:8px 0 12px;font-size:1.45rem}.tiers span{opacity:.95}.tiers .lock{opacity:.55;filter:grayscale(.3)}.tiers .on{transform:scale(1.45)}
 .lgrow{--tint:transparent;display:grid;grid-template-columns:24px 26px minmax(0,1fr) 30px 66px;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;font-size:.9rem;border:3px solid transparent;background:var(--tint);margin-bottom:3px}.lgrow b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lgrow .stc{text-align:center;font-size:1.25rem;line-height:1}.lgrow .av{text-align:center}
 .lgrow .rk{width:24px;text-align:center;font-weight:700}.lgrow .xp{font-size:.8rem;color:var(--muted);text-align:left;white-space:nowrap}.lgrow.me{--tint:#22c55e26}.lgrow{cursor:pointer}
 
@@ -556,14 +556,22 @@ let COURSES={a1:{file:"words-a1.json",name:"A1 · المنهج العام"}},DEF
 let COURSE="a1";
 const useDays=()=>!!(COURSES[COURSE]&&COURSES[COURSE].days);   // تصنيف الأيام لمنهج غدير فقط
 const useSubj=()=>!!(COURSES[COURSE]&&COURSES[COURSE].subjects);   // تصنيف المواد لمناهج الصفوف المدرسية
+// المناهج والكلمات تُحفظ في الهاتف: يفتح التطبيق فورًا منها، ثم تُحدَّث من الإنترنت في الخلفية
+function setCourses(d){COURSES={};d.courses.forEach(c=>COURSES[c.id]=c);DEF_COURSES=(d.default||[]).filter(id=>COURSES[id]);if(!DEF_COURSES.length)DEF_COURSES=[Object.keys(COURSES)[0]]}
 async function loadCourses(){
-  try{const d=await fetch("courses.json?v="+Date.now(),{cache:"no-store"}).then(r=>r.json());
-    COURSES={};d.courses.forEach(c=>COURSES[c.id]=c);DEF_COURSES=(d.default||[]).filter(id=>COURSES[id]);if(!DEF_COURSES.length)DEF_COURSES=[Object.keys(COURSES)[0]];}catch(e){}
+  const fresh=fetch("courses.json?v="+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(t=>{const d=JSON.parse(t);if(t!==st("muf_courses")){st("muf_courses",t);setCourses(d)}return true}).catch(()=>false);
+  const c=jget("muf_courses",null);if(c&&c.courses){setCourses(c);return}
+  await fresh;
 }
 const aref=u=>db.collection("assign").doc(u);
 // المناهج المتاحة للمستخدم: كلّها للمدير، والمعيّنة له لغيره، وإلا فالعامّة
 async function myCourses(){
   if(isAdmin())return Object.keys(COURSES);
+  const ck=K("myc"),c=jget(ck,null),net=myCoursesNet().then(x=>{st(ck,JSON.stringify(x));return x});
+  if(Array.isArray(c)&&c.length){net.then(x=>{if(JSON.stringify(x)!==JSON.stringify(MY_COURSES)){MY_COURSES=x;renderCourseSel()}}).catch(()=>{});return c.filter(id=>COURSES[id]).length?c.filter(id=>COURSES[id]):DEF_COURSES}
+  return await net;
+}
+async function myCoursesNet(){
   try{const d=await aref(UID).get();const c=d.exists?(d.data().courses||[]).filter(id=>COURSES[id]):[];if(c.length)return c}catch(e){}
   return DEF_COURSES;
 }
@@ -573,8 +581,15 @@ async function switchCourse(c){
   await loadWords(c);renderCourseSel();econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
 }
 async function loadWords(c){
-  COURSE=c;
-  const d=await fetch(COURSES[c].file+"?v="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.json():{days:[],words:[]}).catch(()=>({days:[],words:[]}));
+  COURSE=c;const f=COURSES[c].file,ck="muf_w_"+f;
+  const net=fetch(f+"?v="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);
+  let txt=st(ck);
+  if(txt){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){st(ck,t);applyWords(JSON.parse(t));if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
+  else{txt=await net;if(txt)st(ck,txt)}
+  let d={days:[],words:[]};try{if(txt)d=JSON.parse(txt)}catch(e){}
+  applyWords(d);
+}
+function applyWords(d){
   DAYS=d.days||[];const seen={};
   W=(d.words||[]).map((w,i)=>{const k=key(w);const r={...w,i,k};if(seen[k]!==undefined&&seen[k]!==w.day)r.rep=seen[k];else if(seen[k]===undefined)seen[k]=w.day;return r});
   $("fDay").innerHTML='<option value="all">كل الأيام</option>'+DAYS.map(x=>`<option value="${x.day}">${dayName(x.day)}</option>`).join("");
@@ -1190,7 +1205,19 @@ function markStudied(){try{if(window.MufApp&&MufApp.markStudied)MufApp.markStudi
 // مقياس المتعلّم من 100 (يراه المدير فقط): التقدّم 30، والخبرة 20، ومدة التعلّم 20، والانتظام 15، والدقّة 15
 const MPARTS={prog:["التقدّم (كلمات محفوظة)",30],xp:["الخبرة",20],dur:["مدة التعلّم (أيام الدراسة)",20],reg:["الانتظام (السلسلة ونشاط أسبوعين)",15],acc:["الدقّة",15]};
 // كؤوس ملوّنة لكل دوري
-const cupSVG=(c,d)=>`<svg class="cup" viewBox="0 0 24 24" aria-hidden="true"><path fill="${c}" stroke="${d}" stroke-width=".7" stroke-linejoin="round" d="M7 3h10v2h3v2.5a4.5 4.5 0 0 1-4.2 4.5A5 5 0 0 1 13 14.9V17h3v2H8v-2h3v-2.1A5 5 0 0 1 8.2 12 4.5 4.5 0 0 1 4 7.5V5h3V3zm0 4H6v.5a2.5 2.5 0 0 0 1.4 2.2A5 5 0 0 1 7 8V7zm10 0v1a5 5 0 0 1-.4 1.7A2.5 2.5 0 0 0 18 7.5V7h-1z"/><rect x="6.5" y="19" width="11" height="2.4" rx="1.1" fill="${d}"/><path fill="#fff" opacity=".45" d="M9 5h1.6v6.2A3.4 3.4 0 0 1 9 8.6z"/></svg>`;
+const _lt=(h,a)=>{const n=parseInt(h.slice(1),16),r=n>>16,g=n>>8&255,b=n&255,m=x=>Math.round(x+(255-x)*a);return "#"+[m(r),m(g),m(b)].map(x=>x.toString(16).padStart(2,"0")).join("")};
+let _cupN=0;
+// كأس مجسّمة لامعة: تدرّج من الفاتح إلى الغامق، ولمعة، ونجمة في الوسط، وقاعدة بعمق
+const cupSVG=(c,d)=>{const k="cp"+(_cupN++),l=_lt(c,.55);return `<svg class="cup" viewBox="0 0 64 64" aria-hidden="true"><defs>
+<linearGradient id="${k}a" x1="0" x2="1"><stop offset="0" stop-color="${l}"/><stop offset=".45" stop-color="${c}"/><stop offset="1" stop-color="${d}"/></linearGradient>
+<linearGradient id="${k}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}"/><stop offset="1" stop-color="${d}"/></linearGradient></defs>
+<path d="M14 14H7a3 3 0 0 0-3 3c0 8 5 13 13 14M50 14h7a3 3 0 0 1 3 3c0 8-5 13-13 14" fill="none" stroke="${d}" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M13 8h38v12c0 13-8.5 21-19 21S13 33 13 20z" fill="url(#${k}a)"/>
+<ellipse cx="32" cy="8.5" rx="19" ry="3.2" fill="${l}"/>
+<path d="M18 13c0 10 3 18 9 22-8-2-12-10-12-22z" fill="#fff" opacity=".45"/>
+<path d="M32 15.5l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z" fill="#fff" opacity=".9"/>
+<path d="M28 40h8v7h-8z" fill="url(#${k}b)"/><path d="M20 47h24l3 7H17z" fill="url(#${k}a)"/><path d="M15 54h34v5H15z" fill="${d}"/>
+<path d="M21 49h9l-1 3h-9z" fill="#fff" opacity=".35"/></svg>`};
 const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3","#7d8792"],["الذهبي","#f4c430","#b08a12"],["الياقوت الأزرق","#2f6fdf","#1d4a9c"],["الياقوت الأحمر","#e0314b","#8f1626"],["الزمرّدي","#1fb46c","#11703f"],["البنفسجي","#9b5de5","#6a35ad"],["اللؤلؤي","#f3eef9","#a99bbf"],["الملكي","#3a3a4a","#101016"],["الماسي","#5fe0ee","#1c97a8"]].map(([n,c,d])=>[n,cupSVG(c,d)]);
 const tierName=i=>"الدوري "+TIERS[i][0];
 const itemLocked=it=>it.cat!=="power"&&!isAdmin()&&(it.tier||0)>bestTier();   // المشرف مفتوح له كل شيء
@@ -1225,13 +1252,18 @@ async function leagueRows(){
   const rows=await groupTable(w,Math.min(1,(Date.now()-ws)/(7*DAY)),true);
   LGC={at:Date.now(),rows,w};return rows;
 }
+// سطري في الدوري بمظهري الحالي، دون انتظار الحفظ
+function myLook(rows){
+  const me=rows.find(r=>r.id===UID);if(!me)return rows;const lf=E.lgFrame??E.frame,ls=E.lgSticker??E.sticker;
+  me.av=String(E.avatar||"🎓");me.fr=owned("frame",lf)?lf||"none":"none";me.st=stkVal(ls);me.nc=myNc();me.name=UNAME;return rows;
+}
 function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
 async function fillLeague(){
   const box=$("lgBox");if(!box)return;
   let rows;
-  try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=await leagueRows();
+  try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=myLook(await leagueRows());
     // كسب خبرة ولم يظهر بعد في الدوري: نحفظ الآن ثم نقرأ من جديد
-    if(!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0){await syncNow();LGC.at=0;rows=await leagueRows()}}
+    if(!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0){await syncNow();LGC.at=0;rows=myLook(await leagueRows())}}
   catch(e){box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
   if(!$("lgBox"))return;
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
@@ -1352,7 +1384,7 @@ function looksHTML(){
    <b class="lkh">اسمي في الدوري</b>${frow("lkLF",lf)}${sts.length?srow("lkLS",ls):""}`;
 }
 function bindLooks(){
-  const set=(id,fn)=>{const el=$(id);if(el)el.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;fn(b.dataset.v);E.ts=Date.now();save();schedSync();$("looks").innerHTML=looksHTML();bindLooks()}};
+  const set=(id,fn)=>{const el=$(id);if(el)el.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;fn(b.dataset.v);E.ts=Date.now();save();schedSync(1500);$("looks").innerHTML=looksHTML();bindLooks()}};
   set("lkCF",v=>{const l=E.lgFrame??E.frame;E.frame=v;E.lgFrame=l;showCard()});
   set("lkCS",v=>{const l=E.lgSticker??E.sticker;E.sticker=v;E.lgSticker=l;showCard()});
   set("lkLF",v=>{E.lgFrame=v});
@@ -1427,7 +1459,7 @@ async function buy(cat,id){
 }
 function equip(cat,v,silent){
   const k=EQKEY[cat];if(!k)return;E[k]=v;if(cat==="frame")delete E.lgFrame;if(cat==="sticker")delete E.lgSticker;E.ts=Date.now();save();applyLook();econ();renderHeader();
-  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync();
+  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync(1500);
 }
 
 /* ================= الحساب والمزامنة السحابية ================= */
@@ -1867,6 +1899,10 @@ function showLogin(msg){
 // تفعيل الحسابات: الحساب الجديد لا يعمل حتى يفعّله المشرف (المستخدمون القدامى مفعّلون تلقائيًا)
 async function accountActive(user){
   if(((user.email||"").toLowerCase())===ADMIN)return true;
+  if(st("muf_act_"+user.uid)==="1")return true;   // فُعِّل من قبل على هذا الهاتف
+  const ok=await accountCheck(user);if(ok)st("muf_act_"+user.uid,"1");return ok;
+}
+async function accountCheck(user){
   let m;try{m=await db.collection("members").doc(user.uid).get()}catch(e){return true}   // قواعد قديمة لا تعرف التفعيل
   if(m.exists)return true;
   try{const u=await db.collection("users").doc(user.uid).get();if(u.exists)return true}catch(e){}
