@@ -48,6 +48,12 @@ header{background:var(--card);color:var(--ink);position:sticky;top:0;z-index:20;
 .xpbar i{display:block;height:100%;background:linear-gradient(#ffd43b,#ffab00);border-radius:9px;box-shadow:inset 0 3px 0 rgba(255,255,255,.45);transition:width .6s}
 .who small{display:block;font-size:.66rem;opacity:.8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chips{display:flex;gap:4px;align-items:center;flex:none}
+html,body{overflow-x:clip;max-width:100%}
+@media (max-width:360px){.hrow{gap:4px;padding:8px 6px 6px}.chips{gap:2px}.chip{font-size:.85rem}.chip .i3,.iconbtn .i3{width:20px!important;height:20px!important}
+ nav button{font-size:.6rem}nav button i{height:24px}nav button i .i3{width:24px;height:24px}main{padding:12px 10px 60px}}
+@media (max-width:300px){.hrow .avatar{width:38px;height:38px;font-size:1.3rem}.chip{font-size:.75rem}.chip .i3,.iconbtn .i3{width:17px!important;height:17px!important}
+ nav button{font-size:0;padding-bottom:4px}nav button i{height:22px}nav button i .i3{width:22px;height:22px}#hXpT{font-size:.65rem}.coach .bub{font-size:.85rem}:root{--mz:88px}
+ .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
 .chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
@@ -876,13 +882,15 @@ function fx(kind){
   try{
     if(kind==="no"&&navigator.vibrate)navigator.vibrate(70);
     if(!sndOn())return;ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();if(ACX.state==="suspended")ACX.resume();
-    const N={ok:[[659,0,.09],[988,.08,.16]],no:[[196,0,.14],[147,.12,.2]],streak:[[523,0,.09],[659,.08,.09],[784,.16,.09],[1047,.24,.22]],done:[[523,0,.12],[659,.12,.12],[784,.24,.12],[1047,.36,.14],[1319,.5,.35]],tap:[[880,0,.04]]}[kind]||[];
+    const N={ok:[[659,0,.09],[988,.08,.16]],no:[[196,0,.14],[147,.12,.2]],streak:[[523,0,.09],[659,.08,.09],[784,.16,.09],[1047,.24,.22]],done:[[523,0,.12],[659,.12,.12],[784,.24,.12],[1047,.36,.14],[1319,.5,.35]],tap:[[740,0,.035],[1110,.02,.05]]}[kind]||[];
     const t0=ACX.currentTime;
     N.forEach(([f,at,d])=>{const o=ACX.createOscillator(),g=ACX.createGain();o.type=kind==="no"?"square":"triangle";o.frequency.value=f;
-      g.gain.setValueAtTime(0,t0+at);g.gain.linearRampToValueAtTime(kind==="no"?.06:kind==="tap"?.05:.14,t0+at+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+at+d);
+      g.gain.setValueAtTime(0,t0+at);g.gain.linearRampToValueAtTime(kind==="no"?.06:kind==="tap"?.07:.14,t0+at+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+at+d);
       o.connect(g);g.connect(ACX.destination);o.start(t0+at);o.stop(t0+at+d+.02)});
   }catch(e){}
 }
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("button,.btn,a.tgbtn");if(!b||b.disabled)return;
+  if(b.closest(".gopt,.artb,.mb,.fbgo")||b.matches(".gopt,.artb,.mb,.say,.rep"))return;fx("tap")},true);
 const PRAISE=["أحسنت!","رائع!","ممتاز!","صحيح!","عمل رائع!","مذهل!","تمام!","إجابة موفّقة!"];
 function showFb(ok,sub,next,w){
   let b=$("fbar");if(!b){b=document.createElement("div");b.id="fbar";b.className="fbar";document.body.appendChild(b)}
@@ -937,7 +945,7 @@ function lessonPop(o){
   m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1><p class="rnote">${o.sub}</p>
    <div class="ppills"><span>${I3("sparkles")} +${o.xp} خبرة</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":"مجانية"}</span></div>
    <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ · +${o.xp} خبرة</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
-  m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();fx("tap");o.go()};
+  m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();o.go()};
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
@@ -967,7 +975,7 @@ function drillView(){
    <div class="mtgrid"><div>${D.words.map(w=>cell(w,"de")).join("")}</div><div>${D.ar.map(w=>cell(w,"ar")).join("")}</div></div></div>`;
   el.querySelectorAll(".mt").forEach(b=>b.onclick=()=>{
     const side=b.dataset.s,k=b.dataset.k;
-    if(!D.sel||D.sel.side===side){D.sel=D.sel&&D.sel.side===side&&D.sel.k===k?null:{side,k};fx("tap");drillView();return}
+    if(!D.sel||D.sel.side===side){D.sel=D.sel&&D.sel.side===side&&D.sel.k===k?null:{side,k};drillView();return}
     const a=D.sel;D.sel=null;
     if(a.k===k){D.done.add(k);comboHit(true);if(D.done.size===N)return endDrill();drillView()}
     else{
@@ -1394,7 +1402,7 @@ function gameView(){
     answered(ok,b,ok?600:0);
   });
   if(q.kind==="order"){
-    el.querySelectorAll(".otile[data-t]").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.picked.push(+b.dataset.t);fx("tap");gameView()});
+    el.querySelectorAll(".otile[data-t]").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.picked.push(+b.dataset.t);gameView()});
     el.querySelectorAll(".otile[data-p]").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.picked.splice(+b.dataset.p,1);gameView()});
     $("gCheck").onclick=()=>{if(GM.answered||!q.picked.length)return;const ok=normO(q.picked.map(i=>q.tiles[i]).join(" "))===normO(q.o.de);
       $("gCheck").style.display="none";el.querySelectorAll(".otile").forEach(x=>x.disabled=true);$("oLine").classList.add(ok?"good":"bad");if(ok)speak(q.o.de);answered(ok,$("oLine"))};
