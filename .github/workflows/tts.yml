@@ -1,0 +1,22 @@
+name: Pronunciation audio
+on:
+  push:
+    branches: [main]
+    paths: ["words*.json", "courses.json", ".github/scripts/tts.py", ".github/workflows/tts.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: { group: tts, cancel-in-progress: false }
+jobs:
+  tts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    steps:
+      - uses: actions/checkout@v4
+      - name: Generate missing audio
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: |
+          git config user.name "github-actions"; git config user.email "actions@github.com"
+          python3 .github/scripts/tts.py

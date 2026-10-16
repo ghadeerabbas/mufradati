@@ -1253,16 +1253,30 @@ let DE_VOICE=null;
 function pickVoice(){try{const v=speechSynthesis.getVoices();DE_VOICE=v.find(x=>/^de([-_]|$)/i.test(x.lang))||null}catch(e){}}
 if("speechSynthesis" in window){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
 const hasNative=()=>!!(window.MufApp&&MufApp.speak);
-const canSpeak=()=>hasNative()||("speechSynthesis" in window);
+const canSpeak=()=>!!(AUD&&AUD.size)||hasNative()||("speechSynthesis" in window);
+// أصوات جاهزة بصوت عصبي واضح (تُصنع مرة واحدة في GitHub Actions)؛ وإن لم يوجد ملف للنص نعود إلى نطق الجهاز
+let AUD=null,AUDEL=null;
+const fnvH=s=>{let h=0x811c9dc5;for(const b of new TextEncoder().encode(s)){h^=b;h=Math.imul(h,0x01000193)>>>0}return h.toString(16).padStart(8,"0")};
+fetch("audio/index.json").then(r=>r.ok?r.json():null).then(j=>{if(j&&j.h)AUD=new Set(j.h.split(" "))}).catch(()=>{});
+function playFile(t,slow){
+  if(!AUD)return false;const h=fnvH(t);if(!AUD.has(h))return false;
+  try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
+  try{if(AUDEL)AUDEL.pause();const a=new Audio("audio/"+h+".mp3");AUDEL=a;a.playbackRate=slow?.7:1;a.preservesPitch=true;
+    a.play().catch(()=>{if(AUDEL===a){AUDEL=null;ttsSpeak(t,slow)}});return true}catch(e){return false}
+}
 function speak(t,slow){
   t=speakable(t);if(!t)return;
+  if(playFile(t,slow))return;
+  ttsSpeak(t,slow);
+}
+function ttsSpeak(t,slow){
   if(hasNative()){try{if(slow&&MufApp.speakRate){MufApp.speakRate(t,.5);return}MufApp.speak(t);return}catch(e){}}
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(DE_VOICE)u.voice=DE_VOICE;u.rate=slow?.55:.9;speechSynthesis.speak(u)}catch(e){}
 }
 // النطق البطيء: في تطبيق أندرويد يحتاج النسخة الجديدة من التطبيق
 // «لا أستطيع الاستماع الآن»: تتوقف تمارين الاستماع ساعة على هذا الجهاز
 const listenMuted=()=>{try{return +(localStorage.getItem("muf_nolisten")||0)>Date.now()}catch(e){return false}};
-const canSlow=()=>hasNative()?!!(window.MufApp&&MufApp.speakRate):("speechSynthesis" in window);
+const canSlow=()=>!!(AUD&&AUD.size)||(hasNative()?!!(window.MufApp&&MufApp.speakRate):("speechSynthesis" in window));
 const slowBtn=t=>canSpeak()&&canSlow()?`<button type="button" class="say slow" data-say="${esc(t)}" data-slow="1" aria-label="استمع ببطء">🐢</button>`:"";
 const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">${I3("speaker")}</button>`:"";
 // يعمل قبل أي ضغطة أخرى، فلا يقلب البطاقة ولا يختار جوابًا
