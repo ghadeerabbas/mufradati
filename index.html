@@ -50,7 +50,8 @@ header{background:var(--card);color:var(--ink);position:sticky;top:0;z-index:20;
 .chips{display:flex;gap:4px;align-items:center;flex:none}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
 .chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}#hGem{color:#1cb0f6}#hEn{color:#58a700}
-.i3{display:inline-block;vertical-align:middle;object-fit:contain}
+.i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
+.gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
 .ring{width:38px;height:38px;flex:none;position:relative}
 .ring svg{transform:rotate(-90deg)}
 .ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:.6rem}
@@ -656,7 +657,7 @@ function renderHeader(){
   $("hAv").innerHTML=stkH(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
   $("hTitle").innerHTML=`<bdi>${esc(UNAME)}</bdi>`;$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
-  $("hXpT").textContent=`✨ ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
+  $("hXpT").innerHTML=`${I3("sparkles")} ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
   $("hFire").innerHTML=I3("fire")+e.s.streak;$("hFire").classList.toggle("on",e.s.streak>0);
   $("hGem").innerHTML=I3("gem")+e.gems;renderEnergy();
 }
@@ -690,7 +691,7 @@ function celebrate(prev){
   if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!",e.lv>(R.lv||1)?"+"+LV_GEMS+" 💎":"");confetti(120)}
   achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
   {const pb=Math.max(prev.s.best,R.sb||0);for(const [d,g] of STREAK_G)if(e.s.best>=d&&pb<d){toast("🔥","سلسلة "+d+" يومًا!","+"+g+" 💎");confetti(120)}
-   const nu=SHOP.filter(x=>x.streak&&x.streak>pb&&x.streak<=e.s.best);if(nu.length)setTimeout(()=>toast("🎁","هدية سلسلة جديدة في المتجر",nu.map(x=>x.name).join("، ")),1200)}
+   const nu=SHOP.filter(x=>x.streak&&x.streak>pb&&x.streak<=e.s.best);if(nu.length)setTimeout(()=>toast(I3("gift"),"هدية سلسلة جديدة في المتجر",nu.map(x=>x.name).join("، ")),1200)}
   if(e.s.streak>prev.s.streak)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
 }
 
@@ -721,14 +722,14 @@ function mascot(pose,cls){
 // أنهى كل كلمات منهجه: يطلب منهجًا جديدًا من المشرف برسالة
 function courseDoneHTML(){
   const others=MY_COURSES.filter(c=>c!==COURSE&&COURSES[c]),sent=st(K("crq_"+COURSE))==="1";
-  return `<p class="stok">🎉 أنهيت كل كلمات منهج «${esc((COURSES[COURSE]||{}).name||"")}».</p>`+
+  return `<p class="stok">${I3("party")} أنهيت كل كلمات منهج «${esc((COURSES[COURSE]||{}).name||"")}».</p>`+
    (others.length?'<p class="rnote">تستطيع أن تنتقل إلى منهج آخر من مناهجك في الإعدادات، أو أن تطلب منهجًا جديدًا.</p>':"")+
    (sent?'<p class="rnote">✓ أرسلت طلب منهج جديد إلى المشرف، وسيصلك رده في الرسائل.</p>':'<button class="btn next" id="crqBtn">📘 اطلب منهجًا جديدًا من المشرف</button>');
 }
 async function askNewCourse(){
   if(TH&&TH.state==="waiting"){toast("✉️","رسالتك السابقة تنتظر الرد","اطلب المنهج بعد أن يردّ المشرف");return}
   try{await userMsg("📘 أنهيت كل كلمات منهج «"+((COURSES[COURSE]||{}).name||COURSE)+"». أطلب منهجًا جديدًا.");st(K("crq_"+COURSE),"1");toast("✅","أُرسل طلبك إلى المشرف","");reviewHome()}
-  catch(e){toast("⚠️","تعذّر الإرسال","تحقّق من الاتصال")}
+  catch(e){toast(I3("warning"),"تعذّر الإرسال","تحقّق من الاتصال")}
 }
 // الطاقة لا تكفي للمحطة: كيف يحصل عليها، ومراجعة المستحقّ مباشرة إن وُجد
 // العدد مع المعدود: 1 ساعة، 2 ساعتان، 3–10 ساعات، 11 فأكثر ساعة
@@ -807,7 +808,7 @@ function reviewHome(){
   // المسار المتعرّج: المكتملة ذهبية، والتالية خضراء تنبض، والمقفلة رمادية
   const N=ST_MAX,off=[0,-62,0,62],low=en<cost;
   const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":i===N-1?"trophy":"lock";
-    return `<button type="button" class="zn ${c}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*98+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost?"ابدأ":"مجانية 🎁"}</span>`:""}<span class="c">${I3(ic)}</span></button>`};
+    return `<button type="button" class="zn ${c}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*98+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span></button>`};
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
   const coach=done>=N?"أنهيت مسار اليوم! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
     :!fresh?(allDone?"أنهيت كل كلمات منهجك! 🌟 اطلب منهجًا جديدًا.":"تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى.")
@@ -821,7 +822,7 @@ function reviewHome(){
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*98+40}px">${[...Array(N)].map((_,i)=>node(i)).join("")}</div>
    ${done>=N?'':!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${done+1}${cost?"":" · مجانية 🎁"}</button>`}
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${done+1}${cost?"":" · مجانية "+I3("gift")}</button>`}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}><small>${counts[id]}</small>${n}</button>`).join("")}</div>
@@ -890,7 +891,7 @@ async function resetProgress(){
   if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
   ev({type:"reset"});S.newCount=0;save();
   if(!await syncNow()||EVQ.length)await uiAlert("حُذف التقدّم من هذا الجهاز، وسيُحذف من حسابك عند عودة الاتصال.");
-  econ();renderHeader();buildQueue();showCard();toast("🗑️","تمّ تصفير التقدّم","بداية جديدة!");
+  econ();renderHeader();buildQueue();showCard();toast(I3("trash"),"تمّ تصفير التقدّم","بداية جديدة!");
 }
 function settingsHTML(){
   const o=(arr,v)=>arr.map(n=>`<option ${n==v?"selected":""}>${n}</option>`).join("");
@@ -986,7 +987,7 @@ function speak(t){
   if(hasNative()){try{MufApp.speak(t);return}catch(e){}}
   try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(DE_VOICE)u.voice=DE_VOICE;u.rate=.9;speechSynthesis.speak(u)}catch(e){}
 }
-const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">🔊</button>`:"";
+const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">${I3("speaker")}</button>`:"";
 // يعمل قبل أي ضغطة أخرى، فلا يقلب البطاقة ولا يختار جوابًا
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".say");if(!b)return;e.stopPropagation();e.preventDefault();speak(b.dataset.say)},true);
 
@@ -1052,10 +1053,10 @@ function pickWords(list,n){
 }
 const GAMES=[
  {id:"cloze",ic:"✍️",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
- {id:"art",ic:"🎯",n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
+ {id:"art",ic:I3("target"),n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
  {id:"type",ic:"⌨️",n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
- {id:"listen",ic:"🎧",n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
- {id:"match",ic:"🧩",n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
+ {id:"listen",ic:I3("headphones"),n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
+ {id:"match",ic:I3("puzzle"),n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
  {id:"s5",ic:"⏱️",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
 ];
 function gamePool(id){
@@ -1077,7 +1078,7 @@ function renderGames(){
   const bm=bestMatch();
   el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
-     <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
+     <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
 }
@@ -1128,7 +1129,7 @@ function gameView(){
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
     <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
   else if(q.kind==="lmc"||q.kind==="ltype")body=`<p class="ghint">${q.kind==="lmc"?"استمع، ثم اختر المعنى:":"استمع، ثم اكتب ما سمعته بالألمانية:"}</p>
-    <div style="text-align:center"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">🔊</button></div>
+    <div style="text-align:center"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${I3("speaker")}</button></div>
     ${q.kind==="lmc"?q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join(""):
     `<input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
@@ -1269,7 +1270,7 @@ async function groupTable(w,prog,fresh){
 // نتيجة الأسبوع الماضي يحسبها الخادم، والتطبيق يعرضها عند وصولها
 function leagueNews(res){
   if(!res)return;const t=res.tier+res.mv;
-  if(res.mv>0){const nf=SHOP.filter(x=>x.tier===t&&x.cat!=="power");if(nf.length)setTimeout(()=>toast("🎁","انفتحت "+nf.length+" هدايا جديدة في المتجر",nf.map(x=>x.cat==="title"||x.cat==="theme"||x.cat==="frame"?x.name:x.val).join(" ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
+  if(res.mv>0){const nf=SHOP.filter(x=>x.tier===t&&x.cat!=="power");if(nf.length)setTimeout(()=>toast(I3("gift"),"انفتحت "+nf.length+" هدايا جديدة في المتجر",nf.map(x=>x.cat==="title"||x.cat==="theme"||x.cat==="frame"?x.name:x.val).join(" ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
   else if(res.mv<0)toast("⬇️","نزلت إلى "+tierName(t),"المركز "+res.rank+" من "+res.n+" · عُد أقوى هذا الأسبوع");
   else toast(TIERS[t][1],"بقيت في "+tierName(t),"المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));
 }
@@ -1353,7 +1354,7 @@ function renderReport(){
    <p class="rnote">الكلمة ترسخ حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع.</p></div>
   <div class="rsec"><h3>🧠 نسبة تذكّرك في المراجعة</h3>${recN.some(n=>n)?colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
   <div class="rsec"><h3>🔁 مواعيد المراجعة</h3><div class="kpis" style="margin:0"><div class="kpi o"><b>${dueT}</b><span>مستحقّة اليوم</span></div><div class="kpi"><b>${dueM}</b><span>مستحقّة غدًا</span></div></div></div>
-  <div class="rsec"><h3>⚠️ الكلمات التي تنساها أكثر</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا توجد بعد. تظهر هنا الكلمات التي تنساها أو تخطئ فيها أكثر من غيرها.</div>'}</div>
+  <div class="rsec"><h3>${I3("warning")} الكلمات التي تنساها أكثر</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا توجد بعد. تظهر هنا الكلمات التي تنساها أو تخطئ فيها أكثر من غيرها.</div>'}</div>
   ${isAdmin()?`<details class="rsec"><summary><b>تفاصيل أكثر (للمشرف)</b></summary>${reportDetailsHTML()}</details>`:""}`;
   const hg=$("hardGo");if(hg)hg.onclick=()=>{startReviewList(hard);goTab("review");showCard();scrollTo(0,0)};
 }
@@ -1406,7 +1407,7 @@ function looksHTML(){
   const cf=E.frame||"none",lf=E.lgFrame??cf,cs=stkVal(E.sticker),ls=stkVal(E.lgSticker??E.sticker);
   const frow=(id,cur)=>`<div class="numpicks lk" id="${id}">${frs.map(x=>`<button type="button" class="numpick lkf${x.id===cur?" on":""}" data-v="${x.id}" title="${esc(x.name)}"><i class="frmini fr-${x.id}"></i></button>`).join("")}</div>`;
   const srow=(id,cur)=>`<div class="numpicks lk" id="${id}"><button type="button" class="numpick${cur?"":" on"}" data-v="">بدون</button>${sts.map(x=>`<button type="button" class="numpick${x.val===cur?" on":""}" data-v="${esc(x.val)}">${stkH(x.val)}</button>`).join("")}</div>`;
-  return `<h3>🎨 مظهري</h3><p class="rnote">ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.</p>
+  return `<h3>${I3("palette")} مظهري</h3><p class="rnote">ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.</p>
    <b class="lkh">بطاقة المراجعة</b>${frow("lkCF",cf)}${sts.length?srow("lkCS",cs):""}
    <b class="lkh">اسمي في الدوري</b>${frow("lkLF",lf)}${sts.length?srow("lkLS",ls):""}`;
 }
@@ -1425,10 +1426,10 @@ function renderProfile(){
    <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
   <div class="gstats">
    <div class="gstat"><b>🔥 ${s.streak}</b><span>السلسلة الحالية</span></div>
-   <div class="gstat"><b>🏅 ${s.best}</b><span>أفضل سلسلة</span></div>
-   <div class="gstat"><b>❄️ ${s.freezes}</b><span>تجميد متاح</span></div>
+   <div class="gstat"><b>${I3("medal")} ${s.best}</b><span>أفضل سلسلة</span></div>
+   <div class="gstat"><b>${I3("freeze")} ${s.freezes}</b><span>تجميد متاح</span></div>
    <div class="gstat"><b>💎 ${e.gems}</b><span>رصيد الجواهر</span></div>
-   <div class="gstat"><b>✨ ${e.earned}</b><span>جواهر مكتسبة</span></div>
+   <div class="gstat"><b>${I3("sparkles")} ${e.earned}</b><span>جواهر مكتسبة</span></div>
    <div class="gstat"><b>🏆 ${e.got.size}/${maxL}</b><span>مستويات الإنجازات</span></div>
   </div>
   <div class="rsec"><h3>الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];
@@ -1481,7 +1482,7 @@ async function buy(cat,id){
   const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price||itemLocked(it))return;
   if(!await uiConfirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
   const prev=e,r=ev({type:"buy",cat,id,bid:Date.now().toString(36)+Math.random().toString(36).slice(2,6)});
-  if(r!==true){toast("⚠️","تعذّر الشراء",r==="max"?"لديك "+FZ_MAX+" تجميدات، وهذا الحدّ الأقصى":"");return}
+  if(r!==true){toast(I3("warning"),"تعذّر الشراء",r==="max"?"لديك "+FZ_MAX+" تجميدات، وهذا الحدّ الأقصى":"");return}
   toast(it.val&&it.cat!=="title"?stkH(it.val):"🛍️","تمّ الشراء!",it.name);confetti(50);
   if(cat!=="power")equip(cat,cat==="avatar"?it.val:id,true);
   celebrate(prev);renderShop();schedSync();
@@ -1547,7 +1548,7 @@ function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTim
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
-  return `<div class="rsec sync"><h3>☁️ حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
+  return `<div class="rsec sync"><h3>${I3("cloud")} حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
   <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
   <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
@@ -1565,7 +1566,7 @@ function renderSettings(){
   <div class="rsec"><h3>🌙 الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${E.dark?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${E.dark?" on":""}" data-v="1">🌙 ليلي</button></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
-  <div class="rsec"><h3>🔔 التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
+  <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
   ${isAdmin()?"":`<div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>`}
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
@@ -1573,19 +1574,19 @@ function renderSettings(){
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
-  ${isAdmin()?"":`<div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
+  ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}`;
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(E.dark?1:0))return;E.dark=+b.dataset.v;E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
   if($("stReset"))$("stReset").onclick=resetProgress;if($("stNameBox"))bindNameBox();
   const so=$("stSolo");if(so)so.onclick=async e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v==="1";if(v===!!E.lgSolo)return;
     E.lgSolo=v;E.ts=Date.now();save();schedSync();so.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
-    try{if(!await syncNow())throw 0;LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast("⚠️","تعذّر الحفظ","")}};
+    try{if(!await syncNow())throw 0;LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast(I3("warning"),"تعذّر الحفظ","")}};
   const cs=$("stCourse");if(cs)cs.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.dataset.v===COURSE)return;
     cs.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));switchCourse(b.dataset.v)};
   const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
     try{st("muf_rem",JSON.stringify(r));MufApp.setReminder(r.on,r.h,0)}catch(err){}
     rm.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
-    toast("🔔",r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
+    toast(I3("bell"),r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
   $("pwBtn").onclick=async()=>{
     const cur=$("pwCur").value,n1=$("pwNew").value,n2=$("pwNew2").value,m=$("pwMsg"),say=(t,ok)=>{m.textContent=t;m.className="stmsg "+(ok?"ok":"bad")};
     if(!cur)return say("اكتب كلمة المرور الحالية");
@@ -1627,7 +1628,7 @@ async function showPlayer(row){
   m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1}${d.title?" · "+esc(d.title):""} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
    ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
-   <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>🏅 ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
+   <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>${I3("medal")} ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
    <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${a.ic}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
    <h3 class="pch">ألبوم الملصقات (${stickers.filter(x=>have.has(x.val)).length}/${stickers.length})</h3><div class="album">${stickers.map(x=>`<span class="${have.has(x.val)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
    <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;
@@ -1658,7 +1659,7 @@ function nameBoxHTML(login){
   return `<h3>👤 الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
 }
 function bindNameBox(){
-  const c=$("stNameCancel");if(c)c.onclick=async()=>{try{await nref(UID).set({pending:"",reqAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){toast("⚠️","تعذّر الإلغاء","")}};
+  const c=$("stNameCancel");if(c)c.onclick=async()=>{try{await nref(UID).set({pending:"",reqAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){toast(I3("warning"),"تعذّر الإلغاء","")}};
   const b=$("stNameBtn");if(!b)return;
   b.onclick=async()=>{
     const v=$("stName").value.replace(/\s+/g," ").trim().slice(0,40),m=$("stNameMsg");
@@ -1707,7 +1708,7 @@ function nameReqHTML(){
   if(!NAMEREQ.length)return"";
   return `<div class="rsec"><h3>👤 طلبات تغيير الاسم (${NAMEREQ.length})</h3>${NAMEREQ.map(r=>{const u=USERS.find(x=>x.id===r.id),own=nameOwners(r);
     return `<div class="nreq"><div><b>${esc(r.pending)}</b><small>بدلًا من: ${esc(r.name||(u&&u.name)||"—")}</small>
-      ${own.length?`<small class="ntaken">⚠️ مستخدم عند: ${own.map(esc).join("، ")}</small>`:'<small class="nfree">✓ متاح</small>'}</div>
+      ${own.length?`<small class="ntaken">${I3("warning")} مستخدم عند: ${own.map(esc).join("، ")}</small>`:'<small class="nfree">✓ متاح</small>'}</div>
      <button class="btn nok" data-u="${esc(r.id)}">قبول</button><button class="btn nno" data-u="${esc(r.id)}">رفض</button></div>`}).join("")}</div>`;
 }
 function bindNameReqs(){
@@ -1732,7 +1733,7 @@ function watchGifts(){
     econ();renderHeader();
     const on=document.querySelector(".panel.on");if(on&&(on.id==="shop"||on.id==="profile"))renderPanel(on.id);
     if(fresh.length&&!isAdmin()){const fz=fresh.filter(isFzGift),gm=fresh.filter(g=>!isFzGift(g)),n=gm.reduce((a,g)=>a+g.g,0),note=gm.map(g=>g.note).filter(Boolean)[0];
-      if(n)toast("🎁","وصلتك هدية: "+n+" 💎",note||"من المشرف");if(fz.length)toast("❄️","وصلك تجميد للسلسلة من المشرف","مساعدة لمرة واحدة");confetti(100)}
+      if(n)toast(I3("gift"),"وصلتك هدية: "+n+" 💎",note||"من المشرف");if(fz.length)toast(I3("freeze"),"وصلك تجميد للسلسلة من المشرف","مساعدة لمرة واحدة");confetti(100)}
     st(K("giftSeen"),JSON.stringify(GIFTS.map(g=>g.id)));
   },()=>{});
 }
@@ -1743,11 +1744,11 @@ function fzNeeds(uid){
   const u=USERS.find(x=>x.id===uid),sm=u&&u.sum;return !!sm&&sm.fz===0&&(sm.gems||0)<price;
 }
 function giftBoxHTML(uid){
-  return `<h3>🎁 إضافة جواهر${uid===UID?" لنفسك":""}</h3>
+  return `<h3>${I3("gift")} إضافة جواهر${uid===UID?" لنفسك":""}</h3>
    <div class="numpicks" id="gfAmt">${[50,100,250,500,1000,5000].map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>
    <div class="strow" style="margin-top:8px"><input id="gfN" class="stin" type="number" min="1" max="100000" inputmode="numeric" placeholder="أو اكتب العدد"><input id="gfNote" class="stin" maxlength="100" placeholder="ملاحظة (اختياري)"></div>
    <button class="btn stbtn" id="gfSend" style="width:100%;margin-top:8px">إرسال الجواهر</button>
-   ${fzNeeds(uid)?'<button class="btn" id="gfFz" style="width:100%;margin-top:8px">❄️ إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button>':""}<div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
+   ${fzNeeds(uid)?'<button class="btn" id="gfFz" style="width:100%;margin-top:8px">'+I3("freeze")+' إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button>':""}<div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
 }
 async function bindGiftBox(uid){
   const box=$("giftBox");if(!box)return;
@@ -1801,14 +1802,14 @@ function cfgCss(){
 const cfgRef=()=>db.collection("config").doc("app");
 async function saveCfg(c,msg){
   try{await cfgRef().set({v:JSON.stringify(c),ts:firebase.firestore.FieldValue.serverTimestamp()});toast("✅",msg||"حُفظت الإعدادات","تصل إلى الجميع خلال دقيقة");return true}
-  catch(e){toast("⚠️","تعذّر الحفظ",e.code==="permission-denied"?"حدّث قواعد الأمان في Firebase":"تحقّق من الاتصال");return false}
+  catch(e){toast(I3("warning"),"تعذّر الحفظ",e.code==="permission-denied"?"حدّث قواعد الأمان في Firebase":"تحقّق من الاتصال");return false}
 }
 function renderCfg(){
   const C=CFG,n=(id,v,lab,step)=>`<label>${lab}<input type="number" id="${id}" value="${v}" step="${step||1}" min="0"></label>`;
   const TN=TIERS.map((x,i)=>x[1]+" "+(i+1));
   $("cfgP").innerHTML=`<div class="cfg"><h2 class="sth">🎛️ إعدادات التطبيق</h2>
-  <div class="warn">⚠️ الخبرة والجواهر تُحسب من سجلّ كل متعلّم منذ البداية، فأي تغيير هنا يغيّر أرقام الجميع بأثر رجعي. وما اشتراه المتعلّمون يبقى لهم.</div>
-  <div class="rsec"><h3>✨ الخبرة</h3>
+  <div class="warn">${I3("warning")} الخبرة والجواهر تُحسب من سجلّ كل متعلّم منذ البداية، فأي تغيير هنا يغيّر أرقام الجميع بأثر رجعي. وما اشتراه المتعلّمون يبقى لهم.</div>
+  <div class="rsec"><h3>${I3("sparkles")} الخبرة</h3>
    ${n("x_r0",C.xp.review[0],"مراجعة: نسيت")}${n("x_r1",C.xp.review[1],"مراجعة: صعبة")}${n("x_r2",C.xp.review[2],"مراجعة: متوسطة")}${n("x_r3",C.xp.review[3],"مراجعة: سهلة")}
    ${n("x_st",C.xp.stOk,"كلمة جديدة في المحطة")}${n("x_sm",C.xp.stMiss,"كلمة في المحطة أخطأ فيها")}
    ${n("x_q",C.xp.quiz,"كل جواب صحيح في الاختبار والتمارين")}${n("x_mem",C.xp.mem,"كلمة ترسخ (موعدها بعد أسبوع)")}${n("x_sol",C.xp.solid,"كلمة تثبت (موعدها بعد شهر)")}
@@ -1825,7 +1826,7 @@ function renderCfg(){
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
    ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}</div>
-  <div class="rsec"><h3>❄️ تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
+  <div class="rsec"><h3>${I3("freeze")} تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
   <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
   const sk=$("g_sk"),row=()=>{const l=document.createElement("label");l.innerHTML=`<span><input type="number" class="skd" value="7" min="1"> يومًا</span><span><input type="number" class="skg" value="10" min="0"> 💎 <button type="button" class="link skx">حذف</button></span>`;sk.appendChild(l)};
   $("g_skAdd").onclick=row;sk.onclick=e=>{const x=e.target.closest(".skx");if(x)x.closest("label").remove()};
@@ -1872,11 +1873,11 @@ function renderShopEd(){
     const c={...CFG,items:items().filter(x=>x.id!==k)};if(await saveCfg(c,"حُذف الغرض")){applyCfg(c);cfgCss();renderShopEd()}});
   const add=$("nAdd");if(add)add.onclick=async()=>{
     const cat=$("nCat")?$("nCat").value:SEDCAT,name=$("nName").value.trim(),val=$("nVal").value.trim();
-    if(!name){toast("⚠️","اكتب اسم الغرض","");return}
-    if((cat==="avatar"||cat==="sticker"||cat==="title")&&!val){toast("⚠️","اكتب الرمز أو نصّ اللقب","");return}
+    if(!name){toast(I3("warning"),"اكتب اسم الغرض","");return}
+    if((cat==="avatar"||cat==="sticker"||cat==="title")&&!val){toast(I3("warning"),"اكتب الرمز أو نصّ اللقب","");return}
     const it={id:"c"+Date.now().toString(36),cat,name,val,c:$("nC").value,c2:$("nC2").value,badge:$("nBadge").checked};
-    if(SEDCAT==="streak"){it.streak=+$("nStk").value;if(!(it.streak>=1)){toast("⚠️","اكتب طول السلسلة","");return}it.price=0}
-    else{it.price=+$("nPr").value;if(!(it.price>=1)){toast("⚠️","اكتب السعر","");return}const t=el.querySelector(".nTier").value;if(t!=="")it.tier=+t}
+    if(SEDCAT==="streak"){it.streak=+$("nStk").value;if(!(it.streak>=1)){toast(I3("warning"),"اكتب طول السلسلة","");return}it.price=0}
+    else{it.price=+$("nPr").value;if(!(it.price>=1)){toast(I3("warning"),"اكتب السعر","");return}const t=el.querySelector(".nTier").value;if(t!=="")it.tier=+t}
     const c={...CFG,items:[...items(),it]};if(await saveCfg(c,"أُضيف الغرض")){applyCfg(c);cfgCss();renderShopEd()}};
   $("sedSave").onclick=async()=>{
     const shop={...(CFG.shop||{})},its=items();
@@ -1892,18 +1893,18 @@ function renderShopEd(){
 /* ================= تجميد السلسلة: تذكير ومساعدة ================= */
 const fzHelped=()=>GIFTS.some(isFzGift)||st(K("fzAsk"))==="1";
 async function askFreezeHelp(){
-  if(fzHelped()){toast("❄️","طلبت المساعدة من قبل","مساعدة التجميد مرة واحدة فقط");return}
+  if(fzHelped()){toast(I3("freeze"),"طلبت المساعدة من قبل","مساعدة التجميد مرة واحدة فقط");return}
   if(TH&&TH.state==="waiting"){toast("✉️","رسالتك السابقة تنتظر الرد","اطلب المساعدة بعد أن يردّ المشرف");return}
   if(!await uiConfirm("سيُرسل إلى المشرف طلب تجميد واحد للسلسلة.\nهذه المساعدة مرة واحدة فقط. هل تريد الإرسال؟"))return;
   try{await userMsg("❄️ أطلب تجميدًا واحدًا للسلسلة (مساعدة لمرة واحدة): ليس لديّ تجميد ولا جواهر تكفي لشرائه.");st(K("fzAsk"),"1");toast("✅","أُرسل طلبك إلى المشرف","");renderShop()}
-  catch(e){toast("⚠️","تعذّر الإرسال","تحقّق من الاتصال")}
+  catch(e){toast(I3("warning"),"تعذّر الإرسال","تحقّق من الاتصال")}
 }
 // تذكير مرة في اليوم: بقي تجميد واحد، أو لا تجميد ولا جواهر تكفي
 function freezeReminder(){
   if(isAdmin()||st(K("fzRem"))===today())return;const e=econ(),fz=e.s.freezes,price=itemOf("power","freeze").price;
-  if(fz===1){st(K("fzRem"),today());toast("❄️","بقي لديك تجميد واحد للسلسلة","اشترِ غيره من المتجر ليحمي سلسلتك")}
+  if(fz===1){st(K("fzRem"),today());toast(I3("freeze"),"بقي لديك تجميد واحد للسلسلة","اشترِ غيره من المتجر ليحمي سلسلتك")}
   else if(fz===0&&e.s.streak>0){st(K("fzRem"),today());
-    if(e.gems>=price)toast("❄️","ليس لديك تجميد للسلسلة","اشترِ واحدًا من المتجر بـ "+price+" 💎");
+    if(e.gems>=price)toast(I3("freeze"),"ليس لديك تجميد للسلسلة","اشترِ واحدًا من المتجر بـ "+price+" 💎");
     else if(!fzHelped())toast("🆘","ليس لديك تجميد ولا جواهر تكفي","اطلب مساعدة المشرف من المتجر، مرة واحدة فقط")}
 }
 
@@ -1946,7 +1947,7 @@ async function accountCheck(user){
 }
 function showPending(user){
   $("login").style.display="flex";
-  $("login").innerHTML=`<div class="lbox"><div class="logo">⏳</div><h1 style="font-size:1.2rem">حسابك بانتظار التفعيل</h1>
+  $("login").innerHTML=`<div class="lbox"><div class="logo">${I3("hourglass")}</div><h1 style="font-size:1.2rem">حسابك بانتظار التفعيل</h1>
    <p class="sub">أُرسل طلب تفعيل حسابك <b dir="ltr">${esc((user.email||"").split("@")[0])}</b> إلى المشرف. حاول مرة أخرى بعد قليل.</p>
    <button class="btn lgo" id="pdAgain">تحقّق الآن</button><button class="link" id="pdOut">تسجيل الخروج</button></div>`;
   $("pdAgain").onclick=()=>location.reload();$("pdOut").onclick=async()=>{await auth.signOut();location.reload()};
@@ -2014,18 +2015,18 @@ function bindCompose(send){
   const t=$("mText");if(!t)return;
   t.oninput=()=>{$("mCount").textContent=t.value.length+" / "+MAXLEN};
   $("mSend").onclick=async()=>{const v=t.value.trim();if(!v)return;$("mSend").disabled=true;
-    try{await send(v.slice(0,MAXLEN));t.value=""}catch(e){toast("⚠️","تعذّر الإرسال",e.code==="permission-denied"?"لا يمكنك الإرسال الآن":"تحقّق من الاتصال");$("mSend").disabled=false}};
+    try{await send(v.slice(0,MAXLEN));t.value=""}catch(e){toast(I3("warning"),"تعذّر الإرسال",e.code==="permission-denied"?"لا يمكنك الإرسال الآن":"تحقّق من الاتصال");$("mSend").disabled=false}};
 }
 function renderMessages(){
   const el=$("messages");
   if(isAdmin())return openTh?renderAdminThread():renderInbox();
   const waiting=TH&&TH.state==="waiting";
   const uc=TH&&TH.userClr?tsMs(TH.userClr):0,shown=uc?MSGS.filter(m=>tsMs(m.ts)>uc):MSGS;
-  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة المشرف</h2>${shown.length?'<button class="btn" id="mClr">🗑️ مسح السجل</button>':""}</div>${chatHTML(shown,"user")}
-   ${waiting?'<div class="wait">⏳ رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ المشرف.</div>':composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
+  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة المشرف</h2>${shown.length?'<button class="btn" id="mClr">${I3("trash")} مسح السجل</button>':""}</div>${chatHTML(shown,"user")}
+   ${waiting?'<div class="wait">${I3("hourglass")} رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ المشرف.</div>':composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
   if(TH&&TH.unreadUser)tref(UID).update({unreadUser:false}).catch(()=>{});
   const cb=$("mClr");if(cb)cb.onclick=async()=>{if(!await uiConfirm("مسح سجلّ الرسائل من عندك فقط؟ تبقى الرسائل عند المشرف."))return;
-    try{await tref(UID).update({userClr:firebase.firestore.FieldValue.serverTimestamp()});toast("🗑️","مُسح السجلّ من عندك","")}catch(e){toast("⚠️","تعذّر المسح","")}};
+    try{await tref(UID).update({userClr:firebase.firestore.FieldValue.serverTimestamp()});toast(I3("trash"),"مُسح السجلّ من عندك","")}catch(e){toast(I3("warning"),"تعذّر المسح","")}};
   bindCompose(async v=>{await userMsg(v);toast("✅","أُرسلت رسالتك","سيصلك الرد هنا")});
 }
 async function userMsg(v){
@@ -2041,17 +2042,17 @@ let THSEL=null;   // وضع التحديد: مجموعة المحادثات ال
 function renderInbox(){
   const el=$("messages"),list=ADM_TH.filter(t=>!thHidden(t)),sel=THSEL;
   el.innerHTML=`<div class="mhead"><h2>✉️ رسائل المستخدمين</h2>${list.length?`<button class="btn" id="thSel">${sel?"إلغاء":"تحديد"}</button>`:""}</div>
-   ${sel?`<div class="mclr"><button class="btn" id="thAll">${sel.size===list.length?"إلغاء الكل":"تحديد الكل"}</button><button class="btn" id="thDelMe" ${sel.size?"":"disabled"}>🗑️ حذف من عندي (${sel.size})</button><button class="btn" id="thDelAll" ${sel.size?"":"disabled"}>🗑️ من عندي وعنده</button></div>`:""}
+   ${sel?`<div class="mclr"><button class="btn" id="thAll">${sel.size===list.length?"إلغاء الكل":"تحديد الكل"}</button><button class="btn" id="thDelMe" ${sel.size?"":"disabled"}>${I3("trash")} حذف من عندي (${sel.size})</button><button class="btn" id="thDelAll" ${sel.size?"":"disabled"}>${I3("trash")} من عندي وعنده</button></div>`:""}
    ${list.length?list.map(t=>`<div class="th ${sel&&sel.has(t.id)?"sel":""}" data-u="${esc(t.id)}">${sel?`<span class="ck">${sel.has(t.id)?"☑️":"⬜"}</span>`:""}<div style="flex:1"><b>${esc(t.name||"مستخدم")}</b><br><small>${fmt(t.updated)}</small></div>${t.state==="waiting"?'<span class="need">ينتظر ردّك</span>':'<small>تمّ الرد ✓</small>'}</div>`).join(""):'<div class="empty">لا رسائل بعد.</div>'}`;
   el.querySelectorAll(".th").forEach(d=>d.onclick=()=>{if(!THSEL)return openThread(d.dataset.u);const u=d.dataset.u;THSEL.has(u)?THSEL.delete(u):THSEL.add(u);renderInbox()});
   const b=$("thSel");if(b)b.onclick=()=>{THSEL=THSEL?null:new Set;renderInbox()};
   if(!sel)return;
   $("thAll").onclick=()=>{THSEL=sel.size===list.length?new Set:new Set(list.map(t=>t.id));renderInbox()};
   $("thDelMe").onclick=async()=>{if(!await uiConfirm("حذف "+sel.size+" محادثة من عندك فقط؟ تبقى عند المستخدمين، وتعود إليك إن أرسلوا من جديد."))return;
-    try{const bt=db.batch();sel.forEach(u=>bt.update(tref(u),{adminClr:firebase.firestore.FieldValue.serverTimestamp()}));await bt.commit();THSEL=null;toast("🗑️","حُذفت من عندك","")}catch(e){toast("⚠️","تعذّر الحذف","")}};
+    try{const bt=db.batch();sel.forEach(u=>bt.update(tref(u),{adminClr:firebase.firestore.FieldValue.serverTimestamp()}));await bt.commit();THSEL=null;toast(I3("trash"),"حُذفت من عندك","")}catch(e){toast(I3("warning"),"تعذّر الحذف","")}};
   $("thDelAll").onclick=async()=>{if(!await uiConfirm("حذف "+sel.size+" محادثة نهائيًا من عندك وعند المستخدمين؟"))return;
-    try{for(const u of sel){const q=await tref(u).collection("msgs").get(),bt=db.batch();q.docs.forEach(d=>bt.delete(d.ref));bt.delete(tref(u));await bt.commit()}THSEL=null;toast("🗑️","حُذفت من الطرفين","")}
-    catch(e){toast("⚠️","تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
+    try{for(const u of sel){const q=await tref(u).collection("msgs").get(),bt=db.batch();q.docs.forEach(d=>bt.delete(d.ref));bt.delete(tref(u));await bt.commit()}THSEL=null;toast(I3("trash"),"حُذفت من الطرفين","")}
+    catch(e){toast(I3("warning"),"تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
 }
 let thUnsub=null;
 function openThread(u){
@@ -2063,15 +2064,15 @@ function renderAdminThread(){
   const el=$("messages"),t=ADM_TH.find(x=>x.id===openTh)||{};
   const ac=t.adminClr?tsMs(t.adminClr):0,shown=ac?openMsgs.filter(m=>tsMs(m.ts)>ac):openMsgs;
   el.innerHTML=`<div class="mhead"><h2>${esc(t.name||"مستخدم")}</h2><button class="btn" id="mBack">→ رجوع</button></div>
-   ${openMsgs.length?'<div class="mclr"><button class="btn" id="mClrMe">🗑️ مسح من عندي</button><button class="btn" id="mClrAll">🗑️ مسح من عندي وعنده</button></div>':""}${chatHTML(shown,"admin")}
+   ${openMsgs.length?'<div class="mclr"><button class="btn" id="mClrMe">${I3("trash")} مسح من عندي</button><button class="btn" id="mClrAll">${I3("trash")} مسح من عندي وعنده</button></div>':""}${chatHTML(shown,"admin")}
    ${composeHTML(t.state==="waiting"?"اكتب ردّك":"أرسل رسالة أو استفسارًا (يُفتح له الإرسال مرة واحدة)")}`;
   $("mBack").onclick=()=>{openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox()};
   const me=$("mClrMe");if(me)me.onclick=async()=>{if(!await uiConfirm("مسح المحادثة من عندك فقط؟ تبقى عند المستخدم."))return;
-    try{await tref(openTh).update({adminClr:firebase.firestore.FieldValue.serverTimestamp()});openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast("🗑️","مُسحت من عندك","")}catch(e){toast("⚠️","تعذّر المسح","")}};
+    try{await tref(openTh).update({adminClr:firebase.firestore.FieldValue.serverTimestamp()});openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast(I3("trash"),"مُسحت من عندك","")}catch(e){toast(I3("warning"),"تعذّر المسح","")}};
   const al=$("mClrAll");if(al)al.onclick=async()=>{if(!await uiConfirm("حذف كل رسائل هذه المحادثة نهائيًا من عندك وعند المستخدم؟"))return;
     try{const u=openTh,q=await tref(u).collection("msgs").get(),b=db.batch();q.docs.forEach(d=>b.delete(d.ref));b.delete(tref(u));await b.commit();
-      openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast("🗑️","حُذفت المحادثة من الطرفين","")}
-    catch(e){toast("⚠️","تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
+      openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast(I3("trash"),"حُذفت المحادثة من الطرفين","")}
+    catch(e){toast(I3("warning"),"تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
   bindCompose(async v=>{
     const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
     const r=tref(openTh).collection("msgs").doc();
@@ -2157,7 +2158,7 @@ function renderUser(){
   <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
-  <div class="rsec"><h3>🗑️ حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
+  <div class="rsec"><h3>${I3("trash")} حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
@@ -2218,7 +2219,7 @@ async function maybeAskFeedback(){
   $("fbSend").onclick=async()=>{$("fbSend").disabled=true;
     try{await db.collection("feedback").doc(UID).set({stars,note:$("fbNote").value.trim().slice(0,500),name:UNAME.slice(0,60),ts:firebase.firestore.FieldValue.serverTimestamp()});
       st(K("fbDone"),"1");m.style.display="none";toast("💙","شكرًا لتقييمك!","")}
-    catch(err){toast("⚠️","تعذّر الإرسال","");$("fbSend").disabled=false}};
+    catch(err){toast(I3("warning"),"تعذّر الإرسال","");$("fbSend").disabled=false}};
 }
 
 /* ================= التشغيل ================= */
