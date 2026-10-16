@@ -253,6 +253,7 @@ body.fbon main{padding-bottom:210px}
 .stlearn .rep{display:block;margin:8px auto 0;font-size:.85rem}
 .fbflag{width:52px;height:52px;flex:none;border-radius:16px;border:2.5px solid rgba(0,0,0,.12);background:rgba(255,255,255,.5);font-size:1.3rem;opacity:.85}
 .say.slow{font-size:1.15rem;margin-inline-start:2px}
+.sttag{display:inline-flex;align-items:center;gap:4px;background:var(--soft);color:var(--hd);border-radius:10px;padding:2px 10px;font-weight:800;font-size:.8rem;margin-bottom:6px}.sttag .i3{width:18px;height:18px}
 .hears{display:flex;justify-content:center;align-items:center;gap:14px}.hear.slow{width:64px;height:64px;font-size:1.7rem;background:var(--soft);color:var(--ink);box-shadow:0 4px 0 var(--line)}
 .nolisten{display:block;margin:10px auto 0;color:var(--muted);font-weight:700}
 .repbox textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:8px;font:inherit;background:var(--card);color:var(--ink);margin:10px 0}
@@ -847,24 +848,64 @@ function startStation(){
   STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[],t0:Date.now()};CMB=0;RES=null;
   RVDONE=null;stationView();scrollTo(0,0);
 }
+// المحطة درس متدرّج: لكل كلمة ثلاث خطوات (تعرّف، ثم جملة، ثم تمرين)، ثم تُعاد الكلمات التي أُخطئ فيها
+function stationSteps(words){
+  const steps=[];
+  words.forEach((w,i)=>{
+    steps.push({t:"intro",w});
+    steps.push({t:clozeOf(w)?"cloze":w.ex?"ex":"rev",w});
+    steps.push({t:i%2?"rev":"mc",w});
+  });
+  return steps;
+}
+function stOpts(w,de){   // أربعة خيارات من النوع نفسه
+  const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de),same=shuffle(pool.filter(x=>x.t===w.t));
+  return shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)]);
+}
 function stationView(){
-  const el=$("review"),S_=STS,w=S_.phase==="learn"?S_.words[S_.i]:S_.q[0],N=S_.words.length;
-  const head=`<div class="sess"><div class="sbar"><i style="width:${S_.phase==="learn"?S_.i/N*50:50+(N-S_.q.length)/N*50}%"></i></div><span>🛤️ المحطة ${S_.n} · ${S_.phase==="learn"?"تعلّم "+(S_.i+1)+" من "+N:"راجع"}</span><button class="link" id="stQuit">خروج</button></div>`;
-  if(S_.phase==="learn"){
-    el.innerHTML=head+`<div class="box stlearn t-${w.t}"><span class="typedot">● ${TYPE[w.t]||""}</span><div class="word de">${artHTML(w.de)} ${sayBtn(w.de)}${slowBtn(w.de)}</div><div class="ar">${esc(w.ar)}</div>${exPairs(w)}${repBtn(w)}</div>
-     <button class="btn next" id="stNext">${S_.i<N-1?"التالي":"راجع الكلمات الخمس"}</button>`;
-    $("stNext").onclick=()=>{if(S_.i<N-1)S_.i++;else{S_.phase="check";S_.q=shuffle([...S_.words])}stationView()};
-  }else{
-    const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(pool.filter(x=>x.t===w.t)),opts=shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)]);
-    el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">ما معنى هذه الكلمة؟</p><div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="stFb"></div></div>`;
-    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
-      if(el.querySelector(".gopt.ok"))return;const ok=b.dataset.k===w.k;
-      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});
-      if(!ok){b.classList.add("no");S_.miss.add(w.k)}
-      S_.q.shift();if(!ok)S_.q.push(w);       // الخطأ يعود في آخر المحطة
-      comboHit(ok);
-      showFb(ok,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>S_.q.length?stationView():finishStation(),w);
-    });
+  const el=$("review"),S_=STS;
+  if(!S_.steps){S_.steps=stationSteps(S_.words);S_.i=0}
+  const st=S_.steps[S_.i],w=st.w,T=S_.steps.length;
+  const head=`<div class="sess"><div class="sbar"><i style="width:${S_.i/T*100}%"></i></div><span>🛤️ المحطة ${S_.n} · ${S_.i+1} من ${T}</span><button class="link" id="stQuit">خروج</button></div>`;
+  const next=()=>{S_.i++;if(S_.i<S_.steps.length){stationView();scrollTo(0,0)}else finishStation()};
+  const wordLine=`<div class="word de">${artHTML(w.de)} ${sayBtn(w.de)}${slowBtn(w.de)}</div>`;
+  // أجب عن سؤال: يُسجَّل الخطأ من المحاولة الأولى، وتعود الكلمة في آخر المحطة
+  const judge=(ok,b,sub,after)=>{
+    if(S_.ans)return;S_.ans=1;
+    if(!ok&&!st.retry){S_.miss.add(w.k);S_.steps.push({t:"mc",w,retry:1})}
+    comboHit(ok);if(after)after(ok);
+    showFb(ok,sub,()=>{S_.ans=0;next()},w);
+  };
+  S_.ans=0;
+  if(st.t==="intro"){
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
+     <button class="btn next" id="stNext">التالي</button>`;
+    speak(w.de);$("stNext").onclick=next;
+  }
+  else if(st.t==="ex"){
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("books")} في جملة</span>${wordLine}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}</div>
+     <button class="btn next" id="stNext">التالي</button>`;
+    speak(String(w.ex).split("\n")[0]);$("stNext").onclick=next;
+  }
+  else if(st.t==="cloze"){
+    if(!st.q)st.q=makeQ("cloze",w);const q=st.q,full=q.c.pre+q.c.word+q.c.post;
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} أكمل الجملة</span><p class="ghint">اختر الكلمة التي تملأ الفراغ:</p>
+     <div class="cloze de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?`<div class="cloze-ar">${esc(q.c.ar)}</div>`:""}
+     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}</div>`;
+    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{if(S_.ans)return;const ok=b.dataset.k===w.k;
+      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
+      const bl=$("stBlank");bl.textContent=q.c.word;bl.classList.add(ok?"good":"bad");
+      judge(ok,b,`<span dir="ltr">${esc(full)}</span>`,()=>speak(full))});
+  }
+  else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
+    if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("target")} ${st.retry?"مراجعة":"تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
+     ${rev?`<div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>`:`<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>`}
+     ${st.o.map(o=>`<button class="btn gopt${rev?" de":""}" ${rev?'style="text-align:left"':""} data-k="${esc(o.k)}">${rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}</div>`;
+    if(!rev)speak(w.de);
+    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{if(S_.ans)return;const ok=b.dataset.k===w.k;
+      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
+      judge(ok,b,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>{if(rev)speak(w.de)})});
   }
   $("stQuit").onclick=quitStation;
 }
