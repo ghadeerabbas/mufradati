@@ -20,9 +20,16 @@ jobs:
         run: python3 server/build.py && cp server/worker.js /tmp/w.mjs && node --check /tmp/w.mjs
       - name: النشر
         if: steps.chk.outputs.ok == '1'
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: server
-          command: deploy
+        working-directory: server
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set +e
+          npx --yes wrangler@4 deploy > out.txt 2>&1; code=$?
+          cat out.txt
+          if [ $code -ne 0 ]; then
+            # ملخّص الخطأ يظهر في صفحة التشغيل
+            grep -vE '^\s*$' out.txt | tail -12 | tr '\n' ' ' | sed 's/^/::error::/' ; echo
+            exit $code
+          fi
