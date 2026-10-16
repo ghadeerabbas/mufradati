@@ -1799,7 +1799,8 @@ const ago=t=>{if(!t)return"—";const d=Math.floor((Date.now()-t)/DAY);return d<
 async function renderUsers(){
   const el=$("users");
   if(!isAdmin()){el.innerHTML="";return}
-  if(!USERS.length)el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
+  // يُعرض ما عندنا فورًا (القائمة أو المستخدم المفتوح)، ثم يُحدَّث بعد التحميل
+  if(!USERS.length)el.innerHTML='<div class="empty">جارٍ التحميل…</div>';else uOpen?renderUser():renderUserList();
   try{
     const [us,fs]=await Promise.all([db.collection("users").get(),db.collection("feedback").get()]);
     USERS=us.docs.filter(d=>d.id!==UID).map(d=>({id:d.id,...d.data()})).map(u=>({...u,st:ustatus(u.sum)}));
