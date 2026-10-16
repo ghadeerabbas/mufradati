@@ -1125,9 +1125,9 @@ async function fillLeague(){
   try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=await leagueRows()}
   catch(e){box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
   if(!$("lgBox"))return;
-  const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up}=zones(n),down=t>0?zones(n).down:0;   // لا تراجع من الدوري الأول
+  const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
-  const row=(r,i)=>{const rt=r.tier??t,z=i<up&&r.xp>=PROMO_MIN&&rt<9?"up":down&&i>=n-down&&rt>0?"down":"";
+  const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
     return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${esc(r.st||"")}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>

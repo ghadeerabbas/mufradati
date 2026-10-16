@@ -188,7 +188,7 @@ function measure(){
 const band=()=>Math.min(5,Math.floor(measure().total/20));
 // أعلى دوري وصله المتعلّم: يفتح هدايا المتجر، ولا تُقفل إن نزل بعدها
 const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier+h.mv));
-const GROUP_MAX=20,PROMO_MIN=100;
+const GROUP_MAX=15,PROMO_MIN=100;
 // خبرة الأسبوع: من المراجعات والاختبارات والتمارين في هذا الأسبوع
 function weekXP(ws){
   const we=ws+7*DAY,per={};let xp=0;
@@ -198,9 +198,10 @@ function weekXP(ws){
   for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1]*5;
   return xp;
 }
-// منطقة التقدّم والتراجع حسب حجم المجموعة
-function zones(n){
-  const up=n<=4?1:n<=9?2:Math.round(n*.25),down=n<5?0:n<10?1:Math.round(n*.17);
+// عدد المتقدّمين والمتراجعين في كل دوري (من الأول إلى العاشر)
+const UP_N=[10,9,8,7,6,5,4,3,1,0],DOWN_N=[0,2,3,3,3,4,4,5,5,5];
+function zones(n,tier){
+  tier=Math.max(0,Math.min(9,tier||0));const up=Math.min(UP_N[tier],n),down=Math.min(DOWN_N[tier],Math.max(0,n-up));
   return {up,down};
 }
 const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,30,20][realRank-1]||0);
@@ -213,7 +214,7 @@ function chooseGroupFrom(docs,tier,my){
   if(best!=null&&!(bd>=2&&inTier.length>=10))return best;
   const ks=Object.keys(gs).map(Number);return ks.length?Math.max(...ks)+1:0;
 }
-const MINR=5,TARGET=10;
+const MINR=5,TARGET=15;
 function clusters(members){
   // من اختار الدوري التجريبي يبقى وحده مع الآليّين، ولا يدخل مجموعات الآخرين
   const solo=members.filter(m=>m.solo).map(m=>({key:"solo-"+m.id,m:[m]}));members=members.filter(m=>!m.solo);
@@ -438,7 +439,7 @@ async function leagueStep(fs, uid, prof, now, writes) {
     const last = weekId(weekStart(now) - 3 * DAY), docs = await fs.list(`lg/${last}/m`), me = docs.find(d => d.id === uid);
     if (me && me.xp > 0) {
       const prev = await fs.list(`lg/${weekId(weekStart(now) - 10 * DAY)}/m`), rows = tableFor(uid, last, docs, prev, 1);
-      const n = rows.length, rank = rows.findIndex(r => r.id === uid) + 1, realRank = rows.filter(r => !r.bot).findIndex(r => r.id === uid) + 1, { up, down } = zones(n);
+      const n = rows.length, rank = rows.findIndex(r => r.id === uid) + 1, realRank = rows.filter(r => !r.bot).findIndex(r => r.id === uid) + 1, { up, down } = zones(n, me.tier);
       let mv = 0; if (rank && rank <= up && me.xp >= PROMO_MIN && me.tier < 9) mv = 1; else if (rank && down && rank > n - down && me.tier > 0) mv = -1;
       LG.hist = [...(LG.hist || []), { w: last, tier: me.tier, rank, n, mv, g: prizeOf(realRank, me.xp), xp: me.xp }].slice(-52);
       LG.tier = me.tier + mv; LG.best = Math.max(LG.best || 0, LG.tier);
