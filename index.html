@@ -1430,7 +1430,7 @@ function renderSettings(){
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
   <div class="rsec"><h3>🔔 التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
-  <div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>
+  ${isAdmin()?"":`<div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>`}
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
    <input id="pwCur" class="stin" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password">
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
@@ -1439,7 +1439,7 @@ function renderSettings(){
   ${isAdmin()?"":`<div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}`;
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(E.dark?1:0))return;E.dark=+b.dataset.v;E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
-  if($("stReset"))$("stReset").onclick=resetProgress;bindNameBox();
+  if($("stReset"))$("stReset").onclick=resetProgress;if($("stNameBox"))bindNameBox();
   const so=$("stSolo");if(so)so.onclick=async e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v==="1";if(v===!!E.lgSolo)return;
     E.lgSolo=v;E.ts=Date.now();save();schedSync();so.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
     try{if(!await syncNow())throw 0;LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast("⚠️","تعذّر الحفظ","")}};
