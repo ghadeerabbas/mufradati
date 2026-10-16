@@ -359,7 +359,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .gstat b{display:block;font-size:1.3rem;color:var(--hd)}.gstat span{font-size:.72rem;color:var(--muted)}
 .achs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
 .ach{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;gap:8px;align-items:center}
-.ach .ic{font-size:1.7rem;flex:none}
+.ach .ic{font-size:1.7rem;flex:none}.ach .ic .i3{width:40px;height:40px}.lgrow .rk .i3{width:24px;height:24px}
 .ach b{font-size:.85rem;display:block;color:var(--hd);line-height:1.4}
 .ach small{font-size:.7rem;color:var(--muted);display:block;line-height:1.4}
 .ach.lock{opacity:.55}.ach.lock .ic{filter:grayscale(1)}
@@ -688,6 +688,9 @@ function renderHeader(){
 const STK_IMG=Object.fromEntries([...["🌸","⭐","💡","🍀","🎈","☕","🍕","🥨","🌙","🌻","🎻","🏰","🇩🇪","🦋","🏆","💎"].map((v,i)=>[v,"stk/"+(i+1)]),
   ...["🎓","🦊","🐱","🦉","🐼","🐧","🦁","🐯","🤖","🧠","🚀","🐉","🦄","👑","🔥","☄️","🌋"].map((v,i)=>[v,"av/"+(i+1)])]);
 const stkH=v=>STK_IMG[v]?`<img class="sti" src="img/${STK_IMG[v]}.png" alt="">`:esc(v||"");
+// رموز الإنجازات المجسّمة (الرمز التعبيري في core.js يبقى احتياطًا)
+const ACH_IMG={rev:"book",mem:"tree",mast:"gem",streak:"fire",perfect:"target",marathon:"runner",quiz:"puzzle",qfull:"gold1",owl:"owl",bird:"bird",shop:"shop"};
+const achIc=a=>ACH_IMG[a.id]?I3(ACH_IMG[a.id]):a.ic;
 function toast(ic,title,sub){
   const t=document.createElement("div");t.className="toast";t.innerHTML=`<span class="ic">${ic}</span><div><b>${title}</b>${sub?`<span>${sub}</span>`:""}</div>`;
   $("toasts").appendChild(t);setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3200);
@@ -710,7 +713,7 @@ function celebrate(prev){
   const e=econ();renderHeader();
   if(!prev)return;
   if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!",e.lv>(R.lv||1)?"+"+LV_GEMS+" 💎":"");confetti(120)}
-  achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
+  achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(achIc(a),a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
   {const pb=Math.max(prev.s.best,R.sb||0);for(const [d,g] of STREAK_G)if(e.s.best>=d&&pb<d){toast("🔥","سلسلة "+d+" يومًا!","+"+g+" 💎");confetti(120)}
    const nu=SHOP.filter(x=>x.streak&&x.streak>pb&&x.streak<=e.s.best);if(nu.length)setTimeout(()=>toast(I3("gift"),"هدية سلسلة جديدة في المتجر",nu.map(x=>x.name).join("، ")),1200)}
   if(e.s.streak>prev.s.streak)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
@@ -1075,12 +1078,12 @@ function pickWords(list,n){
   return shuffle(out);
 }
 const GAMES=[
- {id:"cloze",ic:"✍️",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
+ {id:"cloze",ic:I3("pencil"),n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
  {id:"art",ic:I3("target"),n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
- {id:"type",ic:"⌨️",n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
+ {id:"type",ic:I3("keyboard"),n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
  {id:"listen",ic:I3("headphones"),n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
  {id:"match",ic:I3("puzzle"),n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
- {id:"s5",ic:"⏱️",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
+ {id:"s5",ic:I3("stopwatch"),n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
 ];
 function gamePool(id){
   const all=learnedList();
@@ -1320,7 +1323,7 @@ async function fillLeague(){
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
@@ -1456,7 +1459,7 @@ function renderProfile(){
    <div class="gstat"><b>🏆 ${e.got.size}/${maxL}</b><span>مستويات الإنجازات</span></div>
   </div>
   <div class="rsec"><h3>الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];
-   return `<div class="ach ${k?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}${k?` <span class="alv">${k}</span>`:""}</b>
+   return `<div class="ach ${k?"got":"lock"}"><span class="ic">${achIc(a)}</span><div style="flex:1;min-width:0"><b>${a.n}${k?` <span class="alv">${k}</span>`:""}</b>
     <div class="lvdots">${a.L.map((_,i)=>`<i class="${i<k?"on":""}"></i>`).join("")}</div>
     <small>${top?`✓ أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u}`}</small>
     ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
@@ -1586,7 +1589,7 @@ function renderSettings(){
   const login=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
   const courses=MY_COURSES.filter(id=>COURSES[id]);
   $("settings").innerHTML=`<h2 class="sth">⚙️ الإعدادات</h2>
-  <div class="rsec"><h3>🌙 الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${E.dark?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${E.dark?" on":""}" data-v="1">🌙 ليلي</button></div></div>
+  <div class="rsec"><h3>${I3("moon")} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${E.dark?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${E.dark?" on":""}" data-v="1">🌙 ليلي</button></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
   <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
@@ -1652,7 +1655,7 @@ async function showPlayer(row){
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1}${d.title?" · "+esc(d.title):""} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
    ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
    <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>${I3("medal")} ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
-   <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${a.ic}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
+   <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${achIc(a)}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
    <h3 class="pch">ألبوم الملصقات (${stickers.filter(x=>have.has(x.val)).length}/${stickers.length})</h3><div class="album">${stickers.map(x=>`<span class="${have.has(x.val)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
    <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;
   $("pcClose").onclick=close;
