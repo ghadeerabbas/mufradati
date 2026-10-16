@@ -308,7 +308,9 @@ function applyAt(ev,T,now,ctx){
   if(T==="reset"){
     const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:now};
     // يعود كأنه جديد: بلا خبرة ولا دوري (تبقى جواهره ومشترياته)
-    P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};return true;
+    P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};
+    EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0};   // ويبدأ بطاقة كاملة
+    return true;
   }
   return "type";
 }
