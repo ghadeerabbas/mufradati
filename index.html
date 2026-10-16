@@ -1925,7 +1925,7 @@ function init(){
   $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
   $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
   setInterval(()=>{if(UID)renderEnergy()},30000);
-  $("usersBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};
+  $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
   document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
