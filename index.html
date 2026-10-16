@@ -258,6 +258,7 @@ body.fbon main{padding-bottom:210px}
 .nolisten{display:block;margin:10px auto 0;color:var(--muted);font-weight:700}
 .repbox textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:8px;font:inherit;background:var(--card);color:var(--ink);margin:10px 0}
 .repbox .numpicks{justify-content:center}
+.ubar{margin:8px 0}.ubar .ul{display:flex;justify-content:space-between;gap:8px;font-size:.85rem}.ubar .ul span{color:var(--muted)}.ubar i{display:block;height:12px;border-radius:7px;background:var(--soft);overflow:hidden;margin-top:3px}.ubar i b{display:block;height:100%;border-radius:7px}
 .rep1{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}.rep1 small{display:block;color:var(--muted)}.rep1 p{margin:4px 0 0;background:var(--soft);border-radius:10px;padding:6px 8px}
 .ordar{font-size:1.15rem;font-weight:700;text-align:center;margin:6px 0 12px}
 .oline{min-height:58px;border-bottom:2px solid var(--line);border-top:2px solid var(--line);padding:8px 2px;display:flex;flex-wrap:wrap;gap:8px;direction:ltr;margin-bottom:14px}
@@ -546,6 +547,7 @@ body.fbon main{padding-bottom:210px}
     <button data-p="messages"><i>✉️</i>الرسائل</button>
     <button data-p="cfgP"><i>🎛️</i>الإعدادات</button>
     <button data-p="shopEd"><i>🛍️</i>المتجر</button>
+    <button data-p="usage"><i>📈</i>الاستهلاك</button>
     <button data-p="settings"><i>⚙️</i>حسابي</button>
   </nav>
   <nav id="mainNav">
@@ -588,6 +590,7 @@ body.fbon main{padding-bottom:210px}
   <section id="users" class="panel"></section>
   <section id="cfgP" class="panel"></section>
   <section id="shopEd" class="panel"></section>
+  <section id="usage" class="panel"></section>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
@@ -1817,6 +1820,14 @@ function equip(cat,v,silent){
 firebase.initializeApp({apiKey:"AIzaSyBevgQRTKaRrrY9Q2RWPaWsY0UkfTaQu8o",authDomain:"mufradati-406bd.firebaseapp.com",projectId:"mufradati-406bd",
   storageBucket:"mufradati-406bd.firebasestorage.app",messagingSenderId:"171055013286",appId:"1:171055013286:web:edcad3ce542e6c45108367"});
 const auth=firebase.auth(),db=firebase.firestore();
+// عدّاد قراءات التطبيق وكتاباته في قاعدة البيانات (تقريبي): يُرسل مع كل حفظ ليظهر في «الاستهلاك» عند المشرف
+const FSC={r:0,w:0};
+(function(){try{const F=firebase.firestore,D=F.DocumentReference&&F.DocumentReference.prototype,Q=F.Query&&F.Query.prototype,C=F.CollectionReference&&F.CollectionReference.prototype;
+  const wrapSnap=(o)=>{if(!o||!o.onSnapshot||o.onSnapshot.__c)return;const f=o.onSnapshot;o.onSnapshot=function(...a){const i=a.findIndex(x=>typeof x==="function");if(i>=0){const cb=a[i];a[i]=function(sn){try{if(sn&&sn.docChanges)FSC.r+=Math.max(1,sn.docChanges().filter(c=>!sn.metadata||!sn.metadata.fromCache).length);else if(!sn||!sn.metadata||!sn.metadata.fromCache)FSC.r++}catch(e){}return cb.apply(this,arguments)}}return f.apply(this,a)};o.onSnapshot.__c=1};
+  if(D){const g=D.get;D.get=function(){return g.apply(this,arguments).then(x=>{FSC.r++;return x})};["set","update","delete"].forEach(m=>{const f=D[m];D[m]=function(){FSC.w++;return f.apply(this,arguments)}});wrapSnap(D)}
+  [Q,C].forEach(P_=>{if(!P_)return;if(P_.get&&!P_.get.__c){const g=P_.get;P_.get=function(){return g.apply(this,arguments).then(x=>{FSC.r+=Math.max(1,x.size||0);return x})};P_.get.__c=1}wrapSnap(P_)});
+  if(C&&C.add){const a=C.add;C.add=function(){FSC.w++;return a.apply(this,arguments)}}
+}catch(e){}})();
 let syncTimer=null,syncing=false,lastSync=0,syncErr="";
 function unpackLog(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let p=0;for(let i=0;i<o.F.length;i+=4){p+=o.F[i];L.push([p*1000,o.K[o.F[i+1]],o.F[i+2],o.F[i+3]])}return L}
 function unpackQA(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let p=0;for(let i=0;i<o.F.length;i+=3){p+=o.F[i];L.push([p*1000,o.K[o.F[i+1]],o.F[i+2]])}return L}
@@ -1853,9 +1864,10 @@ async function syncNow(manual){
     const prefs=JSON.stringify({E,S:{dir:S.dir,ts:S.ts}}),sum=summary(),key=prefs+JSON.stringify({...sum,at:0,ms:0})+UNAME;
     if(key!==PREFLAST){await uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});PREFLAST=key}
     const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();
-    const r=await fetch(API+"/sync",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent})});
+    const r=await fetch(API+"/sync",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w}})});const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
+    FSC.r-=stSent.r;FSC.w-=stSent.w;
     EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;   // الدوري يُقرأ من جديد بعد كل حفظ
     lastSync=Date.now();syncErr="";ok=true;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
@@ -2441,6 +2453,41 @@ function ustatus(sm){
   if(act7>=4&&since<2)return"regular";if(since<2)return"active";if(since<7)return"partial";return"idle";
 }
 const ago=t=>{if(!t)return"—";const d=Math.floor((Date.now()-t)/DAY);return d<=0?"اليوم":d===1?"أمس":d===2?"قبل يومين":"قبل "+d+" أيام"};
+/* ================= لوحة الاستهلاك: ضغط المستخدمين على الخادم وقاعدة البيانات ================= */
+const LIM={req:100000,read:50000,write:20000};   // حدود الخطط المجانية اليومية: Cloudflare، وقراءات Firestore وكتاباته
+let USG=null,USGDAY=null;
+async function renderUsage(){
+  const el=$("usage");el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
+  try{USG=(await apiPost("/stats",{})).days||[];if(!USERS.length){const us=await db.collection("users").get();USERS=us.docs.filter(d=>d.id!==UID).map(d=>({id:d.id,...d.data()})).map(u=>({...u,st:ustatus(u.sum)}))}}
+  catch(e){el.innerHTML='<div class="err">تعذّر تحميل الإحصاءات</div>';return}
+  drawUsage();
+}
+function drawUsage(){
+  const el=$("usage"),days=USG.slice().reverse(),today=dkey(Date.now());
+  const tot=d=>({req:d.req||0,read:(d.sr||0)+(d.cr||0),write:(d.sw||0)+(d.cw||0)});
+  const sel=days.find(d=>d.id===USGDAY)||days.find(d=>d.id===today)||days[days.length-1];
+  const pct=(v,l)=>Math.round(v/l*100),bar=(v,l,n)=>{const p=pct(v,l),c=p>=80?"#ef4444":p>=50?"#f59e0b":"#22c55e";return `<div class="ubar"><div class="ul"><b>${n}</b><span><bdi>${v.toLocaleString("en")}</bdi> من <bdi>${l.toLocaleString("en")}</bdi> · <bdi>${p}%</bdi></span></div><i><b style="width:${Math.min(100,p)}%;background:${c}"></b></i></div>`};
+  // المستخدمون النشطون في آخر 14 يومًا (من ملخّصاتهم)
+  const act=[...Array(14)].map((_,i)=>USERS.filter(u=>u.sum&&u.sum.d14&&u.sum.d14[i]>0).length);
+  const lb14=[...Array(14)].map((_,i)=>{const d=new Date(Date.now()-(13-i)*DAY);return d.getDate()+"/"+(d.getMonth()+1)});
+  const T=sel?tot(sel):{req:0,read:0,write:0};
+  const hrs=[...Array(24)].map((_,h)=>sel?(sel["req_"+String(h).padStart(2,"0")]||0):0),pk=hrs.indexOf(Math.max(...hrs));
+  const last=days.slice(-14),mxRead=Math.max(0,...days.map(d=>tot(d).read)),mxReq=Math.max(0,...days.map(d=>tot(d).req));
+  const worst=Math.max(pct(T.req,LIM.req),pct(T.read,LIM.read),pct(T.write,LIM.write));
+  el.innerHTML=`<div class="cfg"><h2 class="sth">📈 الاستهلاك</h2>
+   <p class="rnote">العدّاد يعمل منذ ${days.length?esc(days[0].id):"اليوم"}. الأرقام تقريبية، ولا تشمل ما يقرؤه حساب المشرف نفسه.</p>
+   <div class="numpicks" id="usgDay">${days.slice(-7).map(d=>`<button type="button" class="numpick${sel&&d.id===sel.id?" on":""}" data-v="${d.id}">${d.id===today?"اليوم":d.id.slice(5).split("-").reverse().join("/")}</button>`).join("")}</div>
+   <div class="rsec"><h3>${sel&&sel.id===today?"اليوم حتى الآن":"يوم "+esc(sel?sel.id:"")}</h3>
+    ${bar(T.req,LIM.req,"طلبات الخادم (Cloudflare)")}${bar(T.read,LIM.read,"قراءات قاعدة البيانات")}${bar(T.write,LIM.write,"كتابات قاعدة البيانات")}
+    <p class="rnote" style="margin-top:8px">${worst>=80?"⚠️ اقتربت من الحد المجاني اليومي. فكّر في الخطة المدفوعة.":worst>=50?"تجاوزت نصف الحد المجاني في هذا اليوم.":"✓ الاستهلاك بعيد عن الحدود المجانية."}</p>
+    <p class="rnote">قراءات الخادم ${(sel&&sel.sr||0).toLocaleString("en")} · قراءات التطبيقات ${(sel&&sel.cr||0).toLocaleString("en")} · كتابات الخادم ${(sel&&sel.sw||0).toLocaleString("en")} · كتابات التطبيقات ${(sel&&sel.cw||0).toLocaleString("en")}</p></div>
+   <div class="rsec"><h3>الطلبات حسب الساعة (بتوقيت ألمانيا)</h3>${colChart(hrs,hrs.map((_,h)=>h%3?"":String(h)))}<p class="rnote" style="margin-top:6px">${hrs.some(Boolean)?"ساعة الذروة: "+pk+":00 بـ "+hrs[pk]+" طلبًا":"لا طلبات بعد في هذا اليوم."}</p></div>
+   <div class="rsec"><h3>قراءات قاعدة البيانات يوميًّا</h3>${colChart(last.map(d=>tot(d).read),last.map(d=>d.id.slice(8)))}<p class="rnote" style="margin-top:6px">أعلى يوم: ${mxRead.toLocaleString("en")} قراءة (<bdi>${pct(mxRead,LIM.read)}%</bdi> من الحد) · أعلى يوم طلبات: ${mxReq.toLocaleString("en")}</p></div>
+   <div class="rsec"><h3>المستخدمون النشطون يوميًّا (آخر 14 يومًا)</h3>${colChart(act,lb14.map((l,i)=>i%2?"":l))}<p class="rnote" style="margin-top:6px">مجموع الحسابات: ${USERS.length} · نشطون اليوم: ${act[13]}${act[13]?" · متوسط القراءات لكل نشط اليوم: "+Math.round(T.read/act[13]):""}</p></div>
+   <button class="btn" id="usgRe" style="width:100%">تحديث</button></div>`;
+  $("usgDay").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;USGDAY=b.dataset.v;drawUsage()};
+  $("usgRe").onclick=renderUsage;
+}
 async function renderUsers(){
   const el=$("users");
   if(!isAdmin()){el.innerHTML="";return}
@@ -2562,10 +2609,11 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users"||p==="cfgP"||p==="shopEd")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage")?"none":"";
+  if(p==="usage"){renderUsage();return}
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
-  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
+  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
