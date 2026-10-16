@@ -181,7 +181,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 #hEn.low{color:#ff4b4b}
 .unit{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:16px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.18);margin-bottom:12px}
 .unit b{font-size:1.05rem;display:block;line-height:1.4}.unit small{opacity:.85;font-weight:700;font-size:.78rem}.unit .i3{width:40px;height:40px;background:rgba(255,255,255,.18);border-radius:12px;padding:4px}
-.coach{display:flex;align-items:flex-end;gap:6px;margin:4px 0 -10px}.coach img{width:78px;flex:none;animation:bob 2.4s ease-in-out infinite}
+.coach{display:flex;align-items:flex-end;gap:6px;margin:4px 0 -10px}.coach img{width:92px;flex:none;animation:bob 2.4s ease-in-out infinite}
 @keyframes bob{50%{transform:translateY(-5px)}}
 .bub{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 12px;font-weight:700;font-size:.92rem;position:relative;margin-bottom:26px;line-height:1.6}
 .bub:after{content:"";position:absolute;right:-10px;bottom:12px;border:9px solid transparent;border-left-color:var(--line)}
@@ -790,7 +790,7 @@ function reviewHome(){
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   el.innerHTML=msg+`
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
-  <div class="coach"><img src="img/mascot.svg" alt=""><div class="bub">${coach}</div></div>
+  <div class="coach"><img src="img/mascot.png" alt=""><div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*98+40}px">${[...Array(N)].map((_,i)=>node(i)).join("")}</div>
    ${done>=N?'':!fresh?(allDone?courseDoneHTML():'')
