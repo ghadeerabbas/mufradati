@@ -1,96 +1,91 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="-14 6 268 278">
-<!-- نرد مفرداتي: نرد مجسّم ناعم بوجه لطيف، رسم أصلي -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-16 10 262 276">
+<!-- نرد مفرداتي: نرد مجسّم ناعم بوجه أمامي ضاحك ويدين ورجلين، رسم أصلي -->
 <defs>
-  <linearGradient id="top" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#f1ede7"/></linearGradient>
-  <linearGradient id="lf" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ebe6de"/><stop offset=".7" stop-color="#d8d1c6"/><stop offset="1" stop-color="#c9c1b4"/></linearGradient>
-  <linearGradient id="rt" x1="1" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fbf9f6"/><stop offset=".7" stop-color="#ece7df"/><stop offset="1" stop-color="#ddd6cb"/></linearGradient>
-  <!-- نقطة غائرة: حافة داكنة في الأعلى ولون أفتح في الأسفل -->
-  <radialGradient id="pip" cx="50%" cy="65%" r="60%"><stop offset="0" stop-color="#ff6a5c"/><stop offset=".65" stop-color="#ef3b2e"/><stop offset="1" stop-color="#b8180f"/></radialGradient>
-  <radialGradient id="pipL" cx="50%" cy="65%" r="60%"><stop offset="0" stop-color="#f05a4c"/><stop offset=".65" stop-color="#d42c20"/><stop offset="1" stop-color="#9b130b"/></radialGradient>
-  <radialGradient id="blush" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff7d7d" stop-opacity=".75"/><stop offset="1" stop-color="#ff7d7d" stop-opacity="0"/></radialGradient>
-  <radialGradient id="gr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#3a2a20" stop-opacity=".3"/><stop offset="1" stop-color="#3a2a20" stop-opacity="0"/></radialGradient>
-  <linearGradient id="tongue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8f8f"/><stop offset="1" stop-color="#e8505b"/></linearGradient>
-  <linearGradient id="limbG" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b4a91"/><stop offset="1" stop-color="#1b2552"/></linearGradient>
+  <linearGradient id="fr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#f6f3ee"/><stop offset="1" stop-color="#e2dcd2"/></linearGradient>
+  <linearGradient id="top" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#fdfcfa"/><stop offset="1" stop-color="#efebe4"/></linearGradient>
+  <linearGradient id="sd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#dcd5ca"/><stop offset="1" stop-color="#bfb6a8"/></linearGradient>
+  <radialGradient id="pip" cx="50%" cy="68%" r="62%"><stop offset="0" stop-color="#ff6a5c"/><stop offset=".62" stop-color="#ef3b2e"/><stop offset="1" stop-color="#b3170f"/></radialGradient>
+  <radialGradient id="pipS" cx="50%" cy="68%" r="62%"><stop offset="0" stop-color="#e5554a"/><stop offset=".62" stop-color="#c9271d"/><stop offset="1" stop-color="#8f120a"/></radialGradient>
+  <radialGradient id="blush" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#ff7d7d" stop-opacity=".8"/><stop offset="1" stop-color="#ff7d7d" stop-opacity="0"/></radialGradient>
+  <linearGradient id="tongue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9a9a"/><stop offset="1" stop-color="#e64b58"/></linearGradient>
+  <radialGradient id="eye" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#4a3328"/><stop offset=".6" stop-color="#22160f"/><stop offset="1" stop-color="#0d0805"/></radialGradient>
   <radialGradient id="glv" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#ffffff"/><stop offset=".6" stop-color="#f1ede6"/><stop offset="1" stop-color="#cfc7ba"/></radialGradient>
   <radialGradient id="shoeG" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#ff7b6e"/><stop offset=".55" stop-color="#e8352a"/><stop offset="1" stop-color="#a4160f"/></radialGradient>
+  <radialGradient id="gr" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#3a2a20" stop-opacity=".3"/><stop offset="1" stop-color="#3a2a20" stop-opacity="0"/></radialGradient>
   <filter id="dp" x="-20%" y="-20%" width="140%" height="150%">
     <feGaussianBlur in="SourceAlpha" stdDeviation="2.2"/><feOffset dy="2.5"/><feComponentTransfer><feFuncA type="linear" slope=".22"/></feComponentTransfer>
     <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
   </filter>
-  <filter id="bl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.5"/></filter>
+  <filter id="bl" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="2.4"/></filter>
   <filter id="bl2" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="1.2"/></filter>
 </defs>
 
-<ellipse cx="120" cy="272" rx="96" ry="10" fill="url(#gr)"/>
+<ellipse cx="116" cy="274" rx="96" ry="10" fill="url(#gr)"/>
 
-<!-- الرجلان: أنبوبان مظلّلان، وحذاءان أحمران لامعان -->
+<!-- الرجلان والحذاءان -->
 <g filter="url(#dp)">
-  <path d="M86 196 C86 220 84 238 82 252" stroke="#1b2552" stroke-width="15" fill="none" stroke-linecap="round"/>
-  <path d="M84 200 C84 220 82 236 80 248" stroke="#4b5ba8" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
-  <path d="M156 196 C156 220 158 238 160 252" stroke="#1b2552" stroke-width="15" fill="none" stroke-linecap="round"/>
-  <path d="M154 200 C154 220 156 236 158 248" stroke="#4b5ba8" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
-  <path d="M52 262 C50 248 66 242 82 244 C96 246 100 254 98 264 C84 270 62 270 52 262Z" fill="url(#shoeG)"/>
-  <path d="M52 262 C62 268 84 269 98 264 L98 267 C84 273 62 273 52 266Z" fill="#fff" opacity=".9"/>
-  <ellipse cx="70" cy="250" rx="10" ry="3.5" fill="#fff" opacity=".55" transform="rotate(-12 70 250)"/>
-  <path d="M142 264 C140 254 144 246 158 244 C174 242 190 248 188 262 C178 270 156 270 142 264Z" fill="url(#shoeG)"/>
-  <path d="M142 264 C156 269 178 268 188 262 L188 266 C178 273 156 273 142 267Z" fill="#fff" opacity=".9"/>
-  <ellipse cx="162" cy="250" rx="10" ry="3.5" fill="#fff" opacity=".55" transform="rotate(-8 162 250)"/>
+  <path d="M84 192 C84 216 82 234 80 250" stroke="#1b2552" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M82 196 C82 216 80 232 78 246" stroke="#4b5ba8" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
+  <path d="M128 192 C128 216 130 234 132 250" stroke="#1b2552" stroke-width="15" fill="none" stroke-linecap="round"/>
+  <path d="M126 196 C126 216 128 232 130 246" stroke="#4b5ba8" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>
+  <path d="M50 262 C48 248 64 242 80 244 C94 246 98 254 96 264 C82 270 60 270 50 262Z" fill="url(#shoeG)"/>
+  <path d="M50 262 C60 268 82 269 96 264 L96 267 C82 273 60 273 50 266Z" fill="#fff" opacity=".9"/>
+  <ellipse cx="68" cy="250" rx="10" ry="3.5" fill="#fff" opacity=".55" transform="rotate(-12 68 250)"/>
+  <path d="M114 264 C112 254 116 246 130 244 C146 242 162 248 160 262 C150 270 128 270 114 264Z" fill="url(#shoeG)"/>
+  <path d="M114 264 C128 269 150 268 160 262 L160 266 C150 273 128 273 114 267Z" fill="#fff" opacity=".9"/>
+  <ellipse cx="134" cy="250" rx="10" ry="3.5" fill="#fff" opacity=".55" transform="rotate(-8 134 250)"/>
 </g>
 
-<!-- الذراع الملوّحة (خلف النرد) -->
+<!-- الذراع الملوّحة -->
 <g filter="url(#dp)">
-  <path d="M46 118 C26 110 14 92 12 70" stroke="#1b2552" stroke-width="13" fill="none" stroke-linecap="round"/>
-  <path d="M44 114 C26 106 16 90 15 72" stroke="#4b5ba8" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
-  <circle cx="0" cy="44" r="7" fill="url(#glv)"/><circle cx="12" cy="38" r="7.5" fill="url(#glv)"/><circle cx="24" cy="44" r="7" fill="url(#glv)"/>
-  <circle cx="12" cy="60" r="16" fill="url(#glv)"/>
-  <circle cx="30" cy="62" r="6.5" fill="url(#glv)"/>
-  <ellipse cx="7" cy="54" rx="5" ry="3" fill="#fff" opacity=".9"/>
+  <path d="M46 132 C26 124 14 106 12 82" stroke="#1b2552" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <path d="M44 128 C26 120 16 104 15 84" stroke="#4b5ba8" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
+  <circle cx="0" cy="56" r="7" fill="url(#glv)"/><circle cx="12" cy="50" r="7.5" fill="url(#glv)"/><circle cx="24" cy="56" r="7" fill="url(#glv)"/>
+  <circle cx="12" cy="72" r="16" fill="url(#glv)"/><circle cx="30" cy="74" r="6.5" fill="url(#glv)"/>
+  <ellipse cx="7" cy="66" rx="5" ry="3" fill="#fff" opacity=".9"/>
 </g>
 
-<!-- الهيكل بزوايا مستديرة -->
-<path d="M120 30 L204 74 L204 178 L120 222 L36 178 L36 74Z" fill="#e7e1d8" stroke="#e7e1d8" stroke-width="18" stroke-linejoin="round"/>
-<!-- الوجوه الثلاثة -->
-<path d="M120 30 L204 74 L120 118 L36 74Z" fill="url(#top)" stroke="url(#top)" stroke-width="14" stroke-linejoin="round"/>
-<path d="M36 74 L120 118 L120 222 L36 178Z" fill="url(#lf)"/>
-<path d="M120 118 L204 74 L204 178 L120 222Z" fill="url(#rt)"/>
-<!-- حواف ناعمة لامعة -->
-<path d="M30 76 L120 124 L210 76" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9" filter="url(#bl)"/>
-<path d="M120 124 L120 224" stroke="#fff" stroke-width="4" fill="none" opacity=".75" filter="url(#bl)"/>
-<path d="M36 82 L36 176" stroke="#fff" stroke-width="3" opacity=".5" filter="url(#bl)"/>
+<!-- النرد: الأعلى والجانب ثم الأمام -->
+<path d="M44 74 L164 74 L200 40 L80 40Z" fill="url(#top)" stroke="url(#top)" stroke-width="18" stroke-linejoin="round"/>
+<path d="M164 74 L200 40 L200 160 L164 194Z" fill="url(#sd)" stroke="url(#sd)" stroke-width="18" stroke-linejoin="round"/>
+<rect x="38" y="68" width="132" height="132" rx="28" fill="url(#fr)"/>
+<!-- حواف لامعة -->
+<path d="M50 70 L160 70" stroke="#fff" stroke-width="5" stroke-linecap="round" opacity=".95" filter="url(#bl)"/>
+<path d="M168 82 L168 186" stroke="#fff" stroke-width="4" opacity=".6" filter="url(#bl)"/>
+<path d="M42 84 L42 184" stroke="#fff" stroke-width="3" opacity=".5" filter="url(#bl)"/>
 
-<!-- الوجه العلوي: خمس نقاط -->
-<g transform="matrix(84,-44,84,44,36,74)">
-  <circle cx=".25" cy=".25" r=".11" fill="url(#pip)"/><circle cx=".75" cy=".25" r=".11" fill="url(#pip)"/>
-  <circle cx=".5" cy=".5" r=".11" fill="url(#pip)"/>
-  <circle cx=".25" cy=".75" r=".11" fill="url(#pip)"/><circle cx=".75" cy=".75" r=".11" fill="url(#pip)"/>
+<!-- نقاط الأعلى (خمس) -->
+<g fill="url(#pip)">
+  <ellipse cx="82" cy="63" rx="9" ry="4.2"/><ellipse cx="148" cy="63" rx="9" ry="4.2"/>
+  <ellipse cx="122" cy="56" rx="9" ry="4.2"/>
+  <ellipse cx="96" cy="49" rx="9" ry="4.2"/><ellipse cx="162" cy="49" rx="9" ry="4.2"/>
 </g>
-<!-- الوجه الأيسر: أربع نقاط -->
-<g transform="matrix(84,44,0,104,36,74)">
-  <circle cx=".27" cy=".26" r=".12" fill="url(#pipL)"/><circle cx=".73" cy=".26" r=".12" fill="url(#pipL)"/>
-  <circle cx=".27" cy=".74" r=".12" fill="url(#pipL)"/><circle cx=".73" cy=".74" r=".12" fill="url(#pipL)"/>
+<!-- نقاط الجانب (اثنتان) -->
+<g fill="url(#pipS)">
+  <ellipse cx="176" cy="102" rx="4.6" ry="9" transform="rotate(-24 176 102)"/>
+  <ellipse cx="189" cy="146" rx="4.6" ry="9" transform="rotate(-24 189 146)"/>
 </g>
-<!-- الوجه الأيمن: الوجه اللطيف -->
-<g transform="matrix(84,-44,0,104,120,118)">
-  <ellipse cx=".17" cy=".64" rx=".14" ry=".08" fill="url(#blush)"/>
-  <ellipse cx=".83" cy=".64" rx=".14" ry=".08" fill="url(#blush)"/>
-  <!-- العينان -->
-  <ellipse cx=".30" cy=".44" rx=".11" ry=".13" fill="#2a1c17"/>
-  <ellipse cx=".70" cy=".44" rx=".11" ry=".13" fill="#2a1c17"/>
-  <ellipse cx=".33" cy=".39" rx=".045" ry=".05" fill="#fff"/><ellipse cx=".73" cy=".39" rx=".045" ry=".05" fill="#fff"/>
-  <ellipse cx=".27" cy=".50" rx=".02" ry=".022" fill="#fff" opacity=".85"/><ellipse cx=".67" cy=".50" rx=".02" ry=".022" fill="#fff" opacity=".85"/>
-  <!-- الفم المفتوح الضاحك -->
-  <path d="M.34 .62 C.40 .86 .60 .86 .66 .62 C.55 .66 .45 .66 .34 .62Z" fill="#5a1e1e"/>
-  <path d="M.42 .75 C.46 .83 .54 .83 .58 .75 C.54 .71 .46 .71 .42 .75Z" fill="url(#tongue)"/>
-  <!-- نقطتان صغيرتان في الزاويتين -->
-  <circle cx=".13" cy=".14" r=".065" fill="url(#pip)"/><circle cx=".87" cy=".88" r=".065" fill="url(#pip)"/>
-</g>
-<!-- الذراع الأخرى (أمام الجانب الأيمن) -->
+
+<!-- الوجه الأمامي الضاحك -->
+<ellipse cx="62" cy="158" rx="14" ry="8" fill="url(#blush)"/>
+<ellipse cx="146" cy="158" rx="14" ry="8" fill="url(#blush)"/>
+<ellipse cx="80" cy="124" rx="14" ry="17" fill="url(#eye)"/>
+<ellipse cx="128" cy="124" rx="14" ry="17" fill="url(#eye)"/>
+<ellipse cx="85" cy="117" rx="5.8" ry="6.5" fill="#fff"/><ellipse cx="133" cy="117" rx="5.8" ry="6.5" fill="#fff"/>
+<ellipse cx="76" cy="132" rx="2.6" ry="2.8" fill="#fff" opacity=".85"/><ellipse cx="124" cy="132" rx="2.6" ry="2.8" fill="#fff" opacity=".85"/>
+<path d="M84 152 C90 176 118 176 124 152 C112 157 96 157 84 152Z" fill="#5a1e1e"/>
+<path d="M94 166 C98 173 110 173 114 166 C109 162 99 162 94 166Z" fill="url(#tongue)"/>
+<!-- نقطتان صغيرتان في زاويتي الوجه -->
+<circle cx="56" cy="86" r="7" fill="url(#pip)"/><circle cx="152" cy="182" r="7" fill="url(#pip)"/>
+
+<!-- الذراع الأخرى -->
 <g filter="url(#dp)">
-  <path d="M205 150 C218 158 226 172 227 190" stroke="#1b2552" stroke-width="13" fill="none" stroke-linecap="round"/>
-  <path d="M205 146 C216 154 223 166 224 182" stroke="#4b5ba8" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
-  <circle cx="227" cy="200" r="15" fill="url(#glv)"/><circle cx="214" cy="206" r="6" fill="url(#glv)"/>
-  <ellipse cx="222" cy="194" rx="5" ry="3" fill="#fff" opacity=".9"/>
+  <path d="M200 132 C216 142 224 158 225 176" stroke="#1b2552" stroke-width="13" fill="none" stroke-linecap="round"/>
+  <path d="M200 128 C214 138 221 152 222 168" stroke="#4b5ba8" stroke-width="4" fill="none" stroke-linecap="round" opacity=".7"/>
+  <circle cx="226" cy="186" r="15" fill="url(#glv)"/><circle cx="213" cy="192" r="6" fill="url(#glv)"/>
+  <ellipse cx="221" cy="180" rx="5" ry="3" fill="#fff" opacity=".9"/>
 </g>
-<!-- لمعة عامة -->
-<ellipse cx="96" cy="56" rx="30" ry="9" fill="#fff" opacity=".6" transform="rotate(-26 96 56)" filter="url(#bl2)"/>
+
+<!-- لمعة على الوجه الأمامي -->
+<ellipse cx="72" cy="88" rx="22" ry="8" fill="#fff" opacity=".65" transform="rotate(-12 72 88)" filter="url(#bl2)"/>
 </svg>
