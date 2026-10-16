@@ -206,7 +206,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .bub{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 12px;font-weight:700;font-size:.92rem;position:relative;margin-bottom:26px;line-height:1.6}
 .bub:after{content:"";position:absolute;right:-10px;bottom:12px;border:9px solid transparent;border-left-color:var(--line)}
 .zz{position:relative;height:320px;margin:6px 0 4px}
-.zn{position:absolute;width:76px;height:80px;left:50%;border:0;background:none;padding:0;-webkit-tap-highlight-color:transparent;z-index:1}
+.zn{position:absolute;width:76px;height:80px;left:50%;border:0;background:none!important;box-shadow:none;overflow:visible!important;padding:0;-webkit-tap-highlight-color:transparent;z-index:1}
 /* القرص: تدرّج كروي، وحافة لامعة، وعمق سفلي، وظلّ ناعم */
 .zn .c{width:76px;height:70px;border-radius:50%;display:grid;place-items:center;position:relative;
  background:radial-gradient(ellipse at 50% 30%,var(--hi) 0%,var(--base) 52%,var(--lo) 100%);
@@ -230,6 +230,17 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 [data-dark] .zn .n{color:var(--ink);border-color:var(--depth);box-shadow:none}[data-dark] .zn.lock .n{color:var(--muted);border-color:#4a4f6e}
 .zn .go .i3{width:20px;height:20px;filter:none}
 .zn.lowen{--hi:#e6e8f2;--base:#c3c7d8;--lo:#a9aec4;--depth:#8a8fa8;--rim:transparent}.zn.lowen:before,.zn.lowen:after{display:none}
+/* المحطة التدريبية الصغيرة */
+.zn.mini{width:52px;height:58px}.zn.mini .c{width:52px;height:48px;box-shadow:0 6px 0 var(--depth),0 10px 12px -4px rgba(0,0,0,.25),inset 0 -4px 0 rgba(0,0,0,.10),inset 0 0 0 2px rgba(255,255,255,.28)}
+.zn.mini .c:after{top:4px;left:10px;right:10px;height:14px}.zn.mini .c:before{inset:-4px;border-width:2px}.zn.mini .i3{width:28px;height:28px}
+.zn.mini.cur{--hi:#a8e2ff;--base:#1cb0f6;--lo:#1288c2;--depth:#0d6a99;--rim:#c4ecff}.zn.mini.cur .c{transform:scale(1.08)}
+.zn.mini.cur:before{top:24px;width:70px;height:64px;margin:-32px 0 0 -35px;border-width:4px;border-color:rgba(28,176,246,.45)}
+.zn.mini.cur:after{top:24px;width:72px;height:66px;margin:-33px 0 0 -36px;background:radial-gradient(closest-side,rgba(28,176,246,.35),rgba(28,176,246,0))}
+.zn.mini.lock .i3{width:24px;height:24px}.zn.mini .go{top:10px;left:auto;right:calc(100% + 12px);transform:none;color:#1cb0f6;font-size:.8rem;animation:none}.zn.mini .go:after{left:auto;right:-16px;bottom:auto;top:50%;margin:-7px 0 0;border-top-color:transparent;border-left-color:var(--card)}
+.mtgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.mtgrid>div{display:flex;flex-direction:column;gap:8px}
+.mt{width:100%;min-height:52px;background:var(--card);color:var(--ink);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;font-weight:700;font-size:1rem;padding:8px 6px;line-height:1.35;transition:transform .1s}
+.mt.de{direction:ltr}.mt.on{border-color:#1cb0f6;background:#1cb0f61f;transform:translateY(-2px)}
+.mt.ok{border-color:var(--green);background:#22c55e22;opacity:.55}.mt.no{border-color:var(--red);background:#ef444422;animation:nof .45s}
 /* الطريق الذي يصل المحطات */
 .zpath{position:absolute;left:50%;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;z-index:0}
 .zpath .bg{stroke:var(--line);stroke-width:12;fill:none;stroke-linecap:round;stroke-dasharray:2 18}
@@ -532,7 +543,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=6"></script>
+<script src="core.js?v=7"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -735,7 +746,7 @@ const I3=k=>`<img class="i3" src="img/3d/${k}.png" alt="">`;   // أيقونة �
 function renderEnergy(){const b=$("hEn");if(!b)return;const n=enNow();b.innerHTML=I3(n<ST_COST?"lowbat":"battery")+n;b.classList.toggle("low",n<ST_COST)}
 /* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
 const stToday=()=>stTodayAt(Date.now());
-let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0;
+let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0,DRL=null;
 function buildQueue(){
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
   queue=[];sessTotal=0;sessDone=0;STS=null;
@@ -815,6 +826,51 @@ async function quitStation(){
   if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها"+(free?"، وتبقى محطتك المجانية متاحة لتبدأها من جديد":"، وستستعيد "+rf+" طاقة فقط من "+ST_COST)+". هل تريد الخروج؟"))return;
   STS=null;ev({type:"stQuit"});renderEnergy();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","");reviewHome();
 }
+/* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
+const drillsToday=()=>drillsTodayAt(Date.now());
+function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
+  const st=STN.filter(x=>dkey(x[0])===dkey(Date.now())).sort((a,b)=>a[0]-b[0]);if(!st[j])return [];
+  const ts=st[j][0],by=new Map(uniq(W).map(w=>[w.k,w]));
+  const t0=Math.floor(ts/1000)*1000;   // السجلّ المحفوظ يقرّب الوقت إلى الثانية
+  return [...new Set(LOG.filter(x=>x[3]===1&&x[0]>=t0&&x[0]<t0+2000).map(x=>x[1]))].slice(0,ST_WORDS).map(k=>by.get(k)).filter(Boolean);
+}
+function startDrill(){
+  const j=drillsToday();if(j>=stToday()){toast(I3("puzzle"),"أكمل محطة أولًا","التدريب يأتي بعد كل محطة");return}
+  const need=CFG.energy.drill;if(enNow()<need){toast(I3("lowbat"),"طاقتك لا تكفي للتدريب","يحتاج "+need+" طاقة، ولديك "+enNow());return}
+  const ws=stationWords(j);if(ws.length<2){toast(I3("warning"),"تعذّر تجهيز التدريب","لم أجد كلمات هذه المحطة");return}
+  DRL={j,words:shuffle(ws),ar:shuffle([...ws]),sel:null,done:new Set,wrong:new Set,t0:Date.now(),fin:false};RVDONE=null;drillView();scrollTo(0,0);
+}
+function drillView(){
+  const el=$("review"),D=DRL,N=D.words.length;
+  const head=`<div class="sess"><div class="sbar"><i style="width:${D.done.size/N*100}%"></i></div><span>${I3("puzzle")} تدريب المحطة ${D.j+1} · ${D.done.size} من ${N}</span>${D.fin?"":'<button class="link" id="dQuit">خروج</button>'}</div>`;
+  if(D.fin){
+    const ok=N-D.wrong.size;
+    el.innerHTML=head+`<div class="box done"><img class="jmp" src="img/m/${ok===N?"trophy":ok>=N*.6?"cheer":"thumbs"}.png" alt=""><h2>${ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب"}</h2><p class="rnote">${ok} من ${N} من المحاولة الأولى · +${ok*CFG.xp.quiz} خبرة</p><button class="btn next" id="dBack">متابعة</button></div>`;
+    $("dBack").onclick=()=>{DRL=null;reviewHome();scrollTo(0,0)};return;
+  }
+  const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
+    return `<button type="button" class="btn mt${side==="de"?" de":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}>${side==="de"?artHTML(w.de):esc(w.ar)}</button>`};
+  el.innerHTML=head+`<div class="box"><p class="ghint">اضغط كلمة ألمانية ثم معناها، أو العكس</p>
+   <div class="mtgrid"><div>${D.words.map(w=>cell(w,"de")).join("")}</div><div>${D.ar.map(w=>cell(w,"ar")).join("")}</div></div></div>`;
+  el.querySelectorAll(".mt").forEach(b=>b.onclick=()=>{
+    const side=b.dataset.s,k=b.dataset.k;
+    if(!D.sel||D.sel.side===side){D.sel=D.sel&&D.sel.side===side&&D.sel.k===k?null:{side,k};drillView();return}
+    const a=D.sel;D.sel=null;
+    if(a.k===k){D.done.add(k);if(D.done.size===N)return endDrill();drillView()}
+    else{
+      D.wrong.add(a.side==="de"?a.k:k);
+      const x=el.querySelector(`.mt[data-s="${a.side}"][data-k="${CSS.escape(a.k)}"]`);
+      [x,b].forEach(n=>n&&n.classList.add("no"));setTimeout(drillView,450);
+    }
+  });
+  $("dQuit").onclick=async()=>{if(await uiConfirm("إذا خرجت الآن فلن يُحسب التدريب ولن تُخصم طاقته. تستطيع العودة إليه من المسار. هل تريد الخروج؟")){DRL=null;reviewHome()}};
+}
+function endDrill(){
+  const D=DRL,N=D.words.length,prev=EC||econ();
+  const r=ev({type:"quiz",kind:"drill",ok:N-D.wrong.size,total:N,ms:Date.now()-D.t0,qa:D.words.map(w=>[w.k,D.wrong.has(w.k)?0:1])});
+  if(r!==true){toast(I3("warning"),"لم يُحسب التدريب",r==="energy"?"طاقتك لا تكفي":r==="time"?"انتظر قليلًا ثم أعد المحاولة":"");DRL=null;reviewHome();return}
+  D.fin=true;renderEnergy();renderHeader();celebrate(prev);if(!D.wrong.size)confetti(90);drillView();
+}
 function finishStation(){
   const S_=STS,now=Date.now(),prev=EC||econ();
   ev({type:"stDone",words:S_.words.map(w=>w.k),miss:[...S_.miss],t:now});
@@ -832,18 +888,24 @@ function startReview(state,n){
 }
 function reviewHome(){
   if(STS)return stationView();
+  if(DRL)return drillView();
   const el=$("review"),f=uniq(filtered()),learned=f.filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
   const done=stToday(),en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
   if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
-  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
+  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها · ${CFG.energy.drill} طاقة</button>`:""}</div>`:"";
   // المسار المتعرّج: المكتملة ذهبية، والتالية خضراء تنبض، والمقفلة رمادية
-  const N=ST_MAX,off=[0,-62,0,62],low=en<cost;
+  const N=ST_MAX,off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday(),dlow=en<CFG.energy.drill;
   const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":i===N-1?"trophy":"lock";
-    return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*98+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${i+1}</span></button>`};
-  const pts=[...Array(N)].map((_,i)=>[off[i%4],i*98+44+35]),seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1];return `M${a} ${b}C${a} ${b+49} ${c} ${d-49} ${c} ${d}`};
-  const zpath=`<svg class="zpath">${pts.slice(1).map((_,i)=>`<path class="${i<done-1||(i<done&&done<N)?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
+    return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${i+1}</span></button>`};
+  // بعد كل محطة محطة تدريبية صغيرة (مطابقة)، مكتملة أو متاحة أو مقفلة
+  const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
+  const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):"lock";
+    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب · ${CFG.energy.drill}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span></button>`};
+  const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done]);pts.push([dx(i),dy(i),i<dn])}
+  const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
+  const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
   const coach=done>=N?"أنهيت مسار اليوم! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
     :!fresh?(allDone?"أنهيت كل كلمات منهجك! 🌟 اطلب منهجًا جديدًا.":"تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى.")
@@ -855,7 +917,7 @@ function reviewHome(){
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
   <div class="coach">${mascot(done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
-   <div class="zz" style="height:${N*98+40}px">${zpath}${[...Array(N)].map((_,i)=>node(i)).join("")}</div>
+   <div class="zz" style="height:${N*SP+50}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}</div>
    ${done>=N?'':!fresh?(allDone?courseDoneHTML():'')
      :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${done+1}${cost?"":" · مجانية "+I3("gift")}</button>`}
   </div>
@@ -868,6 +930,7 @@ function reviewHome(){
   </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
   const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=startStation;
+  const dg=$("dGo");if(dg)dg.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=startDrill;
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
@@ -1861,7 +1924,7 @@ function renderCfg(){
    <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
-   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}
+   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}</div>
   <div class="rsec"><h3>${I3("freeze")} تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
   <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
@@ -1873,7 +1936,7 @@ function renderCfg(){
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
-    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0};c.station={words:v("s_w"),perDay:v("s_d")};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr")};c.station={words:v("s_w"),perDay:v("s_d")};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
