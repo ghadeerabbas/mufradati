@@ -77,6 +77,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .exd{font-size:.98rem}.exa{font-size:.92rem;color:var(--muted);margin-top:2px}
 .exs.list{text-align:right;margin-top:6px}.exs.list .exp{padding:5px 9px}.exs.list .exd{font-size:.9rem;text-align:left}.exs.list .exa{font-size:.86rem}
 .word{font-size:1.65rem;font-weight:700;color:var(--hd)}
+.word,.qword{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
+.scene,.flip,.face{min-width:0;max-width:100%}
 .art-der{color:var(--der)}.art-die{color:var(--die)}.art-das{color:var(--das)}
 .ar{font-size:1.35rem;font-weight:700;color:var(--rd)}
 .ex{font-size:.98rem;background:var(--soft);border-radius:10px;padding:8px 10px}
@@ -381,7 +383,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
     </div>
   </div>
   <nav>
-    <button data-p="review" class="on"><i>🃏</i>المراجعة</button>
+    <button data-p="review" class="on"><i>🃏</i>الدراسة</button>
     <button data-p="list"><i>📚</i>القائمة</button>
     <button data-p="quiz"><i>❓</i>الاختبار</button>
     <button data-p="games"><i>🎮</i>تمارين</button>
@@ -443,6 +445,10 @@ function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={
   });
 }
 const uiConfirm=msg=>uiDialog(msg);
+// الكلمات الألمانية الطويلة: يصغر خطّها لتبقى داخل البطاقة
+function fitWords(){document.querySelectorAll(".word.de,.qword.de").forEach(el=>{if(el.dataset.fit)return;el.dataset.fit=1;
+  const L=Math.max(0,...el.textContent.trim().split(/\s+/).map(x=>x.length));if(L>13)el.style.fontSize=Math.max(1,(L>22?1.05:L>18?1.2:1.35))+"rem"})}
+new MutationObserver(()=>requestAnimationFrame(fitWords)).observe(document.documentElement,{childList:true,subtree:true});
 const uiPrompt=(msg,def)=>uiDialog(msg,{input:true,def:def||""});
 const uiAlert=msg=>uiDialog(msg,{cancel:""});
 
@@ -656,18 +662,18 @@ function reviewHome(){
   const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><div class="big">🏆</div><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
   const node=i=>`<div class="stn ${i<done?"ok":i===done?"cur":"lock"}"><span>${i<done?"✓":i+1}</span><small>${i<done?"اكتملت":i===done?"التالية":"🔒"}</small></div>`;
   el.innerHTML=reviewPills()+msg+`
-  <div class="rsec rvbox"><h3>🛤️ مسار اليوم</h3>
+  <div class="rsec rvbox"><h3>🛤️ الدراسة: مسار اليوم</h3>
    <div class="path">${[0,1,2,3].map(i=>node(i)+(i<3?`<i class="pl ${i<done?"ok":""}"></i>`:"")).join("")}</div>
    ${done>=ST_MAX?'<p class="stok">🎉 أنهيت مسار اليوم: '+(ST_MAX*ST_WORDS)+' كلمة جديدة. عُد غدًا، وراجع ما تعلّمته الآن.</p>'
      :!fresh?'<p class="rnote">تعلّمت كل كلمات هذا الاختيار. اختر يومًا أو منهجًا آخر من الأعلى.</p>'
      :`<button class="btn next" id="stStart" ${en<ST_COST?"disabled":""}>${en<ST_COST?"🪫 ":""}ابدأ المحطة ${done+1}</button>`}
   </div>
-  ${learned?`<div class="rsec rvbox"><h3>🔁 مراجعة ما تعلّمته (${learned})</h3>
+  ${learned?`<div class="rsec rvbox"><h3>🔁 المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next" id="rvGo">ابدأ المراجعة</button></div>`:""}
-  </div>`:""}`+settingsHTML();
+  </div>`:`<div class="rsec rvbox"><h3>🔁 المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
   const sb=$("stStart");if(sb)sb.onclick=startStation;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
