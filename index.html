@@ -1813,7 +1813,7 @@ async function onLogin(user){
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
     document.body.classList.add("adm");$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
-    loadNameReqs();startMessages();goTab("users");return;
+    $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");return;
   }
   const saved=st(K("course"));
   await loadWords(MY_COURSES.includes(saved)?saved:MY_COURSES[0]);
@@ -1980,7 +1980,7 @@ function renderUserList(){
   </div>
   <div class="ufilter"><button data-f="all" class="${uFilter==="all"?"on":""}">الكل</button>${Object.keys(UST).map(k=>cnt(k)?`<button data-f="${k}" class="${uFilter===k?"on":""}">${UST[k][0]} ${cnt(k)}</button>`:"").join("")}</div>
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
-   <div class="top"><b>${esc(uName(u))}${sm.login&&sm.login!==uName(u)?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
+   <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
    <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
   $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};bindNameReqs();bindJoins();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
@@ -1990,7 +1990,7 @@ function renderUser(){
   const el=$("users"),u=USERS.find(x=>x.id===uOpen);if(!u){uOpen=null;return renderUserList()}
   const sm=u.sum,f=FEEDS[u.id];
   const lb=[...Array(14)].map((_,i)=>new Date(Date.now()-(13-i)*DAY).getDate());
-  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}</h2><button class="btn" id="uBack">→ رجوع</button></div>
+  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}</h2><button class="btn" id="uBack">→ رجوع</button></div>
   <div class="rsec"><h3>✏️ اسمه الظاهر</h3><div class="strow"><input id="uNm" class="stin" maxlength="40" value="${esc(uName(u))}" autocomplete="off"><button class="btn stbtn" id="uNmBtn">حفظ</button></div><div class="stmsg" id="uNmMsg"></div></div>
   <div style="margin-bottom:10px"><span class="ust" style="--sc:${UST[u.st][1]};background:${UST[u.st][1]}">${UST[u.st][0]}</span></div>
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
@@ -2092,6 +2092,9 @@ function renderPanel(p){
 function refresh(){buildQueue();showCard();LPAGE=0;renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
 function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
+    // تبويب المستخدمين والرسائل يفتح القائمة كلها دائمًا
+    if(b.dataset.p==="users")uOpen=null;
+    if(b.dataset.p==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}}
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
