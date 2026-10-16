@@ -642,10 +642,23 @@ function stateList(id){
   const st=RSTATES.find(x=>x[0]===id),now=Date.now(),last={};for(const x of LOG)last[x[1]]=x[2];
   return uniq(filtered()).filter(w=>P[w.k]&&st[2](w,P[w.k],now,last[w.k]??2));
 }
+// الطاقة لا تكفي للمحطة: كيف يحصل عليها، ومراجعة المستحقّ مباشرة إن وُجد
+// العدد مع المعدود: 1 ساعة، 2 ساعتان، 3–10 ساعات، 11 فأكثر ساعة
+const arN=(n,one,two,few)=>n===1?one:n===2?two:n>=3&&n<=10?n+" "+few:n+" "+one;
+async function noEnergy(){
+  const n=enNow(),need=ST_COST-n,m=Math.ceil(enNext()/60000),per=CFG.energy.perReviews,due=stateList("due").length;
+  const wait=Math.ceil(((need-1)*EN_STEP+enNext())/60000),h=Math.floor(wait/60),mm=wait%60;
+  const D=x=>arN(x,"دقيقة","دقيقتين","دقائق"),Hh=x=>arN(x,"ساعة","ساعتين","ساعات");
+  const msg="🪫 طاقتك "+n+"، والمحطة تحتاج "+ST_COST+".\n\nتحصل على الطاقة:\n• وحدة كل "+D(CFG.energy.minutes)+" (التالية بعد "+D(m)+")"+
+    (per?"\n• وحدة لكل "+arN(per,"مراجعة","مراجعتين","مراجعات")+" لكلمات حان موعدها":"")+
+    "\n\nتكفيك للمحطة بالانتظار بعد "+(h?Hh(h)+(mm?" و":""):"")+(mm||!h?D(mm):"")+(per&&due?"، أو أسرع بالمراجعة.\n\nعندك "+arN(due,"كلمة مستحقّة","كلمتان مستحقّتان","كلمات مستحقّة")+" الآن. هل تراجعها؟":".");
+  if(per&&due){if(await uiConfirm(msg)){RVSTATE="due";startReview("due",Math.min(due,Math.max(per,need*per)))}}
+  else await uiAlert(msg);
+}
 function startStation(){
   const fresh=uniq(filtered()).filter(w=>!P[w.k]);
   if(!fresh.length||stToday()>=ST_MAX)return;
-  if(enNow()<ST_COST){toast("🪫","طاقتك لا تكفي","تحتاج "+ST_COST+" · لديك "+enNow());return}
+  if(enNow()<ST_COST){noEnergy();return}
   if(ev({type:"stStart"})!==true)return;renderEnergy();
   STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[]};
   RVDONE=null;stationView();scrollTo(0,0);
@@ -707,7 +720,7 @@ function reviewHome(){
    <div class="path">${[0,1,2,3].map(i=>node(i)+(i<3?`<i class="pl ${i<done?"ok":""}"></i>`:"")).join("")}</div>
    ${done>=ST_MAX?'<p class="stok">🎉 أنهيت مسار اليوم: '+(ST_MAX*ST_WORDS)+' كلمة جديدة. عُد غدًا، وراجع ما تعلّمته الآن.</p>'
      :!fresh?'<p class="rnote">تعلّمت كل كلمات هذا الاختيار. اختر يومًا أو منهجًا آخر من الأعلى.</p>'
-     :`<button class="btn next" id="stStart" ${en<ST_COST?"disabled":""}>${en<ST_COST?"🪫 ":""}ابدأ المحطة ${done+1}</button>`}
+     :`<button class="btn next" id="stStart" ${en<ST_COST?'style="opacity:.6"':""}>${en<ST_COST?"🪫 ":""}ابدأ المحطة ${done+1}</button>`}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>🔁 المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
