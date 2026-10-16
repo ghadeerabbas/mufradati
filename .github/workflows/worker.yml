@@ -22,10 +22,13 @@ jobs:
         if: steps.chk.outputs.ok == '1'
         working-directory: server
         env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set +e
+          # إزالة أي مسافات أو أسطر زائدة نُسخت مع المفتاح
+          export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]')
+          export CLOUDFLARE_ACCOUNT_ID=$(printf %s "$A" | tr -d '[:space:]')
           npx --yes wrangler@4 deploy > out.txt 2>&1; code=$?
           cat out.txt
           if [ $code -ne 0 ]; then
