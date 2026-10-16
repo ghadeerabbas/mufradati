@@ -193,12 +193,13 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 @keyframes dance{0%,25%,50%,75%,100%{transform:translateY(0) rotate(0)}12%,62%{transform:translateY(-6px) rotate(-3deg)}37%,87%{transform:translateY(-6px) rotate(3deg)}}
 @keyframes armR{0%{transform:rotate(0)}8%{transform:rotate(-16deg)}16%{transform:rotate(10deg)}24%{transform:rotate(-16deg)}32%{transform:rotate(10deg)}40%{transform:rotate(0)}50%,88%{transform:rotate(112deg)}100%{transform:rotate(0)}}
 @keyframes armL{0%,42%{transform:rotate(0)}52%{transform:rotate(150deg)}60%{transform:rotate(136deg)}68%{transform:rotate(164deg)}76%{transform:rotate(136deg)}84%{transform:rotate(164deg)}90%{transform:rotate(150deg)}100%{transform:rotate(0)}}
-.mz2{width:100px;aspect-ratio:300/300;position:relative;flex:none;animation:dance 6s ease-in-out infinite;transform-origin:50% 100%}
+.mz2{width:var(--mz);aspect-ratio:326/316;position:relative;flex:none;animation:dance 6s ease-in-out infinite;transform-origin:50% 100%}
 .mz2 img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom}
 .mz2 .f2{animation:swap 3s steps(1) infinite}.mz2 .f1{animation:swap 3s steps(1) infinite reverse}
 @keyframes swap{0%{opacity:1}50%{opacity:0}}
-.pose{width:100px;flex:none;object-fit:contain;animation:bob 2.4s ease-in-out infinite}
-.jmp{display:block;width:150px;margin:0 auto 4px;animation:hop 1s ease-in-out infinite}.jmp.sm{width:104px;margin:0;flex:none}
+.pose{width:var(--mz);flex:none;object-fit:contain;animation:bob 2.4s ease-in-out infinite}
+.jmp{display:block;width:var(--mz);margin:0 auto 4px;animation:hop 1s ease-in-out infinite}.jmp.sm{width:var(--mz);margin:0;flex:none}
+:root{--mz:108px}  /* حجم واحد لكل صور النرد (الصور على لوحة موحّدة المقياس) */
 @keyframes hop{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-12px) rotate(-4deg)}}
 @media (prefers-reduced-motion:reduce){.mz,.mz img,.jmp,.mz2,.pose{animation:none!important}.mz2 .f2{opacity:0}}
 @keyframes bob{50%{transform:translateY(-5px)}}
