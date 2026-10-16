@@ -6,7 +6,7 @@
    السرّ المطلوب: SA = محتوى ملف مفتاح الخدمة من Firebase (JSON)
    =========================================================== */
 const PROJECT = "mufradati-406bd";
-const ADMIN = "ghadeer@mufradati.app";
+const ADMIN = "admin@mufradati.app";
 const ORIGINS = ["https://ghadeerabbas.github.io", "http://localhost:8765"];
 const SITE = "https://ghadeerabbas.github.io/mufradati/";
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
@@ -125,6 +125,13 @@ async function wordSet() {
   WORDS = { at: Date.now(), set }; return set;
 }
 
+/* ---------- إعدادات المشرف (تُقرأ كل دقيقة على الأكثر) ---------- */
+let CFGC = { at: 0, j: null };
+async function loadCfg(fs) {
+  if (Date.now() - CFGC.at > 60e3) { const d = await fs.get("config/app"); CFGC = { at: Date.now(), j: d ? d.data.v || "" : "" } }
+  applyCfg(parseJ(CFGC.j, null));
+}
+
 /* ---------- الحالة: تحميلها وحفظها ---------- */
 function setState(c, log, qa) {
   P = c.P || {}; QLOG = c.QLOG || []; BUY = c.BUY || []; R = Object.assign({ bank: 0, ach: [], lv: 1, ts: 0 }, c.R || {});
@@ -169,6 +176,7 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
+  await loadCfg(fs);
   const [uDoc, coreD, logD, qaD, nameD, gifts] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
     fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`)]);

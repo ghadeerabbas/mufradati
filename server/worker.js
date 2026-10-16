@@ -7,7 +7,7 @@
    السرّ المطلوب: SA = محتوى ملف مفتاح الخدمة من Firebase (JSON)
    =========================================================== */
 const PROJECT = "mufradati-406bd";
-const ADMIN = "ghadeer@mufradati.app";
+const ADMIN = "admin@mufradati.app";
 const ORIGINS = ["https://ghadeerabbas.github.io", "http://localhost:8765"];
 const SITE = "https://ghadeerabbas.github.io/mufradati/";
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
@@ -22,6 +22,41 @@ let P = {}, LOG = [], QLOG = [], QA = [], BUY = [], R = { bank: 0, ach: [], lv: 
    يعتمد على متغيّرات عامة: P, LOG, QLOG, QA, BUY, R, LG, EN, STN, STV, GIFTS
    =========================================================== */
 const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
+/* --- إعدادات التطبيق: يغيّرها المشرف من لوحة التحكّم، ويقرؤها التطبيق والخادم معًا --- */
+const DEF_CFG={
+  xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
+  gems:{station:1,level:5,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
+  league:{group:15,promoMin:60,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
+  energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5},
+  station:{words:5,perDay:4},
+  freeze:{price:25,max:3,start:3},
+  shop:{},     // تعديل الأغراض: {"cat:id":{price,hidden,tier}}
+  items:[]     // أغراض أضافها المشرف: {id,cat,name,val,price,tier,streak,c,c2,badge}
+};
+let CFG=DEF_CFG;
+let XPR,LV_GEMS,STREAK_G,PROMO_MIN,UP_N,DOWN_N,GROUP_MAX,TARGET,EN_MAX,EN_STEP,ST_COST,ST_WORDS,ST_MAX,FZ_MAX,FZ_START;
+const _num=(v,d,lo,hi)=>{v=+v;return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):d};
+// يدمج إعدادات المشرف مع الافتراضية ويتحقّق من كل رقم (فلا يكسر خطأٌ التطبيقَ)
+function applyCfg(c){
+  c=c&&typeof c==="object"?c:{};const D=DEF_CFG,g=(k)=>Object.assign({},D[k],c[k]&&typeof c[k]==="object"?c[k]:{});
+  const arr=(a,d,lo,hi)=>Array.isArray(a)&&a.length===d.length?a.map((x,i)=>_num(x,d[i],lo,hi)):d;
+  const pairs=(a,d)=>Array.isArray(a)?a.filter(x=>Array.isArray(x)&&x.length===2).map(x=>[_num(x[0],1,1,3650),_num(x[1],0,0,100000)]).sort((x,y)=>x[0]-y[0]).slice(0,30):d;
+  const xp=g("xp"),gm=g("gems"),lg=g("league"),en=g("energy"),st=g("station"),fz=g("freeze");
+  CFG={
+    xp:{review:arr(xp.review,D.xp.review,0,1000),stOk:_num(xp.stOk,3,0,1000),stMiss:_num(xp.stMiss,2,0,1000),mem:_num(xp.mem,15,0,10000),solid:_num(xp.solid,40,0,10000),
+      dayN:_num(xp.dayN,20,1,1000),dayXp:_num(xp.dayXp,10,0,10000),quiz:_num(xp.quiz,1,0,1000),level:_num(xp.level,80,1,100000)},
+    gems:{station:_num(gm.station,1,0,10000),level:_num(gm.level,5,0,100000),streak:pairs(gm.streak,D.gems.streak),prize:arr(gm.prize,D.gems.prize,0,100000)},
+    league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
+    energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000)},
+    station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50)},
+    freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
+    shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[]
+  };
+  XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
+  GROUP_MAX=TARGET=CFG.league.group;EN_MAX=CFG.energy.max;EN_STEP=CFG.energy.minutes*60000;ST_COST=CFG.energy.stCost;
+  ST_WORDS=CFG.station.words;ST_MAX=CFG.station.perDay;FZ_MAX=CFG.freeze.max;FZ_START=CFG.freeze.start;
+  if(typeof buildShop==="function")buildShop();EC=null;
+}
 /* --- الوقت بتوقيت برلين، في الهاتف والخادم على السواء --- */
 // قاعدة التوقيت الصيفي الأوروبية: من آخر أحد في مارس إلى آخر أحد في أكتوبر (الساعة 01:00 بتوقيت غرينتش)
 const _lastSun=(y,m)=>{const d=new Date(Date.UTC(y,m+1,0,1));return d.getTime()-d.getUTCDay()*DAY};
@@ -39,7 +74,7 @@ function weekStart(t){const d=new Date(t+tzOff(t)),mid=Date.UTC(d.getUTCFullYear
 const weekId=t=>dkey(weekStart(t));
 
 /* ================= المتجر: الكتالوج ================= */
-const SHOP=[
+const SHOP_BASE=[
  // الصور الرمزية
  ...[["🎓",0,0],["🦊",200,30],["🐱",200,30],["🦉",300,40],["🐼",300,40],["🐧",300,40],["🦁",500,60],["🐯",500,60],["🤖",650,80],["🧠",650,80],["🚀",800,100],["🐉",1000,120],["🦄",1000,120],["👑",1600,200]]
    .map(([v,p,o],i)=>({id:"av"+i,cat:"avatar",name:"رمز "+v,val:v,price:p,old:o})),
@@ -103,26 +138,43 @@ const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10
  sticker:{s0:0,s1:0,s2:0,s3:1,s4:1,s5:1,s6:2,s7:2,s8:3,s9:3,s10:4,s11:5,s12:5,s13:6,s14:8,s15:9},
  confetti:{stars:1,hearts:2,gems:4,fireworks:6},
  namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,silver:4,gold:5,emerald:7,sapphire:9}};
-SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t;if(x.cat!=="power")x.price=Math.round(x.price/2)});   // الأسعار نصف ما كانت
-const FZ_MAX=3,FZ_START=3;
+SHOP_BASE.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t;if(x.cat!=="power")x.price=Math.round(x.price/2)});   // الأسعار نصف ما كانت
+let SHOP=[];
+const CUSTOM_CATS=["avatar","sticker","title","namecolor","frame"];
+const _col=v=>/^#[0-9a-fA-F]{6}$/.test(String(v||""))?String(v):"";
+function buildShop(){
+  const ov=CFG.shop||{};
+  SHOP=SHOP_BASE.map(x=>{const o=ov[x.cat+":"+x.id];if(!o||typeof o!=="object")return {...x};const y={...x};
+    if(o.price!=null)y.price=_num(o.price,x.price,0,1000000);if(o.streak&&x.streak)y.streak=_num(o.streak,x.streak,1,3650);if(o.hidden)y.hidden=true;if(o.tier!=null)y.tier=o.tier===""?undefined:_num(o.tier,0,0,9);
+    if(x.id==="freeze")y.price=CFG.freeze.price;return y});
+  const fz=SHOP.find(x=>x.id==="freeze");if(fz)fz.price=CFG.freeze.price;
+  for(const it of CFG.items||[]){
+    if(!it||!CUSTOM_CATS.includes(it.cat)||!/^c[a-z0-9]{2,20}$/.test(String(it.id||"")))continue;
+    const y={id:it.id,cat:it.cat,custom:1,name:String(it.name||"").slice(0,40)||"غرض",price:_num(it.price,0,0,1000000),
+      val:String(it.val||"").slice(0,it.cat==="title"?40:8),c:_col(it.c),c2:_col(it.c2),badge:!!it.badge};
+    if(it.tier!=null&&it.tier!=="")y.tier=_num(it.tier,0,0,9);if(it.streak)y.streak=_num(it.streak,0,1,3650);if(it.hidden)y.hidden=true;
+    if(y.cat==="avatar"||y.cat==="sticker")y.val=y.val||"⭐";if(y.cat==="title")y.val=y.val||y.name;if(y.cat==="namecolor"){y.val="🎨";NCOL[y.id]=1}
+    if(!y.price&&!y.streak)y.price=1;      // الغرض المجاني يكون بالسلسلة فقط
+    SHOP.push(y);
+  }
+}
 // هدية التجميد من المشرف (مساعدة لمرة واحدة): هدية ملاحظتها تبدأ بـ ❄️، تُحسب تجميدًا لا جواهر
 const isFzGift=g=>String(g.note||"").startsWith("❄️");
 const giftTs=g=>!g.ts?0:g.ts.toMillis?g.ts.toMillis():g.ts.ms||+g.ts||0;
 const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
-const stkVal=v=>{if(!v)return"";const it=/^s\d+$/.test(v)?SHOP.find(x=>x.cat==="sticker"&&x.id===v):null;return it?it.val:v};
+const stkVal=v=>{if(!v)return"";const it=SHOP.find(x=>x.cat==="sticker"&&x.id===v);return it?it.val:v};
 const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
 const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.streak?streakBest()>=it.streak:it.price===0||BUY.some(b=>b.item===cat+":"+id))};
 // أطول سلسلة وصلها (ولا تُقفل مكافآتها بعد التصفير)
 const streakBest=()=>Math.max((EC||econ()).s.best,R.sb||0);
 // جواهر السلسلة: مرة واحدة لكل مرحلة
-const STREAK_G=[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]];
 
 /* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
-const GEM=[0,1,2,2],XPR=[1,2,4,4];
+const GEM=[0,1,2,2];
 // خبرة كل تقييم: الكلمة الجديدة في المحطة 3 (أو 2 إن أخطأ فيها)، والمراجعة بحسب التقييم
 // علامة السجلّ: 0 مراجعة في موعدها، 1 كلمة جديدة من محطة، 2 تدريب (قبل موعدها أو للمرة الثانية في اليوم) بلا خبرة ولا جواهر
-const xpOf=(r,nw)=>nw===2?0:nw?(r>=2?3:2):XPR[r];
+const xpOf=(r,nw)=>nw===2?0:nw?(r>=2?CFG.xp.stOk:CFG.xp.stMiss):XPR[r];
 // خطوة المراجعة المتباعدة: التدريب لا يرفع الكلمة، لكن النسيان ينزلها
 function boxStep(b,r,practice){return r===0?0:r===1?Math.max(1,b):practice?Math.max(1,b):Math.min(b+(r===2?1:2),8)}
 // هل تُكافأ هذه المراجعة؟ فقط إن حلّ يوم موعدها، ولم تُكافأ الكلمة نفسها اليوم
@@ -159,8 +211,7 @@ const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:
  s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
 const achList=()=>ACH;
 const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
-const LV_GEMS=5;
-const lvlNeed=l=>80*l;                          // كل مستوى يحتاج 80 نقطة أكثر من سابقه
+const lvlNeed=l=>CFG.xp.level*l;                 // كل مستوى يحتاج نقاطًا أكثر من سابقه
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -170,15 +221,15 @@ function econ(){
     if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
     s.reviews++;xp+=xpOf(r,nw);
     let b=nw?1:boxStep(box[k]||0,r,false);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);xp+=15}
-    if(b>=7&&!r7.has(k)){r7.add(k);xp+=40}
+    if(b>=4&&!r4.has(k)){r4.add(k);xp+=CFG.xp.mem}
+    if(b>=7&&!r7.has(k)){r7.add(k);xp+=CFG.xp.solid}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
     const h=hourOf(t);if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
   }
   s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
   for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
-    xp+=(x.n>=20?10:0)}
-  for(const q of QLOG){xp+=q[1];if(q[2]>=5&&q[1]===q[2])s.qfull++}
+    xp+=(x.n>=CFG.xp.dayN?CFG.xp.dayXp:0)}
+  for(const q of QLOG){xp+=q[1]*CFG.xp.quiz;if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
@@ -198,7 +249,7 @@ function econ(){
   const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
   for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++)got.push(a.id+":"+i)}
   // الجواهر: جوهرة لكل محطة مكتملة، وجوائز الدوري، ومراحل السلسلة، وهدايا المشرف، وما بقي من قبل التصفير
-  gems+=STN.length;
+  gems+=STN.length*CFG.gems.station;
   for(const [d,g] of STREAK_G)if(s.best>=d&&d>(R.sb||0))gems+=g;
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
@@ -212,7 +263,6 @@ function econ(){
 const giftSum=()=>(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(g=>!isFzGift(g)).reduce((a,g)=>a+(g.g||0),0);
 
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ في يوم (وحدة كل 48 دقيقة) --- */
-const EN_MAX=30,EN_STEP=DAY/EN_MAX,ST_COST=10,ST_WORDS=5,ST_MAX=4;
 const enAt=at=>Math.min(EN_MAX,Math.max(0,(EN.v||0)+Math.floor((at-(EN.t||0))/EN_STEP)));
 const enNow=()=>enAt(Date.now());
 const enNext=()=>enNow()>=EN_MAX?0:EN_STEP-((Date.now()-(EN.t||0))%EN_STEP);
@@ -232,23 +282,21 @@ function measure(){
 const band=()=>Math.min(5,Math.floor(measure().total/20));
 // أعلى دوري وصله المتعلّم: يفتح هدايا المتجر، ولا تُقفل إن نزل بعدها
 const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier+h.mv));
-const GROUP_MAX=15,PROMO_MIN=60;
 // خبرة الأسبوع: من المراجعات والاختبارات والتمارين في هذا الأسبوع
 function weekXP(ws){
   const we=ws+7*DAY,per={};let xp=0;
   // السجلّ مرتّب زمنيًا: نقرأ من آخره حتى بداية الأسبوع فقط
   for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we&&x[3]!==2){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
-  for(const d in per)if(per[d]>=20)xp+=10;
-  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1];
+  for(const d in per)if(per[d]>=CFG.xp.dayN)xp+=CFG.xp.dayXp;
+  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1]*CFG.xp.quiz;
   return xp;
 }
 // عدد المتقدّمين والمتراجعين في كل دوري (من الأول إلى العاشر)
-const UP_N=[10,9,8,7,6,5,4,3,1,0],DOWN_N=[0,2,3,3,3,4,4,5,5,5];
 function zones(n,tier){
   tier=Math.max(0,Math.min(9,tier||0));const up=Math.min(UP_N[tier],n),down=Math.min(DOWN_N[tier],Math.max(0,n-up));
   return {up,down};
 }
-const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,40,30][realRank-1]||0);
+const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:(CFG.gems.prize[realRank-1]||0);
 // يختار مجموعة من نفس الدوري متقاربة في المقياس، وينشئ مجموعة جديدة إن امتلأت أو ابتعدت
 function chooseGroupFrom(docs,tier,my){
   const gs={},inTier=docs.filter(d=>(d.tier||0)===tier);
@@ -258,7 +306,7 @@ function chooseGroupFrom(docs,tier,my){
   if(best!=null&&!(bd>=2&&inTier.length>=10))return best;
   const ks=Object.keys(gs).map(Number);return ks.length?Math.max(...ks)+1:0;
 }
-const MINR=5,TARGET=15;
+const MINR=5;
 function clusters(members){
   // من اختار الدوري التجريبي يبقى وحده مع الآليّين، ولا يدخل مجموعات الآخرين
   const solo=members.filter(m=>m.solo).map(m=>({key:"solo-"+m.id,m:[m]}));members=members.filter(m=>!m.solo);
@@ -316,14 +364,14 @@ function applyAt(ev,T,now,ctx){
     if(ctx.server&&t<=last+500)return "time";
     const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,box=boxStep(b0,r,!ok);
     P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?0:2]);if(LOG.length>60000)LOG=LOG.slice(-60000);
-    if(ok){EN.rc=(EN.rc||0)+1;if(EN.rc%5===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
+    if(ok&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
     return true;
   }
   if(T==="stStart"){
     if(stTodayAt(now)>=ST_MAX)return "max";if(enAt(now)<ST_COST)return "energy";
     enAdd(-ST_COST,now);STV=now;return true;
   }
-  if(T==="stQuit"){if(!STV)return "none";enAdd(ST_COST/2,now);STV=0;return true}
+  if(T==="stQuit"){if(!STV)return "none";enAdd(CFG.energy.refund,now);STV=0;return true}
   if(T==="stDone"){
     if(!STV)return "none";if(ctx.server&&now-STV<10000)return "time";
     const ws=[...new Set((ev.words||[]).map(String))].slice(0,ST_WORDS);
@@ -343,7 +391,7 @@ function applyAt(ev,T,now,ctx){
     return true;
   }
   if(T==="buy"){
-    const it=itemOf(ev.cat,ev.id);if(!it||!it.price&&it.cat!=="power")return "item";
+    const it=itemOf(ev.cat,ev.id);if(!it||it.hidden||it.streak||!it.price&&it.cat!=="power")return "item";
     if(it.cat!=="power"&&owned(it.cat,it.id))return "owned";
     if(it.id==="freeze"&&econ().s.freezes>=FZ_MAX)return "max";
     if(!ctx.admin&&it.cat!=="power"&&(it.tier||0)>bestTier())return "locked";
@@ -359,6 +407,8 @@ function applyAt(ev,T,now,ctx){
   }
   return "type";
 }
+
+applyCfg(null);
 
 
 /* ---------- ضغط السجلّات (الصيغة نفسها التي في التطبيق) ---------- */
@@ -469,6 +519,13 @@ async function wordSet() {
   WORDS = { at: Date.now(), set }; return set;
 }
 
+/* ---------- إعدادات المشرف (تُقرأ كل دقيقة على الأكثر) ---------- */
+let CFGC = { at: 0, j: null };
+async function loadCfg(fs) {
+  if (Date.now() - CFGC.at > 60e3) { const d = await fs.get("config/app"); CFGC = { at: Date.now(), j: d ? d.data.v || "" : "" } }
+  applyCfg(parseJ(CFGC.j, null));
+}
+
 /* ---------- الحالة: تحميلها وحفظها ---------- */
 function setState(c, log, qa) {
   P = c.P || {}; QLOG = c.QLOG || []; BUY = c.BUY || []; R = Object.assign({ bank: 0, ach: [], lv: 1, ts: 0 }, c.R || {});
@@ -513,6 +570,7 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
+  await loadCfg(fs);
   const [uDoc, coreD, logD, qaD, nameD, gifts] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
     fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`)]);

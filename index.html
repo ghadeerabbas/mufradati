@@ -54,6 +54,18 @@ nav button i{display:block;font-style:normal;font-size:1.05rem}
 nav button.on{color:#fff;border-bottom-color:var(--gold);font-weight:700}
 main{max-width:720px;margin:0 auto;padding:14px 16px 60px}
 .panel{display:none;animation:fade .25s}.panel.on{display:block}
+#admNav{display:none}body.adm #admNav{display:flex}body.adm #mainNav,body.adm #mainFilters,body.adm .chips .chip,body.adm #setBtn,body.adm .xpbar,body.adm #hXpT,body.adm .avatar .lv{display:none!important}
+.cfg h3{margin-bottom:6px}.cfg label{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
+.cfg input[type=number]{width:76px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--tx);text-align:center;font-size:.95rem}
+.cfg .grid{display:grid;grid-template-columns:auto repeat(3,1fr);gap:4px;align-items:center;font-size:.8rem;text-align:center}.cfg .grid input{width:100%}
+.cfg .warn{background:#fff7ed;border:1px solid #fdba74;color:#9a3412;border-radius:10px;padding:8px 10px;font-size:.82rem;margin-bottom:10px}
+[data-dark] .cfg .warn{background:#431407;color:#fed7aa;border-color:#9a3412}
+.cfgbar{position:sticky;bottom:8px;display:flex;gap:8px;margin-top:10px}.cfgbar .btn{flex:1}
+.sed{display:grid;grid-template-columns:44px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px dashed var(--line)}
+.sed .pv{font-size:1.5rem;text-align:center}.sed .pv .frmini{width:40px;height:24px}.sed b{font-size:.88rem}.sed small{display:block;color:var(--muted);font-size:.72rem}
+.sed .ctl{display:flex;flex-wrap:wrap;gap:4px;justify-content:flex-end;align-items:center;font-size:.75rem}.sed .ctl input[type=number]{width:62px;padding:4px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--tx);text-align:center}
+.sed .ctl select{padding:4px;border:1px solid var(--line);border-radius:7px;background:var(--card);color:var(--tx);font-size:.75rem}
+.sed.off{opacity:.5}.addit{display:grid;gap:6px}.addit input,.addit select{padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--tx)}
 @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
 .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
 select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);flex:1;min-width:120px}
@@ -395,7 +407,14 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
       <button class="iconbtn" id="setBtn" title="الإعدادات">⚙️</button>
     </div>
   </div>
-  <nav>
+  <nav id="admNav">
+    <button data-p="users"><i>👥</i>المستخدمون</button>
+    <button data-p="messages"><i>✉️</i>الرسائل</button>
+    <button data-p="cfgP"><i>🎛️</i>الإعدادات</button>
+    <button data-p="shopEd"><i>🛍️</i>المتجر</button>
+    <button data-p="settings"><i>⚙️</i>حسابي</button>
+  </nav>
+  <nav id="mainNav">
     <button data-p="review" class="on"><i>🃏</i>الدراسة</button>
     <button data-p="list"><i>📚</i>القائمة</button>
     <button data-p="quiz"><i>❓</i>الاختبار</button>
@@ -433,12 +452,14 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
   <section id="users" class="panel"></section>
+  <section id="cfgP" class="panel"></section>
+  <section id="shopEd" class="panel"></section>
 </main>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=1"></script>
+<script src="core.js?v=2"></script>
 <script>
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
@@ -1292,7 +1313,8 @@ function renderProfile(){
 let shopCat="avatar";
 function renderShop(){
   const e=econ(),el=$("shop"),oc=el.querySelector(".cats"),sx=oc?oc.scrollLeft:null;
-  const items=shopCat==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===shopCat&&!x.streak),sb=streakBest();
+  const vis=x=>!x.hidden||(x.cat!=="power"&&owned(x.cat,x.id));
+  const items=(shopCat==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===shopCat&&!x.streak)).filter(vis),sb=streakBest();
   el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمحطات والدوري 💪</small></div></div>
   <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}<button data-c="streak" class="${shopCat==="streak"?"on":""}">🔥 السلسلة</button></div>
   ${shopCat==="streak"?`<p class="rnote" style="margin-bottom:8px">هدايا مجانية تنفتح بطول سلسلتك. أطول سلسلة وصلتها: 🔥 ${sb} ${sb===1?"يوم":"يومًا"}</p>`:""}
@@ -1364,7 +1386,7 @@ function applyServer(j){
 }
 let PREFLAST="";
 async function syncNow(manual){
-  if(!UID)return false;
+  if(!UID||isAdmin())return !!UID;
   if(syncing){await new Promise(r=>{const w=()=>syncing?setTimeout(w,200):r();w()});return !syncErr}
   syncing=true;clearTimeout(syncTimer);syncTimer=null;setCloud("جارٍ الحفظ…");let ok=false;
   try{
@@ -1384,7 +1406,7 @@ async function syncNow(manual){
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud()}
   syncing=false;return ok;
 }
-function schedSync(ms){if(!UID)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
+function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
@@ -1404,23 +1426,20 @@ function renderSettings(){
   const courses=MY_COURSES.filter(id=>COURSES[id]);
   $("settings").innerHTML=`<h2 class="sth">⚙️ الإعدادات</h2>
   <div class="rsec"><h3>🌙 الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${E.dark?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${E.dark?" on":""}" data-v="1">🌙 ليلي</button></div></div>
-  <div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
+  ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
   <div class="rsec"><h3>🔔 التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
-    :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>
+    :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
   <div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
    <input id="pwCur" class="stin" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password">
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
-  ${isAdmin()?`<div class="rsec"><h3>🏆 مشاركتك في الدوري</h3><div class="numpicks" id="stSolo"><button type="button" class="numpick${E.lgSolo?"":" on"}" data-v="0">مع المستخدمين</button><button type="button" class="numpick${E.lgSolo?" on":""}" data-v="1">وحدي مع الآليّين (تجربة)</button></div>
-   <p class="rnote" style="margin-top:6px">في وضع التجربة لا تظهر في مجموعات المستخدمين، وتتنافس مع منافسين آليّين فقط. ويبدأ مفعوله من أول تحديث لخبرتك.</p></div>`:""}
-  ${isAdmin()?`<div class="rsec" id="giftBox">${giftBoxHTML(UID)}</div>`:""}
-  <div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
-   <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`;
+  ${isAdmin()?"":`<div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
+   <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}`;
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(E.dark?1:0))return;E.dark=+b.dataset.v;E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
-  $("stReset").onclick=resetProgress;bindNameBox();if(isAdmin())bindGiftBox(UID);
+  if($("stReset"))$("stReset").onclick=resetProgress;bindNameBox();
   const so=$("stSolo");if(so)so.onclick=async e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v==="1";if(v===!!E.lgSolo)return;
     E.lgSolo=v;E.ts=Date.now();save();schedSync();so.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
     try{if(!await syncNow())throw 0;LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast("⚠️","تعذّر الحفظ","")}};
@@ -1611,6 +1630,120 @@ async function bindGiftBox(uid){
   };
 }
 
+/* ================= إعدادات التطبيق من المشرف ================= */
+let cfgUnsub=null,CFGRAW="";
+function watchCfg(){
+  if(cfgUnsub)cfgUnsub();
+  cfgUnsub=db.collection("config").doc("app").onSnapshot(d=>{
+    const v=d.exists?d.data().v||"":"";if(v===CFGRAW)return;CFGRAW=v;
+    let c=null;try{c=v?JSON.parse(v):null}catch(e){}
+    applyCfg(c);cfgCss();econ();renderHeader();
+    const on=document.querySelector(".panel.on");if(on&&on.id!=="review"&&on.id!=="cfgP"&&on.id!=="shopEd")renderPanel(on.id);
+  },()=>{});
+}
+// ألوان الأغراض التي أضافها المشرف (إطارات وألوان أسماء)
+function cfgCss(){
+  let css="";
+  for(const x of SHOP.filter(x=>x.custom)){
+    const c=x.c||"#2563eb",c2=x.c2||c,id=x.id;
+    if(x.cat==="frame")css+=`.fr-${id} .face,.lgrow.fr-${id},.frmini.fr-${id},.pchead.fr-${id}{border:3px solid transparent;background:linear-gradient(var(--tint,transparent),var(--tint,transparent)) padding-box,linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,${c},${c2}) border-box;box-shadow:0 0 10px ${c}88}.fr-${id} .face{border-top-width:6px}`;
+    if(x.cat==="namecolor")css+=x.badge?`.nc-${id}{display:inline-block;width:fit-content;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle;padding:0 9px;border-radius:9px;font-weight:800;line-height:1.55;background:#111827;border:1.5px solid ${c};color:${c};box-shadow:0 0 7px ${c}88}`:`.nc-${id}{color:${c}}`;
+  }
+  let el=$("cfgCss");if(!el){el=document.createElement("style");el.id="cfgCss";document.head.appendChild(el)}el.textContent=css;
+}
+
+/* ================= لوحة الإشراف: إعدادات الأرقام ================= */
+const cfgRef=()=>db.collection("config").doc("app");
+async function saveCfg(c,msg){
+  try{await cfgRef().set({v:JSON.stringify(c),ts:firebase.firestore.FieldValue.serverTimestamp()});toast("✅",msg||"حُفظت الإعدادات","تصل إلى الجميع خلال دقيقة");return true}
+  catch(e){toast("⚠️","تعذّر الحفظ",e.code==="permission-denied"?"حدّث قواعد الأمان في Firebase":"تحقّق من الاتصال");return false}
+}
+function renderCfg(){
+  const C=CFG,n=(id,v,lab,step)=>`<label>${lab}<input type="number" id="${id}" value="${v}" step="${step||1}" min="0"></label>`;
+  const TN=TIERS.map((x,i)=>x[1]+" "+(i+1));
+  $("cfgP").innerHTML=`<div class="cfg"><h2 class="sth">🎛️ إعدادات التطبيق</h2>
+  <div class="warn">⚠️ الخبرة والجواهر تُحسب من سجلّ كل متعلّم منذ البداية، فأي تغيير هنا يغيّر أرقام الجميع بأثر رجعي. وما اشتراه المتعلّمون يبقى لهم.</div>
+  <div class="rsec"><h3>✨ الخبرة</h3>
+   ${n("x_r0",C.xp.review[0],"مراجعة: نسيت")}${n("x_r1",C.xp.review[1],"مراجعة: صعبة")}${n("x_r2",C.xp.review[2],"مراجعة: متوسطة")}${n("x_r3",C.xp.review[3],"مراجعة: سهلة")}
+   ${n("x_st",C.xp.stOk,"كلمة جديدة في المحطة")}${n("x_sm",C.xp.stMiss,"كلمة في المحطة أخطأ فيها")}
+   ${n("x_q",C.xp.quiz,"كل جواب صحيح في الاختبار والتمارين")}${n("x_mem",C.xp.mem,"كلمة ترسخ (موعدها بعد أسبوع)")}${n("x_sol",C.xp.solid,"كلمة تثبت (موعدها بعد شهر)")}
+   ${n("x_dn",C.xp.dayN,"عدد مراجعات اليوم للمكافأة")}${n("x_dx",C.xp.dayXp,"خبرة مكافأة اليوم")}${n("x_lv",C.xp.level,"زيادة النقاط لكل مستوى")}</div>
+  <div class="rsec"><h3>💎 الجواهر</h3>
+   ${n("g_st",C.gems.station,"كل محطة مكتملة")}${n("g_lv",C.gems.level,"كل مستوى جديد")}
+   ${n("g_p1",C.gems.prize[0],"جائزة الأول في الدوري")}${n("g_p2",C.gems.prize[1],"جائزة الثاني")}${n("g_p3",C.gems.prize[2],"جائزة الثالث")}
+   <b class="lkh">مراحل السلسلة (الأيام ← الجواهر)</b><div id="g_sk">${C.gems.streak.map(([d,g])=>`<label><span><input type="number" class="skd" value="${d}" min="1"> يومًا</span><span><input type="number" class="skg" value="${g}" min="0"> 💎 <button type="button" class="link skx">حذف</button></span></label>`).join("")}</div>
+   <button type="button" class="btn" id="g_skAdd" style="width:100%;margin-top:6px">+ مرحلة</button></div>
+  <div class="rsec"><h3>🏆 الدوري</h3>
+   ${n("l_g",C.league.group,"عدد اللاعبين في المجموعة")}${n("l_pm",C.league.promoMin,"أقل خبرة أسبوعية للتقدّم والجائزة")}
+   <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
+  <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
+   ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
+   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}
+   ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}</div>
+  <div class="rsec"><h3>❄️ تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
+  <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
+  const sk=$("g_sk"),row=()=>{const l=document.createElement("label");l.innerHTML=`<span><input type="number" class="skd" value="7" min="1"> يومًا</span><span><input type="number" class="skg" value="10" min="0"> 💎 <button type="button" class="link skx">حذف</button></span>`;sk.appendChild(l)};
+  $("g_skAdd").onclick=row;sk.onclick=e=>{const x=e.target.closest(".skx");if(x)x.closest("label").remove()};
+  const v=id=>+$(id).value;
+  $("cfgSave").onclick=async()=>{
+    const c=JSON.parse(JSON.stringify(CFG));
+    c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
+    c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
+    c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr")};c.station={words:v("s_w"),perDay:v("s_d")};
+    c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};
+    if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
+    if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
+  };
+  $("cfgDef").onclick=async()=>{if(!await uiConfirm("إرجاع كل الأرقام إلى الافتراضي؟ (تبقى تعديلات المتجر)"))return;
+    const c={shop:CFG.shop,items:CFG.items};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
+}
+
+/* ================= لوحة الإشراف: محرّر المتجر ================= */
+let SEDCAT="avatar";
+const SED_CATS={...CATS,streak:"🔥 السلسلة"};
+function sedPv(x){return x.cat==="namecolor"?`<span class="nc-${x.id}" style="font-size:.8rem">اسم</span>`:x.cat==="frame"?`<div class="frmini fr-${x.id}"></div>`:x.cat==="theme"?`<div class="sw">${x.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:x.cat==="title"?"🏷️":esc(x.val||"")}
+function renderShopEd(){
+  const list=SEDCAT==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===SEDCAT&&!x.streak);
+  const tierSel=(v,cls)=>`<select class="${cls}"><option value="">مفتوح</option>${TIERS.map((t,i)=>`<option value="${i}" ${v===i?"selected":""}>${t[1]} ${i+1}</option>`).join("")}</select>`;
+  $("shopEd").innerHTML=`<div class="cfg"><h2 class="sth">🛍️ محرّر المتجر</h2>
+  <div class="cats">${Object.keys(SED_CATS).map(c=>`<button data-c="${c}" class="${c===SEDCAT?"on":""}">${SED_CATS[c]}</button>`).join("")}</div>
+  <div class="rsec">${list.map(x=>`<div class="sed ${x.hidden?"off":""}" data-k="${x.cat}:${x.id}"><div class="pv">${sedPv(x)}</div><div><b>${esc(x.name)}</b><small>${x.custom?"أضفته أنت":x.id==="freeze"?"سعره من إعدادات التجميد":""}</small></div>
+    <div class="ctl">${x.id==="freeze"?"":x.streak?`🔥<input type="number" class="sStk" value="${x.streak}" min="1"> يومًا`:`💎<input type="number" class="sPr" value="${x.price}" min="0">${tierSel(x.tier??"","sTier")}`}
+     <label style="border:0;padding:0"><input type="checkbox" class="sHid" ${x.hidden?"checked":""}> مخفي</label>${x.custom?'<button type="button" class="link sDel">حذف</button>':""}</div></div>`).join("")||'<div class="empty">لا أغراض</div>'}</div>
+  ${CUSTOM_CATS.includes(SEDCAT)||SEDCAT==="streak"?`<div class="rsec"><h3>➕ غرض جديد</h3><div class="addit">
+    ${SEDCAT==="streak"?`<select id="nCat">${CUSTOM_CATS.map(c=>`<option value="${c}">${CATS[c]}</option>`).join("")}</select>`:""}
+    <input id="nName" maxlength="40" placeholder="الاسم">
+    <input id="nVal" maxlength="40" placeholder="الرمز (إيموجي) أو نصّ اللقب">
+    <label style="border:0">اللون الأول<input type="color" id="nC" value="#2563eb"></label><label style="border:0">اللون الثاني (للإطار)<input type="color" id="nC2" value="#f59e0b"></label>
+    <label style="border:0"><span>اسم بحافة وخلفية داكنة</span><input type="checkbox" id="nBadge"></label>
+    ${SEDCAT==="streak"?`<input id="nStk" type="number" min="1" placeholder="طول السلسلة المطلوب (أيام)">`:`<input id="nPr" type="number" min="1" placeholder="السعر بالجواهر">${tierSel("","nTier")}`}
+    <button class="btn" id="nAdd">إضافة</button></div><p class="rnote">الرمز والملصق: إيموجي واحد · اللقب: نصّ · لون الاسم والإطار: الألوان.</p></div>`:""}
+  <div class="cfgbar"><button class="btn next" id="sedSave">حفظ المتجر</button></div></div>`;
+  const el=$("shopEd");
+  el.querySelectorAll(".cats button").forEach(b=>b.onclick=()=>{SEDCAT=b.dataset.c;renderShopEd()});
+  const items=()=>JSON.parse(JSON.stringify(CFG.items||[]));
+  el.querySelectorAll(".sDel").forEach(b=>b.onclick=async()=>{const k=b.closest(".sed").dataset.k.split(":")[1];if(!await uiConfirm("حذف هذا الغرض؟ من اشتراه يفقده."))return;
+    const c={...CFG,items:items().filter(x=>x.id!==k)};if(await saveCfg(c,"حُذف الغرض")){applyCfg(c);cfgCss();renderShopEd()}});
+  const add=$("nAdd");if(add)add.onclick=async()=>{
+    const cat=$("nCat")?$("nCat").value:SEDCAT,name=$("nName").value.trim(),val=$("nVal").value.trim();
+    if(!name){toast("⚠️","اكتب اسم الغرض","");return}
+    if((cat==="avatar"||cat==="sticker"||cat==="title")&&!val){toast("⚠️","اكتب الرمز أو نصّ اللقب","");return}
+    const it={id:"c"+Date.now().toString(36),cat,name,val,c:$("nC").value,c2:$("nC2").value,badge:$("nBadge").checked};
+    if(SEDCAT==="streak"){it.streak=+$("nStk").value;if(!(it.streak>=1)){toast("⚠️","اكتب طول السلسلة","");return}it.price=0}
+    else{it.price=+$("nPr").value;if(!(it.price>=1)){toast("⚠️","اكتب السعر","");return}const t=el.querySelector(".nTier").value;if(t!=="")it.tier=+t}
+    const c={...CFG,items:[...items(),it]};if(await saveCfg(c,"أُضيف الغرض")){applyCfg(c);cfgCss();renderShopEd()}};
+  $("sedSave").onclick=async()=>{
+    const shop={...(CFG.shop||{})},its=items();
+    el.querySelectorAll(".sed").forEach(r=>{const k=r.dataset.k,[cat,id]=k.split(":"),hid=r.querySelector(".sHid").checked,pr=r.querySelector(".sPr"),ti=r.querySelector(".sTier"),sk=r.querySelector(".sStk");
+      const ci=its.find(x=>x.id===id&&x.cat===cat);
+      if(ci){ci.hidden=hid;if(pr)ci.price=+pr.value;if(ti)ci.tier=ti.value===""?undefined:+ti.value;if(sk)ci.streak=+sk.value;return}
+      const b=SHOP_BASE.find(x=>x.cat===cat&&x.id===id),o={};
+      if(hid)o.hidden=true;if(pr&&+pr.value!==b.price)o.price=+pr.value;if(ti&&(ti.value===""?undefined:+ti.value)!==b.tier)o.tier=ti.value;if(sk&&+sk.value!==b.streak)o.streak=+sk.value;
+      if(Object.keys(o).length)shop[k]=o;else delete shop[k]});
+    const c={...CFG,shop,items:its};if(await saveCfg(c,"حُفظ المتجر")){applyCfg(c);cfgCss();renderShopEd()}};
+}
+
 /* ================= تجميد السلسلة: تذكير ومساعدة ================= */
 const fzHelped=()=>GIFTS.some(isFzGift)||st(K("fzAsk"))==="1";
 async function askFreezeHelp(){
@@ -1673,9 +1806,15 @@ async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
   UID=user.uid;loadState();
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
+  watchCfg();
   await loadCourses();MY_COURSES=await myCourses();
+  // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
+  if(isAdmin()){
+    document.body.classList.add("adm");$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
+    loadNameReqs();startMessages();goTab("users");return;
+  }
   const saved=st(K("course"));
-  await loadWords(MY_COURSES.includes(saved)?saved:(isAdmin()&&MY_COURSES.includes("b2")?"b2":MY_COURSES[0]));
+  await loadWords(MY_COURSES.includes(saved)?saved:MY_COURSES[0]);
   renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
@@ -1689,7 +1828,7 @@ async function onLogin(user){
 }
 
 /* ================= الرسائل ================= */
-const ADMIN="ghadeer"+DOMAIN,MAXLEN=500;
+const ADMIN="admin"+DOMAIN,MAXLEN=500;   // حساب الإشراف: للإدارة فقط، بلا دراسة
 const isAdmin=()=>((auth.currentUser||{}).email||"").toLowerCase()===ADMIN;
 const tref=u=>db.collection("threads").doc(u);
 let TH=null,MSGS=[],ADM_TH=[],openTh=null,openMsgs=[],unsubs=[];
@@ -1924,7 +2063,9 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users"||p==="cfgP"||p==="shopEd")?"none":"";
+  if(p==="cfgP"){renderCfg();return}
+  if(p==="shopEd"){renderShopEd();return}
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
@@ -1960,6 +2101,11 @@ async function handleBack(){
   const m=$("fbModal");if(m&&m.style.display==="flex"){m.style.display="none";m.innerHTML="";return}
   const dlg=document.querySelector(".uidlg");if(dlg){const c=dlg.querySelector(".uino")||dlg.querySelector(".uiok");if(c)c.click();return}
   if(!UID){if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return}
+  if(isAdmin()){const a=(document.querySelector(".panel.on")||{}).id;
+    if(a==="messages"&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
+    if(a==="users"&&uOpen){uOpen=null;renderUserList();return}
+    if(a!=="users"){goTab("users");scrollTo(0,0);return}
+    if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return}
   const on=document.querySelector(".panel.on"),id=on?on.id:"review";
   if(id==="review"){
     if(STS){quitStation();return}

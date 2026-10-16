@@ -2,7 +2,7 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
-    function isAdmin() { return signedIn() && request.auth.token.email == "ghadeer@mufradati.app"; }
+    function isAdmin() { return signedIn() && request.auth.token.email == "admin@mufradati.app"; }
     // الحساب المفعّل: المشرف، أو من فعّله المشرف، أو المستخدمون القدامى (لهم سجلّ تقدّم)
     function active() {
       return isAdmin() || (signedIn() && (exists(/databases/$(database)/documents/members/$(request.auth.uid))
@@ -34,6 +34,9 @@ service cloud.firestore {
       allow delete: if false;
     }
     match /users/{uid}/{rest=**} { allow read: if isMe(uid) || isAdmin(); allow write: if false; }
+
+    // إعدادات التطبيق (الأرقام والمتجر): يقرؤها المسجَّلون، ويكتبها المشرف وحده
+    match /config/{doc} { allow read: if active(); allow write: if isAdmin(); }
 
     // المناهج المعيّنة لكل مستخدم: يعيّنها المدير وحده، ويقرؤها المستخدم
     match /assign/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isAdmin(); }
