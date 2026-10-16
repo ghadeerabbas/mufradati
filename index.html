@@ -292,6 +292,8 @@ body.fbon main{padding-bottom:210px}
 .mt{width:100%;min-height:52px;background:var(--card);color:var(--ink);border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;font-weight:700;font-size:1rem;padding:8px 6px;line-height:1.35;transition:transform .1s}
 .mt.de{direction:ltr}.mt.on{border-color:#1cb0f6;background:#1cb0f61f;transform:translateY(-2px)}
 .mt.ok{border-color:var(--green);background:#22c55e22;opacity:.55}.mt.no{border-color:var(--red);background:#ef444422;animation:nof .45s}
+.zn.mini.wait{--hi:#d6efff;--base:#8fd3fb;--lo:#5fb8ea;--depth:#3f9fd6;--rim:transparent}.zn.mini.wait .c{opacity:.75}
+[data-dark] .zn.mini.wait{--hi:#3b6e8f;--base:#2c5a78;--lo:#1f4560;--depth:#16344a}
 /* الطريق الذي يصل المحطات */
 .zpath{position:absolute;left:50%;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;z-index:0}
 .zpath .bg{stroke:var(--line);stroke-width:12;fill:none;stroke-linecap:round;stroke-dasharray:2 18}
@@ -1086,9 +1088,10 @@ function reviewHome(){
     return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost||FREEU?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${PB+i+1}</span></button>`};
   // بعد كل محطة محطة تدريبية صغيرة (مطابقة)، مكتملة أو متاحة أو مقفلة
   const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
-  const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):"lock";
-    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب${drillCost()?" · "+drillCost():""}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span></button>`};
-  const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done]);pts.push([dx(i),dy(i),i<dn])}
+  // التدريب: منتهٍ، أو متاح الآن، أو محطته منتهية وينتظر دوره (أزرق باهت)، أو مقفل
+  const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):j<done?"wait":"lock";
+    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب${drillCost()?" · "+drillCost():""}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
+  const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done&&i<=dn]);pts.push([dx(i),dy(i),i<dn])}
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
