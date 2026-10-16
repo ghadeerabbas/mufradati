@@ -107,6 +107,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .ex{font-size:.98rem;background:var(--soft);border-radius:10px;padding:8px 10px}
 .exar{font-size:.95rem;color:var(--muted)}
 .hint{font-size:.8rem;color:var(--muted)}
+.hidepub{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.hidepub input{width:22px;height:22px;margin-top:3px;accent-color:var(--accent,#1cb0f6);flex:none}.hidepub b{display:block}.hidepub small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
 .sti{width:1.3em;height:1.3em;object-fit:contain;vertical-align:middle;display:inline-block}
 .stk{position:absolute;top:8px;left:10px;font-size:1.6rem;transform:rotate(-12deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
 .typedot{position:absolute;top:10px;right:12px;font-size:.7rem;font-weight:700;color:var(--tc)}
@@ -1434,10 +1435,12 @@ function renderProfile(){
     <small>${top?`✓ أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u}`}</small>
     ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec" id="looks">${looksHTML()}</div>
+  <div class="rsec"><label class="hidepub"><input type="checkbox" id="hidePub" ${E.hidePub?"checked":""}><span><b>🔒 إخفاء ملفي</b><small>لا يرى المتعلّمون الآخرون إنجازاتك ولا ملصقاتك ولا مستواك وسلسلتك؛ يظهر لهم اسمك ومظهرك ودوريك فقط.</small></span></label></div>
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
    <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
    <p style="font-size:.78rem;color:var(--muted);margin-top:6px">اشترِ الملصقات من المتجر، وثبّت أحدها ليظهر على بطاقاتك.</p></div>`+syncHTML();
   bindLooks();
+  $("hidePub").onchange=ev=>{E.hidePub=ev.target.checked?1:0;E.ts=Date.now();save();schedSync(300);toast("🔒",E.hidePub?"ملفك مخفي الآن":"ملفك ظاهر الآن",E.hidePub?"يظهر للآخرين اسمك ومظهرك ودوريك فقط":"يرى الآخرون إنجازاتك وملصقاتك")};
   bindSync();
 }
 
@@ -1603,7 +1606,7 @@ function pubData(){
   const lf=E.lgFrame??E.frame;
   return {name:UNAME.slice(0,60),av:String(E.avatar||"🎓").slice(0,8),nc:myNc(),
     fr:owned("frame",lf)?String(lf||"none").slice(0,16):"none",lv:e.lv,xp:e.xp,streak:e.s.streak,best:e.s.best,tier:LG.tier??0,
-    title:(itemOf("title",E.title)||{}).val||"",alv,stk:SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id)).map(x=>x.val)};
+    title:(itemOf("title",E.title)||{}).val||"",alv,stk:SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id)).map(x=>x.val),hide:E.hidePub?1:0};
 }
 async function showPlayer(row){
   const m=$("fbModal"),bot=row.dataset.bot==="1",close=()=>{m.style.display="none";m.innerHTML=""};
@@ -1613,9 +1616,15 @@ async function showPlayer(row){
   let d=null;try{const x=await pref(row.dataset.u).get();d=x.exists?x.data():null}catch(e){}
   if(row.dataset.u===UID)d=pubData();
   if(!d){m.innerHTML=`<div class="lbox pcard"><div class="logo">🙂</div><h1 style="font-size:1.2rem">${esc(row.dataset.n)}</h1><p class="rnote">لم يُنشر ملفه بعد. يظهر عندما يفتح التطبيق.</p><button class="btn lgo" id="pcClose">إغلاق</button></div>`;$("pcClose").onclick=close;return}
+  const me=row.dataset.u===UID;
+  if(d.hide&&!me){m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${esc(d.av||"🎓")}</div>
+    <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
+    <p class="rnote" style="margin-top:12px">🔒 اختار هذا المتعلّم إخفاء ملفه، فلا تظهر إنجازاته ولا ملصقاته.</p>
+    <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;$("pcClose").onclick=close;return}
   const al=achList(),stickers=SHOP.filter(x=>x.cat==="sticker"),have=new Set(d.stk||[]),lvSum=Object.values(d.alv||{}).reduce((a,b)=>a+b,0);
   m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${esc(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1}${d.title?" · "+esc(d.title):""} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
+   ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
    <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>🏅 ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
    <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${a.ic}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
    <h3 class="pch">ألبوم الملصقات (${stickers.filter(x=>have.has(x.val)).length}/${stickers.length})</h3><div class="album">${stickers.map(x=>`<span class="${have.has(x.val)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
