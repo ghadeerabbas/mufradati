@@ -1560,12 +1560,18 @@ function watchGifts(){
     st(K("giftSeen"),JSON.stringify(GIFTS.map(g=>g.id)));
   },()=>{});
 }
+// زر مساعدة التجميد: فقط لمن ليس عنده تجميد وجواهره أقل من سعره
+function fzNeeds(uid){
+  const price=itemOf("power","freeze").price;
+  if(uid===UID){const e=econ();return e.s.freezes===0&&e.gems<price}
+  const u=USERS.find(x=>x.id===uid),sm=u&&u.sum;return !!sm&&sm.fz===0&&(sm.gems||0)<price;
+}
 function giftBoxHTML(uid){
   return `<h3>🎁 إضافة جواهر${uid===UID?" لنفسك":""}</h3>
    <div class="numpicks" id="gfAmt">${[50,100,250,500,1000,5000].map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>
    <div class="strow" style="margin-top:8px"><input id="gfN" class="stin" type="number" min="1" max="100000" inputmode="numeric" placeholder="أو اكتب العدد"><input id="gfNote" class="stin" maxlength="100" placeholder="ملاحظة (اختياري)"></div>
    <button class="btn stbtn" id="gfSend" style="width:100%;margin-top:8px">إرسال الجواهر</button>
-   <button class="btn" id="gfFz" style="width:100%;margin-top:8px">❄️ إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button><div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
+   ${fzNeeds(uid)?'<button class="btn" id="gfFz" style="width:100%;margin-top:8px">❄️ إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button>':""}<div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
 }
 async function bindGiftBox(uid){
   const box=$("giftBox");if(!box)return;
@@ -1575,7 +1581,7 @@ async function bindGiftBox(uid){
     const fb=$("gfFz");if(fb){fb.disabled=!!fzN;if(fzN)fb.textContent="❄️ أخذ مساعدة التجميد من قبل"}}catch(e){}};
   hist();
   $("gfAmt").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;$("gfN").value=b.dataset.v;$("gfAmt").querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b))};
-  $("gfFz").onclick=async()=>{
+  if($("gfFz"))$("gfFz").onclick=async()=>{
     const m=$("gfMsg");if(!await uiConfirm("إرسال تجميد واحد للسلسلة"+(uid===UID?" لنفسك":"")+"؟ (مساعدة لمرة واحدة)"))return;
     try{await gref(uid).add({g:1,note:"❄️ تجميد السلسلة (مساعدة لمرة واحدة)",ts:firebase.firestore.FieldValue.serverTimestamp()});m.textContent="✓ أُرسل التجميد";m.className="stmsg ok";setTimeout(hist,500)}
     catch(e){m.textContent="تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad"}
@@ -1784,7 +1790,7 @@ function summary(){
   return {course:COURSE,last:LOG.length?LOG[LOG.length-1][0]:0,first:LOG.length?LOG[0][0]:0,days:days.length,
     total:e.s.reviews,acc:LOG.length?Math.round(ok/LOG.length*100):0,started:u.filter(w=>P[w.k]).length,
     mem:u.filter(w=>P[w.k]&&P[w.k].box>=4).length,words:u.length,streak:e.s.streak,best:e.s.best,
-    lv:e.lv,gems:e.gems,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier};
+    lv:e.lv,gems:e.gems,fz:e.s.freezes,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier};
 }
 
 /* ================= تقارير المستخدمين (للمدير) ================= */
