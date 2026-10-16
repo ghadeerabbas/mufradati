@@ -1895,14 +1895,17 @@ async function syncNow(manual){
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
     FSC.r-=stSent.r;FSC.w-=stSent.w;
     EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;   // الدوري يُقرأ من جديد بعد كل حفظ
-    lastSync=Date.now();syncErr="";ok=true;setCloud();
+    lastSync=Date.now();syncErr="";ok=true;syncFails=0;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}
     const on=document.querySelector(".panel.on");if(on&&on.id!=="review")renderPanel(on.id);
     if(EVQ.length)schedSync(1000);
-  }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud()}
+  }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
+    // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
+    if(e.code!=="inactive"&&e.code!=="auth"&&e.code!=="permission-denied"&&EVQ.length){const d=[5,15,30,60,120][Math.min(syncFails,4)];syncFails++;schedSync(d*1000)}}
   syncing=false;return ok;
 }
+let syncFails=0;
 function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
@@ -2704,7 +2707,9 @@ function init(){
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
-  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow()});
+  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(EVQ.length||syncErr))syncNow()});
+  // عاد الاتصال: نرسل ما تأخّر فورًا
+  addEventListener("online",()=>{if(UID&&(EVQ.length||syncErr)){syncFails=0;syncNow()}});
 }
 
 /* ================= زر الرجوع في الهاتف ================= */
