@@ -83,7 +83,9 @@ const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
 const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.some(b=>b.item===cat+":"+id))};
 
 /* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
-const GEM=[0,1,2,2],XPR=[2,5,10,10];
+const GEM=[0,1,2,2],XPR=[1,2,4,4];
+// خبرة كل تقييم: الكلمة الجديدة في المحطة 3 (أو 2 إن أخطأ فيها)، والمراجعة بحسب التقييم
+const xpOf=(r,nw)=>nw?(r>=2?3:2):XPR[r];
 // الإنجازات بمستويات: كل إنجاز يرتقي إلى مستوى أعلى كلما زاد الرقم، ولكل مستوى جواهره
 const ACH=[
  {id:"rev",ic:"📖",n:"المراجِع المجتهد",u:"مراجعة",v:s=>s.reviews,L:[[1,5],[100,20],[500,50],[1000,100],[2500,200],[5000,300],[10000,500],[25000,800],[50000,1200]]},
@@ -103,24 +105,24 @@ const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:
  s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
 const achList=()=>ACH;
 const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
-const lvlNeed=l=>200*l;                         // كل مستوى يحتاج 200 نقطة أكثر من سابقه
+const lvlNeed=l=>80*l;                          // كل مستوى يحتاج 80 نقطة أكثر من سابقه
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
   let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={};
   let L=LOG;for(let i=1;i<L.length;i++)if(L[i][0]<L[i-1][0]){L=[...LOG].sort((a,b)=>a[0]-b[0]);break}
   for(const [t,k,r,nw] of L){
-    s.reviews++;gems+=GEM[r]+(nw?1:0);xp+=XPR[r];
+    s.reviews++;gems+=GEM[r]+(nw?1:0);xp+=xpOf(r,nw);
     let b=box[k]||0;b=r===0?0:r===1?Math.max(1,b):Math.min(b+(r===2?1:2),8);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=20}
-    if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=50}
+    if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=15}
+    if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=40}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
     const h=hourOf(t);if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
   }
   s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
   for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
-    gems+=(x.n>=20?5:0)+(x.n>=50?10:0)+(x.n>=100?15:0);xp+=(x.n>=20?30:0)}
-  for(const q of QLOG){gems+=q[1];xp+=q[1]*5;if(q[2]>=5&&q[1]===q[2])s.qfull++}
+    gems+=(x.n>=20?5:0)+(x.n>=50?10:0)+(x.n>=100?15:0);xp+=(x.n>=20?10:0)}
+  for(const q of QLOG){gems+=q[1];xp+=q[1];if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)).sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
@@ -162,7 +164,7 @@ function measure(){
   const e=EC||econ(),days=Object.keys(e.per).length,now=Date.now();
   const act14=[...Array(14)].filter((_,i)=>e.per[dkey(now-i*DAY)]).length;
   const ok=LOG.filter(x=>x[2]>=2).length,acc=LOG.length?ok/LOG.length:0;
-  const p={prog:Math.min(e.s.mem/300,1)*30,xp:Math.min(e.xp/5000,1)*20,dur:Math.min(days/60,1)*20,
+  const p={prog:Math.min(e.s.mem/300,1)*30,xp:Math.min(e.xp/2000,1)*20,dur:Math.min(days/60,1)*20,
     reg:Math.min(e.s.best/30,1)*5+Math.min(act14/10,1)*10,acc:acc*Math.min(LOG.length/30,1)*15};
   const parts={};let total=0;for(const k in p){parts[k]=Math.round(p[k]);total+=p[k]}
   return {total:Math.round(total),parts};
@@ -170,14 +172,14 @@ function measure(){
 const band=()=>Math.min(5,Math.floor(measure().total/20));
 // أعلى دوري وصله المتعلّم: يفتح هدايا المتجر، ولا تُقفل إن نزل بعدها
 const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier+h.mv));
-const GROUP_MAX=15,PROMO_MIN=100;
+const GROUP_MAX=15,PROMO_MIN=60;
 // خبرة الأسبوع: من المراجعات والاختبارات والتمارين في هذا الأسبوع
 function weekXP(ws){
   const we=ws+7*DAY,per={};let xp=0;
   // السجلّ مرتّب زمنيًا: نقرأ من آخره حتى بداية الأسبوع فقط
-  for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we){xp+=XPR[x[2]];const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
-  for(const d in per)if(per[d]>=20)xp+=30;
-  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1]*5;
+  for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
+  for(const d in per)if(per[d]>=20)xp+=10;
+  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1];
   return xp;
 }
 // عدد المتقدّمين والمتراجعين في كل دوري (من الأول إلى العاشر)
@@ -229,7 +231,7 @@ function makeBots(w,cl,base,prog){
 function botBase(cl,prevDocs){
   const ids=new Set(cl.m.map(m=>m.id)),xs=prevDocs.filter(d=>ids.has(d.id)&&d.xp>0).map(d=>d.xp);
   const tier=Math.min(...cl.m.map(m=>m.tier||0));
-  return Math.max(100,xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:150+tier*80);
+  return Math.max(50,xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:60+tier*30);
 }
 // جدول مجموعة متعلّم في أسبوع: الحقيقيون ثم الآليّون مرتّبين بالخبرة
 function tableFor(uid,w,docs,prevDocs,prog){
