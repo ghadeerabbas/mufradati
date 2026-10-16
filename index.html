@@ -107,6 +107,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .ex{font-size:.98rem;background:var(--soft);border-radius:10px;padding:8px 10px}
 .exar{font-size:.95rem;color:var(--muted)}
 .hint{font-size:.8rem;color:var(--muted)}
+.sti{width:1.3em;height:1.3em;object-fit:contain;vertical-align:middle;display:inline-block}
 .stk{position:absolute;top:8px;left:10px;font-size:1.6rem;transform:rotate(-12deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
 .typedot{position:absolute;top:10px;right:12px;font-size:.7rem;font-weight:700;color:var(--tc)}
 /* إطارات المتجر: تظهر على بطاقة المراجعة وحول سطرك في الدوري */
@@ -506,7 +507,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=4"></script>
+<script src="core.js?v=5"></script>
 <script>
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
@@ -660,6 +661,8 @@ function renderHeader(){
 }
 
 /* ================= احتفالات وإشعارات ================= */
+const STK_IMG=Object.fromEntries(["🌸","⭐","💡","🍀","🎈","☕","🍕","🥨","🌙","🌻","🎻","🏰","🇩🇪","🦋","🏆","💎"].map((v,i)=>[v,i+1]));
+const stkH=v=>STK_IMG[v]?`<img class="sti" src="img/stk/${STK_IMG[v]}.png" alt="">`:esc(v||"");
 function toast(ic,title,sub){
   const t=document.createElement("div");t.className="toast";t.innerHTML=`<span class="ic">${ic}</span><div><b>${title}</b>${sub?`<span>${sub}</span>`:""}</div>`;
   $("toasts").appendChild(t);setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3200);
@@ -840,7 +843,7 @@ function showCard(){
   if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
   if(!queue.length){if(RVDONE&&sessTotal&&sessDone>=sessTotal)RVDONE.finished=true;reviewHome();return}
   cur=queue[0];flipped=false;
-  const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${esc(stkVal(E.sticker))}</span>`:"";
+  const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${stkH(stkVal(E.sticker))}</span>`:"";
   const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
   el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
@@ -1290,7 +1293,7 @@ async function fillLeague(){
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${esc(r.st||"")}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
@@ -1399,7 +1402,7 @@ function looksHTML(){
   const frs=SHOP.filter(x=>x.cat==="frame"&&owned("frame",x.id)),sts=SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id));
   const cf=E.frame||"none",lf=E.lgFrame??cf,cs=stkVal(E.sticker),ls=stkVal(E.lgSticker??E.sticker);
   const frow=(id,cur)=>`<div class="numpicks lk" id="${id}">${frs.map(x=>`<button type="button" class="numpick lkf${x.id===cur?" on":""}" data-v="${x.id}" title="${esc(x.name)}"><i class="frmini fr-${x.id}"></i></button>`).join("")}</div>`;
-  const srow=(id,cur)=>`<div class="numpicks lk" id="${id}"><button type="button" class="numpick${cur?"":" on"}" data-v="">بدون</button>${sts.map(x=>`<button type="button" class="numpick${x.val===cur?" on":""}" data-v="${esc(x.val)}">${x.val}</button>`).join("")}</div>`;
+  const srow=(id,cur)=>`<div class="numpicks lk" id="${id}"><button type="button" class="numpick${cur?"":" on"}" data-v="">بدون</button>${sts.map(x=>`<button type="button" class="numpick${x.val===cur?" on":""}" data-v="${esc(x.val)}">${stkH(x.val)}</button>`).join("")}</div>`;
   return `<h3>🎨 مظهري</h3><p class="rnote">ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.</p>
    <b class="lkh">بطاقة المراجعة</b>${frow("lkCF",cf)}${sts.length?srow("lkCS",cs):""}
    <b class="lkh">اسمي في الدوري</b>${frow("lkLF",lf)}${sts.length?srow("lkLS",ls):""}`;
@@ -1432,7 +1435,7 @@ function renderProfile(){
     ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec" id="looks">${looksHTML()}</div>
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
-   <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${x.val}</span>`).join("")}</div>
+   <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
    <p style="font-size:.78rem;color:var(--muted);margin-top:6px">اشترِ الملصقات من المتجر، وثبّت أحدها ليظهر على بطاقاتك.</p></div>`+syncHTML();
   bindLooks();
   bindSync();
@@ -1451,7 +1454,7 @@ function renderShop(){
   <div class="shop">${items.map(it=>{
     const mine=it.cat!=="power"&&owned(it.cat,it.id),ek=EQKEY[it.cat];
     const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
-    const pv=it.cat==="namecolor"?`<span class="nc-${it.id}" style="font-size:1.25rem;font-weight:800">${esc(UNAME)}</span>`:it.cat==="frame"?`<div class="frmini fr-${it.id}"></div>`:it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:esc(it.val);
+    const pv=it.cat==="namecolor"?`<span class="nc-${it.id}" style="font-size:1.25rem;font-weight:800">${esc(UNAME)}</span>`:it.cat==="frame"?`<div class="frmini fr-${it.id}"></div>`:it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:stkH(it.val);
     let btn;
     if(it.cat==="power")btn=it.id==="freeze"&&e.s.freezes>=FZ_MAX?`<button class="btn buy" disabled>الحدّ الأقصى ${FZ_MAX}</button>`
       :`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`+(it.id==="freeze"&&!e.s.freezes&&e.gems<it.price&&!fzHelped()?`<button class="btn eq" id="fzHelp" style="margin-top:6px">🆘 اطلب مساعدة المشرف</button><small style="font-size:.7rem;color:var(--muted)">مرة واحدة فقط</small>`:"");
@@ -1474,7 +1477,7 @@ async function buy(cat,id){
   if(!await uiConfirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
   const prev=e,r=ev({type:"buy",cat,id,bid:Date.now().toString(36)+Math.random().toString(36).slice(2,6)});
   if(r!==true){toast("⚠️","تعذّر الشراء",r==="max"?"لديك "+FZ_MAX+" تجميدات، وهذا الحدّ الأقصى":"");return}
-  toast(it.val&&it.cat!=="title"?it.val:"🛍️","تمّ الشراء!",it.name);confetti(50);
+  toast(it.val&&it.cat!=="title"?stkH(it.val):"🛍️","تمّ الشراء!",it.name);confetti(50);
   if(cat!=="power")equip(cat,cat==="avatar"?it.val:id,true);
   celebrate(prev);renderShop();schedSync();
 }
@@ -1615,7 +1618,7 @@ async function showPlayer(row){
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1}${d.title?" · "+esc(d.title):""} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
    <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>🏅 ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
    <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${a.ic}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
-   <h3 class="pch">ألبوم الملصقات (${stickers.filter(x=>have.has(x.val)).length}/${stickers.length})</h3><div class="album">${stickers.map(x=>`<span class="${have.has(x.val)?"":"no"}">${x.val}</span>`).join("")}</div>
+   <h3 class="pch">ألبوم الملصقات (${stickers.filter(x=>have.has(x.val)).length}/${stickers.length})</h3><div class="album">${stickers.map(x=>`<span class="${have.has(x.val)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
    <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;
   $("pcClose").onclick=close;
 }
@@ -1833,7 +1836,7 @@ function renderCfg(){
 /* ================= لوحة الإشراف: محرّر المتجر ================= */
 let SEDCAT="avatar";
 const SED_CATS={...CATS,streak:"🔥 السلسلة"};
-function sedPv(x){return x.cat==="namecolor"?`<span class="nc-${x.id}" style="font-size:.8rem">اسم</span>`:x.cat==="frame"?`<div class="frmini fr-${x.id}"></div>`:x.cat==="theme"?`<div class="sw">${x.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:x.cat==="title"?"🏷️":esc(x.val||"")}
+function sedPv(x){return x.cat==="namecolor"?`<span class="nc-${x.id}" style="font-size:.8rem">اسم</span>`:x.cat==="frame"?`<div class="frmini fr-${x.id}"></div>`:x.cat==="theme"?`<div class="sw">${x.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:x.cat==="title"?"🏷️":stkH(x.val)}
 function renderShopEd(){
   const list=SEDCAT==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===SEDCAT&&!x.streak);
   const tierSel=(v,cls)=>`<select class="${cls}"><option value="">مفتوح</option>${TIERS.map((t,i)=>`<option value="${i}" ${v===i?"selected":""}>${t[1]} ${i+1}</option>`).join("")}</select>`;
