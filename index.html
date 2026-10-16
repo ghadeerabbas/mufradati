@@ -1046,7 +1046,13 @@ function drillView(){
       [x,b].forEach(n=>n&&n.classList.add("no"));setTimeout(drillView,450);
     }
   });
-  $("dQuit").onclick=async()=>{if(await uiConfirm("إذا خرجت الآن فلن يُحسب التدريب ولن تُخصم طاقته. تستطيع العودة إليه من المسار. هل تريد الخروج؟")){DRL=null;reviewHome()}};
+  $("dQuit").onclick=quitDrill;
+}
+// الخروج من التدريب: لا يُحسب، وطاقته لا تُخصم أصلًا (تُخصم عند الإكمال فقط)
+async function quitDrill(){
+  if(!DRL)return;const c=drillCost();
+  if(!await uiConfirm("الخروج من التدريب؟ لن يُحسب"+(c?"، وتبقى طاقتك كاملة دون خصم الـ"+c:"")+". تستطيع العودة إليه من المسار."))return;
+  hideFb();DRL=null;reviewHome();scrollTo(0,0);
 }
 function endDrill(){
   const D=DRL,N=D.words.length,prev=EC||econ();
@@ -2689,6 +2695,8 @@ async function handleBack(){
   const on=document.querySelector(".panel.on"),id=on?on.id:"review";
   if(id==="review"){
     if(STS){quitStation();return}
+    if(DRL){quitDrill();return}
+    if(RES){RES=null;reviewHome();scrollTo(0,0);return}
     if(queue.length){if(await uiConfirm("إنهاء المراجعة الآن؟")){queue=[];RVDONE=null;sessTotal=0;reviewHome()}return}
     if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return;
   }
