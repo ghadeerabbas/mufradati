@@ -27,7 +27,10 @@ jobs:
         run: |
           set +e
           # إزالة أي مسافات أو أسطر زائدة نُسخت مع المفتاح
-          export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]')
+          # إن نُسخ أمر الاختبار كاملًا بدل المفتاح، نأخذ المفتاح الذي بعد كلمة Bearer
+          if printf %s "$T" | grep -q 'Bearer'; then T=$(printf %s "$T" | sed -E 's/.*Bearer[[:space:]]+([A-Za-z0-9_-]+).*/\1/'); fi
+          export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]"')
+          echo "::notice::token length ${#CLOUDFLARE_API_TOKEN}, account length $(printf %s "$A" | tr -d '[:space:]' | wc -c)"
           export CLOUDFLARE_ACCOUNT_ID=$(printf %s "$A" | tr -d '[:space:]')
           npx --yes wrangler@4 deploy > out.txt 2>&1; code=$?
           cat out.txt
