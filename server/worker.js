@@ -455,6 +455,10 @@ async function leagueStep(fs, uid, prof, now, writes) {
   if (!same) writes.push({ path, data: { ...doc, ts: { __ts: now } } });
 }
 
+/* ---------- طلب واحد في كل مرة: المنطق المشترك يعمل على متغيّرات عامة ---------- */
+let LOCK = Promise.resolve();
+function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () => { }); return p }
+
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
@@ -532,7 +536,7 @@ export default {
       const fs = env.__fs || makeFS(env);
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = await handleSync(fs, user, body); break }
+        try { out = await serial(() => handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       return new Response(JSON.stringify(out.json), { status: out.status, headers: { ...H, "Content-Type": "application/json" } });
