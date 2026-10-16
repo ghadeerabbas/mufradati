@@ -1530,9 +1530,11 @@ function bindNameBox(){
 // للمشرف: طلبات تغيير الأسماء
 let NAMEREQ=[];
 let JOINS=[];
+let NAMES={};   // الأسماء الظاهرة الموافَق عليها (للمشرف)
+const uName=u=>NAMES[u.id]||u.name||"مستخدم";
 async function loadNameReqs(){
   if(!isAdmin())return;
-  try{const q=await db.collection("names").get();NAMEREQ=q.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.pending)}catch(e){NAMEREQ=[]}
+  try{const q=await db.collection("names").get();const all=q.docs.map(d=>({id:d.id,...d.data()}));NAMEREQ=all.filter(x=>x.pending);NAMES={};all.forEach(x=>{if(x.name)NAMES[x.id]=x.name})}catch(e){NAMEREQ=[]}
   try{const q=await db.collection("join").get();JOINS=q.docs.map(d=>({id:d.id,...d.data()}))}catch(e){JOINS=[]}
   const n=NAMEREQ.length+JOINS.length,b=$("uBadge");if(b){b.textContent=n;b.classList.toggle("on",n>0)}
 }
@@ -1978,7 +1980,7 @@ function renderUserList(){
   </div>
   <div class="ufilter"><button data-f="all" class="${uFilter==="all"?"on":""}">الكل</button>${Object.keys(UST).map(k=>cnt(k)?`<button data-f="${k}" class="${uFilter===k?"on":""}">${UST[k][0]} ${cnt(k)}</button>`:"").join("")}</div>
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
-   <div class="top"><b>${esc(u.name||"مستخدم")}${sm.login&&sm.login!==u.name?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
+   <div class="top"><b>${esc(uName(u))}${sm.login&&sm.login!==uName(u)?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
    <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
   $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};bindNameReqs();bindJoins();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
@@ -1988,7 +1990,8 @@ function renderUser(){
   const el=$("users"),u=USERS.find(x=>x.id===uOpen);if(!u){uOpen=null;return renderUserList()}
   const sm=u.sum,f=FEEDS[u.id];
   const lb=[...Array(14)].map((_,i)=>new Date(Date.now()-(13-i)*DAY).getDate());
-  el.innerHTML=`<div class="mhead"><h2>${esc(u.name||"مستخدم")}</h2><button class="btn" id="uBack">→ رجوع</button></div>
+  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}</h2><button class="btn" id="uBack">→ رجوع</button></div>
+  <div class="rsec"><h3>✏️ اسمه الظاهر</h3><div class="strow"><input id="uNm" class="stin" maxlength="40" value="${esc(uName(u))}" autocomplete="off"><button class="btn stbtn" id="uNmBtn">حفظ</button></div><div class="stmsg" id="uNmMsg"></div></div>
   <div style="margin-bottom:10px"><span class="ust" style="--sc:${UST[u.st][1]};background:${UST[u.st][1]}">${UST[u.st][0]}</span></div>
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
   <div class="kpis">
@@ -2014,9 +2017,19 @@ function renderUser(){
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   renderAssign(u.id);bindGiftBox(u.id);
   $("uWipe").onclick=()=>wipeUser(u);
+  $("uNmBtn").onclick=async()=>{
+    const v=$("uNm").value.trim().replace(/\s+/g," "),m=$("uNmMsg");
+    if(!v||v.length>40){m.textContent="اكتب اسمًا من 1 إلى 40 حرفًا";m.className="stmsg bad";return}
+    if(v===uName(u))return;
+    const dup=USERS.some(x=>x.id!==u.id&&uName(x).toLowerCase()===v.toLowerCase());
+    if(dup&&!await uiConfirm("الاسم «"+v+"» يستعمله مستخدم آخر. هل تريد اعتماده رغم ذلك؟"))return;
+    try{await nref(u.id).set({name:v,pending:"",okAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});NAMES[u.id]=v;
+      m.textContent="✓ صار اسمه «"+v+"». يظهر له فورًا، وفي الدوري عند فتحه التطبيق";m.className="stmsg ok";el.querySelector(".mhead h2").textContent=v}
+    catch(e){m.textContent="تعذّر الحفظ، تحقّق من الاتصال";m.className="stmsg bad"}
+  };
 }
 async function wipeUser(u){
-  const nm=u.name||"";
+  const nm=uName(u);
   if(!await uiConfirm("⚠️ ستُحذف كل بيانات «"+nm+"»: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري.\nلا يمكن التراجع. هل تريد المتابعة؟"))return;
   const v=((await uiPrompt("للتأكيد، اكتب اسمه كما هو: "+nm))||"").trim();
   if(v!==nm.trim()){if(v)await uiAlert("الاسم غير مطابق. لم يُحذف شيء.");return}
