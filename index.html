@@ -1046,12 +1046,12 @@ function finishStation(){
   celebrate(prev);schedSync();reviewHome();scrollTo(0,0);
 }
 function startReviewList(list){
-  queue=[...list];sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length};STS=null;
+  queue=[...list];sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length,t0:Date.now(),xp0:econ().xp,fail:new Set};STS=null;
 }
 function startReview(state,n){
   let list=stateList(state);
   list=state==="due"?list.sort((a,b)=>P[a.k].due-P[b.k].due):shuffle(list);
-  queue=list.slice(0,n);sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length};showCard();scrollTo(0,0);
+  queue=list.slice(0,n);sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length,t0:Date.now(),xp0:econ().xp,fail:new Set};showCard();scrollTo(0,0);
 }
 function reviewHome(){
   if(STS)return stationView();
@@ -1114,7 +1114,10 @@ function reviewPills(){
 function showCard(){
   const el=$("review");
   if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
-  if(!queue.length){if(RVDONE&&sessTotal&&sessDone>=sessTotal)RVDONE.finished=true;reviewHome();return}
+  if(!queue.length){
+    if(RVDONE&&RVDONE.mode==="review"&&sessTotal&&sessDone>=sessTotal){const D=RVDONE,n=D.n||1;
+      RES={title:"أحسنت! راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
+    reviewHome();scrollTo(0,0);return}
   cur=queue[0];flipped=false;
   const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${stkH(stkVal(E.sticker))}</span>`:"";
   const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
@@ -1144,11 +1147,10 @@ function rate(r,btn){
   if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;markStudied();
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
   queue.shift();sessDone++;
-  if(RVDONE&&RVDONE.mode==="review")rvRated++;
+  if(RVDONE&&RVDONE.mode==="review"){rvRated++;if(r<2&&RVDONE.fail)RVDONE.fail.add(cur.k)}
   if(enNow()>en0){renderEnergy();setTimeout(()=>floatAt($("hEn"),"+1 🔋"),150)}
   if(r===0){queue.splice(Math.min(3,queue.length),0,cur);sessTotal++}
   celebrate(prev);
-  if(!queue.length)confetti(140);
   schedSync();
   setTimeout(showCard,r===0?380:220);
 }
