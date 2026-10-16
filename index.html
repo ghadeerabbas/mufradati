@@ -459,7 +459,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=3"></script>
+<script src="core.js?v=4"></script>
 <script>
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
@@ -644,6 +644,18 @@ function stateList(id){
   const st=RSTATES.find(x=>x[0]===id),now=Date.now(),last={};for(const x of LOG)last[x[1]]=x[2];
   return uniq(filtered()).filter(w=>P[w.k]&&st[2](w,P[w.k],now,last[w.k]??2));
 }
+// أنهى كل كلمات منهجه: يطلب منهجًا جديدًا من المشرف برسالة
+function courseDoneHTML(){
+  const others=MY_COURSES.filter(c=>c!==COURSE&&COURSES[c]),sent=st(K("crq_"+COURSE))==="1";
+  return `<p class="stok">🎉 أنهيت كل كلمات منهج «${esc((COURSES[COURSE]||{}).name||"")}».</p>`+
+   (others.length?'<p class="rnote">تستطيع أن تنتقل إلى منهج آخر من مناهجك في الإعدادات، أو أن تطلب منهجًا جديدًا.</p>':"")+
+   (sent?'<p class="rnote">✓ أرسلت طلب منهج جديد إلى المشرف، وسيصلك رده في الرسائل.</p>':'<button class="btn next" id="crqBtn">📘 اطلب منهجًا جديدًا من المشرف</button>');
+}
+async function askNewCourse(){
+  if(TH&&TH.state==="waiting"){toast("✉️","رسالتك السابقة تنتظر الرد","اطلب المنهج بعد أن يردّ المشرف");return}
+  try{await userMsg("📘 أنهيت كل كلمات منهج «"+((COURSES[COURSE]||{}).name||COURSE)+"». أطلب منهجًا جديدًا.");st(K("crq_"+COURSE),"1");toast("✅","أُرسل طلبك إلى المشرف","");reviewHome()}
+  catch(e){toast("⚠️","تعذّر الإرسال","تحقّق من الاتصال")}
+}
 // الطاقة لا تكفي للمحطة: كيف يحصل عليها، ومراجعة المستحقّ مباشرة إن وُجد
 // العدد مع المعدود: 1 ساعة، 2 ساعتان، 3–10 ساعات، 11 فأكثر ساعة
 const arN=(n,one,two,few)=>n===1?one:n===2?two:n>=3&&n<=10?n+" "+few:n+" "+one;
@@ -661,7 +673,7 @@ async function noEnergy(){
 function startStation(){
   const fresh=uniq(filtered()).filter(w=>!P[w.k]);
   if(!fresh.length||stToday()>=ST_MAX)return;
-  if(enNow()<ST_COST){noEnergy();return}
+  if(enNow()<stCostAt(Date.now())){noEnergy();return}
   if(ev({type:"stStart"})!==true)return;renderEnergy();
   STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[]};
   RVDONE=null;stationView();scrollTo(0,0);
@@ -691,8 +703,9 @@ function stationView(){
 // الخروج قبل الإكمال: لا تُحسب المحطة، ويُستعاد نصف الطاقة
 async function quitStation(){
   if(!STS)return;
-  if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها، وستستعيد "+(ST_COST/2)+" طاقة فقط من "+ST_COST+". هل تريد الخروج؟"))return;
-  STS=null;ev({type:"stQuit"});renderEnergy();toast("🔋","استعدت "+(ST_COST/2)+" طاقة","");reviewHome();
+  const free=!stCostAt(STV||Date.now()),rf=CFG.energy.refund;
+  if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها"+(free?"، وتبقى محطتك المجانية متاحة لتبدأها من جديد":"، وستستعيد "+rf+" طاقة فقط من "+ST_COST)+". هل تريد الخروج؟"))return;
+  STS=null;ev({type:"stQuit"});renderEnergy();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","");reviewHome();
 }
 function finishStation(){
   const S_=STS,now=Date.now(),prev=EC||econ();
@@ -713,7 +726,7 @@ function reviewHome(){
   if(STS)return stationView();
   const el=$("review"),f=uniq(filtered()),learned=f.filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
-  const done=stToday(),en=enNow(),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
+  const done=stToday(),en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
   if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
   const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><div class="big">🏆</div><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
@@ -722,8 +735,8 @@ function reviewHome(){
   <div class="rsec rvbox"><h3>🛤️ الدراسة: مسار اليوم</h3>
    <div class="path">${[0,1,2,3].map(i=>node(i)+(i<3?`<i class="pl ${i<done?"ok":""}"></i>`:"")).join("")}</div>
    ${done>=ST_MAX?'<p class="stok">🎉 أنهيت مسار اليوم: '+(ST_MAX*ST_WORDS)+' كلمة جديدة. عُد غدًا، وراجع ما تعلّمته الآن.</p>'
-     :!fresh?'<p class="rnote">تعلّمت كل كلمات هذا الاختيار. اختر يومًا أو منهجًا آخر من الأعلى.</p>'
-     :`<button class="btn next" id="stStart" ${en<ST_COST?'style="opacity:.6"':""}>${en<ST_COST?"🪫 ":""}ابدأ المحطة ${done+1}</button>`}
+     :!fresh?(allDone?courseDoneHTML():'<p class="rnote">تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى لتتعلّم كلمات أخرى.</p>')
+     :`<button class="btn next" id="stStart" ${en<cost?'style="opacity:.6"':""}>${en<cost?"🪫 ":""}ابدأ المحطة ${done+1}${cost?"":" · مجانية 🎁"}</button>`}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>🔁 المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
@@ -734,6 +747,7 @@ function reviewHome(){
   </div>`:`<div class="rsec rvbox"><h3>🔁 المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
   const sb=$("stStart");if(sb)sb.onclick=startStation;
+  const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
     $("rvGo").onclick=()=>{if(RVN)startReview(RVSTATE,Math.min(RVN,cnt))}}
@@ -1699,7 +1713,7 @@ function renderCfg(){
    <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
-   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}
+   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}</div>
   <div class="rsec"><h3>❄️ تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
   <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
@@ -1711,7 +1725,7 @@ function renderCfg(){
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
-    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm")};c.station={words:v("s_w"),perDay:v("s_d")};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0};c.station={words:v("s_w"),perDay:v("s_d")};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
