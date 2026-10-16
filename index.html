@@ -139,6 +139,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .count{font-size:.85rem;color:var(--muted);margin-bottom:8px}
 .pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px}.pager span{font-size:.85rem;color:var(--muted)}.pager .btn{background:var(--navy);color:#fff;padding:9px 14px}.pager .btn:disabled{opacity:.35}
 /* ===== الاختبار ===== */
+.hear{font-size:2.6rem;width:92px;height:92px;border-radius:50%;border:none;background:var(--navy);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer;margin:6px 0 16px}
+.hear:active{transform:scale(.94)}
 .qword{font-size:1.5rem;font-weight:700;color:var(--hd);text-align:center;margin:8px 0 14px}
 .opt{display:block;width:100%;text-align:right;background:var(--card);color:var(--ink);border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
 .opt.ok{background:#22c55e22;border-color:var(--green)}.opt.no{background:#ef444422;border-color:var(--red)}
@@ -898,6 +900,7 @@ const GAMES=[
  {id:"cloze",ic:"✍️",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
  {id:"art",ic:"🎯",n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
  {id:"type",ic:"⌨️",n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
+ {id:"listen",ic:"🎧",n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
  {id:"match",ic:"🧩",n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
  {id:"s5",ic:"⏱️",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
 ];
@@ -906,9 +909,10 @@ function gamePool(id){
   if(id==="cloze")return all.filter(w=>clozeOf(w));
   if(id==="art")return all.filter(w=>nounOf(w));
   if(id==="type")return all.filter(w=>answersOf(w).length);
+  if(id==="listen")return canSpeak()?all.filter(w=>answersOf(w).length):[];
   return all;
 }
-const gameMin={cloze:4,art:4,type:4,match:6,s5:4};
+const gameMin={cloze:4,art:4,type:4,listen:4,match:6,s5:4};
 let GM=null,GTICK=null;
 const stopTick=()=>{clearInterval(GTICK);GTICK=null};
 const bestMatch=()=>{const t=QLOG.filter(q=>q[3]==="match"&&q[1]===q[2]&&q[4]).map(q=>q[4]);return t.length?Math.min(...t):0};
@@ -919,7 +923,7 @@ function renderGames(){
   const bm=bestMatch();
   el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
-     <em>${ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"لا كلمات كافية في هذا الاختيار"}</em></button>`}).join("")}</div>
+     <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"لا كلمات كافية في هذا الاختيار"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ كلمات الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = 💎 وخبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
 }
@@ -929,11 +933,14 @@ function startGame(id){
   if(id==="match"){GM.words=pickWords(pool,6);GM.left=new Set(GM.words.map(w=>w.k));GM.miss=0;GM.sel=null;GM.ar=shuffle([...GM.words]);GM.de=shuffle([...GM.words])}
   else if(id==="s5"){GM.end=Date.now()+5*60*1000;stopTick();GTICK=setInterval(()=>{if(!GM||GM.id!=="s5"){stopTick();return}
       if(Date.now()>=GM.end){finishGame();return}const r=$("gTime");if(r)r.textContent=clock(GM.end-Date.now())},500);GM.q=nextMixed()}
-  else{GM.list=pickWords(pool,10);GM.q=makeQ(id,GM.list[0])}
+  else{if(id==="listen")GM.kinds=shuffle(["lmc","lmc","lmc","lmc","lmc","ltype","ltype","ltype","ltype","ltype"]);GM.list=pickWords(pool,10);GM.q=makeQ(id,GM.list[0])}
   gameView();scrollTo(0,0);
 }
 const clock=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+const hearOf=w=>answersOf(w)[0];
 function makeQ(kind,w){
+  if(kind==="listen")kind=GM&&GM.kinds?GM.kinds[GM.i]||"lmc":"lmc";
+  if(kind==="lmc"){const q=makeQ("mc",w);q.kind="lmc";return q}
   if(kind==="mc"){const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(pool.filter(x=>x.t===w.t));return {kind,w,opts:shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)])}}
   if(kind==="cloze"){
     // الخيارات بالصيغة نفسها التي في الجملة (fährt مع holt وfällt، لا مع fahren)، وتُفضَّل الكلمات ذات النهاية نفسها
@@ -946,7 +953,7 @@ function makeQ(kind,w){
   return {kind,w};
 }
 function nextMixed(){
-  const kinds=[["mc",uniq(filtered())],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
+  const kinds=[["mc",uniq(filtered())],["lmc",gamePool("listen")],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
   const [kind,pool]=kinds[Math.random()*kinds.length|0];
   const last=GM&&GM.q?GM.q.w.k:null;const cand=pickWords(pool.filter(w=>w.k!==last),1);
   return makeQ(kind,cand[0]||pool[0]);
@@ -966,13 +973,20 @@ function gameView(){
     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}`;
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
     <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
+  else if(q.kind==="lmc"||q.kind==="ltype")body=`<p class="ghint">${q.kind==="lmc"?"استمع، ثم اختر المعنى:":"استمع، ثم اكتب ما سمعته بالألمانية:"}</p>
+    <div style="text-align:center"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">🔊</button></div>
+    ${q.kind==="lmc"?q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join(""):
+    `<input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
+    <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
+    <button class="btn next" id="gCheck">تحقّق</button>`}`;
   else if(q.kind==="type")body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
     <input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <button class="btn next" id="gCheck">تحقّق</button>`;
   el.innerHTML=gameHead()+`<div class="box" id="gBox">${body}<div id="gFb"></div></div>`;
   $("gQuit").onclick=finishGame;
-  if(q.kind==="mc"||q.kind==="cloze")el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
+  if(q.kind==="lmc"||q.kind==="ltype"){const h=$("gHear");h.onclick=()=>speak(hearOf(w));if(!q.played){q.played=1;setTimeout(()=>speak(hearOf(w)),250)}}
+  if(q.kind==="mc"||q.kind==="cloze"||q.kind==="lmc")el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
     if(GM.answered)return;const ok=b.dataset.k===w.k;
     el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
     if(q.kind==="cloze"){const bl=$("gBlank");bl.textContent=q.c.word;bl.classList.add(ok?"good":"bad")}
@@ -983,7 +997,7 @@ function gameView(){
     el.querySelectorAll(".artb").forEach(x=>{if(x.dataset.a===nn.art)x.classList.add("ok");else if(x===b)x.classList.add("no")});
     answered(ok,b,ok?600:0);
   });
-  if(q.kind==="type"){
+  if(q.kind==="type"||q.kind==="ltype"){
     const inp=$("gIn");setTimeout(()=>inp.focus(),50);
     el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1)});
     const go=()=>{if(GM.answered)return;if(!inp.value.trim()){inp.focus();return}
@@ -997,7 +1011,7 @@ function answered(ok,el,auto){
   const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++;floatAt(el,"+1 💎")}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
   (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);markStudied();
   let fb="";
-  if(q.kind==="type"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
+  if(q.kind==="type"||q.kind==="ltype"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
     :`<div class="gres bad">الجواب الصحيح:</div><div class="gans de">${diffHTML(coreOf(r.a)||r.a,coreOf(GM.typed.v))}</div>`}
   else if(q.kind==="art"&&!ok){const nn=nounOf(w);fb=`<div class="gres bad">الصحيح: <span class="de art-${nn.art}">${esc(nn.art+" "+nn.noun)}</span></div>`}
   fb+=`<div class="gword"><span class="de">${artHTML(w.de)}</span> ${sayBtn(w.de)} <span class="m">${esc(w.ar)}</span></div>`;
