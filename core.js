@@ -65,7 +65,7 @@ const SHOP=[
  // ألوان الاسم في الدوري (القرمزي للمشرف وحده، والعادي أسود نهارًا وأبيض ليلًا)
  ...[["none","اللون العادي",0],["red","أحمر",150],["green","أخضر",150],["blue","أزرق",150],["orange","برتقالي",250],["purple","بنفسجي",250],["pink","وردي",350],["teal","فيروزي",350],
      ["brown","بنّي",500],["silver","فضّي بحافة",800],["gold","ذهبي بحافة",1200],["emerald","زمرّدي بحافة",1500],["sapphire","ياقوتي بحافة",2000]].map(([id,n,p])=>({id,cat:"namecolor",name:n,price:p,val:"🎨"})),
- {id:"freeze",cat:"power",name:"تجميد السلسلة",price:300,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
+ {id:"freeze",cat:"power",name:"تجميد السلسلة",price:25,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
 ];
 // كل هدايا المتجر تنفتح بالصعود في الدوري (رقم الدوري الذي يفتح كل غرض؛ ما لم يُذكر يكون مفتوحًا)
 const NCOL={red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,silver:1,gold:1,emerald:1,sapphire:1,admin:1};
@@ -75,7 +75,11 @@ const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10
  sticker:{s0:0,s1:0,s2:0,s3:1,s4:1,s5:1,s6:2,s7:2,s8:3,s9:3,s10:4,s11:5,s12:5,s13:6,s14:8,s15:9},
  confetti:{stars:1,hearts:2,gems:4,fireworks:6},
  namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,silver:4,gold:5,emerald:7,sapphire:9}};
-SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t});
+SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t;if(x.cat!=="power")x.price=Math.round(x.price/2)});   // الأسعار نصف ما كانت
+const FZ_MAX=3;
+// هدية التجميد من المشرف (مساعدة لمرة واحدة): هدية ملاحظتها تبدأ بـ ❄️، تُحسب تجميدًا لا جواهر
+const isFzGift=g=>String(g.note||"").startsWith("❄️");
+const giftTs=g=>!g.ts?0:g.ts.toMillis?g.ts.toMillis():g.ts.ms||+g.ts||0;
 const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
 const stkVal=v=>{if(!v)return"";const it=/^s\d+$/.test(v)?SHOP.find(x=>x.cat==="sticker"&&x.id===v):null;return it?it.val:v};
@@ -144,7 +148,7 @@ function econ(){
     xp+=(x.n>=20?10:0)}
   for(const q of QLOG){xp+=q[1];if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
-  const fz=BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)).sort();
+  const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
   const days=Object.keys(per).sort();let fi=0,avail=0;
   if(days.length){
@@ -172,7 +176,7 @@ function econ(){
   return EC;
 }
 
-const giftSum=()=>(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).reduce((a,g)=>a+(g.g||0),0);
+const giftSum=()=>(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(g=>!isFzGift(g)).reduce((a,g)=>a+(g.g||0),0);
 
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ في يوم (وحدة كل 48 دقيقة) --- */
 const EN_MAX=30,EN_STEP=DAY/EN_MAX,ST_COST=10,ST_WORDS=5,ST_MAX=4;
@@ -308,6 +312,7 @@ function applyAt(ev,T,now,ctx){
   if(T==="buy"){
     const it=itemOf(ev.cat,ev.id);if(!it||!it.price&&it.cat!=="power")return "item";
     if(it.cat!=="power"&&owned(it.cat,it.id))return "owned";
+    if(it.id==="freeze"&&econ().s.freezes>=FZ_MAX)return "max";
     if(!ctx.admin&&it.cat!=="power"&&(it.tier||0)>bestTier())return "locked";
     if(econ().gems<it.price)return "gems";
     BUY.push({id:String(ev.bid||now.toString(36)).slice(0,20),item:it.cat+":"+it.id,p:it.price,ts:now});return true;

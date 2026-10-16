@@ -180,7 +180,7 @@ async function handleSync(fs, user, body) {
   if (coreD) c = parseJ(coreD.data.v, {});
   else { const m = parseJ(u.main, {}); c = { P: m.P, QLOG: m.QLOG, BUY: m.BUY, R: m.R, LG: m.LG, EN: m.EN, STN: m.STN, STV: 0 } }
   setState(c, parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
-  GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0 }));
+  GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
   const before = { log: LOG.length, qa: QA.length, core: JSON.stringify(coreObj()) };
   // الأحداث
   const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [];

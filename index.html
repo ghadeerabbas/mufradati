@@ -1283,7 +1283,7 @@ let shopCat="avatar";
 function renderShop(){
   const e=econ(),el=$("shop"),oc=el.querySelector(".cats"),sx=oc?oc.scrollLeft:null;
   const items=SHOP.filter(x=>x.cat===shopCat);
-  el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمراجعة 💪</small></div></div>
+  el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمحطات والدوري 💪</small></div></div>
   <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}</div>
   ${shopCat!=="power"?`<p class="rnote" style="margin-bottom:8px">كلما صعدت في الدوري انفتحت هدايا أجمل. أعلى دوري وصلته: ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
   <div class="shop">${items.map(it=>{
@@ -1291,16 +1291,18 @@ function renderShop(){
     const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
     const pv=it.cat==="namecolor"?`<span class="nc-${it.id}" style="font-size:1.25rem;font-weight:800">${esc(UNAME)}</span>`:it.cat==="frame"?`<div class="frmini fr-${it.id}"></div>`:it.cat==="theme"?`<div class="sw">${it.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:it.cat==="title"?`<span style="font-size:1.4rem">🏷️</span>`:esc(it.val);
     let btn;
-    if(it.cat==="power")btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
+    if(it.cat==="power")btn=it.id==="freeze"&&e.s.freezes>=FZ_MAX?`<button class="btn buy" disabled>الحدّ الأقصى ${FZ_MAX}</button>`
+      :`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`+(it.id==="freeze"&&!e.s.freezes&&e.gems<it.price&&!fzHelped()?`<button class="btn eq" id="fzHelp" style="margin-top:6px">🆘 اطلب مساعدة المشرف</button><small style="font-size:.7rem;color:var(--muted)">مرة واحدة فقط</small>`:"");
     else if(!mine&&itemLocked(it))btn=`<button class="btn buy" disabled>🔒 ${TIERS[it.tier][1]} ${TIERS[it.tier][0]}</button>`;
     else if(!mine)btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
     else if(isEq)btn=it.cat==="sticker"?`<button class="btn eqd" data-uneq="1">مثبّت ✓ (إزالة)</button>`:`<button class="btn eqd" disabled>مُستخدم ✓</button>`;
     else btn=`<button class="btn eq" data-eq="${esc(eqv)}">استخدام</button>`;
-    return `<div class="si ${mine?"mine":""}"><div class="pv" style="${it.cat==="theme"?"background:"+it.sw[0]:""}">${pv}</div><div class="nm">${esc(it.name)}</div>${it.desc?`<small style="font-size:.7rem;color:var(--muted)">${it.desc} · لديك ${e.s.freezes}</small>`:""}${btn}</div>`}).join("")}</div>`;
+    return `<div class="si ${mine?"mine":""}"><div class="pv" style="${it.cat==="theme"?"background:"+it.sw[0]:""}">${pv}</div><div class="nm">${esc(it.name)}</div>${it.desc?`<small style="font-size:.7rem;color:var(--muted)">${it.desc} · لديك ${e.s.freezes} من ${FZ_MAX}</small>`:""}${btn}</div>`}).join("")}</div>`;
   // يبقى شريط الأقسام حيث كان، ويظهر القسم المختار فيه
   {const nc=el.querySelector(".cats");if(nc){if(sx!=null)nc.scrollLeft=sx;const on=nc.querySelector(".on");if(on){const r=on.getBoundingClientRect(),cr=nc.getBoundingClientRect();if(r.left<cr.left||r.right>cr.right)on.scrollIntoView({inline:"nearest",block:"nearest"})}}}
   el.querySelectorAll(".cats button").forEach(b=>b.onclick=()=>{shopCat=b.dataset.c;renderShop()});
   el.querySelectorAll("[data-buy]").forEach(b=>b.onclick=()=>buy(shopCat,b.dataset.buy));
+  const fh=$("fzHelp");if(fh)fh.onclick=askFreezeHelp;
   el.querySelectorAll("[data-eq]").forEach(b=>b.onclick=()=>equip(shopCat,b.dataset.eq));
   el.querySelectorAll("[data-uneq]").forEach(b=>b.onclick=()=>equip("sticker",""));
 }
@@ -1308,7 +1310,7 @@ async function buy(cat,id){
   const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price||itemLocked(it))return;
   if(!await uiConfirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
   const prev=e,r=ev({type:"buy",cat,id,bid:Date.now().toString(36)+Math.random().toString(36).slice(2,6)});
-  if(r!==true){toast("⚠️","تعذّر الشراء","");return}
+  if(r!==true){toast("⚠️","تعذّر الشراء",r==="max"?"لديك "+FZ_MAX+" تجميدات، وهذا الحدّ الأقصى":"");return}
   toast(it.val&&it.cat!=="title"?it.val:"🛍️","تمّ الشراء!",it.name);confetti(50);
   if(cat!=="power")equip(cat,cat==="avatar"?it.val:id,true);
   celebrate(prev);renderShop();schedSync();
@@ -1551,7 +1553,8 @@ function watchGifts(){
     const seen=new Set(jget(K("giftSeen"),[])),fresh=GIFTS.filter(g=>!seen.has(g.id));
     econ();renderHeader();
     const on=document.querySelector(".panel.on");if(on&&(on.id==="shop"||on.id==="profile"))renderPanel(on.id);
-    if(fresh.length&&!isAdmin()){const n=fresh.reduce((a,g)=>a+g.g,0),note=fresh.map(g=>g.note).filter(Boolean)[0];toast("🎁","وصلتك هدية: "+n+" 💎",note||"من المشرف");confetti(100)}
+    if(fresh.length&&!isAdmin()){const fz=fresh.filter(isFzGift),gm=fresh.filter(g=>!isFzGift(g)),n=gm.reduce((a,g)=>a+g.g,0),note=gm.map(g=>g.note).filter(Boolean)[0];
+      if(n)toast("🎁","وصلتك هدية: "+n+" 💎",note||"من المشرف");if(fz.length)toast("❄️","وصلك تجميد للسلسلة من المشرف","مساعدة لمرة واحدة");confetti(100)}
     st(K("giftSeen"),JSON.stringify(GIFTS.map(g=>g.id)));
   },()=>{});
 }
@@ -1559,14 +1562,22 @@ function giftBoxHTML(uid){
   return `<h3>🎁 إضافة جواهر${uid===UID?" لنفسك":""}</h3>
    <div class="numpicks" id="gfAmt">${[50,100,250,500,1000,5000].map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>
    <div class="strow" style="margin-top:8px"><input id="gfN" class="stin" type="number" min="1" max="100000" inputmode="numeric" placeholder="أو اكتب العدد"><input id="gfNote" class="stin" maxlength="100" placeholder="ملاحظة (اختياري)"></div>
-   <button class="btn stbtn" id="gfSend" style="width:100%;margin-top:8px">إرسال الجواهر</button><div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
+   <button class="btn stbtn" id="gfSend" style="width:100%;margin-top:8px">إرسال الجواهر</button>
+   <button class="btn" id="gfFz" style="width:100%;margin-top:8px">❄️ إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button><div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
 }
 async function bindGiftBox(uid){
   const box=$("giftBox");if(!box)return;
   const hist=async()=>{try{const q=uid===UID?{docs:GIFTS.map(g=>({data:()=>g}))}:await gref(uid).get();const l=q.docs.map(d=>d.data());
-    $("gfHist").textContent=l.length?"أُرسل له حتى الآن: "+l.reduce((a,g)=>a+(g.g||0),0)+" 💎 في "+l.length+" مرة":""}catch(e){}};
+    const gm=l.filter(g=>!isFzGift(g)),fzN=l.length-gm.length;
+    $("gfHist").textContent=(gm.length?"أُرسل له حتى الآن: "+gm.reduce((a,g)=>a+(g.g||0),0)+" 💎 في "+gm.length+" مرة":"")+(fzN?" · أخذ مساعدة التجميد":"");
+    const fb=$("gfFz");if(fb){fb.disabled=!!fzN;if(fzN)fb.textContent="❄️ أخذ مساعدة التجميد من قبل"}}catch(e){}};
   hist();
   $("gfAmt").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;$("gfN").value=b.dataset.v;$("gfAmt").querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b))};
+  $("gfFz").onclick=async()=>{
+    const m=$("gfMsg");if(!await uiConfirm("إرسال تجميد واحد للسلسلة"+(uid===UID?" لنفسك":"")+"؟ (مساعدة لمرة واحدة)"))return;
+    try{await gref(uid).add({g:1,note:"❄️ تجميد السلسلة (مساعدة لمرة واحدة)",ts:firebase.firestore.FieldValue.serverTimestamp()});m.textContent="✓ أُرسل التجميد";m.className="stmsg ok";setTimeout(hist,500)}
+    catch(e){m.textContent="تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad"}
+  };
   $("gfSend").onclick=async()=>{
     const n=Math.floor(+$("gfN").value),m=$("gfMsg"),note=$("gfNote").value.trim().slice(0,100);
     if(!(n>=1&&n<=100000)){m.textContent="اختر عددًا بين 1 و100000";m.className="stmsg bad";return}
@@ -1578,6 +1589,24 @@ async function bindGiftBox(uid){
     catch(e){m.textContent=e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase":"تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad"}
     $("gfSend").disabled=false;
   };
+}
+
+/* ================= تجميد السلسلة: تذكير ومساعدة ================= */
+const fzHelped=()=>GIFTS.some(isFzGift)||st(K("fzAsk"))==="1";
+async function askFreezeHelp(){
+  if(fzHelped()){toast("❄️","طلبت المساعدة من قبل","مساعدة التجميد مرة واحدة فقط");return}
+  if(TH&&TH.state==="waiting"){toast("✉️","رسالتك السابقة تنتظر الرد","اطلب المساعدة بعد أن يردّ المشرف");return}
+  if(!await uiConfirm("سيُرسل إلى المشرف طلب تجميد واحد للسلسلة.\nهذه المساعدة مرة واحدة فقط. هل تريد الإرسال؟"))return;
+  try{await userMsg("❄️ أطلب تجميدًا واحدًا للسلسلة (مساعدة لمرة واحدة): ليس لديّ تجميد ولا جواهر تكفي لشرائه.");st(K("fzAsk"),"1");toast("✅","أُرسل طلبك إلى المشرف","");renderShop()}
+  catch(e){toast("⚠️","تعذّر الإرسال","تحقّق من الاتصال")}
+}
+// تذكير مرة في اليوم: بقي تجميد واحد، أو لا تجميد ولا جواهر تكفي
+function freezeReminder(){
+  if(isAdmin()||st(K("fzRem"))===today())return;const e=econ(),fz=e.s.freezes,price=itemOf("power","freeze").price;
+  if(fz===1){st(K("fzRem"),today());toast("❄️","بقي لديك تجميد واحد للسلسلة","اشترِ غيره من المتجر ليحمي سلسلتك")}
+  else if(fz===0&&e.s.streak>0){st(K("fzRem"),today());
+    if(e.gems>=price)toast("❄️","ليس لديك تجميد للسلسلة","اشترِ واحدًا من المتجر بـ "+price+" 💎");
+    else if(!fzHelped())toast("🆘","ليس لديك تجميد ولا جواهر تكفي","اطلب مساعدة المشرف من المتجر، مرة واحدة فقط")}
 }
 
 /* ================= شاشة الدخول ================= */
@@ -1635,6 +1664,7 @@ async function onLogin(user){
   startMessages();
   $("usersBtn").style.display=isAdmin()?"":"none";
   await syncNow(true);
+  setTimeout(freezeReminder,2500);
   setTimeout(maybeAskFeedback,4000);
 }
 
@@ -1659,7 +1689,7 @@ function startMessages(){
   }else{
     unsubs.push(tref(UID).onSnapshot(d=>{
       const was=TH&&TH.unreadUser;TH=d.exists?d.data():null;setBadge(TH&&TH.unreadUser?1:0);
-      if(TH&&TH.unreadUser&&!was)toast("✉️","وصلك رد من غدير","افتح الرسائل لقراءته");
+      if(TH&&TH.unreadUser&&!was)toast("✉️","وصلك رد من المشرف","افتح الرسائل لقراءته");
       if($("messages").classList.contains("on"))renderMessages();
     },()=>{}));
     unsubs.push(tref(UID).collection("msgs").orderBy("ts").onSnapshot(q=>{MSGS=q.docs.map(d=>d.data());if($("messages").classList.contains("on"))renderMessages()},()=>{}));
@@ -1683,18 +1713,19 @@ function renderMessages(){
   if(isAdmin())return openTh?renderAdminThread():renderInbox();
   const waiting=TH&&TH.state==="waiting";
   const uc=TH&&TH.userClr?tsMs(TH.userClr):0,shown=uc?MSGS.filter(m=>tsMs(m.ts)>uc):MSGS;
-  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة غدير</h2>${shown.length?'<button class="btn" id="mClr">🗑️ مسح السجل</button>':""}</div>${chatHTML(shown,"user")}
-   ${waiting?'<div class="wait">⏳ رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ غدير.</div>':composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
+  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة المشرف</h2>${shown.length?'<button class="btn" id="mClr">🗑️ مسح السجل</button>':""}</div>${chatHTML(shown,"user")}
+   ${waiting?'<div class="wait">⏳ رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ المشرف.</div>':composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
   if(TH&&TH.unreadUser)tref(UID).update({unreadUser:false}).catch(()=>{});
-  const cb=$("mClr");if(cb)cb.onclick=async()=>{if(!await uiConfirm("مسح سجلّ الرسائل من عندك فقط؟ تبقى الرسائل عند غدير."))return;
+  const cb=$("mClr");if(cb)cb.onclick=async()=>{if(!await uiConfirm("مسح سجلّ الرسائل من عندك فقط؟ تبقى الرسائل عند المشرف."))return;
     try{await tref(UID).update({userClr:firebase.firestore.FieldValue.serverTimestamp()});toast("🗑️","مُسح السجلّ من عندك","")}catch(e){toast("⚠️","تعذّر المسح","")}};
-  bindCompose(async v=>{
-    const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
-    const r=tref(UID).collection("msgs").doc();
-    b.set(r,{from:"user",text:v,ts:now});
-    b.set(tref(UID),{name:UNAME,state:"waiting",lastFrom:"user",unreadUser:false,updated:now,lastMsg:r.id},{merge:true});
-    await b.commit();toast("✅","أُرسلت رسالتك","سيصلك الرد هنا");
-  });
+  bindCompose(async v=>{await userMsg(v);toast("✅","أُرسلت رسالتك","سيصلك الرد هنا")});
+}
+async function userMsg(v){
+  const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
+  const r=tref(UID).collection("msgs").doc();
+  b.set(r,{from:"user",text:v,ts:now});
+  b.set(tref(UID),{name:UNAME,state:"waiting",lastFrom:"user",unreadUser:false,updated:now,lastMsg:r.id},{merge:true});
+  await b.commit();
 }
 // المحادثة الممسوحة من عندي تختفي من القائمة حتى تصل رسالة جديدة
 const thHidden=t=>t.adminClr&&tsMs(t.adminClr)>=tsMs(t.updated);
