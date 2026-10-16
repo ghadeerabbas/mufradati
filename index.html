@@ -2533,11 +2533,41 @@ async function renderUsers(){
   }catch(e){el.innerHTML=`<div class="err">تعذّر التحميل: ${e.code==="permission-denied"?"حدّث قواعد الأمان في Firebase":esc(e.message)}</div>`;return}
   uOpen?renderUser():renderUserList();
 }
+// إنشاء حساب من لوحة الإشراف: يُنشئه الخادم ويفعّله فورًا بلا طلب تفعيل
+function genPass(){const a="abcdefghjkmnpqrstuvwxyz23456789";let s="";const r=crypto.getRandomValues(new Uint32Array(8));r.forEach(x=>s+=a[x%a.length]);return s}
+function newAccount(){
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
+  const ids=Object.keys(COURSES),sel=new Set(DEF_COURSES);
+  m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">➕ حساب جديد</h1>
+   <input id="naName" maxlength="40" placeholder="الاسم الظاهر">
+   <input id="naLogin" dir="ltr" maxlength="30" placeholder="اسم المستخدم" autocapitalize="off" autocomplete="off">
+   <div style="display:flex;gap:6px"><input id="naPass" dir="ltr" maxlength="64" style="flex:1" value="${genPass()}"><button type="button" class="btn" id="naGen">🎲</button></div>
+   <p class="rnote">المنهج:</p><div class="numpicks" id="naC">${ids.map(id=>`<button type="button" class="numpick${sel.has(id)?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>
+   <p class="rnote" id="naMsg"></p>
+   <button class="btn next" id="naGo">إنشاء الحساب وتفعيله</button><button class="link" id="naNo">إلغاء</button></div>`;
+  m.onclick=e=>{if(e.target===m)close()};$("naNo").onclick=close;$("naGen").onclick=()=>$("naPass").value=genPass();
+  $("naC").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v;sel.has(v)?sel.delete(v):sel.add(v);b.classList.toggle("on",sel.has(v))};
+  $("naGo").onclick=async()=>{
+    const login=$("naLogin").value.trim().toLowerCase(),pass=$("naPass").value,name=$("naName").value.trim(),msg=t=>$("naMsg").textContent=t;
+    if(!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(login))return msg("اسم المستخدم: من 3 إلى 30 حرفًا لاتينيًا صغيرًا أو رقمًا، ويجوز فيه . _ -");
+    if(pass.length<6)return msg("كلمة المرور 6 أحرف على الأقل");
+    if(!sel.size)return msg("اختر منهجًا واحدًا على الأقل");
+    $("naGo").disabled=true;msg("جارٍ الإنشاء…");
+    try{await apiPost("/create",{login,pass,name,courses:[...sel]});
+      m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">✅ أُنشئ الحساب وفُعّل</h1>
+       <p class="rnote">أعطِ المتعلّم هذه البيانات ليدخل مباشرة:</p>
+       <div id="naOut" style="background:#8882;padding:10px 14px;border-radius:10px;font-size:1rem;line-height:1.9;text-align:right;user-select:all">اسم المستخدم: <b dir="ltr">${esc(login)}</b><br>كلمة المرور: <b dir="ltr">${esc(pass)}</b></div>
+       <button class="btn next" id="naCp">📋 نسخ</button><button class="link" id="naNo">تم</button></div>`;
+      $("naNo").onclick=close;$("naCp").onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText("اسم المستخدم: "+login+"\nكلمة المرور: "+pass).then(()=>toast("📋","نُسخت البيانات",""))};
+    }catch(e){$("naGo").disabled=false;
+      msg(e.error==="exists"?"اسم المستخدم هذا مستخدم من قبل، اختر غيره":e.error==="perm"?"حساب الخدمة في Firebase لا يملك صلاحية إنشاء الحسابات":e.error==="login"?"اسم المستخدم غير صالح":"تعذّر الإنشاء: "+(e.detail||e.error||e.message||"خطأ في الاتصال"))}
+  };
+}
 function renderUserList(){
   const el=$("users"),cnt=k=>USERS.filter(u=>u.st===k).length;
   const fb=Object.values(FEEDS),avg=fb.length?(fb.reduce((a,f)=>a+f.stars,0)/fb.length).toFixed(1):"—";
   const list=USERS.filter(u=>uFilter==="all"||u.st===uFilter).sort((a,b)=>((b.sum||{}).last||0)-((a.sum||{}).last||0));
-  el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><button class="btn" id="uReload">↻ تحديث</button></div>${joinHTML()}${nameReqHTML()}
+  el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><span><button class="btn" id="uNew">➕ حساب جديد</button> <button class="btn" id="uReload">↻ تحديث</button></span></div>${joinHTML()}${nameReqHTML()}
   <div class="gstats">
    <div class="gstat"><b style="color:#16a34a">${cnt("active")+cnt("regular")}</b><span>نشيط ومتابع</span></div>
    <div class="gstat"><b style="color:#dc2626">${cnt("idle")}</b><span>خامل</span></div>
@@ -2547,7 +2577,7 @@ function renderUserList(){
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
    <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
    <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
-  $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};bindNameReqs();bindJoins();
+  $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};$("uNew").onclick=newAccount;bindNameReqs();bindJoins();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
   el.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
 }
