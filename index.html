@@ -230,6 +230,33 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 [data-dark] .zn .n{color:var(--ink);border-color:var(--depth);box-shadow:none}[data-dark] .zn.lock .n{color:var(--muted);border-color:#4a4f6e}
 .zn .go .i3{width:20px;height:20px;filter:none}
 .zn.lowen{--hi:#e6e8f2;--base:#c3c7d8;--lo:#a9aec4;--depth:#8a8fa8;--rim:transparent}.zn.lowen:before,.zn.lowen:after{display:none}
+/* شريط الملاحظات بعد كل جواب، وعدّاد التوالي، وشاشة النتيجة */
+.fbar{position:fixed;left:50%;bottom:0;z-index:70;width:min(100%,720px);transform:translate(-50%,110%);transition:transform .22s ease-out;padding:14px 16px calc(16px + env(safe-area-inset-bottom));background:var(--card);border-top:3px solid var(--line);border-radius:22px 22px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.12)}
+.fbar.on{transform:translate(-50%,0)}
+.fbar.ok{background:#d7ffb8;border-color:#a5ed6e}.fbar.no{background:#ffdfe0;border-color:#ffc1c1}
+[data-dark] .fbar.ok{background:#1f3a1a;border-color:#3d6b2a}[data-dark] .fbar.no{background:#3d1f22;border-color:#7a3036}
+.fbar h4{display:flex;align-items:center;gap:8px;font-size:1.3rem;font-weight:800;margin:0 0 2px;color:#58a700}.fbar.no h4{color:#ea2b2b}
+[data-dark] .fbar h4{color:#8ee05a}[data-dark] .fbar.no h4{color:#ff8a8a}
+.fbar h4 .i3{width:30px;height:30px}.fbar p{margin:0 0 12px;font-weight:700;color:#3f7d0a;font-size:1.05rem}.fbar.no p{color:#c23a3a}
+[data-dark] .fbar p{color:#b9eb95}[data-dark] .fbar.no p{color:#ffb4b4}
+.fbar .fbgo{width:100%;border:0;border-radius:16px;padding:13px;font:800 1.1rem inherit;font-family:inherit;color:#fff;background:#58cc02;box-shadow:0 5px 0 #46a302;cursor:pointer}
+.fbar.no .fbgo{background:#ff4b4b;box-shadow:0 5px 0 #ea2b2b}.fbar .fbgo:active{transform:translateY(4px);box-shadow:0 1px 0 #46a302}
+body.fbon main{padding-bottom:210px}
+.combo{height:22px;text-align:center;font-weight:800;color:#1cb0f6;font-size:.95rem;line-height:22px;margin:-2px 0 4px}.combo.pop{animation:cpop .45s}
+@keyframes cpop{40%{transform:scale(1.35)}}
+.spop{position:fixed;top:34%;left:50%;z-index:96;transform:translate(-50%,-50%);background:linear-gradient(#2ec5ff,#1899d6);color:#fff;font-weight:800;font-size:1.45rem;padding:14px 24px;border-radius:20px;box-shadow:0 6px 0 #1478ab,0 12px 30px rgba(0,0,0,.25);white-space:nowrap;pointer-events:none;animation:spop 1.5s ease-out forwards;text-align:center}
+.spop small{display:block;font-size:.95rem;opacity:.9}
+@keyframes spop{0%{transform:translate(-50%,-50%) scale(.4);opacity:0}15%{transform:translate(-50%,-50%) scale(1.12);opacity:1}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(.95);opacity:0}}
+.result{text-align:center;padding:10px 4px}.result h2{font-size:1.45rem;color:#58a700;margin:6px 0 2px}[data-dark] .result h2{color:#8ee05a}.result>p{color:var(--muted);margin:0}
+.rcards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 18px}
+.rcard{--c:#ffc800;--d:#e0a800;border:3px solid var(--c);border-radius:16px;overflow:hidden;background:var(--card);animation:rin .5s both}.rcard:nth-child(2){animation-delay:.12s}.rcard:nth-child(3){animation-delay:.24s}
+.rcard small{display:block;background:var(--c);color:#fff;font-weight:800;font-size:.78rem;padding:3px 2px}
+.rcard b{display:flex;align-items:center;justify-content:center;gap:4px;padding:10px 2px;font-size:1.25rem;color:var(--d)}.rcard b .i3{width:24px;height:24px}
+.rcard.acc{--c:#1cb0f6;--d:#1899d6}.rcard.tm{--c:#58cc02;--d:#46a302}
+@keyframes rin{from{transform:translateY(16px) scale(.9);opacity:0}}
+.result .btn{margin-top:8px}
+.stpop{text-align:center}.stpop .logo .i3{width:56px;height:56px}.stpop h1{font-size:1.3rem;margin:4px 0}
+.ppills{display:flex;justify-content:center;gap:8px;margin:8px 0 14px;flex-wrap:wrap}.ppills span{display:flex;align-items:center;gap:4px;background:var(--soft);border-radius:12px;padding:4px 10px;font-weight:800}.ppills .i3{width:20px;height:20px}
 /* المحطة التدريبية الصغيرة */
 .zn.mini{width:52px;height:58px}.zn.mini .c{width:52px;height:48px;box-shadow:0 6px 0 var(--depth),0 10px 12px -4px rgba(0,0,0,.25),inset 0 -4px 0 rgba(0,0,0,.10),inset 0 0 0 2px rgba(255,255,255,.28)}
 .zn.mini .c:after{top:4px;left:10px;right:10px;height:14px}.zn.mini .c:before{inset:-4px;border-width:2px}.zn.mini .i3{width:28px;height:28px}
@@ -794,7 +821,7 @@ function startStation(){
   if(!fresh.length||stToday()>=ST_MAX)return;
   if(enNow()<stCostAt(Date.now())){noEnergy();return}
   if(ev({type:"stStart"})!==true)return;renderEnergy();
-  STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[]};
+  STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[],t0:Date.now()};CMB=0;RES=null;
   RVDONE=null;stationView();scrollTo(0,0);
 }
 function stationView(){
@@ -806,14 +833,14 @@ function stationView(){
     $("stNext").onclick=()=>{if(S_.i<N-1)S_.i++;else{S_.phase="check";S_.q=shuffle([...S_.words])}stationView()};
   }else{
     const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(pool.filter(x=>x.t===w.t)),opts=shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)]);
-    el.innerHTML=head+`<div class="box"><p class="ghint">ما معنى هذه الكلمة؟</p><div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="stFb"></div></div>`;
+    el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">ما معنى هذه الكلمة؟</p><div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="stFb"></div></div>`;
     el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
       if(el.querySelector(".gopt.ok"))return;const ok=b.dataset.k===w.k;
       el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});
       if(!ok){b.classList.add("no");S_.miss.add(w.k)}
       S_.q.shift();if(!ok)S_.q.push(w);       // الخطأ يعود في آخر المحطة
-      $("stFb").innerHTML=`<button class="btn next" id="stGo">${S_.q.length?"التالي":"أنهِ المحطة ✓"}</button>`;
-      $("stGo").onclick=()=>S_.q.length?stationView():finishStation();
+      comboHit(ok);
+      showFb(ok,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>S_.q.length?stationView():finishStation());
     });
   }
   $("stQuit").onclick=quitStation;
@@ -824,7 +851,59 @@ async function quitStation(){
   if(!STS)return;
   const free=!stCostAt(STV||Date.now()),rf=CFG.energy.refund;
   if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها"+(free?"، وتبقى محطتك المجانية متاحة لتبدأها من جديد":"، وستستعيد "+rf+" طاقة فقط من "+ST_COST)+". هل تريد الخروج؟"))return;
-  STS=null;ev({type:"stQuit"});renderEnergy();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","");reviewHome();
+  hideFb();STS=null;ev({type:"stQuit"});renderEnergy();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","");reviewHome();
+}
+/* ================= مؤثرات الدرس: صوت، وشريط ملاحظات، وعدّاد التوالي، وشاشة النتيجة ================= */
+const sndOn=()=>{try{return localStorage.getItem("muf_snd")!=="0"}catch(e){return true}};
+let ACX=null;
+function fx(kind){
+  try{
+    if(kind==="no"&&navigator.vibrate)navigator.vibrate(70);
+    if(!sndOn())return;ACX=ACX||new (window.AudioContext||window.webkitAudioContext)();if(ACX.state==="suspended")ACX.resume();
+    const N={ok:[[659,0,.09],[988,.08,.16]],no:[[196,0,.14],[147,.12,.2]],streak:[[523,0,.09],[659,.08,.09],[784,.16,.09],[1047,.24,.22]],done:[[523,0,.12],[659,.12,.12],[784,.24,.12],[1047,.36,.14],[1319,.5,.35]],tap:[[880,0,.04]]}[kind]||[];
+    const t0=ACX.currentTime;
+    N.forEach(([f,at,d])=>{const o=ACX.createOscillator(),g=ACX.createGain();o.type=kind==="no"?"square":"triangle";o.frequency.value=f;
+      g.gain.setValueAtTime(0,t0+at);g.gain.linearRampToValueAtTime(kind==="no"?.06:kind==="tap"?.05:.14,t0+at+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+at+d);
+      o.connect(g);g.connect(ACX.destination);o.start(t0+at);o.stop(t0+at+d+.02)});
+  }catch(e){}
+}
+const PRAISE=["أحسنت!","رائع!","ممتاز!","صحيح!","عمل رائع!","مذهل!","تمام!","إجابة موفّقة!"];
+function showFb(ok,sub,next){
+  let b=$("fbar");if(!b){b=document.createElement("div");b.id="fbar";b.className="fbar";document.body.appendChild(b)}
+  b.className="fbar "+(ok?"ok":"no");
+  b.innerHTML=`<h4>${I3(ok?"check":"warning")} ${ok?PRAISE[Math.floor(Math.random()*PRAISE.length)]:"الجواب الصحيح:"}</h4>${sub?`<p>${sub}</p>`:""}<button type="button" class="fbgo">المتابعة</button>`;
+  document.body.classList.add("fbon");requestAnimationFrame(()=>b.classList.add("on"));
+  b.querySelector(".fbgo").onclick=()=>{hideFb();next()};
+}
+function hideFb(){const b=$("fbar");if(b)b.classList.remove("on");document.body.classList.remove("fbon")}
+let CMB=0;   // الإجابات الصحيحة على التوالي في الدرس الحالي
+const comboHTML=()=>`<div class="combo" id="combo">${CMB>=2?CMB+" على التوالي":""}</div>`;
+function comboHit(ok){
+  if(!ok){CMB=0;fx("no")}
+  else{CMB++;if(CMB%5===0){fx("streak");streakPop(CMB);confetti(40)}else fx("ok")}
+  const c=$("combo");if(c){c.textContent=CMB>=2?CMB+" على التوالي":"";c.classList.remove("pop");void c.offsetWidth;if(ok&&CMB>=2)c.classList.add("pop")}
+}
+function streakPop(n){const d=document.createElement("div");d.className="spop";d.innerHTML=`${n>=15?"مذهل":n>=10?"ممتاز":"رائع"}! ${n} على التوالي<small>واصل هكذا</small>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1600)}
+let RES=null;   // شاشة نتيجة الدرس
+const mmss=ms=>{const s_=Math.max(1,Math.round(ms/1000));return Math.floor(s_/60)+":"+String(s_%60).padStart(2,"0")};
+function resultView(){
+  const el=$("review"),R_=RES,acc=Math.round(R_.acc*100);
+  el.innerHTML=`<div class="box result"><img class="jmp" src="img/m/${acc===100?"trophy":acc>=60?"jump":"thumbs"}.png" alt="">
+   <h2>${R_.title}</h2><p>${acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان"}</p>
+   <div class="rcards"><div class="rcard"><small>الخبرة</small><b>${I3("sparkles")}${R_.xp}</b></div><div class="rcard acc"><small>الدقة</small><b>${I3("target")}${acc}%</b></div><div class="rcard tm"><small>الوقت</small><b>${I3("stopwatch")}${mmss(R_.ms)}</b></div></div>
+   ${R_.drill&&drillsToday()<stToday()?`<button class="btn next blue" id="resDrill">${I3("puzzle")} تدريب على كلماتها · ${CFG.energy.drill} طاقة</button>`:""}
+   <button class="btn next" id="resGo">متابعة</button></div>`;
+  if(!R_.shown){R_.shown=1;fx("done");confetti(acc===100?150:80)}
+  $("resGo").onclick=()=>{RES=null;reviewHome();scrollTo(0,0)};
+  const d=$("resDrill");if(d)d.onclick=()=>{RES=null;startDrill()};
+}
+// نافذة قبل البدء: اسم الدرس وما يكسبه وما يكلّفه
+function lessonPop(o){
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
+  m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1><p class="rnote">${o.sub}</p>
+   <div class="ppills"><span>${I3("sparkles")} +${o.xp} خبرة</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":"مجانية"}</span></div>
+   <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ · +${o.xp} خبرة</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
+  m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();fx("tap");o.go()};
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
@@ -838,7 +917,7 @@ function startDrill(){
   const j=drillsToday();if(j>=stToday()){toast(I3("puzzle"),"أكمل محطة أولًا","التدريب يأتي بعد كل محطة");return}
   const need=CFG.energy.drill;if(enNow()<need){toast(I3("lowbat"),"طاقتك لا تكفي للتدريب","يحتاج "+need+" طاقة، ولديك "+enNow());return}
   const ws=stationWords(j);if(ws.length<2){toast(I3("warning"),"تعذّر تجهيز التدريب","لم أجد كلمات هذه المحطة");return}
-  DRL={j,words:shuffle(ws),ar:shuffle([...ws]),sel:null,done:new Set,wrong:new Set,t0:Date.now(),fin:false};RVDONE=null;drillView();scrollTo(0,0);
+  DRL={j,words:shuffle(ws),ar:shuffle([...ws]),sel:null,done:new Set,wrong:new Set,t0:Date.now(),fin:false};RVDONE=null;RES=null;CMB=0;drillView();scrollTo(0,0);
 }
 function drillView(){
   const el=$("review"),D=DRL,N=D.words.length;
@@ -850,15 +929,15 @@ function drillView(){
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
     return `<button type="button" class="btn mt${side==="de"?" de":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}>${side==="de"?artHTML(w.de):esc(w.ar)}</button>`};
-  el.innerHTML=head+`<div class="box"><p class="ghint">اضغط كلمة ألمانية ثم معناها، أو العكس</p>
+  el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">اضغط كلمة ألمانية ثم معناها، أو العكس</p>
    <div class="mtgrid"><div>${D.words.map(w=>cell(w,"de")).join("")}</div><div>${D.ar.map(w=>cell(w,"ar")).join("")}</div></div></div>`;
   el.querySelectorAll(".mt").forEach(b=>b.onclick=()=>{
     const side=b.dataset.s,k=b.dataset.k;
-    if(!D.sel||D.sel.side===side){D.sel=D.sel&&D.sel.side===side&&D.sel.k===k?null:{side,k};drillView();return}
+    if(!D.sel||D.sel.side===side){D.sel=D.sel&&D.sel.side===side&&D.sel.k===k?null:{side,k};fx("tap");drillView();return}
     const a=D.sel;D.sel=null;
-    if(a.k===k){D.done.add(k);if(D.done.size===N)return endDrill();drillView()}
+    if(a.k===k){D.done.add(k);comboHit(true);if(D.done.size===N)return endDrill();drillView()}
     else{
-      D.wrong.add(a.side==="de"?a.k:k);
+      D.wrong.add(a.side==="de"?a.k:k);comboHit(false);
       const x=el.querySelector(`.mt[data-s="${a.side}"][data-k="${CSS.escape(a.k)}"]`);
       [x,b].forEach(n=>n&&n.classList.add("no"));setTimeout(drillView,450);
     }
@@ -869,14 +948,17 @@ function endDrill(){
   const D=DRL,N=D.words.length,prev=EC||econ();
   const r=ev({type:"quiz",kind:"drill",ok:N-D.wrong.size,total:N,ms:Date.now()-D.t0,qa:D.words.map(w=>[w.k,D.wrong.has(w.k)?0:1])});
   if(r!==true){toast(I3("warning"),"لم يُحسب التدريب",r==="energy"?"طاقتك لا تكفي":r==="time"?"انتظر قليلًا ثم أعد المحاولة":"");DRL=null;reviewHome();return}
-  D.fin=true;renderEnergy();renderHeader();celebrate(prev);if(!D.wrong.size)confetti(90);drillView();
+  DRL=null;renderEnergy();
+  RES={title:"أنهيت تدريب المحطة "+(D.j+1)+"!",xp:Math.max(0,econ().xp-prev.xp),acc:(N-D.wrong.size)/N,ms:Date.now()-D.t0};
+  celebrate(prev);reviewHome();scrollTo(0,0);
 }
 function finishStation(){
   const S_=STS,now=Date.now(),prev=EC||econ();
   ev({type:"stDone",words:S_.words.map(w=>w.k),miss:[...S_.miss],t:now});
   S.newCount=(S.newCount||0)+S_.words.length;save();markStudied();
-  STS=null;RVDONE={mode:"station",n:S_.words.length,st:S_.n,finished:true};
-  celebrate(prev);confetti(140);schedSync();reviewHome();scrollTo(0,0);
+  STS=null;RVDONE=null;const N=S_.words.length;
+  RES={title:"أنهيت المحطة "+S_.n+"! تعلّمت "+arN(N,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" · +"+CFG.gems.station+" 💎",xp:Math.max(0,econ().xp-prev.xp),acc:(N-S_.miss.size)/N,ms:now-(S_.t0||now),drill:1};
+  celebrate(prev);schedSync();reviewHome();scrollTo(0,0);
 }
 function startReviewList(list){
   queue=[...list];sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length};STS=null;
@@ -889,6 +971,7 @@ function startReview(state,n){
 function reviewHome(){
   if(STS)return stationView();
   if(DRL)return drillView();
+  if(RES)return resultView();
   const el=$("review"),f=uniq(filtered()),learned=f.filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
   const done=stToday(),en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
@@ -929,8 +1012,8 @@ function reviewHome(){
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
   </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
-  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=startStation;
-  const dg=$("dGo");if(dg)dg.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=startDrill;
+  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:"المحطة "+(stToday()+1)+" من "+ST_MAX,sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
+  const dg=$("dGo");if(dg)dg.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:ST_WORDS*CFG.xp.quiz,cost:CFG.energy.drill,blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
@@ -1664,6 +1747,7 @@ function renderSettings(){
   const courses=MY_COURSES.filter(id=>COURSES[id]);
   $("settings").innerHTML=`<h2 class="sth">⚙️ الإعدادات</h2>
   <div class="rsec"><h3>${I3("moon")} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${isDark()?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${isDark()?" on":""}" data-v="1">🌙 ليلي</button></div></div>
+  <div class="rsec"><h3>${I3("speaker")} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div><p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p></div>
   ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
   <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
@@ -1676,6 +1760,7 @@ function renderSettings(){
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}`;
+  $("stSnd").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;try{localStorage.setItem("muf_snd",b.dataset.v)}catch(_){}if(b.dataset.v==="1")fx("ok");renderSettings()};
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(isDark()?1:0))return;E.dark=+b.dataset.v;setDevDark(E.dark);E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
   if($("stReset"))$("stReset").onclick=resetProgress;if($("stNameBox"))bindNameBox();
   const so=$("stSolo");if(so)so.onclick=async e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v==="1";if(v===!!E.lgSolo)return;
@@ -2345,7 +2430,7 @@ function init(){
     if(b.dataset.p==="users")uOpen=null;
     if(b.dataset.p==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}}
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
-    b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
+    hideFb();b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
   $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
