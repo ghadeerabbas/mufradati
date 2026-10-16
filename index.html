@@ -447,6 +447,8 @@ function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={
   });
 }
 const uiConfirm=msg=>uiDialog(msg);
+// الاختبار والتمارين لا تعرض إلا الكلمات التي تعلّمها المستخدم في المحطات
+const learnedList=()=>uniq(filtered()).filter(w=>P[w.k]);
 // الكلمات الألمانية الطويلة: يصغر خطّها لتبقى داخل البطاقة
 function fitWords(){document.querySelectorAll(".word.de,.qword.de").forEach(el=>{if(el.dataset.fit)return;el.dataset.fit=1;
   const L=Math.max(0,...el.textContent.trim().split(/\s+/).map(x=>x.length));if(L>13)el.style.fontSize=Math.max(1,(L>22?1.05:L>18?1.2:1.35))+"rem"})}
@@ -784,7 +786,7 @@ function hardScores(){
 }
 // 60% صعبة لم تُختبر، 20% صعبة اختُبرت، 20% من باقي الكلمات
 function startQuiz(){
-  const N=10,all=uniq(filtered()),sc=hardScores(),seen=new Set(QA.map(x=>x[1]));
+  const N=10,all=learnedList(),sc=hardScores(),seen=new Set(QA.map(x=>x[1]));
   const byScore=a=>shuffle(a).sort((x,y)=>sc[y.k]-sc[x.k]);
   const hard=all.filter(w=>sc[w.k]>0);
   const A=byScore(hard.filter(w=>!seen.has(w.k))),B=byScore(hard.filter(w=>seen.has(w.k))),C=shuffle(all.filter(w=>!sc[w.k]));
@@ -795,7 +797,7 @@ function startQuiz(){
 }
 function showQ(){
   const el=$("quiz");
-  if(qz.length<4){el.innerHTML='<div class="box done">لا توجد كلمات كافية في هذا الاختيار.</div>';return}
+  if(qz.length<4){el.innerHTML='<div class="box done">يعمل الاختبار على الكلمات التي تعلّمتها، ويحتاج 4 كلمات على الأقل.<br>تعلّم كلمات جديدة في المحطات من تبويب الدراسة.</div>';return}
   if(qi>=qz.length){
     const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA})}celebrate(prev);
     const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
@@ -905,7 +907,7 @@ const GAMES=[
  {id:"s5",ic:"⏱️",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
 ];
 function gamePool(id){
-  const all=uniq(filtered());
+  const all=learnedList();
   if(id==="cloze")return all.filter(w=>clozeOf(w));
   if(id==="art")return all.filter(w=>nounOf(w));
   if(id==="type")return all.filter(w=>answersOf(w).length);
@@ -923,8 +925,8 @@ function renderGames(){
   const bm=bestMatch();
   el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
-     <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"لا كلمات كافية في هذا الاختيار"}</em></button>`}).join("")}</div>
-   <p class="rnote" style="margin-top:10px">التمارين تأخذ كلمات الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = 💎 وخبرة.</p>`;
+     <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
+   <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = 💎 وخبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
 }
 function startGame(id){
@@ -953,7 +955,7 @@ function makeQ(kind,w){
   return {kind,w};
 }
 function nextMixed(){
-  const kinds=[["mc",uniq(filtered())],["lmc",gamePool("listen")],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
+  const kinds=[["mc",learnedList()],["lmc",gamePool("listen")],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
   const [kind,pool]=kinds[Math.random()*kinds.length|0];
   const last=GM&&GM.q?GM.q.w.k:null;const cand=pickWords(pool.filter(w=>w.k!==last),1);
   return makeQ(kind,cand[0]||pool[0]);
