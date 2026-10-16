@@ -65,10 +65,20 @@ const SHOP=[
  // ألوان الاسم في الدوري (القرمزي للمشرف وحده، والعادي أسود نهارًا وأبيض ليلًا)
  ...[["none","اللون العادي",0],["red","أحمر",150],["green","أخضر",150],["blue","أزرق",150],["orange","برتقالي",250],["purple","بنفسجي",250],["pink","وردي",350],["teal","فيروزي",350],
      ["brown","بنّي",500],["silver","فضّي بحافة",800],["gold","ذهبي بحافة",1200],["emerald","زمرّدي بحافة",1500],["sapphire","ياقوتي بحافة",2000]].map(([id,n,p])=>({id,cat:"namecolor",name:n,price:p,val:"🎨"})),
+ // مكافآت السلسلة: مجانية، تُفتح بأطول سلسلة وصلها المتعلّم
+ {id:"sk7",cat:"frame",streak:7,name:"إطار الجمرة",price:0},
+ {id:"sk14",cat:"avatar",streak:14,name:"رمز الشعلة",val:"🔥",price:0},
+ {id:"sk21",cat:"namecolor",streak:21,name:"جمري بحافة",price:0,val:"🎨"},
+ {id:"sk30",cat:"frame",streak:30,name:"إطار اللهب",price:0},
+ {id:"sk60",cat:"avatar",streak:60,name:"رمز المذنّب",val:"☄️",price:0},
+ {id:"sk90",cat:"namecolor",streak:90,name:"شمسي بحافة",price:0,val:"🎨"},
+ {id:"sk100",cat:"frame",streak:100,name:"إطار الشمس",price:0},
+ {id:"sk200",cat:"avatar",streak:200,name:"رمز البركان",val:"🌋",price:0},
+ {id:"sk365",cat:"frame",streak:365,name:"إطار الأسطورة",price:0},
  {id:"freeze",cat:"power",name:"تجميد السلسلة",price:25,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
 ];
 // كل هدايا المتجر تنفتح بالصعود في الدوري (رقم الدوري الذي يفتح كل غرض؛ ما لم يُذكر يكون مفتوحًا)
-const NCOL={red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,silver:1,gold:1,emerald:1,sapphire:1,admin:1};
+const NCOL={sk21:1,sk90:1,red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,silver:1,gold:1,emerald:1,sapphire:1,admin:1};
 const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10:4,av11:5,av12:7,av13:9},
  title:{t1:1,t2:2,t3:3,t4:4,t5:5,t6:7,t7:9},
  theme:{emerald:2,royal:3,ocean:4,sunset:6,lux:8},
@@ -84,7 +94,11 @@ const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",fr
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
 const stkVal=v=>{if(!v)return"";const it=/^s\d+$/.test(v)?SHOP.find(x=>x.cat==="sticker"&&x.id===v):null;return it?it.val:v};
 const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
-const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.some(b=>b.item===cat+":"+id))};
+const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.streak?streakBest()>=it.streak:it.price===0||BUY.some(b=>b.item===cat+":"+id))};
+// أطول سلسلة وصلها (ولا تُقفل مكافآتها بعد التصفير)
+const streakBest=()=>Math.max((EC||econ()).s.best,R.sb||0);
+// جواهر السلسلة: مرة واحدة لكل مرحلة
+const STREAK_G=[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]];
 
 /* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
 const GEM=[0,1,2,2],XPR=[1,2,4,4];
@@ -165,8 +179,9 @@ function econ(){
   let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=LV_GEMS}
   const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
   for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++)got.push(a.id+":"+i)}
-  // الجواهر: جوهرة لكل محطة مكتملة، وجوائز الدوري، وهدايا المشرف، وما بقي من قبل التصفير
+  // الجواهر: جوهرة لكل محطة مكتملة، وجوائز الدوري، ومراحل السلسلة، وهدايا المشرف، وما بقي من قبل التصفير
   gems+=STN.length;
+  for(const [d,g] of STREAK_G)if(s.best>=d&&d>(R.sb||0))gems+=g;
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   gems+=giftSum();                                      // هدايا المشرف
@@ -318,7 +333,7 @@ function applyAt(ev,T,now,ctx){
     BUY.push({id:String(ev.bid||now.toString(36)).slice(0,20),item:it.cat+":"+it.id,p:it.price,ts:now});return true;
   }
   if(T==="reset"){
-    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:now};
+    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),ts:now};
     // يعود كأنه جديد: بلا خبرة ولا دوري (تبقى جواهره ومشترياته)
     P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};
     EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0};   // ويبدأ بطاقة كاملة
