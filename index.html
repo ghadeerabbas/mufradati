@@ -508,7 +508,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=5"></script>
+<script src="core.js?v=6"></script>
 <script>
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
@@ -653,7 +653,7 @@ function applyLook(){
 }
 function renderHeader(){
   const e=EC||econ(),t=itemOf("title",E.title);
-  $("hAv").innerHTML=esc(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
+  $("hAv").innerHTML=stkH(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
   $("hTitle").innerHTML=`<bdi>${esc(UNAME)}</bdi>`;$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
   $("hXpT").textContent=`✨ ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
@@ -662,8 +662,10 @@ function renderHeader(){
 }
 
 /* ================= احتفالات وإشعارات ================= */
-const STK_IMG=Object.fromEntries(["🌸","⭐","💡","🍀","🎈","☕","🍕","🥨","🌙","🌻","🎻","🏰","🇩🇪","🦋","🏆","💎"].map((v,i)=>[v,i+1]));
-const stkH=v=>STK_IMG[v]?`<img class="sti" src="img/stk/${STK_IMG[v]}.png" alt="">`:esc(v||"");
+// صور ثلاثية الأبعاد للملصقات والرموز؛ القيمة المخزّنة تبقى الرمز التعبيري نفسه
+const STK_IMG=Object.fromEntries([...["🌸","⭐","💡","🍀","🎈","☕","🍕","🥨","🌙","🌻","🎻","🏰","🇩🇪","🦋","🏆","💎"].map((v,i)=>[v,"stk/"+(i+1)]),
+  ...["🎓","🦊","🐱","🦉","🐼","🐧","🦁","🐯","🤖","🧠","🚀","🐉","🦄","👑","🔥","☄️","🌋"].map((v,i)=>[v,"av/"+(i+1)])]);
+const stkH=v=>STK_IMG[v]?`<img class="sti" src="img/${STK_IMG[v]}.png" alt="">`:esc(v||"");
 function toast(ic,title,sub){
   const t=document.createElement("div");t.className="toast";t.innerHTML=`<span class="ic">${ic}</span><div><b>${title}</b>${sub?`<span>${sub}</span>`:""}</div>`;
   $("toasts").appendChild(t);setTimeout(()=>{t.style.transition="opacity .4s";t.style.opacity=0;setTimeout(()=>t.remove(),400)},3200);
@@ -1294,7 +1296,7 @@ async function fillLeague(){
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${esc(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?["🥇","🥈","🥉"][i]:i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
@@ -1418,7 +1420,7 @@ function bindLooks(){
 function renderProfile(){
   const e=econ(),t=itemOf("title",E.title),s=e.s;
   const stickers=SHOP.filter(x=>x.cat==="sticker"),al=achList(),maxL=al.reduce((a,x)=>a+x.L.length,0);
-  $("profile").innerHTML=`<div class="hero"><div class="av">${esc(E.avatar)}</div><div style="flex:1">
+  $("profile").innerHTML=`<div class="hero"><div class="av">${stkH(E.avatar)}</div><div style="flex:1">
    <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv} · ${esc(t?t.val:"")}${LG.tier!=null?" · "+TIERS[LG.tier][1]:""}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
    <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
   <div class="gstats">
@@ -1617,12 +1619,12 @@ async function showPlayer(row){
   if(row.dataset.u===UID)d=pubData();
   if(!d){m.innerHTML=`<div class="lbox pcard"><div class="logo">🙂</div><h1 style="font-size:1.2rem">${esc(row.dataset.n)}</h1><p class="rnote">لم يُنشر ملفه بعد. يظهر عندما يفتح التطبيق.</p><button class="btn lgo" id="pcClose">إغلاق</button></div>`;$("pcClose").onclick=close;return}
   const me=row.dataset.u===UID;
-  if(d.hide&&!me){m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${esc(d.av||"🎓")}</div>
+  if(d.hide&&!me){m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
     <p class="rnote" style="margin-top:12px">🔒 اختار هذا المتعلّم إخفاء ملفه، فلا تظهر إنجازاته ولا ملصقاته.</p>
     <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;$("pcClose").onclick=close;return}
   const al=achList(),stickers=SHOP.filter(x=>x.cat==="sticker"),have=new Set(d.stk||[]),lvSum=Object.values(d.alv||{}).reduce((a,b)=>a+b,0);
-  m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${esc(d.av||"🎓")}</div>
+  m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1}${d.title?" · "+esc(d.title):""} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
    ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
    <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>🏅 ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
