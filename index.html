@@ -1122,7 +1122,9 @@ function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgB
 async function fillLeague(){
   const box=$("lgBox");if(!box)return;
   let rows;
-  try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=await leagueRows()}
+  try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=await leagueRows();
+    // كسب خبرة ولم يظهر بعد في الدوري: نحفظ الآن ثم نقرأ من جديد
+    if(!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0){await syncNow();LGC.at=0;rows=await leagueRows()}}
   catch(e){box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
   if(!$("lgBox"))return;
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
@@ -1357,7 +1359,7 @@ async function syncNow(manual){
     const r=await fetch(API+"/sync",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
-    EVQ=EVQ.slice(sent.length);applyServer(j);
+    EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;   // الدوري يُقرأ من جديد بعد كل حفظ
     lastSync=Date.now();syncErr="";ok=true;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}
