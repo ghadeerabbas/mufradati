@@ -130,9 +130,10 @@ function setState(c, log, qa) {
   P = c.P || {}; QLOG = c.QLOG || []; BUY = c.BUY || []; R = Object.assign({ bank: 0, ach: [], lv: 1, ts: 0 }, c.R || {});
   LG = Object.assign({ tier: null, w: "", hist: [], ts: 0 }, c.LG || {}); EN = c.EN || { v: 30, t: 0 }; STN = c.STN || []; STV = c.STV || 0;
   LOG = unpackLog(log); QA = unpackQA(qa); EC = null;
+  if (!c.lf) flagLog();             // مرة واحدة: وسم التدريب في السجلّ القديم
   if ((LG.v || 1) < 2) { if (LG.tier != null) LG.tier = 0; LG.v = 2 }
 }
-const coreObj = () => ({ P, QLOG, BUY, R, LG, EN, STN, STV, ver: 1 });
+const coreObj = () => ({ P, QLOG, BUY, R, LG, EN, STN, STV, ver: 1, lf: 1 });
 const parseJ = (s, d) => { try { return s ? JSON.parse(s) : d } catch (e) { return d } };
 
 /* ---------- الدوري: التسوية الأسبوعية وسطر المتعلّم ---------- */
@@ -218,7 +219,7 @@ async function handleSync(fs, user, body) {
   const coreJ = JSON.stringify(coreObj()), logJ = JSON.stringify(packLog(LOG)), qaJ = JSON.stringify(packQA(QA));
   const cw = [];
   if (!coreD || coreJ !== before.core || c.pubJ !== pubJ || c.pubAt !== pubAt) cw.push({ path: `users/${uid}/data/core`, data: { v: coreJ.slice(0, -1) + "," + JSON.stringify({ pubJ, pubL: lookJ, pubAt }).slice(1) }, ...(coreD ? { ifUpdateTime: coreD.updateTime } : { ifMissing: true }) });
-  if (!logD || LOG.length !== before.log || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/log`, data: { v: logJ } });
+  if (!logD || LOG.length !== before.log || !c.lf || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/log`, data: { v: logJ } });
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
   await fs.commit([...cw, ...writes]);

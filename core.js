@@ -85,7 +85,25 @@ const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.som
 /* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
 const GEM=[0,1,2,2],XPR=[1,2,4,4];
 // خبرة كل تقييم: الكلمة الجديدة في المحطة 3 (أو 2 إن أخطأ فيها)، والمراجعة بحسب التقييم
-const xpOf=(r,nw)=>nw?(r>=2?3:2):XPR[r];
+// علامة السجلّ: 0 مراجعة في موعدها، 1 كلمة جديدة من محطة، 2 تدريب (قبل موعدها أو للمرة الثانية في اليوم) بلا خبرة ولا جواهر
+const xpOf=(r,nw)=>nw===2?0:nw?(r>=2?3:2):XPR[r];
+// خطوة المراجعة المتباعدة: التدريب لا يرفع الكلمة، لكن النسيان ينزلها
+function boxStep(b,r,practice){return r===0?0:r===1?Math.max(1,b):practice?Math.max(1,b):Math.min(b+(r===2?1:2),8)}
+// هل تُكافأ هذه المراجعة؟ فقط إن حلّ يوم موعدها، ولم تُكافأ الكلمة نفسها اليوم
+function rewarded(p,k,t,L){
+  if(p&&p.due&&dkey(t)<dkey(p.due))return false;
+  const d=dkey(t);for(let i=L.length-1;i>=0;i--){const x=L[i];if(x[0]<t-DAY*1.5)break;if(x[1]===k&&x[3]!==2&&dkey(x[0])===d)return false}
+  return true;
+}
+// يعيد وسم سجلّ قديم (قبل هذه القاعدة) ويعيد حساب مراحل الكلمات منه
+function flagLog(){
+  const L=[...LOG].sort((a,b)=>a[0]-b[0]),st={};
+  for(const x of L){const [t,k,r]=x;let q=st[k];
+    if(x[3]===1){st[k]={box:1,due:t+IV[1]*DAY,day:dkey(t),t};continue}
+    const ok=!q||(dkey(t)>=dkey(q.due)&&q.day!==dkey(t));x[3]=ok?0:2;
+    const b0=q?q.box:0,b=boxStep(b0,r,!ok);q=st[k]={box:b,due:r===0?t:ok||b0===0?t+IV[b]*DAY:q.due,day:ok?dkey(t):q?q.day:"",t}}
+  LOG=L;for(const k in st)if(P[k])P[k]={box:st[k].box,due:st[k].due,t:st[k].t};
+}
 // الإنجازات بمستويات: كل إنجاز يرتقي إلى مستوى أعلى كلما زاد الرقم، ولكل مستوى جواهره
 const ACH=[
  {id:"rev",ic:"📖",n:"المراجِع المجتهد",u:"مراجعة",v:s=>s.reviews,L:[[1,5],[100,20],[500,50],[1000,100],[2500,200],[5000,300],[10000,500],[25000,800],[50000,1200]]},
@@ -112,8 +130,9 @@ function econ(){
   let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={};
   let L=LOG;for(let i=1;i<L.length;i++)if(L[i][0]<L[i-1][0]){L=[...LOG].sort((a,b)=>a[0]-b[0]);break}
   for(const [t,k,r,nw] of L){
+    if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
     s.reviews++;gems+=GEM[r]+(nw?1:0);xp+=xpOf(r,nw);
-    let b=box[k]||0;b=r===0?0:r===1?Math.max(1,b):Math.min(b+(r===2?1:2),8);box[k]=b;
+    let b=nw?1:boxStep(box[k]||0,r,false);box[k]=b;
     if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=15}
     if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=40}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
@@ -177,7 +196,7 @@ const GROUP_MAX=15,PROMO_MIN=60;
 function weekXP(ws){
   const we=ws+7*DAY,per={};let xp=0;
   // السجلّ مرتّب زمنيًا: نقرأ من آخره حتى بداية الأسبوع فقط
-  for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
+  for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we&&x[3]!==2){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
   for(const d in per)if(per[d]>=20)xp+=10;
   for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1];
   return xp;
@@ -254,9 +273,9 @@ function applyAt(ev,T,now,ctx){
     const k=String(ev.k||""),r=ev.r|0;if(!(r>=0&&r<=3)||!P[k])return "word";
     const t=now,last=LOG.length?LOG[LOG.length-1][0]:0;
     if(ctx.server&&t<=last+500)return "time";
-    let box=P[k].box||0;box=r===0?0:r===1?Math.max(1,box):Math.min(box+(r===2?1:2),8);
-    P[k]={box,due:r===0?t:t+IV[box]*DAY,t};LOG.push([t,k,r,0]);if(LOG.length>60000)LOG=LOG.slice(-60000);
-    EN.rc=(EN.rc||0)+1;if(EN.rc%5===0)enAdd(1,t);
+    const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,box=boxStep(b0,r,!ok);
+    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?0:2]);if(LOG.length>60000)LOG=LOG.slice(-60000);
+    if(ok){EN.rc=(EN.rc||0)+1;if(EN.rc%5===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
     return true;
   }
   if(T==="stStart"){

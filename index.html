@@ -680,6 +680,7 @@ function reviewHome(){
   </div>
   ${learned?`<div class="rsec rvbox"><h3>🔁 المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
+   ${RVSTATE!=="due"&&cnt?'<p class="rnote">الكلمات التي لم يحن موعدها تُراجَع للتدريب فقط، بلا خبرة ولا جواهر.</p>':""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next" id="rvGo">ابدأ المراجعة</button></div>`:""}
@@ -725,7 +726,7 @@ function rate(r,btn){
   if(!old)S.newCount=(S.newCount||0)+1;
   const en0=enNow();
   if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;markStudied();
-  const g=GEM[r]+(old?0:1);if(g)floatAt(btn,"+"+g+" 💎");
+  const g=LOG[LOG.length-1][3]===2?0:GEM[r];if(g)floatAt(btn,"+"+g+" 💎");   // التدريب بلا جواهر
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
   queue.shift();sessDone++;
   if(RVDONE&&RVDONE.mode==="review")rvRated++;
@@ -1163,14 +1164,14 @@ function renderReport(){
   const learned=f.filter(w=>P[w.k]).length,mem=f.filter(w=>P[w.k]&&P[w.k].box>=4).length;
   // متى رسخت كل كلمة أول مرة (وصلت إلى مراجعة أسبوعية)
   const box={},memAt={};
-  for(const [t,k,r] of L){let b=box[k]||0;b=r===0?0:r===1?Math.max(1,b):Math.min(b+(r===2?1:2),8);box[k]=b;if(b>=4&&!memAt[k])memAt[k]=t}
+  for(const [t,k,r,nw] of L){const b=nw===1?1:boxStep(box[k]||0,r,nw===2);box[k]=b;if(b>=4&&!memAt[k])memAt[k]=t}
   const ws=weekStart(now),ms=now-30*DAY;
-  const per=from=>({nw:L.filter(x=>x[3]&&x[0]>=from).length,mem:Object.keys(memAt).filter(k=>memAt[k]>=from&&P[k]&&P[k].box>=4).length});
+  const per=from=>({nw:L.filter(x=>x[3]===1&&x[0]>=from).length,mem:Object.keys(memAt).filter(k=>memAt[k]>=from&&P[k]&&P[k].box>=4).length});
   const wk=per(ws),mo=per(ms);
   // نسبة التذكّر: من المراجعات (لا الكلمات الجديدة) كم تذكّرت، لكل أسبوع من الأسابيع الستة الأخيرة
   const wks=[...Array(6)].map((_,i)=>weekStart(ws-(5-i)*7*DAY+DAY));
-  const rec=wks.map(a=>{const rs=L.filter(x=>!x[3]&&x[0]>=a&&x[0]<a+7*DAY);return rs.length?Math.round(rs.filter(x=>x[2]>=2).length/rs.length*100):0});
-  const recN=wks.map(a=>L.filter(x=>!x[3]&&x[0]>=a&&x[0]<a+7*DAY).length);
+  const rec=wks.map(a=>{const rs=L.filter(x=>x[3]===0&&x[0]>=a&&x[0]<a+7*DAY);return rs.length?Math.round(rs.filter(x=>x[2]>=2).length/rs.length*100):0});
+  const recN=wks.map(a=>L.filter(x=>x[3]===0&&x[0]>=a&&x[0]<a+7*DAY).length);
   const wl=wks.map((a,i)=>i===5?"الحالي":new Date(a+12*36e5).getDate()+"/"+(new Date(a+12*36e5).getMonth()+1));
   // الكلمات التي ينساها أكثر: النسيان في المراجعة والخطأ في الاختبار والتمارين
   const err={};L.forEach(x=>{if(x[2]===0)err[x[1]]=(err[x[1]]||0)+1});QA.forEach(x=>{if(!x[2]&&fk.has(x[1]))err[x[1]]=(err[x[1]]||0)+1});
@@ -1195,7 +1196,7 @@ function reportDetailsHTML(){
   const f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k));
   const L=LOG.filter(x=>fk.has(x[1])),sb=stackBar(f),c=sb.c,e=EC||econ();
   const total=L.length,correct=L.filter(x=>x[2]>=2).length;
-  const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(x[3])days[d].nw++});
+  const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(x[3]===1)days[d].nw++});
   const td=days[today()]||{n:0,ok:0,nw:0};
   const d14=[...Array(14)].map((_,i)=>now-(13-i)*DAY);
   const act=d14.map(t=>(days[dkey(t)]||{n:0}).n);
