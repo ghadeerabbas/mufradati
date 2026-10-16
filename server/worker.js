@@ -249,7 +249,7 @@ function econ(){
   const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
   for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++)got.push(a.id+":"+i)}
   // الجواهر: جوهرة لكل محطة مكتملة، وجوائز الدوري، ومراحل السلسلة، وهدايا المشرف، وما بقي من قبل التصفير
-  gems+=STN.length*CFG.gems.station;
+  gems+=STN.filter(x=>x[2]!==0).length*CFG.gems.station;   // المحطة التي كل كلماتها كوفئ عليها قبل التصفير لا تعطي جوهرة
   for(const [d,g] of STREAK_G)if(s.best>=d&&d>(R.sb||0))gems+=g;
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
@@ -385,7 +385,7 @@ function applyAt(ev,T,now,ctx){
     if(!ws.length||ws.some(k=>P[k]||(ctx.words&&!ctx.words.has(k))))return "word";
     const miss=new Set((ev.miss||[]).map(String));
     ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,1])});
-    STN.push([now,ws.length]);STV=0;return true;
+    const pw=new Set(R.pw||[]);STN.push([now,ws.length,ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;
   }
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
@@ -410,7 +410,7 @@ function applyAt(ev,T,now,ctx){
     BUY.push({id:String(ev.bid||now.toString(36)).slice(0,20),item:it.cat+":"+it.id,p:it.price,ts:now});return true;
   }
   if(T==="reset"){
-    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),ts:now};
+    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now};   // pw: كلمات كوفئ عليها في المحطات
     // يعود كأنه جديد: بلا خبرة ولا دوري (تبقى جواهره ومشترياته)
     P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};
     EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0};   // ويبدأ بطاقة كاملة
