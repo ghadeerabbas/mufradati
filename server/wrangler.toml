@@ -1,0 +1,6 @@
+# إعدادات نشر الخادم إلى Cloudflare (ينشره GitHub تلقائيًا)
+name = "mufradati-api"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+keep_vars = true

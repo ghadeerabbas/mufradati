@@ -1,0 +1,28 @@
+# نشر خادم مفرداتي إلى Cloudflare تلقائيًا عند تغيّر كوده
+name: نشر الخادم
+on:
+  push:
+    branches: [main]
+    paths: ["core.js", "server/**", ".github/workflows/worker.yml"]
+  workflow_dispatch:
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: التحقّق من وجود المفتاح
+        id: chk
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: if [ -n "$T" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "لم يُضف مفتاح Cloudflare بعد"; fi
+      - name: بناء الخادم من المنطق المشترك
+        if: steps.chk.outputs.ok == '1'
+        run: python3 server/build.py && cp server/worker.js /tmp/w.mjs && node --check /tmp/w.mjs
+      - name: النشر
+        if: steps.chk.outputs.ok == '1'
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: server
+          command: deploy
