@@ -854,13 +854,21 @@ function startStation(){
 }
 // المحطة درس متدرّج: لكل كلمة ثلاث خطوات (تعرّف، ثم جملة، ثم تمرين)، ثم تُعاد الكلمات التي أُخطئ فيها
 function stationSteps(words){
-  const steps=[];
-  words.forEach((w,i)=>{
-    steps.push({t:"intro",w});
-    steps.push({t:clozeOf(w)?"cloze":w.ex?"ex":"rev",w});
-    steps.push({t:i%2?"rev":"mc",w});
-  });
-  return steps;
+  // تُعرَّف الكلمات واحدة بعد أخرى، وتمارين كل كلمة تتوزّع بين الكلمات التالية:
+  // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
+  const out=[],pend=[];
+  const second=w=>({t:clozeOf(w)?"cloze":w.ex?"ex":"rev",w}),third=(w,i)=>({t:i%2?"rev":"mc",w});
+  const take=force=>{
+    const last=out.length?out[out.length-1].w:null;
+    let x=pend.findIndex(p=>p.ready<=out.length&&p.s.w!==last);
+    if(x<0&&force)x=pend.findIndex(p=>p.s.w!==last);
+    if(x<0&&force)x=0;
+    if(x<0)return false;
+    const p=pend.splice(x,1)[0];out.push(p.s);if(p.next)pend.push({s:p.next,ready:out.length+3});return true;
+  };
+  words.forEach((w,i)=>{out.push({t:"intro",w});pend.push({s:second(w),next:third(w,i),ready:out.length+2});take(false);});
+  while(pend.length)take(true);
+  return out;
 }
 function stOpts(w,de){   // أربعة خيارات من النوع نفسه
   const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de),same=shuffle(pool.filter(x=>x.t===w.t));
@@ -1911,7 +1919,9 @@ function renderSettings(){
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
-   <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}`;
+   <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}
+  ${isAdmin()?`<div class="rsec"><h3>🚪 الخروج</h3><p class="rnote">أنت مسجّل باسم المشرف: <span dir="ltr">${esc(login)}</span></p><button class="btn" id="admOut" style="width:100%;margin-top:6px">تسجيل الخروج</button></div>`:""}`;
+  {const ao=$("admOut");if(ao)ao.onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من حساب المشرف على هذا الجهاز؟"))return;await auth.signOut();location.reload()}}
   $("stSnd").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;try{localStorage.setItem("muf_snd",b.dataset.v)}catch(_){}if(b.dataset.v==="1")fx("ok");renderSettings()};
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(isDark()?1:0))return;E.dark=+b.dataset.v;setDevDark(E.dark);E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
   if($("stReset"))$("stReset").onclick=resetProgress;if($("stNameBox"))bindNameBox();
