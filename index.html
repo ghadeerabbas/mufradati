@@ -423,6 +423,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="core.js?v=1"></script>
 <script>
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
@@ -446,14 +447,11 @@ const uiPrompt=(msg,def)=>uiDialog(msg,{input:true,def:def||""});
 const uiAlert=msg=>uiDialog(msg,{cancel:""});
 
 const TYPE={n:"اسم",v:"فعل",a:"صفة/ظرف",p:"أداة/ضمير",e:"تعبير"};
-const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 const $=id=>document.getElementById(id);
 function st(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 const jget=(k,d)=>{try{return JSON.parse(st(k)||"null")??d}catch(e){return d}};
-const dkey=t=>{const d=new Date(t);return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")};
-const today=()=>dkey(Date.now());
 function ordinal(n){
   const u=["","الأول","الثاني","الثالث","الرابع","الخامس","السادس","السابع","الثامن","التاسع"],
    t=["","العاشر","العشرون","الثلاثون","الأربعون","الخمسون","الستون","السبعون","الثمانون","التسعون"];
@@ -466,147 +464,17 @@ const dayName=n=>"اليوم "+ordinal(n);
 let W=[],DAYS=[];
 let UID=null,UNAME="";                       // المستخدم الحالي
 const K=n=>"muf_"+UID+"_"+n;                // مفاتيح التخزين لكل مستخدم
-let EN={v:30,t:0},STN=[];   // الطاقة، والمحطات المكتملة [وقت، عدد الكلمات]
+let EN={v:30,t:0},STN=[],STV=0,EVQ=[];   // الطاقة، والمحطات المكتملة [وقت، عدد الكلمات]، وبداية المحطة الجارية، والأحداث التي لم تصل الخادم بعد
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGME=null;LGC={at:0,rows:null};
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
 const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));
-  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG));st(K("energy"),JSON.stringify(EN));st(K("stations"),JSON.stringify(STN))};
+  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG));st(K("energy"),JSON.stringify(EN));st(K("stations"),JSON.stringify(STN));st(K("stv"),String(STV||0));st(K("evq"),JSON.stringify(EVQ))};
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
-
-/* ================= المتجر: الكتالوج ================= */
-const SHOP=[
- // الصور الرمزية
- ...[["🎓",0,0],["🦊",200,30],["🐱",200,30],["🦉",300,40],["🐼",300,40],["🐧",300,40],["🦁",500,60],["🐯",500,60],["🤖",650,80],["🧠",650,80],["🚀",800,100],["🐉",1000,120],["🦄",1000,120],["👑",1600,200]]
-   .map(([v,p,o],i)=>({id:"av"+i,cat:"avatar",name:"رمز "+v,val:v,price:p,old:o})),
- // الألقاب
- ...[["مبتدئ طموح",0,0],["طالب مجتهد",500,60],["صديق الأفعال",650,80],["صائد الأسماء",650,80],["عاشق الألمانية",1000,120],["سيّد der die das",1200,150],["بطل B2",2000,250],["أستاذ المفردات",3000,400]]
-   .map(([v,p,o],i)=>({id:"t"+i,cat:"title",name:v,val:v,price:p,old:o})),
- // السمات
- {id:"classic",cat:"theme",name:"الكلاسيكي",price:0,sw:["#1f2a5a","#a01f26","#c9a84a"]},
- {id:"emerald",cat:"theme",name:"الزمرّدي",price:1200,old:150,sw:["#0f4c3a","#b5452f","#d4af37"]},
- {id:"royal",cat:"theme",name:"البنفسجي الملكي",price:1200,old:150,sw:["#3b1f6b","#c2185b","#f0c14b"]},
- {id:"ocean",cat:"theme",name:"المحيط",price:1200,old:150,sw:["#0b4f6c","#e4572e","#ffc857"]},
- {id:"sunset",cat:"theme",name:"الغروب",price:1600,old:200,sw:["#7a2e1f","#b8326a","#f4a261"]},
- {id:"lux",cat:"theme",name:"الذهبي الفاخر",price:2500,old:300,sw:["#241b12","#8c1c13","#e0b84f"]},
- // إطارات البطاقة
- {id:"none",cat:"frame",name:"بلا إطار",price:0},
- {id:"red",cat:"frame",tier:0,name:"إطار أحمر",price:150},
- {id:"green",cat:"frame",tier:0,name:"إطار أخضر",price:150},
- {id:"blue",cat:"frame",tier:0,name:"إطار أزرق",price:150},
- {id:"orange",cat:"frame",tier:1,name:"إطار برتقالي",price:200},
- {id:"purple",cat:"frame",tier:1,name:"إطار بنفسجي",price:250},
- {id:"pink",cat:"frame",tier:1,name:"إطار وردي",price:250},
- {id:"silver",cat:"frame",tier:2,name:"إطار فضّي",price:450},
- {id:"gold",cat:"frame",tier:3,name:"إطار ذهبي",price:800,old:100},
- {id:"wood",cat:"frame",tier:4,name:"إطار نحاسي",price:950,old:120},
- {id:"crimson",cat:"frame",tier:4,name:"إطار قرمزي",price:1100},
- {id:"neon",cat:"frame",tier:5,name:"إطار نيون",price:1200,old:150},
- {id:"stars",cat:"frame",tier:6,name:"إطار المجرّة",price:1450,old:180},
- {id:"fire",cat:"frame",tier:7,name:"إطار ناري",price:1600},
- {id:"rainbow",cat:"frame",tier:8,name:"إطار ملكي",price:1800,old:220},
- {id:"diamond",cat:"frame",tier:9,name:"إطار ماسي",price:2200},
- // الملصقات
- ...[["🌸",150,20],["⭐",150,20],["💡",200,25],["🍀",200,25],["🎈",200,25],["☕",250,30],["🍕",250,30],["🥨",300,40],["🌙",300,40],["🌻",300,40],["🎻",400,50],["🏰",500,60],["🇩🇪",500,60],["🦋",500,60],["🏆",800,100],["💎",1200,150]]
-   .map(([v,p,o],i)=>({id:"s"+i,cat:"sticker",name:"ملصق "+v,val:v,price:p,old:o})),
- // الاحتفالات
- {id:"squares",cat:"confetti",name:"قصاصات ملوّنة",price:0,val:"🎊"},
- {id:"stars",cat:"confetti",name:"نجوم",price:500,old:60,val:"⭐"},
- {id:"hearts",cat:"confetti",name:"قلوب",price:500,old:60,val:"💖"},
- {id:"gems",cat:"confetti",name:"جواهر",price:800,old:100,val:"💎"},
- {id:"fireworks",cat:"confetti",name:"ألعاب نارية",price:1000,old:120,val:"🎆"},
- // مستهلكات
- // ألوان الاسم في الدوري (القرمزي للمشرف وحده، والعادي أسود نهارًا وأبيض ليلًا)
- ...[["none","اللون العادي",0],["red","أحمر",150],["green","أخضر",150],["blue","أزرق",150],["orange","برتقالي",250],["purple","بنفسجي",250],["pink","وردي",350],["teal","فيروزي",350],
-     ["brown","بنّي",500],["silver","فضّي بحافة",800],["gold","ذهبي بحافة",1200],["emerald","زمرّدي بحافة",1500],["sapphire","ياقوتي بحافة",2000]].map(([id,n,p])=>({id,cat:"namecolor",name:n,price:p,val:"🎨"})),
- {id:"freeze",cat:"power",name:"تجميد السلسلة",price:300,old:50,val:"❄️",desc:"يحمي سلسلتك يومًا واحدًا إن غبت"},
-];
-// كل هدايا المتجر تنفتح بالصعود في الدوري (رقم الدوري الذي يفتح كل غرض؛ ما لم يُذكر يكون مفتوحًا)
-const NCOL={red:1,green:1,blue:1,orange:1,purple:1,pink:1,teal:1,brown:1,crimson:1,silver:1,gold:1,emerald:1,sapphire:1,admin:1};
-const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10:4,av11:5,av12:7,av13:9},
- title:{t1:1,t2:2,t3:3,t4:4,t5:5,t6:7,t7:9},
- theme:{emerald:2,royal:3,ocean:4,sunset:6,lux:8},
- sticker:{s0:0,s1:0,s2:0,s3:1,s4:1,s5:1,s6:2,s7:2,s8:3,s9:3,s10:4,s11:5,s12:5,s13:6,s14:8,s15:9},
- confetti:{stars:1,hearts:2,gems:4,fireworks:6},
- namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,silver:4,gold:5,emerald:7,sapphire:9}};
-SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t});
-const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
-const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
-const stkVal=v=>{if(!v)return"";const it=/^s\d+$/.test(v)?SHOP.find(x=>x.cat==="sticker"&&x.id===v):null;return it?it.val:v};
-const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
-const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.price===0||BUY.some(b=>b.item===cat+":"+id))};
-
-/* ================= الاقتصاد: كل شيء يُحسب من السجلّ ================= */
-const GEM=[0,1,2,2],XPR=[2,5,10,10];
-// الإنجازات بمستويات: كل إنجاز يرتقي إلى مستوى أعلى كلما زاد الرقم، ولكل مستوى جواهره
-const ACH=[
- {id:"rev",ic:"📖",n:"المراجِع المجتهد",u:"مراجعة",v:s=>s.reviews,L:[[1,5],[100,20],[500,50],[1000,100],[2500,200],[5000,300],[10000,500],[25000,800],[50000,1200]]},
- {id:"mem",ic:"🌳",n:"حديقة الكلمات",u:"كلمة محفوظة",v:s=>s.mem,L:[[10,20],[50,50],[100,100],[250,200],[500,400],[1000,700],[2000,1000],[3000,1500]]},
- {id:"mast",ic:"💎",n:"الكلمات الراسخة",u:"كلمة راسخة",v:s=>s.mast,L:[[10,30],[50,150],[100,250],[250,500],[500,800],[1000,1200]]},
- {id:"streak",ic:"🔥",n:"السلسلة",u:"يومًا متتاليًا",v:s=>s.best,L:[[3,20],[7,50],[14,100],[30,200],[60,400],[100,700],[200,1000],[365,1500]]},
- {id:"perfect",ic:"🎯",n:"الأيام المثالية",u:"يومًا بلا نسيان (20 مراجعة فأكثر)",v:s=>s.perfect,L:[[1,30],[5,60],[10,100],[25,200],[50,400],[100,700]]},
- {id:"marathon",ic:"🏃",n:"الماراثون",u:"مراجعة في يوم واحد",v:s=>s.maxDay,L:[[50,25],[100,50],[200,100],[300,150],[500,250]]},
- {id:"quiz",ic:"🧩",n:"محبّ الاختبارات",u:"اختبارًا وتمرينًا مكتملًا",v:s=>s.quizzes,L:[[10,30],[25,50],[50,80],[100,150],[250,300],[500,500]]},
- {id:"qfull",ic:"🥇",n:"العلامة الكاملة",u:"اختبارًا أو تمرينًا بلا خطأ",v:s=>s.qfull,L:[[1,20],[5,40],[10,70],[25,150],[50,300],[100,500]]},
- {id:"dayall",ic:"📅",n:"الأيام المكتملة",u:"يومًا بدأت كل كلماته",v:s=>s.dayAll,L:[[1,50],[3,80],[5,120],[10,200],[20,400]],b2:1},
- {id:"owl",ic:"🦉",n:"بومة الليل",u:"ليلة راجعت فيها بعد الحادية عشرة",v:s=>s.night,L:[[1,10],[5,20],[15,40],[30,80],[60,150]]},
- {id:"bird",ic:"🐦",n:"الطائر المبكر",u:"صباحًا راجعت فيه قبل السابعة",v:s=>s.early,L:[[1,10],[5,20],[15,40],[30,80],[60,150]]},
- {id:"shop",ic:"🛍️",n:"جامع التحف",u:"غرضًا من المتجر",v:s=>s.items,L:[[5,30],[10,50],[20,100],[30,150],[40,200]]},
-];
-// أسماء الإنجازات قبل المستويات، لئلّا تُدفع جواهرها مرتين بعد التصفير
-const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:6",m10:"mem:1",m50:"mem:2",m100:"mem:3",m250:"mem:4",m500:"mem:5",x50:"mast:2",
- s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
-const achList=()=>ACH.filter(a=>!a.b2||useDays());
-const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
-const lvlNeed=l=>200*l;                         // كل مستوى يحتاج 200 نقطة أكثر من سابقه
-let EC=null;
-function econ(){
-  const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
-  let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={};
-  const L=[...LOG].sort((a,b)=>a[0]-b[0]);
-  for(const [t,k,r,nw] of L){
-    s.reviews++;gems+=GEM[r]+(nw?1:0);xp+=XPR[r];
-    let b=box[k]||0;b=r===0?0:r===1?Math.max(1,b):Math.min(b+(r===2?1:2),8);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=20}
-    if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=50}
-    const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
-    const h=new Date(t).getHours();if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
-  }
-  s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
-  for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
-    gems+=(x.n>=20?5:0)+(x.n>=50?10:0)+(x.n>=100?15:0);xp+=(x.n>=20?30:0)}
-  for(const q of QLOG){gems+=q[1];xp+=q[1]*5;if(q[2]>=5&&q[1]===q[2])s.qfull++}
-  // الأيام المكتملة
-  if(W.length){const started=k=>!!P[k];for(const d of DAYS){const ws=W.filter(w=>w.day===d.day);if(ws.length&&ws.every(w=>started(w.k)))s.dayAll++;}}
-  // السلسلة مع التجميد
-  const fz=BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)).sort();
-  const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
-  const days=Object.keys(per).sort();let fi=0,avail=0;
-  if(days.length){
-    let t=new Date(days[0]+"T12:00:00").getTime();const end=today();
-    for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
-      if(qd(d))s.streak++;else if(d!==end){if(avail>0)avail--;else s.streak=0}
-      s.best=Math.max(s.best,s.streak);if(d>=end)break}
-  }
-  while(fi<fz.length){avail++;fi++}
-  s.freezes=avail;
-  s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
-  // المستوى
-  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=lv*5}
-  const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
-  for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++){const id=a.id+":"+i;got.push(id);if(!paid.has(id))gems+=a.L[i-1][1]}}
-  gems+=R.bank||0;
-  gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
-  gems+=giftSum();                                      // هدايا المشرف
-  const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
-  const td=per[today()]||{n:0};
-  EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got),alv,todayN:td.n,per};
-  return EC;
-}
 
 /* ================= تحميل المفردات ================= */
 /* المنهج: غدير يدرس B2، وباقي المستخدمين يبدؤون من A1 */
@@ -717,13 +585,9 @@ function celebrate(prev){
 /* ================= المراجعة ================= */
 let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
-const EN_MAX=30,EN_STEP=DAY/EN_MAX,ST_COST=10,ST_WORDS=5,ST_MAX=4;
-const enNow=()=>Math.min(EN_MAX,Math.max(0,(EN.v||0)+Math.floor((Date.now()-(EN.t||0))/EN_STEP)));
-const enNext=()=>enNow()>=EN_MAX?0:EN_STEP-((Date.now()-(EN.t||0))%EN_STEP);
-function enSet(v){const now=Date.now(),full=enNow()>=EN_MAX,frac=full?0:(now-(EN.t||0))%EN_STEP;EN={v:Math.min(EN_MAX,Math.max(0,v)),t:now-frac};save();schedSync();renderEnergy()}
 function renderEnergy(){const b=$("hEn");if(!b)return;const n=enNow();b.textContent=(n<ST_COST?"🪫 ":"🔋 ")+n;b.classList.toggle("low",n<ST_COST)}
 /* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
-const stToday=()=>STN.filter(x=>dkey(x[0])===today()).length;
+const stToday=()=>stTodayAt(Date.now());
 let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0;
 function buildQueue(){
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
@@ -738,7 +602,7 @@ function startStation(){
   const fresh=uniq(filtered()).filter(w=>!P[w.k]);
   if(!fresh.length||stToday()>=ST_MAX)return;
   if(enNow()<ST_COST){toast("🪫","طاقتك لا تكفي","تحتاج "+ST_COST+" · لديك "+enNow());return}
-  enSet(enNow()-ST_COST);
+  if(ev({type:"stStart"})!==true)return;renderEnergy();
   STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[]};
   RVDONE=null;stationView();scrollTo(0,0);
 }
@@ -768,12 +632,12 @@ function stationView(){
 async function quitStation(){
   if(!STS)return;
   if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها، وستستعيد "+(ST_COST/2)+" طاقة فقط من "+ST_COST+". هل تريد الخروج؟"))return;
-  STS=null;enSet(enNow()+ST_COST/2);toast("🔋","استعدت "+(ST_COST/2)+" طاقة","");reviewHome();
+  STS=null;ev({type:"stQuit"});renderEnergy();toast("🔋","استعدت "+(ST_COST/2)+" طاقة","");reviewHome();
 }
 function finishStation(){
   const S_=STS,now=Date.now(),prev=EC||econ();
-  S_.words.forEach((w,i)=>{const r=S_.miss.has(w.k)?1:2,box=1;P[w.k]={box,due:now+IV[box]*DAY,t:now+i};LOG.push([now+i,w.k,r,1])});
-  S.newCount=(S.newCount||0)+S_.words.length;STN.push([now,S_.words.length]);save();markStudied();
+  ev({type:"stDone",words:S_.words.map(w=>w.k),miss:[...S_.miss],t:now});
+  S.newCount=(S.newCount||0)+S_.words.length;save();markStudied();
   STS=null;RVDONE={mode:"station",n:S_.words.length,st:S_.n,finished:true};
   celebrate(prev);confetti(140);schedSync();reviewHome();scrollTo(0,0);
 }
@@ -843,15 +707,13 @@ function flip(){
 function rate(r,btn){
   const now=Date.now(),old=P[cur.k],prev=EC||econ();
   if(!old)S.newCount=(S.newCount||0)+1;
-  let box=old?old.box:0;
-  if(r===0)box=0;else if(r===1)box=Math.max(1,box);else box=Math.min(box+(r===2?1:2),8);
-  P[cur.k]={box,due:r===0?now:now+IV[box]*DAY,t:now};
-  LOG.push([now,cur.k,r,old?0:1]);if(LOG.length>60000)LOG=LOG.slice(-60000);markStudied();
-  save();
+  const en0=enNow();
+  if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;markStudied();
   const g=GEM[r]+(old?0:1);if(g)floatAt(btn,"+"+g+" 💎");
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
   queue.shift();sessDone++;
-  if(RVDONE&&RVDONE.mode==="review"){rvRated++;if(rvRated%5===0){enSet(enNow()+1);setTimeout(()=>floatAt($("hEn"),"+1 🔋"),150)}}
+  if(RVDONE&&RVDONE.mode==="review")rvRated++;
+  if(enNow()>en0){renderEnergy();setTimeout(()=>floatAt($("hEn"),"+1 🔋"),150)}
   if(r===0){queue.splice(Math.min(3,queue.length),0,cur);sessTotal++}
   celebrate(prev);
   if(!queue.length)confetti(140);
@@ -864,17 +726,8 @@ async function resetProgress(){
   if(!await uiConfirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والمستوى، والسلسلة.\nتبقى جواهرك ومشترياتك كما هي.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
   const v=(await uiPrompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
   if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
-  const e0=econ();
-  R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),ts:Date.now()};
-  P={};LOG=[];QLOG=[];QA=[];STN=[];S.newCount=0;LG.hist=[];LG.ts=Date.now();save();
-  try{
-    clearTimeout(syncTimer);syncTimer=null;
-    const b=db.batch();
-    b.set(uref(),{main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R,LG,EN,STN}),sum:summary(),name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
-    b.set(uref().collection("data").doc("log"),{v:JSON.stringify(packLog([]))});
-    b.set(uref().collection("data").doc("qa"),{v:JSON.stringify(packQA([]))});
-    await b.commit();
-  }catch(e){await uiAlert("حُذف التقدّم من هذا الجهاز، لكن تعذّر حذفه من حسابك الآن. تأكّد من الاتصال وأعد المحاولة.");}
+  ev({type:"reset"});S.newCount=0;save();
+  if(!await syncNow()||EVQ.length)await uiAlert("حُذف التقدّم من هذا الجهاز، وسيُحذف من حسابك عند عودة الاتصال.");
   econ();renderHeader();buildQueue();showCard();toast("🗑️","تمّ تصفير التقدّم","بداية جديدة!");
 }
 function settingsHTML(){
@@ -915,7 +768,7 @@ function renderList(){
 }
 
 /* ================= الاختبار ================= */
-let qz=[],qi=0,qs=0,streakQ=0;
+let qz=[],qi=0,qs=0,streakQ=0,qzA=[];
 // درجة الصعوبة: النسيان والصعبة في المراجعة، والأخطاء في الاختبار
 function hardScores(){
   const sc={};LOG.forEach(x=>{if(x[2]===0)sc[x[1]]=(sc[x[1]]||0)+2;else if(x[2]===1)sc[x[1]]=(sc[x[1]]||0)+1});
@@ -930,13 +783,13 @@ function startQuiz(){
   const pick=[],take=(arr,n)=>{for(const w of arr){if(n<=0)break;if(!pick.includes(w)){pick.push(w);n--}}};
   take(A,6);take(B,2);take(C,2);
   take(A,N-pick.length);take(B,N-pick.length);take(C,N-pick.length);
-  qz=shuffle(pick);qi=0;qs=0;streakQ=0;showQ();
+  qz=shuffle(pick);qi=0;qs=0;streakQ=0;qzA=[];showQ();
 }
 function showQ(){
   const el=$("quiz");
   if(qz.length<4){el.innerHTML='<div class="box done">لا توجد كلمات كافية في هذا الاختيار.</div>';return}
   if(qi>=qz.length){
-    const prev=EC||econ();QLOG.push([Date.now(),qs,qz.length]);save();celebrate(prev);schedSync();
+    const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA})}celebrate(prev);
     const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
     el.innerHTML=`<div class="box done"><div class="big">${star}</div><h2>النتيجة: ${qs} من ${qz.length}</h2><p>+${qs} 💎</p><button class="btn next" id="again">اختبار جديد</button></div>`;
     if(qs===qz.length)confetti(150);
@@ -948,7 +801,7 @@ function showQ(){
    <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
-    const ok=b.dataset.k===w.k;QA.push([Date.now(),w.k,ok?1:0]);markStudied();if(QA.length>30000)QA=QA.slice(-30000);save();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
+    const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);markStudied();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
     $("qnext").innerHTML=`<div style="margin-top:8px">${exPairs(w)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
@@ -1136,7 +989,7 @@ function gameView(){
 // بعد كل جواب: يُسجَّل للكلمات الصعبة، ثم يظهر التصحيح وزر التالي
 function answered(ok,el,auto){
   const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++;floatAt(el,"+1 💎")}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
-  QA.push([Date.now(),w.k,ok?1:0]);if(QA.length>30000)QA=QA.slice(-30000);save();markStudied();
+  (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);markStudied();
   let fb="";
   if(q.kind==="type"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
     :`<div class="gres bad">الجواب الصحيح:</div><div class="gans de">${diffHTML(coreOf(r.a)||r.a,coreOf(GM.typed.v))}</div>`}
@@ -1167,10 +1020,9 @@ function matchView(){
     if(s.side==="de")speak(GM.de.find(w=>w.k===s.k).de);
     if(!GM.sel||GM.sel.side===s.side){GM.sel=s;return matchView()}
     const ok=GM.sel.k===s.k;
-    QA.push([Date.now(),s.k,ok?1:0]);
+    (GM.qa=GM.qa||[]).push([s.k,ok?1:0]);
     if(ok){GM.left.delete(s.k);GM.sel=null;if(!GM.left.size){GM.ms=Date.now()-GM.t0;return finishGame()}matchView()}
-    else{GM.miss++;QA.push([Date.now()+1,GM.sel.k,0]);GM.sel=null;matchView();const g=el.querySelector(".mgrid");if(g)g.classList.add("flash-no")}
-    save();
+    else{GM.miss++;GM.qa.push([GM.sel.k,0]);GM.sel=null;matchView();const g=el.querySelector(".mgrid");if(g)g.classList.add("flash-no")}
   });
 }
 function finishGame(){
@@ -1179,12 +1031,12 @@ function finishGame(){
   if(GM.id==="match"){
     if(GM.left.size){GM=null;renderGames();return}            // خرج قبل أن ينهي
     GM.ok=Math.max(0,6-GM.miss);GM.n=6;GM.best=bestMatch();
-    QLOG.push([Date.now(),GM.ok,6,"match",GM.ms]);
+    ev({type:"quiz",kind:"match",ok:GM.ok,total:6,qa:GM.qa,ms:GM.ms});
   }else{
     if(!GM.n){GM=null;renderGames();return}
-    QLOG.push([Date.now(),GM.ok,GM.n,GM.id]);
+    ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa});
   }
-  GM.done=true;save();markStudied();celebrate(prev);schedSync();gameView();
+  GM.done=true;markStudied();celebrate(prev);gameView();
 }
 function gameResult(){
   const g=GAMES.find(x=>x.id===GM.id),pct=GM.n?GM.ok/GM.n:0;
@@ -1202,96 +1054,19 @@ function markStudied(){try{if(window.MufApp&&MufApp.markStudied)MufApp.markStudi
 /* ================= المقياس والدوري ================= */
 // مقياس المتعلّم من 100 (يراه المدير فقط): التقدّم 30، والخبرة 20، ومدة التعلّم 20، والانتظام 15، والدقّة 15
 const MPARTS={prog:["التقدّم (كلمات محفوظة)",30],xp:["الخبرة",20],dur:["مدة التعلّم (أيام الدراسة)",20],reg:["الانتظام (السلسلة ونشاط أسبوعين)",15],acc:["الدقّة",15]};
-function measure(){
-  const e=econ(),days=Object.keys(e.per).length,now=Date.now();
-  const act14=[...Array(14)].filter((_,i)=>e.per[dkey(now-i*DAY)]).length;
-  const ok=LOG.filter(x=>x[2]>=2).length,acc=LOG.length?ok/LOG.length:0;
-  const p={prog:Math.min(e.s.mem/300,1)*30,xp:Math.min(e.xp/5000,1)*20,dur:Math.min(days/60,1)*20,
-    reg:Math.min(e.s.best/30,1)*5+Math.min(act14/10,1)*10,acc:acc*Math.min(LOG.length/30,1)*15};
-  const parts={};let total=0;for(const k in p){parts[k]=Math.round(p[k]);total+=p[k]}
-  return {total:Math.round(total),parts};
-}
-const band=()=>Math.min(5,Math.floor(measure().total/20));
 // كؤوس ملوّنة لكل دوري
 const cupSVG=(c,d)=>`<svg class="cup" viewBox="0 0 24 24" aria-hidden="true"><path fill="${c}" stroke="${d}" stroke-width=".7" stroke-linejoin="round" d="M7 3h10v2h3v2.5a4.5 4.5 0 0 1-4.2 4.5A5 5 0 0 1 13 14.9V17h3v2H8v-2h3v-2.1A5 5 0 0 1 8.2 12 4.5 4.5 0 0 1 4 7.5V5h3V3zm0 4H6v.5a2.5 2.5 0 0 0 1.4 2.2A5 5 0 0 1 7 8V7zm10 0v1a5 5 0 0 1-.4 1.7A2.5 2.5 0 0 0 18 7.5V7h-1z"/><rect x="6.5" y="19" width="11" height="2.4" rx="1.1" fill="${d}"/><path fill="#fff" opacity=".45" d="M9 5h1.6v6.2A3.4 3.4 0 0 1 9 8.6z"/></svg>`;
 const TIERS=[["البرونزي","#cd7f32","#8a4f22"],["الفضّي","#c3cad3","#7d8792"],["الذهبي","#f4c430","#b08a12"],["الياقوت الأزرق","#2f6fdf","#1d4a9c"],["الياقوت الأحمر","#e0314b","#8f1626"],["الزمرّدي","#1fb46c","#11703f"],["البنفسجي","#9b5de5","#6a35ad"],["اللؤلؤي","#f3eef9","#a99bbf"],["الملكي","#3a3a4a","#101016"],["الماسي","#5fe0ee","#1c97a8"]].map(([n,c,d])=>[n,cupSVG(c,d)]);
 const tierName=i=>"الدوري "+TIERS[i][0];
-// أعلى دوري وصله المتعلّم: يفتح إطارات المتجر، ولا تُقفل إن نزل بعدها
-const bestTier=()=>Math.max(LG.tier??0,LG.best||0,...(LG.hist||[]).map(h=>h.tier+h.mv));
 const itemLocked=it=>it.cat!=="power"&&!isAdmin()&&(it.tier||0)>bestTier();   // المشرف مفتوح له كل شيء
-const GROUP_MAX=20,PROMO_MIN=100;
-function weekStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()}
-const weekId=t=>dkey(weekStart(t));
-// خبرة الأسبوع: من المراجعات والاختبارات والتمارين في هذا الأسبوع
-function weekXP(ws){
-  const we=ws+7*DAY,per={};let xp=0;
-  for(const x of LOG)if(x[0]>=ws&&x[0]<we){xp+=XPR[x[2]];const d=dkey(x[0]);per[d]=(per[d]||0)+1}
-  for(const d in per)if(per[d]>=20)xp+=30;
-  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=q[1]*5;
-  return xp;
-}
-// منطقة الصعود والهبوط حسب حجم المجموعة (قرابة الربع يصعد، وقرابة السدس يهبط)
-function zones(n){
-  const up=n<=4?1:n<=9?2:Math.round(n*.25),down=n<5?0:n<10?1:Math.round(n*.17);
-  return {up,down};
-}
 // الجميع يبدؤون من البرونزي ويصعدون بجهدهم؛ والمقياس يجمع المتقاربين داخل الدوري الواحد
 const initialTier=()=>0;
 // الإصدار 2: إعادة من بدأ في دوري أعلى إلى البرونزي مرة واحدة
 function migrateLG(){if((LG.v||1)<2){if(LG.tier!=null)LG.tier=0;LG.v=2;LG.ts=Date.now()}}
 const lgref=w=>db.collection("lg").doc(w).collection("m");
-let LGME=null,LGC={at:0,rows:null};
-async function myLeagueDoc(w){
-  if(LGME&&LGME.w===w)return LGME;
-  const d=await lgref(w).doc(UID).get();LGME=d.exists?{w,...d.data()}:null;return LGME;
-}
-// يختار مجموعة من نفس الدوري متقاربة في المقياس، وينشئ مجموعة جديدة إن امتلأت أو ابتعدت
-async function chooseGroup(w,tier){
-  const q=await lgref(w).where("tier","==",tier).get(),gs={};
-  q.docs.forEach(d=>{const x=d.data();(gs[x.grp]=gs[x.grp]||[]).push(x.b||0)});
-  const my=band(),all=q.docs.length;let best=null,bd=1e9;
-  for(const g in gs){if(gs[g].length>=GROUP_MAX)continue;const avg=gs[g].reduce((a,b)=>a+b,0)/gs[g].length,dd=Math.abs(avg-my);if(dd<bd){bd=dd;best=+g}}
-  if(best!=null&&!(bd>=2&&all>=10))return best;
-  const ks=Object.keys(gs).map(Number);return ks.length?Math.max(...ks)+1:0;
-}
-// تطبيق نتيجة الأسبوع الماضي مرة واحدة: صعود أو هبوط وجوائز
+let LGC={at:0,rows:null};
 // المجموعة: إن قلّ المتعلّمون الحقيقيون عن 5 تُضمّ إليهم أقرب الدوريات المتجاورة،
 // ثم تُكمَل حتى 10 بمنافسين آليّين ظاهرين بأنهم آليّون
-const MINR=5,TARGET=10;
-function clusters(members){
-  // من اختار الدوري التجريبي يبقى وحده مع الآليّين، ولا يدخل مجموعات الآخرين
-  const solo=members.filter(m=>m.solo).map(m=>({key:"solo-"+m.id,m:[m]}));members=members.filter(m=>!m.solo);
-  const units={};members.forEach(m=>{const k=(m.tier||0)*1000+(m.grp||0);(units[k]=units[k]||[]).push(m)});
-  const out=[];let cur=null;
-  for(const k of Object.keys(units).map(Number).sort((a,b)=>a-b)){
-    if(!cur)cur={key:k,m:[]};cur.m.push(...units[k]);
-    if(cur.m.length>=MINR){out.push(cur);cur=null}
-  }
-  if(cur){if(out.length)out[out.length-1].m.push(...cur.m);else out.push(cur)}
-  return [...out,...solo];
-}
-function rngOf(seed){let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
-  return()=>{h=h+0x6D2B79F5|0;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
-const BOTN=["Lena","Jonas","Mia","Paul","Emma","Felix","Hannah","Lukas","Sophie","Elias","Lea","Noah","Marie","Ben","Clara","Finn","Anna","Leon"];
-// منافسون آليّون ثابتون طوال الأسبوع: خبرتهم حول متوسط خبرة المجموعة، وتزداد يومًا بعد يوم
-function makeBots(w,cl,base,prog){
-  const r=rngOf(w+"|"+cl.key),names=[...BOTN];
-  for(let i=names.length-1;i>0;i--){const j=r()*(i+1)|0;[names[i],names[j]]=[names[j],names[i]]}
-  const out=[],n=Math.max(0,TARGET-cl.m.length),tier=Math.min(...cl.m.map(m=>m.tier||0));
-  for(let i=0;i<n;i++){
-    const target=base*(.35+r()*1.3),wts=[...Array(7)].map(()=>{const a=r(),b=r();return a<.2?0:.3+b});
-    const tot=wts.reduce((a,b)=>a+b,0)||1,days=prog*7;let xp=0;
-    for(let d=0;d<7;d++)xp+=target*wts[d]/tot*Math.max(0,Math.min(1,days-d));
-    out.push({id:"bot"+i,bot:1,name:names[i],av:"🤖",tier,xp:Math.round(xp)});
-  }
-  return out;
-}
-// متوسط خبرة المتعلّمين الحقيقيين في المجموعة خلال الأسبوع السابق، وإلا فقيمة تناسب الدوري
-function botBase(cl,prevDocs){
-  const ids=new Set(cl.m.map(m=>m.id)),xs=prevDocs.filter(d=>ids.has(d.id)&&d.xp>0).map(d=>d.xp);
-  const tier=Math.min(...cl.m.map(m=>m.tier||0));
-  return Math.max(100,xs.length?xs.reduce((a,b)=>a+b,0)/xs.length:150+tier*80);
-}
 const LGW={};
 async function weekDocs(w,fresh){
   if(!fresh&&LGW[w]&&Date.now()-LGW[w].at<60000)return LGW[w].d;
@@ -1299,49 +1074,15 @@ async function weekDocs(w,fresh){
 }
 // جدول مجموعتي في أسبوع ما: المتعلّمون الحقيقيون ثم الآليّون، مرتّبين بالخبرة
 async function groupTable(w,prog,fresh){
-  const docs=await weekDocs(w,fresh),cl=clusters(docs).find(c=>c.m.some(m=>m.id===UID));
-  if(!cl)return [];
-  const prev=await weekDocs(weekId(new Date(w+"T12:00:00").getTime()-3*DAY));
-  return [...cl.m,...makeBots(w,cl,botBase(cl,prev),prog)].sort((a,b)=>b.xp-a.xp||(a.bot?1:0)-(b.bot?1:0));
+  const docs=await weekDocs(w,fresh),prev=await weekDocs(weekId(new Date(w+"T12:00:00").getTime()-3*DAY));
+  return tableFor(UID,w,docs,prev,prog);
 }
-const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,30,20][realRank-1]||0);
-// تطبيق نتيجة الأسبوع الماضي مرة واحدة: صعود أو هبوط وجوائز
-async function leagueSettle(){
-  if(!UID)return;
-  const cur=weekId(Date.now());
-  if(LG.tier==null){LG.tier=initialTier();LG.v=2;LG.w=cur;LG.ts=Date.now();save();schedSync();return}
-  if(LG.w===cur)return;
-  const last=weekId(weekStart(Date.now())-3*DAY);let res=null;
-  const me=await lgref(last).doc(UID).get();
-  if(me.exists){
-    const m=me.data(),rows=await groupTable(last,1,true);
-    const n=rows.length,rank=rows.findIndex(r=>r.id===UID)+1,realRank=rows.filter(r=>!r.bot).findIndex(r=>r.id===UID)+1,{up,down}=zones(n);
-    let mv=0;if(rank&&rank<=up&&m.xp>=PROMO_MIN&&m.tier<9)mv=1;else if(rank&&down&&rank>n-down&&m.tier>0)mv=-1;
-    res={w:last,tier:m.tier,rank,n,mv,g:prizeOf(realRank,m.xp),xp:m.xp};
-    LG.tier=m.tier+mv;LG.best=Math.max(LG.best||0,LG.tier);
-  }
-  const prev=EC||econ();
-  LG.w=cur;if(res)LG.hist=[...(LG.hist||[]),res].slice(-52);LG.ts=Date.now();save();schedSync();
-  if(res){celebrate(prev);
-    const t=res.tier+res.mv;
-    if(res.mv>0){const nf=SHOP.filter(x=>x.tier===t&&x.cat!=="power");if(nf.length)setTimeout(()=>toast("🎁","انفتحت "+nf.length+" هدايا جديدة في المتجر",nf.map(x=>x.cat==="title"||x.cat==="theme"||x.cat==="frame"?x.name:x.val).join(" ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
-    else if(res.mv<0)toast("⬇️","نزلت إلى "+tierName(t),"المركز "+res.rank+" من "+res.n+" · عُد أقوى هذا الأسبوع");
-    else toast(TIERS[t][1],"بقيت في "+tierName(t),"المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));
-  }
-}
-// ينضمّ إلى دوري الأسبوع عند أول خبرة، ثم يحدّث خبرته
-async function leagueUpdate(){
-  if(!UID||LG.tier==null)return;
-  const ws=weekStart(Date.now()),w=weekId(ws),xp=weekXP(ws);
-  let me=await myLeagueDoc(w);
-  if(!me){if(!xp)return;me=LGME={w,tier:LG.tier,grp:await chooseGroup(w,LG.tier),b:band(),xp:-1,name:""}}
-  else if(me.tier!==LG.tier){me.tier=LG.tier;me.grp=await chooseGroup(w,LG.tier);me.xp=-1}   // نُقل إلى دوري آخر
-  // الإطار والملصق ولون الاسم: ما يستعمله المتعلّم من المتجر، تلقائيًا
-  const av=String(E.avatar||"🎓").slice(0,8),lf=E.lgFrame??E.frame,fr=owned("frame",lf)?String(lf||"none").slice(0,16):"none",stk=String(stkVal(E.lgSticker??E.sticker)).slice(0,8),
-    solo=isAdmin()&&!!E.lgSolo,nc=myNc();
-  if(me.xp===xp&&me.name===UNAME&&me.av===av&&me.fr===fr&&me.st===stk&&me.nc===nc&&!!me.solo===solo)return;
-  await lgref(w).doc(UID).set({name:UNAME.slice(0,60),av,fr,st:stk,nc,...(solo?{solo:true}:{}),tier:me.tier,grp:me.grp,b:me.b,xp,ts:firebase.firestore.FieldValue.serverTimestamp()});
-  Object.assign(me,{xp,name:UNAME,av,fr,st:stk,nc,solo});LGC.at=0;
+// نتيجة الأسبوع الماضي يحسبها الخادم، والتطبيق يعرضها عند وصولها
+function leagueNews(res){
+  if(!res)return;const t=res.tier+res.mv;
+  if(res.mv>0){const nf=SHOP.filter(x=>x.tier===t&&x.cat!=="power");if(nf.length)setTimeout(()=>toast("🎁","انفتحت "+nf.length+" هدايا جديدة في المتجر",nf.map(x=>x.cat==="title"||x.cat==="theme"||x.cat==="frame"?x.name:x.val).join(" ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
+  else if(res.mv<0)toast("⬇️","نزلت إلى "+tierName(t),"المركز "+res.rank+" من "+res.n+" · عُد أقوى هذا الأسبوع");
+  else toast(TIERS[t][1],"بقيت في "+tierName(t),"المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));
 }
 async function leagueRows(){
   const ws=weekStart(Date.now()),w=weekId(ws);
@@ -1353,7 +1094,7 @@ function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgB
 async function fillLeague(){
   const box=$("lgBox");if(!box)return;
   let rows;
-  try{await leagueSettle();await leagueUpdate();rows=await leagueRows()}
+  try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=await leagueRows()}
   catch(e){box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
   if(!$("lgBox"))return;
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n);
@@ -1443,8 +1184,8 @@ function bindLooks(){
   const set=(id,fn)=>{const el=$(id);if(el)el.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;fn(b.dataset.v);E.ts=Date.now();save();schedSync();$("looks").innerHTML=looksHTML();bindLooks()}};
   set("lkCF",v=>{const l=E.lgFrame??E.frame;E.frame=v;E.lgFrame=l;showCard()});
   set("lkCS",v=>{const l=E.lgSticker??E.sticker;E.sticker=v;E.lgSticker=l;showCard()});
-  set("lkLF",v=>{E.lgFrame=v;leagueUpdate().catch(()=>{})});
-  set("lkLS",v=>{E.lgSticker=v;leagueUpdate().catch(()=>{})});
+  set("lkLF",v=>{E.lgFrame=v});
+  set("lkLS",v=>{E.lgSticker=v});
 }
 function renderProfile(){
   const e=econ(),t=itemOf("title",E.title),s=e.s;
@@ -1500,14 +1241,15 @@ function renderShop(){
 async function buy(cat,id){
   const it=itemOf(cat,id),e=econ();if(!it||e.gems<it.price||itemLocked(it))return;
   if(!await uiConfirm(`شراء «${it.name}» مقابل ${it.price} 💎؟`))return;
-  const prev=e;BUY.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,6),item:cat+":"+id,p:it.price,ts:Date.now()});save();
+  const prev=e,r=ev({type:"buy",cat,id,bid:Date.now().toString(36)+Math.random().toString(36).slice(2,6)});
+  if(r!==true){toast("⚠️","تعذّر الشراء","");return}
   toast(it.val&&it.cat!=="title"?it.val:"🛍️","تمّ الشراء!",it.name);confetti(50);
   if(cat!=="power")equip(cat,cat==="avatar"?it.val:id,true);
   celebrate(prev);renderShop();schedSync();
 }
 function equip(cat,v,silent){
   const k=EQKEY[cat];if(!k)return;E[k]=v;if(cat==="frame")delete E.lgFrame;if(cat==="sticker")delete E.lgSticker;E.ts=Date.now();save();applyLook();econ();renderHeader();
-  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync();if(cat==="frame"||cat==="avatar"||cat==="sticker"||cat==="namecolor")leagueUpdate().catch(()=>{});
+  if(!silent)renderShop();if(cat==="theme"||cat==="frame"||cat==="sticker")showCard();schedSync();
 }
 
 /* ================= الحساب والمزامنة السحابية ================= */
@@ -1515,56 +1257,52 @@ firebase.initializeApp({apiKey:"AIzaSyBevgQRTKaRrrY9Q2RWPaWsY0UkfTaQu8o",authDom
   storageBucket:"mufradati-406bd.firebasestorage.app",messagingSenderId:"171055013286",appId:"1:171055013286:web:edcad3ce542e6c45108367"});
 const auth=firebase.auth(),db=firebase.firestore();
 let syncTimer=null,syncing=false,lastSync=0,syncErr="";
-function packLog(L){const K=[],ix={},F=[];let p=0;for(const[t,k,r,n]of L){if(ix[k]===undefined){ix[k]=K.length;K.push(k)}const s=Math.round(t/1000);F.push(s-p,ix[k],r,n);p=s}return{K,F}}
 function unpackLog(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let p=0;for(let i=0;i<o.F.length;i+=4){p+=o.F[i];L.push([p*1000,o.K[o.F[i+1]],o.F[i+2],o.F[i+3]])}return L}
-function packQA(L){const K=[],ix={},F=[];let p=0;for(const[t,k,ok]of L){if(ix[k]===undefined){ix[k]=K.length;K.push(k)}const s=Math.round(t/1000);F.push(s-p,ix[k],ok);p=s}return{K,F}}
 function unpackQA(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let p=0;for(let i=0;i<o.F.length;i+=3){p+=o.F[i];L.push([p*1000,o.K[o.F[i+1]],o.F[i+2]])}return L}
-function mergeIn(d){
-  if(!d)return;
-  for(const k in d.P||{}){const a=P[k],b=d.P[k];if(!a||(b.t||0)>(a.t||0))P[k]=b}
-  const sl=new Set(LOG.map(x=>Math.round(x[0]/1000)+"|"+x[1]));
-  unpackLog(d.LOG).forEach(x=>{if(!sl.has(Math.round(x[0]/1000)+"|"+x[1]))LOG.push(x)});LOG.sort((a,b)=>a[0]-b[0]);
-  const sa=new Set(QA.map(x=>Math.round(x[0]/1000)+"|"+x[1]));unpackQA(d.QA).forEach(x=>{if(!sa.has(Math.round(x[0]/1000)+"|"+x[1]))QA.push(x)});QA.sort((a,b)=>a[0]-b[0]);
-  const sq=new Set(QLOG.map(x=>x[0]));(d.QLOG||[]).forEach(x=>{if(!sq.has(x[0]))QLOG.push(x)});QLOG.sort((a,b)=>a[0]-b[0]);
-  const sb=new Set(BUY.map(x=>x.id));(d.BUY||[]).forEach(x=>{if(!sb.has(x.id))BUY.push(x)});
-  if(d.S&&(d.S.ts||0)>(S.ts||0)){S.limit=d.S.limit;S.dir=d.S.dir;S.goal=d.S.goal||S.goal;S.ts=d.S.ts}
-  if(d.E&&(d.E.ts||0)>(E.ts||0))Object.assign(E,d.E);
-  if(d.R&&(d.R.ts||0)>(R.ts||0))R=d.R;
-  if(d.EN&&(d.EN.t||0)>(EN.t||0))EN=d.EN;
-  {const sn=new Set(STN.map(x=>x[0]));(d.STN||[]).forEach(x=>{if(!sn.has(x[0]))STN.push(x)});STN.sort((a,b)=>a[0]-b[0])}
-  if(d.LG&&(d.LG.ts||0)>(LG.ts||0))LG=Object.assign({tier:null,w:"",hist:[],ts:0},d.LG);
-  migrateLG();
-  save();
-}
 const uref=()=>db.collection("users").doc(UID);
-async function cloudGet(){
-  const [m,l,q]=await Promise.all([uref().get(),uref().collection("data").doc("log").get(),uref().collection("data").doc("qa").get()]);
-  const raw={sum:m.exists?JSON.stringify(m.data().sum||null):"null",main:m.exists?m.data().main||"":"",log:l.exists?l.data().v||"":"",qa:q.exists?q.data().v||"":""};
-  const d=raw.main?JSON.parse(raw.main):null;
-  if(d){d.LOG=raw.log?JSON.parse(raw.log):[];d.QA=raw.qa?JSON.parse(raw.qa):[]}
-  return {raw,d,name:m.exists?m.data().name:""};
+const API="https://mufradati-api.afunogrv.workers.dev";
+// حدث جديد: يُطبَّق فورًا للعرض، ويُرسل إلى الخادم الذي يتحقّق منه ويحفظه
+function ev(e){
+  e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
+  if(r!==true)return r;
+  EVQ.push(e);save();econ();schedSync(EVQ.length>=100?1000:0);return true;
 }
+// حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
+function applyServer(j){
+  const c=(typeof j.core==="string"?JSON.parse(j.core):j.core)||{},h0=(LG.hist||[]).length;
+  P=c.P||{};QLOG=c.QLOG||[];BUY=c.BUY||[];R=Object.assign({bank:0,ach:[],lv:1,ts:0},c.R||{});
+  LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;
+  LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));
+  for(const e of EVQ)applyEv(e,e.t,{admin:isAdmin()});
+  let pr={};try{pr=JSON.parse(j.prefs||"{}")||{}}catch(e){}
+  if(pr.E&&(pr.E.ts||0)>(E.ts||0))E=Object.assign({},DEF_E,pr.E);
+  if(pr.S&&(pr.S.ts||0)>(S.ts||0)){S.dir=pr.S.dir||S.dir;S.ts=pr.S.ts}
+  save();EC=null;
+  const hs=LG.hist||[];if(hs.length>h0&&h0+1===hs.length)leagueNews(hs[hs.length-1]);
+}
+let PREFLAST="";
 async function syncNow(manual){
-  if(!UID||syncing)return;syncing=true;clearTimeout(syncTimer);syncTimer=null;setCloud("جارٍ الحفظ…");
+  if(!UID)return false;
+  if(syncing){await new Promise(r=>{const w=()=>syncing?setTimeout(w,200):r();w()});return !syncErr}
+  syncing=true;clearTimeout(syncTimer);syncTimer=null;setCloud("جارٍ الحفظ…");let ok=false;
   try{
-    const {raw,d}=await cloudGet();mergeIn(d);
-    const now={main:JSON.stringify({P,QLOG,BUY,S:{limit:S.limit,dir:S.dir,goal:S.goal,ts:S.ts},E,R,LG,EN,STN}),log:JSON.stringify(packLog(LOG)),qa:JSON.stringify(packQA(QA))};
-    const b=db.batch();let n=0;
-    const sum=summary(),sumS=JSON.stringify(sum);
-    if(now.main!==raw.main||sumS!==raw.sum){b.set(uref(),{main:now.main,sum,name:UNAME,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});n++}
-    if(now.log!==raw.log){b.set(uref().collection("data").doc("log"),{v:now.log});n++}
-    if(now.qa!==raw.qa){b.set(uref().collection("data").doc("qa"),{v:now.qa});n++}
-    if(n)await b.commit();
-    pubSave();
-    lastSync=Date.now();syncErr="";setCloud();
-    leagueSettle().then(leagueUpdate).catch(()=>{});
-    applyLook();econ();renderHeader();
+    // الملخّص والاسم والتفضيلات يكتبها التطبيق، والتقدّم يكتبه الخادم وحده
+    const prefs=JSON.stringify({E,S:{dir:S.dir,ts:S.ts}}),sum=summary(),key=prefs+JSON.stringify({...sum,at:0,ms:0})+UNAME;
+    if(key!==PREFLAST){await uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});PREFLAST=key}
+    const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();
+    const r=await fetch(API+"/sync",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
+    EVQ=EVQ.slice(sent.length);applyServer(j);
+    lastSync=Date.now();syncErr="";ok=true;setCloud();
+    applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}
     const on=document.querySelector(".panel.on");if(on&&on.id!=="review")renderPanel(on.id);
-  }catch(e){syncErr=e.code==="permission-denied"?"لا صلاحية (تحقّق من قواعد الأمان)":e.code==="unavailable"?"لا يوجد اتصال، سيُحفظ لاحقًا":(e.message||"خطأ");setCloud()}
-  syncing=false;
+    if(EVQ.length)schedSync(1000);
+  }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud()}
+  syncing=false;return ok;
 }
-function schedSync(){if(!UID)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),15000)}
+function schedSync(ms){if(!UID)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
@@ -1603,7 +1341,7 @@ function renderSettings(){
   $("stReset").onclick=resetProgress;bindNameBox();if(isAdmin())bindGiftBox(UID);
   const so=$("stSolo");if(so)so.onclick=async e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v==="1";if(v===!!E.lgSolo)return;
     E.lgSolo=v;E.ts=Date.now();save();schedSync();so.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
-    try{await leagueUpdate();LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast("⚠️","تعذّر الحفظ","")}};
+    try{if(!await syncNow())throw 0;LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast("⚠️","تعذّر الحفظ","")}};
   const cs=$("stCourse");if(cs)cs.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.dataset.v===COURSE)return;
     cs.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));switchCourse(b.dataset.v)};
   const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
@@ -1627,17 +1365,12 @@ function renderSettings(){
 const pref=u=>db.collection("pub").doc(u);
 // لون اسمي: ما اخترته من المتجر، وإلا فشارة المشرف للمشرف، وإلا فاللون العادي
 const myNc=()=>E.ncolor&&E.ncolor!=="none"&&owned("namecolor",E.ncolor)?E.ncolor:(isAdmin()?"admin":"");
-let PUBLAST="";
 function pubData(){
   const e=econ(),alv={};achList().forEach(a=>{if(e.alv[a.id])alv[a.id]=e.alv[a.id]});
   const lf=E.lgFrame??E.frame;
   return {name:UNAME.slice(0,60),av:String(E.avatar||"🎓").slice(0,8),nc:myNc(),
     fr:owned("frame",lf)?String(lf||"none").slice(0,16):"none",lv:e.lv,xp:e.xp,streak:e.s.streak,best:e.s.best,tier:LG.tier??0,
     title:(itemOf("title",E.title)||{}).val||"",alv,stk:SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id)).map(x=>x.val)};
-}
-async function pubSave(){
-  if(!UID)return;const d=pubData(),j=JSON.stringify(d);if(j===PUBLAST)return;
-  try{await pref(UID).set({...d,ts:firebase.firestore.FieldValue.serverTimestamp()});PUBLAST=j}catch(e){}
 }
 async function showPlayer(row){
   const m=$("fbModal"),bot=row.dataset.bot==="1",close=()=>{m.style.display="none";m.innerHTML=""};
@@ -1666,7 +1399,7 @@ function watchName(){
   if(nmUnsub)nmUnsub();
   nmUnsub=nref(UID).onSnapshot(d=>{
     NM=d.exists?d.data():{};const n=NM.name||loginName();
-    if(n!==UNAME){UNAME=n;st(K("name"),n);renderHeader();schedSync();leagueUpdate().catch(()=>{})}
+    if(n!==UNAME){UNAME=n;st(K("name"),n);renderHeader();schedSync()}
     if(NM.rej){toast("👤","لم يُقبل الاسم المقترح: "+NM.rej,"تستطيع اقتراح اسم آخر من الإعدادات");nref(UID).update({rej:""}).catch(()=>{})}
     if($("stNameBox"))$("stNameBox").innerHTML=nameBoxHTML(loginName()),bindNameBox();
   },()=>{});
@@ -1744,7 +1477,6 @@ function bindNameReqs(){
 
 /* ================= هدايا الجواهر من المشرف ================= */
 let GIFTS=[],giftUnsub=null;
-const giftSum=()=>GIFTS.reduce((a,g)=>a+(g.g||0),0);
 const gref=u=>db.collection("gifts").doc(u).collection("g");
 function watchGifts(){
   if(giftUnsub)giftUnsub();GIFTS=[];
@@ -1806,17 +1538,6 @@ function showLogin(msg){
   };
   $("lGo").onclick=go;$("lPass").onkeydown=e=>{if(e.key==="Enter")go()};
 }
-// استيراد التقدّم القديم (قبل الحسابات) مرة واحدة
-async function offerLegacy(cloudEmpty){
-  if(!cloudEmpty||st("muf_legacy_done"))return;
-  const L={P:jget("muf_progress",{}),LOG:jget("muf_log",[]),QLOG:jget("muf_qlog",[]),QA:jget("muf_qa",[]),BUY:jget("muf_buy",[])};
-  let G=null;try{const r=await fetch("https://raw.githubusercontent.com/ghadeerabbas/mufradati/data/progress.json?t="+Date.now(),{cache:"no-store"});if(r.ok)G=await r.json()}catch(e){}
-  const nL=Object.keys(L.P).length,nG=G?Object.keys(G.P||{}).length:0;
-  if(!nL&&!nG){st("muf_legacy_done","1");return}
-  if(await uiConfirm(`وُجد تقدّم سابق محفوظ قبل إنشاء الحسابات (${Math.max(nL,nG)} كلمة).\nهل هذا التقدّم لك؟ اضغط موافق لنقله إلى حسابك.`)){
-    mergeIn(L);if(G)mergeIn(G);st("muf_legacy_done","1");
-  }else st("muf_legacy_done","1");
-}
 // تفعيل الحسابات: الحساب الجديد لا يعمل حتى يفعّله المشرف (المستخدمون القدامى مفعّلون تلقائيًا)
 async function accountActive(user){
   if(((user.email||"").toLowerCase())===ADMIN)return true;
@@ -1843,7 +1564,7 @@ async function onLogin(user){
   renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
-  try{const {d}=await cloudGet();if(isAdmin())await offerLegacy(!d)}catch(e){}
+  syncNow(true);
   loadNameReqs();watchGifts();
   startMessages();
   $("usersBtn").style.display=isAdmin()?"":"none";

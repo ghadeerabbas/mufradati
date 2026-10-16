@@ -20,9 +20,20 @@ service cloud.firestore {
         && request.resource.data.ts == request.time;
     }
 
-    // تقدّم كل مستخدم: يكتبه هو وحده، ويقرؤه هو والمدير
-    match /users/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
-    match /users/{uid}/{rest=**} { allow read: if isMe(uid) || isAdmin(); allow write: if isMe(uid); }
+    // تقدّم كل مستخدم: يكتبه الخادم وحده، ويقرؤه صاحبه والمدير
+    // التطبيق يكتب فقط الملخّص والاسم والتفضيلات (المظهر واتجاه البطاقة)
+    function okUserFields(d) {
+      return (!("prefs" in d) || (d.prefs is string && d.prefs.size() <= 4000))
+        && (!("name" in d) || (d.name is string && d.name.size() <= 60))
+        && (!("sum" in d) || d.sum is map);
+    }
+    match /users/{uid} {
+      allow read: if isMe(uid) || isAdmin();
+      allow create: if isMe(uid) && request.resource.data.keys().hasOnly(["sum","name","prefs","updated"]) && okUserFields(request.resource.data);
+      allow update: if isMe(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["sum","name","prefs","updated"]) && okUserFields(request.resource.data);
+      allow delete: if false;
+    }
+    match /users/{uid}/{rest=**} { allow read: if isMe(uid) || isAdmin(); allow write: if false; }
 
     // المناهج المعيّنة لكل مستخدم: يعيّنها المدير وحده، ويقرؤها المستخدم
     match /assign/{uid} { allow read: if isMe(uid) || isAdmin(); allow write: if isAdmin(); }
@@ -38,16 +49,8 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // الملف العام: يراه كل المسجَّلين، ويكتبه صاحبه وحده
-    match /pub/{uid} {
-      allow read: if active();
-      allow write: if isMe(uid)
-        && request.resource.data.keys().hasOnly(["name","av","nc","fr","lv","xp","streak","best","tier","title","alv","stk","ts"])
-        && request.resource.data.name is string && shownName(uid, request.resource.data.name)
-        && (!("nc" in request.resource.data) || !(request.resource.data.nc in ["admin", "crimson", "black"]) || isAdmin())
-        && request.resource.data.stk is list && request.resource.data.stk.size() <= 40
-        && request.resource.data.alv is map && request.resource.data.ts == request.time;
-    }
+    // الملف العام: يراه كل المسجَّلين، ويكتبه الخادم وحده
+    match /pub/{uid} { allow read: if active(); allow write: if false; }
 
     // الاسم الظاهر: يقترحه المستخدم، ويوافق عليه المدير، ويُغيَّر مرة كل ٧ أيام
     match /names/{uid} {
@@ -64,32 +67,9 @@ service cloud.firestore {
             && request.resource.data.reqAt == request.time
             && (!("okAt" in resource.data) || request.time > resource.data.okAt + duration.value(7, "d"))));
     }
-    // الاسم الذي يظهر في الدوري: الموافَق عليه، وإلا فاسم الدخول
-    function shownName(uid, n) {
-      let p = /databases/$(database)/documents/names/$(uid);
-      return (exists(p) && get(p).data.get("name", "") != "" && n == get(p).data.name)
-        || ((!exists(p) || get(p).data.get("name", "") == "") && n == request.auth.token.email.split("@")[0]);
-    }
 
-    // الدوري الأسبوعي: يراه كل المسجَّلين، ويكتب كل مستخدم سطره وحده
-    match /lg/{week}/m/{uid} {
-      allow read: if active();
-      allow create, update: if isMe(uid)
-        && request.resource.data.keys().hasOnly(["name","av","fr","st","nc","solo","tier","grp","b","xp","ts"])
-        && (!("solo" in request.resource.data) || (request.resource.data.solo is bool && isAdmin()))
-        && (!("nc" in request.resource.data) || (request.resource.data.nc is string && request.resource.data.nc.size() <= 16
-            && (!(request.resource.data.nc in ["admin", "crimson", "black"]) || isAdmin())))
-        && (!("fr" in request.resource.data) || (request.resource.data.fr is string && request.resource.data.fr.size() <= 16))
-        && (!("st" in request.resource.data) || (request.resource.data.st is string && request.resource.data.st.size() <= 8))
-        && request.resource.data.name is string && shownName(uid, request.resource.data.name)
-        && request.resource.data.av is string && request.resource.data.av.size() <= 8
-        && request.resource.data.tier is int && request.resource.data.tier >= 0 && request.resource.data.tier <= 9
-        && request.resource.data.grp is int && request.resource.data.grp >= 0 && request.resource.data.grp < 1000
-        && request.resource.data.b is int && request.resource.data.b >= 0 && request.resource.data.b <= 5
-        && request.resource.data.xp is int && request.resource.data.xp >= 0 && request.resource.data.xp <= 100000
-        && request.resource.data.ts == request.time;
-      allow delete: if false;
-    }
+    // الدوري الأسبوعي: يراه كل المسجَّلين، ويكتبه الخادم وحده
+    match /lg/{week}/m/{uid} { allow read: if active(); allow write: if false; }
 
     // التقييم: مرة واحدة لكل مستخدم، ويقرؤه هو والمدير
     match /feedback/{uid} {
