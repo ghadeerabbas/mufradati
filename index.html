@@ -1017,7 +1017,7 @@ function drillView(){
     $("dBack").onclick=()=>{DRL=null;reviewHome();scrollTo(0,0)};return;
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
-    return `<button type="button" class="btn mt${side==="de"?" de":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}><span>${side==="de"?artHTML(lemmaOf(w)):esc(w.ar)}</span></button>`};
+    return `<button type="button" class="btn mt${side==="de"?" de":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}><span>${side==="de"?artHTML(lemmaOf(w)):esc(arLemma(w))}</span></button>`};
   el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">اضغط كلمة ألمانية ثم معناها، أو العكس</p>
    <div class="mtgrid">${D.words.map((w,i)=>cell(w,"de")+cell(D.ar[i],"ar")).join("")}</div></div>`;
   el.querySelectorAll(".mt").forEach(b=>b.onclick=()=>{
@@ -1287,6 +1287,8 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 
 /* ================= التمارين ================= */
 const ART=/^(der|die|das)\s+/i;
+// المعنى المقابل للصيغة الأولى: إن كانت الكلمة «der Berg, die Berge» والمعنى «الجبل، الجبال» نأخذ «الجبل» وحده
+const arLemma=w=>{const d=String(w.de).split(",");if(d.length<2)return w.ar;const a=String(w.ar).split(/[،,]/);return a.length===d.length?a[0].trim():w.ar};
 const lemmaOf=w=>String(w.de).split(",")[0].replace(/\([^)]*\)/g,"").split("/")[0].replace(/\s+/g," ").trim();
 const answersOf=w=>String(w.de).split(",")[0].replace(/\([^)]*\)/g,"").split("/").map(s=>s.replace(/\s+/g," ").trim()).filter(Boolean);
 function nounOf(w){
@@ -1507,7 +1509,7 @@ function nextQ(){
 function matchView(){
   const el=$("games");
   el.innerHTML=gameHead()+`<p class="ghint">اضغط كلمة ثم معناها. ✓ ${6-GM.left.size} من 6</p><div class="mgrid">
-   ${GM.de.map((w,i)=>{const a_=GM.ar[i];return `<button class="mb de ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}"><span>${artHTML(lemmaOf(w))}</span></button><button class="mb ${GM.left.has(a_.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===a_.k?"sel":""}" data-side="ar" data-k="${esc(a_.k)}"><span>${esc(a_.ar)}</span></button>`}).join("")}</div>`;
+   ${GM.de.map((w,i)=>{const a_=GM.ar[i];return `<button class="mb de ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}"><span>${artHTML(lemmaOf(w))}</span></button><button class="mb ${GM.left.has(a_.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===a_.k?"sel":""}" data-side="ar" data-k="${esc(a_.k)}"><span>${esc(arLemma(a_))}</span></button>`}).join("")}</div>`;
   $("gQuit").onclick=()=>{stopTick();GM=null;renderGames()};
   if(!GTICK)GTICK=setInterval(()=>{if(!GM||GM.id!=="match"||GM.done){stopTick();return}const t=$("gTime");if(t)t.textContent=secs(Date.now()-GM.t0)},100);
   el.querySelectorAll(".mb").forEach(b=>b.onclick=()=>{
