@@ -232,6 +232,7 @@ function botBase(cl,prevDocs){
 }
 // جدول مجموعة متعلّم في أسبوع: الحقيقيون ثم الآليّون مرتّبين بالخبرة
 function tableFor(uid,w,docs,prevDocs,prog){
+  docs=docs.filter(d=>(d.xp||0)>0);        // من لم يكسب خبرة هذا الأسبوع لا يظهر في الدوري
   const cl=clusters(docs).find(c=>c.m.some(m=>m.id===uid));if(!cl)return [];
   return [...cl.m,...makeBots(w,cl,botBase(cl,prevDocs),prog)].sort((a,b)=>b.xp-a.xp||(a.bot?1:0)-(b.bot?1:0));
 }
