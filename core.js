@@ -131,17 +131,17 @@ function econ(){
   let L=LOG;for(let i=1;i<L.length;i++)if(L[i][0]<L[i-1][0]){L=[...LOG].sort((a,b)=>a[0]-b[0]);break}
   for(const [t,k,r,nw] of L){
     if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
-    s.reviews++;gems+=GEM[r]+(nw?1:0);xp+=xpOf(r,nw);
+    s.reviews++;xp+=xpOf(r,nw);
     let b=nw?1:boxStep(box[k]||0,r,false);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);gems+=5;xp+=15}
-    if(b>=7&&!r7.has(k)){r7.add(k);gems+=15;xp+=40}
+    if(b>=4&&!r4.has(k)){r4.add(k);xp+=15}
+    if(b>=7&&!r7.has(k)){r7.add(k);xp+=40}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0});x.n++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
     const h=hourOf(t);if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
   }
   s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
   for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
-    gems+=(x.n>=20?5:0)+(x.n>=50?10:0)+(x.n>=100?15:0);xp+=(x.n>=20?10:0)}
-  for(const q of QLOG){gems+=q[1];xp+=q[1];if(q[2]>=5&&q[1]===q[2])s.qfull++}
+    xp+=(x.n>=20?10:0)}
+  for(const q of QLOG){xp+=q[1];if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)).sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
@@ -156,9 +156,11 @@ function econ(){
   s.freezes=avail;
   s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
   // المستوى
-  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=lv*5}
+  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;}
   const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
-  for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++){const id=a.id+":"+i;got.push(id);if(!paid.has(id))gems+=a.L[i-1][1]}}
+  for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++)got.push(a.id+":"+i)}
+  // الجواهر: جوهرة لكل محطة مكتملة، وجوائز الدوري، وهدايا المشرف، وما بقي من قبل التصفير
+  gems+=STN.length;
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   gems+=giftSum();                                      // هدايا المشرف
@@ -207,7 +209,7 @@ function zones(n,tier){
   tier=Math.max(0,Math.min(9,tier||0));const up=Math.min(UP_N[tier],n),down=Math.min(DOWN_N[tier],Math.max(0,n-up));
   return {up,down};
 }
-const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,30,20][realRank-1]||0);
+const prizeOf=(realRank,xp)=>xp<PROMO_MIN?0:([50,40,30][realRank-1]||0);
 // يختار مجموعة من نفس الدوري متقاربة في المقياس، وينشئ مجموعة جديدة إن امتلأت أو ابتعدت
 function chooseGroupFrom(docs,tier,my){
   const gs={},inTier=docs.filter(d=>(d.tier||0)===tier);

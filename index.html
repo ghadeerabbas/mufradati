@@ -590,8 +590,8 @@ function floatAt(el,txt){
 function celebrate(prev){
   const e=econ();renderHeader();
   if(!prev)return;
-  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!","+"+(e.lv*5)+" 💎");confetti(120)}
-  achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u+" · +"+a.L[k-1][1]+" 💎");confetti(60)}});
+  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!","");confetti(120)}
+  achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
   if(e.s.streak>prev.s.streak)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
 }
 
@@ -669,7 +669,7 @@ function reviewHome(){
   const done=stToday(),en=enNow(),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
   if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
-  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><div class="big">🏆</div><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
+  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><div class="big">🏆</div><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2></div>`:"";
   const node=i=>`<div class="stn ${i<done?"ok":i===done?"cur":"lock"}"><span>${i<done?"✓":i+1}</span><small>${i<done?"اكتملت":i===done?"التالية":"🔒"}</small></div>`;
   el.innerHTML=reviewPills()+msg+`
   <div class="rsec rvbox"><h3>🛤️ الدراسة: مسار اليوم</h3>
@@ -680,7 +680,7 @@ function reviewHome(){
   </div>
   ${learned?`<div class="rsec rvbox"><h3>🔁 المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
-   ${RVSTATE!=="due"&&cnt?'<p class="rnote">الكلمات التي لم يحن موعدها تُراجَع للتدريب فقط، بلا خبرة ولا جواهر.</p>':""}
+   ${RVSTATE!=="due"&&cnt?'<p class="rnote">الكلمات التي لم يحن موعدها تُراجَع للتدريب فقط، بلا خبرة.</p>':""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next" id="rvGo">ابدأ المراجعة</button></div>`:""}
@@ -726,7 +726,6 @@ function rate(r,btn){
   if(!old)S.newCount=(S.newCount||0)+1;
   const en0=enNow();
   if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;markStudied();
-  const g=LOG[LOG.length-1][3]===2?0:GEM[r];if(g)floatAt(btn,"+"+g+" 💎");   // التدريب بلا جواهر
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
   queue.shift();sessDone++;
   if(RVDONE&&RVDONE.mode==="review")rvRated++;
@@ -808,7 +807,7 @@ function showQ(){
   if(qi>=qz.length){
     const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA})}celebrate(prev);
     const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
-    el.innerHTML=`<div class="box done"><div class="big">${star}</div><h2>النتيجة: ${qs} من ${qz.length}</h2><p>+${qs} 💎</p><button class="btn next" id="again">اختبار جديد</button></div>`;
+    el.innerHTML=`<div class="box done"><div class="big">${star}</div><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button></div>`;
     if(qs===qz.length)confetti(150);
     $("again").onclick=startQuiz;return}
   const w=qz[qi],pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar);
@@ -818,7 +817,7 @@ function showQ(){
    <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
-    const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);markStudied();if(ok){qs++;streakQ++;floatAt(b,"+1 💎")}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
+    const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);markStudied();if(ok){qs++;streakQ++}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
     $("qnext").innerHTML=`<div style="margin-top:8px">${exPairs(w)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
@@ -933,7 +932,7 @@ function renderGames(){
   el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
      <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?"🏅 أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
-   <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = 💎 وخبرة.</p>`;
+   <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
 }
 function startGame(id){
@@ -1017,7 +1016,7 @@ function gameView(){
 }
 // بعد كل جواب: يُسجَّل للكلمات الصعبة، ثم يظهر التصحيح وزر التالي
 function answered(ok,el,auto){
-  const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++;floatAt(el,"+1 💎")}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
+  const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
   (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);markStudied();
   let fb="";
   if(q.kind==="type"||q.kind==="ltype"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
@@ -1073,7 +1072,7 @@ function gameResult(){
   $("games").innerHTML=`<div class="box done"><div class="big">${rec?"🏅":pct===1?"🏆":pct>=.8?"🥇":pct>=.6?"🥈":"🥉"}</div><h2>${g.ic} ${g.n}</h2>
    <p style="font-size:1.1rem;margin:6px 0">${GM.id==="match"?`الوقت: <b>${secs(GM.ms)}</b> · أخطاء: ${GM.miss}`:`النتيجة: <b>${GM.ok}</b> من ${GM.n}`}</p>
    ${rec?'<p style="color:var(--green);font-weight:700">رقم قياسي جديد!</p>':GM.id==="match"&&GM.best?`<p class="rnote">أفضل وقت لك: ${secs(GM.best)}</p>`:""}
-   <p>+${GM.ok} 💎</p><button class="btn next" id="gAgain">مرة أخرى</button><button class="btn" id="gBack" style="width:100%;margin-top:8px">كل التمارين</button></div>`;
+   <button class="btn next" id="gAgain">مرة أخرى</button><button class="btn" id="gBack" style="width:100%;margin-top:8px">كل التمارين</button></div>`;
   if(pct===1||rec)confetti(120);
   $("gAgain").onclick=()=>startGame(GM.id);$("gBack").onclick=()=>{GM=null;renderGames()};
 }
@@ -1269,7 +1268,7 @@ function renderProfile(){
   <div class="rsec"><h3>الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];
    return `<div class="ach ${k?"got":"lock"}"><span class="ic">${a.ic}</span><div style="flex:1;min-width:0"><b>${a.n}${k?` <span class="alv">${k}</span>`:""}</b>
     <div class="lvdots">${a.L.map((_,i)=>`<i class="${i<k?"on":""}"></i>`).join("")}</div>
-    <small>${top?`✓ أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u} · +${a.L[k][1]} 💎`}</small>
+    <small>${top?`✓ أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u}`}</small>
     ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec" id="looks">${looksHTML()}</div>
   <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
