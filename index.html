@@ -637,7 +637,9 @@ function buildQueue(){
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
   queue=[];sessTotal=0;sessDone=0;STS=null;
 }
-const RSTATES=[["due","المستحقّة اليوم",(w,p,now)=>p.due<=now],["hard","الصعبة",(w,p,now,r)=>r<=1],["mid","المتوسطة",(w,p,now,r)=>r===2&&p.box<4],["easy","السهلة",(w,p,now,r)=>r===3||p.box>=4],["all","كلها",()=>true]];
+// المستحقّة: حلّ يوم موعدها (كما يحسبها الخادم للمكافأة)، والقوائم الأخرى لما لم يحن موعده (تدريب)
+const isDue=p=>!!p&&dkey(p.due||0)<=today();
+const RSTATES=[["due","المستحقّة اليوم",(w,p)=>isDue(p)],["hard","الصعبة",(w,p,now,r)=>!isDue(p)&&r<=1],["mid","المتوسطة",(w,p,now,r)=>!isDue(p)&&r===2&&p.box<4],["easy","السهلة",(w,p,now,r)=>!isDue(p)&&(r===3||p.box>=4)],["all","كلها",()=>true]];
 function stateList(id){
   const st=RSTATES.find(x=>x[0]===id),now=Date.now(),last={};for(const x of LOG)last[x[1]]=x[2];
   return uniq(filtered()).filter(w=>P[w.k]&&st[2](w,P[w.k],now,last[w.k]??2));
@@ -724,7 +726,7 @@ function reviewHome(){
   </div>
   ${learned?`<div class="rsec rvbox"><h3>🔁 المراجعة: ما تعلّمته (${learned})</h3>
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}>${n} <small>${counts[id]}</small></button>`).join("")}</div>
-   ${RVSTATE!=="due"&&cnt?'<p class="rnote">الكلمات التي لم يحن موعدها تُراجَع للتدريب فقط، بلا خبرة.</p>':""}
+   ${RVSTATE!=="due"&&cnt?'<p class="rnote">ما لم يحن موعده يُراجَع للتدريب فقط، بلا خبرة ولا طاقة.</p>':""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next" id="rvGo">ابدأ المراجعة</button></div>`:""}
@@ -737,7 +739,7 @@ function reviewHome(){
 }
 function reviewPills(){
   const u=uniq(filtered()),now=Date.now();
-  return `<div class="pills"><span class="pill">${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>P[w.k]&&P[w.k].due<=now).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span></div>`;
+  return `<div class="pills"><span class="pill">${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>isDue(P[w.k])).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span></div>`;
 }
 function showCard(){
   const el=$("review");
