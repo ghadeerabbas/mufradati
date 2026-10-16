@@ -94,7 +94,7 @@ const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10
  confetti:{stars:1,hearts:2,gems:4,fireworks:6},
  namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,silver:4,gold:5,emerald:7,sapphire:9}};
 SHOP.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t;if(x.cat!=="power")x.price=Math.round(x.price/2)});   // الأسعار نصف ما كانت
-const FZ_MAX=3;
+const FZ_MAX=3,FZ_START=3;
 // هدية التجميد من المشرف (مساعدة لمرة واحدة): هدية ملاحظتها تبدأ بـ ❄️، تُحسب تجميدًا لا جواهر
 const isFzGift=g=>String(g.note||"").startsWith("❄️");
 const giftTs=g=>!g.ts?0:g.ts.toMillis?g.ts.toMillis():g.ts.ms||+g.ts||0;
@@ -168,7 +168,7 @@ function econ(){
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
-  const days=Object.keys(per).sort();let fi=0,avail=0;
+  const days=Object.keys(per).sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
   if(days.length){
     let t=new Date(days[0]+"T12:00:00").getTime();const end=today();
     for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
