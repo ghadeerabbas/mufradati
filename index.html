@@ -391,6 +391,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .si.mine{border-color:var(--green)}
 .sw{display:flex;gap:3px;justify-content:center}.sw i{width:16px;height:16px;border-radius:50%}
 /* شاشة الدخول */
+#login .lbox{position:relative}.ldark{position:absolute;top:12px;left:12px;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--soft);font-size:1.25rem;display:grid;place-items:center;cursor:pointer;padding:0}.ldark .i3{width:24px;height:24px}
 #login{position:fixed;inset:0;z-index:90;background:linear-gradient(160deg,var(--navy),var(--navy2) 60%,#000);display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
 .lbox{background:var(--card);color:var(--ink);border-radius:22px;padding:26px 22px;width:min(400px,100%);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:10px}
 .lbox .logo{font-size:3rem;line-height:1}
@@ -533,6 +534,12 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="core.js?v=6"></script>
 <script>
+// الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
+const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
+const setDevDark=v=>{try{localStorage.setItem("muf_dark",v?"1":"0")}catch(e){}if(v)document.documentElement.dataset.dark="1";else delete document.documentElement.dataset.dark};
+if(DEV_DARK()==="1")document.documentElement.dataset.dark="1";
+const isDark=()=>{const d=DEV_DARK();return d!=null?d==="1":!!(typeof E!=="undefined"&&E&&E.dark)};
+
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
 function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={}){
@@ -671,7 +678,8 @@ function tags(w){
 function applyLook(){
   const r=document.documentElement;
   if(E.theme&&E.theme!=="classic")r.dataset.theme=E.theme;else delete r.dataset.theme;
-  if(E.dark)r.dataset.dark="1";else delete r.dataset.dark;
+  if(DEV_DARK()==null&&E&&E.dark)setDevDark(1);   // نقل الإعداد القديم المحفوظ في الحساب إلى الجهاز
+  if(isDark())r.dataset.dark="1";else delete r.dataset.dark;
   document.querySelector('meta[name=theme-color]').content=getComputedStyle(r).getPropertyValue("--navy").trim()||"#1f2a5a";
 }
 function renderHeader(){
@@ -1592,7 +1600,7 @@ function renderSettings(){
   const login=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
   const courses=MY_COURSES.filter(id=>COURSES[id]);
   $("settings").innerHTML=`<h2 class="sth">⚙️ الإعدادات</h2>
-  <div class="rsec"><h3>${I3("moon")} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${E.dark?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${E.dark?" on":""}" data-v="1">🌙 ليلي</button></div></div>
+  <div class="rsec"><h3>${I3("moon")} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${isDark()?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${isDark()?" on":""}" data-v="1">🌙 ليلي</button></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
   <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
@@ -1605,7 +1613,7 @@ function renderSettings(){
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}`;
-  $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(E.dark?1:0))return;E.dark=+b.dataset.v;E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
+  $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(isDark()?1:0))return;E.dark=+b.dataset.v;setDevDark(E.dark);E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
   if($("stReset"))$("stReset").onclick=resetProgress;if($("stNameBox"))bindNameBox();
   const so=$("stSolo");if(so)so.onclick=async e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v==="1";if(v===!!E.lgSolo)return;
     E.lgSolo=v;E.ts=Date.now();save();schedSync();so.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
@@ -1945,7 +1953,7 @@ const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-pa
 const DOMAIN="@mufradati.app";               // اسم المستخدم يتحوّل داخليًا إلى عنوان بهذا النطاق
 function showLogin(msg){
   $("login").style.display="flex";
-  $("login").innerHTML=`<div class="lbox"><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
+  $("login").innerHTML=`<div class="lbox"><button type="button" class="ldark" id="lDark" aria-label="الوضع الليلي">${isDark()?"☀️":I3("moon")}</button><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
    <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr">
    <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr">
    <button class="btn lgo" id="lGo">دخول</button>
@@ -1960,6 +1968,7 @@ function showLogin(msg){
     catch(e){m(e.code==="auth/invalid-email"?"اسم المستخدم يُكتب بأحرف إنجليزية وأرقام فقط":AERR[e.code]||e.message);$("lGo").disabled=false}
   };
   $("lGo").onclick=go;$("lPass").onkeydown=e=>{if(e.key==="Enter")go()};
+  $("lDark").onclick=()=>{setDevDark(!isDark());$("lDark").innerHTML=isDark()?"☀️":I3("moon");try{document.querySelector('meta[name=theme-color]').content=getComputedStyle(document.documentElement).getPropertyValue("--navy").trim()||"#1f2a5a"}catch(e){}};
 }
 // تفعيل الحسابات: الحساب الجديد لا يعمل حتى يفعّله المشرف (المستخدمون القدامى مفعّلون تلقائيًا)
 async function accountActive(user){
