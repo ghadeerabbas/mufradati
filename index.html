@@ -245,6 +245,9 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 .heat i{width:13px;height:13px;border-radius:3px;background:var(--soft)}
 .heat i.h1{background:#9be9a8}.heat i.h2{background:#40c463}.heat i.h3{background:#30a14e}.heat i.h4{background:#216e39}
 .heat i.today{outline:2px solid var(--gold)}
+.rtab{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:6px 8px;align-items:center;text-align:center}
+.rtab span{text-align:start;color:var(--mt);font-size:.9rem}.rtab b{font-size:.85rem;color:var(--mt)}
+.rtab em{font-style:normal;font-weight:700;font-size:1.35rem;color:var(--hd)}
 .hw{display:flex;justify-content:space-between;gap:8px;border-bottom:1px dashed var(--line);padding:6px 0;font-size:.9rem}
 .hw:last-child{border:0}
 .hw .m{color:var(--rd)}.hw small{color:var(--muted)}
@@ -650,6 +653,9 @@ function finishStation(){
   S.newCount=(S.newCount||0)+S_.words.length;save();markStudied();
   STS=null;RVDONE={mode:"station",n:S_.words.length,st:S_.n,finished:true};
   celebrate(prev);confetti(140);schedSync();reviewHome();scrollTo(0,0);
+}
+function startReviewList(list){
+  queue=[...list];sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length};STS=null;
 }
 function startReview(state,n){
   let list=stateList(state);
@@ -1149,8 +1155,42 @@ function heatmap(per){
     const c=n===0?"":n<10?"h1":n<30?"h2":n<60?"h3":"h4";h+=`<i class="${c} ${d===today()?"today":""}" title="${d}: ${n}"></i>`}
   return `<div class="heat">${h}</div><div class="legend" style="margin-top:6px"><span>أقل</span><span><i style="background:var(--soft)"></i><i style="background:#9be9a8"></i><i style="background:#40c463"></i><i style="background:#30a14e"></i><i style="background:#216e39"></i></span><span>أكثر</span></div>`;
 }
+// تقرير المتعلّم: ما تعلّمه فعلًا، ومدى تذكّره، والكلمات التي ينساها
 function renderReport(){
-  const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k));
+  const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k)),L=LOG.filter(x=>fk.has(x[1]));
+  const learned=f.filter(w=>P[w.k]).length,mem=f.filter(w=>P[w.k]&&P[w.k].box>=4).length;
+  // متى رسخت كل كلمة أول مرة (وصلت إلى مراجعة أسبوعية)
+  const box={},memAt={};
+  for(const [t,k,r] of L){let b=box[k]||0;b=r===0?0:r===1?Math.max(1,b):Math.min(b+(r===2?1:2),8);box[k]=b;if(b>=4&&!memAt[k])memAt[k]=t}
+  const ws=weekStart(now),ms=now-30*DAY;
+  const per=from=>({nw:L.filter(x=>x[3]&&x[0]>=from).length,mem:Object.keys(memAt).filter(k=>memAt[k]>=from&&P[k]&&P[k].box>=4).length});
+  const wk=per(ws),mo=per(ms);
+  // نسبة التذكّر: من المراجعات (لا الكلمات الجديدة) كم تذكّرت، لكل أسبوع من الأسابيع الستة الأخيرة
+  const wks=[...Array(6)].map((_,i)=>weekStart(ws-(5-i)*7*DAY+DAY));
+  const rec=wks.map(a=>{const rs=L.filter(x=>!x[3]&&x[0]>=a&&x[0]<a+7*DAY);return rs.length?Math.round(rs.filter(x=>x[2]>=2).length/rs.length*100):0});
+  const recN=wks.map(a=>L.filter(x=>!x[3]&&x[0]>=a&&x[0]<a+7*DAY).length);
+  const wl=wks.map((a,i)=>i===5?"الحالي":new Date(a+12*36e5).getDate()+"/"+(new Date(a+12*36e5).getMonth()+1));
+  // الكلمات التي ينساها أكثر: النسيان في المراجعة والخطأ في الاختبار والتمارين
+  const err={};L.forEach(x=>{if(x[2]===0)err[x[1]]=(err[x[1]]||0)+1});QA.forEach(x=>{if(!x[2]&&fk.has(x[1]))err[x[1]]=(err[x[1]]||0)+1});
+  const hard=f.filter(w=>P[w.k]&&err[w.k]).sort((a,b)=>err[b.k]-err[a.k]).slice(0,8);
+  const sod=weekStart(now)+((now-weekStart(now))/DAY|0)*DAY,dueT=f.filter(w=>P[w.k]&&P[w.k].due<sod+DAY).length,dueM=f.filter(w=>P[w.k]&&P[w.k].due>=sod+DAY&&P[w.k].due<sod+2*DAY).length;
+  el.innerHTML=`<div class="kpis">
+   <div class="kpi"><b>${learned}</b><span>كلمة تعلّمتها</span></div>
+   <div class="kpi g"><b>${mem}</b><span>كلمة رسخت في ذاكرتك</span></div>
+  </div>
+  <div class="rsec"><h3>📈 ماذا تعلّمت فعلًا</h3>
+   <div class="rtab"><span></span><b>هذا الأسبوع</b><b>آخر 30 يومًا</b>
+    <span>كلمات جديدة</span><em>${wk.nw}</em><em>${mo.nw}</em>
+    <span>كلمات رسخت</span><em>${wk.mem}</em><em>${mo.mem}</em></div>
+   <p class="rnote">الكلمة ترسخ حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع.</p></div>
+  <div class="rsec"><h3>🧠 نسبة تذكّرك في المراجعة</h3>${recN.some(n=>n)?colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
+  <div class="rsec"><h3>🔁 مواعيد المراجعة</h3><div class="kpis" style="margin:0"><div class="kpi o"><b>${dueT}</b><span>مستحقّة اليوم</span></div><div class="kpi"><b>${dueM}</b><span>مستحقّة غدًا</span></div></div></div>
+  <div class="rsec"><h3>⚠️ الكلمات التي تنساها أكثر</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا توجد بعد. تظهر هنا الكلمات التي تنساها أو تخطئ فيها أكثر من غيرها.</div>'}</div>
+  ${isAdmin()?`<details class="rsec"><summary><b>تفاصيل أكثر (للمشرف)</b></summary>${reportDetailsHTML()}</details>`:""}`;
+  const hg=$("hardGo");if(hg)hg.onclick=()=>{startReviewList(hard);goTab("review");showCard();scrollTo(0,0)};
+}
+function reportDetailsHTML(){
+  const f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k));
   const L=LOG.filter(x=>fk.has(x[1])),sb=stackBar(f),c=sb.c,e=EC||econ();
   const total=L.length,correct=L.filter(x=>x[2]>=2).length;
   const days={};L.forEach(x=>{const d=dkey(x[0]);(days[d]=days[d]||{n:0,ok:0,nw:0}).n++;if(x[2]>=2)days[d].ok++;if(x[3])days[d].nw++});
@@ -1167,7 +1207,7 @@ function renderReport(){
   const groupRows=g=>g.filter(x=>x.list.length).map(x=>{const s=stackBar(x.list);const done=s.c[2]+s.c[3];
     return `<div class="row"><span>${x.name}</span><small>${done} من ${x.list.length} محفوظة · ${x.list.length-s.c[0]} بدأت</small></div>${s.html}`}).join("");
   const legend=`<div class="legend">${[0,1,2,3].map(i=>`<span><i class="${SC[i]}"></i>${SN[i]} ${c[i]}</span>`).join("")}</div>`;
-  el.innerHTML=`<div class="rnote">التقرير يتبع الفلاتر أعلاه. الكلمة "محفوظة" بعد وصولها إلى مراجعة أسبوعية، و"راسخة" بعد وصولها إلى مراجعة شهرية.</div>
+  return `<div class="rnote">التقرير يتبع الفلاتر أعلاه. الكلمة "محفوظة" بعد وصولها إلى مراجعة أسبوعية، و"راسخة" بعد وصولها إلى مراجعة شهرية.</div>
   <div class="kpis">
    <div class="kpi g"><b>${c[2]+c[3]}</b><span>كلمة محفوظة من ${f.length}</span></div>
    <div class="kpi"><b>${f.length?Math.round((c[2]+c[3])/f.length*100):0}%</b><span>نسبة الإنجاز</span></div>
