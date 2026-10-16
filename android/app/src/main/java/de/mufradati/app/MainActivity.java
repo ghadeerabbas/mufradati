@@ -73,8 +73,10 @@ public class MainActivity extends Activity {
     }
 
     public class Bridge {
-        @JavascriptInterface public void speak(String text) {
-            if (ttsReady && text != null) tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "muf");
+        @JavascriptInterface public void speak(String text) { speakRate(text, 0.9f); }
+        // النطق البطيء: السرعة بين 0.3 و 1.5
+        @JavascriptInterface public void speakRate(String text, float rate) {
+            if (ttsReady && text != null) { tts.setSpeechRate(Math.max(0.3f, Math.min(1.5f, rate))); tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, "muf"); }
         }
         @JavascriptInterface public void setReminder(boolean on, int hour, int minute) {
             if (on && Build.VERSION.SDK_INT >= 33

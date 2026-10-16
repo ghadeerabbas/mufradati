@@ -658,6 +658,28 @@ async function handleWipe(fs, user, body) {
   return { status: 200, json: { ok: true } };
 }
 
+/* ---------- بلاغات الأخطاء في الكلمات: المتعلّم يرسل، والمشرف يقرأ ويحذف ---------- */
+const RKINDS = ["ar", "de", "ex", "audio", "other"];
+async function handleReport(fs, user, body) {
+  const op = String(body.op || "add");
+  if (op === "list" || op === "del") {
+    if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+    if (op === "del") { const id = String(body.id || ""); if (!/^[A-Za-z0-9_-]{1,200}$/.test(id)) return { status: 400, json: { error: "id" } }; await fs.commit([{ path: `reports/${id}`, del: true }]); return { status: 200, json: { ok: true } } }
+    const list = (await fs.list("reports")).sort((a, b) => (b.at || 0) - (a.at || 0)).slice(0, 300);
+    return { status: 200, json: { list } };
+  }
+  const k = String(body.k || "").slice(0, 200), kind = RKINDS.includes(body.kind) ? body.kind : "other";
+  if (!k) return { status: 400, json: { error: "word" } };
+  const uDoc = await fs.get(`users/${user.uid}`);
+  if (!uDoc && user.email !== ADMIN) return { status: 403, json: { error: "inactive" } };
+  // بلاغ واحد لكل متعلّم لكل كلمة (يُستبدل إن أعاده)، فلا يمتلئ الصندوق بالتكرار
+  let h = 0; for (const c of k) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+  const id = user.uid.replace(/[^A-Za-z0-9_-]/g, "") + "_" + h.toString(36);
+  await fs.commit([{ path: `reports/${id}`, data: { uid: user.uid, name: String((uDoc && uDoc.data.name) || user.email.split("@")[0]).slice(0, 60), k,
+    de: String(body.de || "").slice(0, 300), ar: String(body.ar || "").slice(0, 300), course: String(body.course || "").slice(0, 60), kind, note: String(body.note || "").slice(0, 500), at: Date.now() } }]);
+  return { status: 200, json: { ok: true } };
+}
+
 /* ---------- نقطة الدخول ---------- */
 function cors(req) {
   const o = req.headers.get("Origin") || "";
@@ -668,14 +690,14 @@ export default {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if ((url.pathname !== "/sync" && url.pathname !== "/wipe") || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
       const fs = env.__fs || makeFS(env);
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       return new Response(JSON.stringify(out.json), { status: out.status, headers: { ...H, "Content-Type": "application/json" } });

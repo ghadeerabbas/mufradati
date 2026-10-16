@@ -242,6 +242,22 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .fbar .fbgo{width:100%;border:0;border-radius:16px;padding:13px;font:800 1.1rem inherit;font-family:inherit;color:#fff;background:#58cc02;box-shadow:0 5px 0 #46a302;cursor:pointer}
 .fbar.no .fbgo{background:#ff4b4b;box-shadow:0 5px 0 #ea2b2b}.fbar .fbgo:active{transform:translateY(4px);box-shadow:0 1px 0 #46a302}
 body.fbon main{padding-bottom:210px}
+.fbrow{display:flex;gap:10px;align-items:center}.fbrow .fbgo{flex:1}
+.rep{background:none;border:0;font-size:1rem;padding:0 4px;cursor:pointer;opacity:.55;vertical-align:middle}.rep:hover{opacity:1}
+.stlearn .rep{display:block;margin:8px auto 0;font-size:.85rem}
+.fbflag{width:52px;height:52px;flex:none;border-radius:16px;border:2.5px solid rgba(0,0,0,.12);background:rgba(255,255,255,.5);font-size:1.3rem;opacity:.85}
+.say.slow{font-size:1.15rem;margin-inline-start:2px}
+.hears{display:flex;justify-content:center;align-items:center;gap:14px}.hear.slow{width:64px;height:64px;font-size:1.7rem;background:var(--soft);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.nolisten{display:block;margin:10px auto 0;color:var(--muted);font-weight:700}
+.repbox textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:8px;font:inherit;background:var(--card);color:var(--ink);margin:10px 0}
+.repbox .numpicks{justify-content:center}
+.rep1{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}.rep1 small{display:block;color:var(--muted)}.rep1 p{margin:4px 0 0;background:var(--soft);border-radius:10px;padding:6px 8px}
+.ordar{font-size:1.15rem;font-weight:700;text-align:center;margin:6px 0 12px}
+.oline{min-height:58px;border-bottom:2px solid var(--line);border-top:2px solid var(--line);padding:8px 2px;display:flex;flex-wrap:wrap;gap:8px;direction:ltr;margin-bottom:14px}
+.oline.good{border-color:var(--green);background:#22c55e14}.oline.bad{border-color:var(--red);background:#ef444414}
+.obank{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;direction:ltr;margin-bottom:14px}
+.otile{border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;background:var(--card);color:var(--ink);font:700 1.05rem inherit;font-family:inherit;padding:6px 12px;cursor:pointer}
+.otile.ghost{background:var(--soft);color:transparent;border-color:var(--soft)}
 .combo{height:22px;text-align:center;font-weight:800;color:#1cb0f6;font-size:.95rem;line-height:22px;margin:-2px 0 4px}.combo.pop{animation:cpop .45s}
 @keyframes cpop{40%{transform:scale(1.35)}}
 .spop{position:fixed;top:34%;left:50%;z-index:96;transform:translate(-50%,-50%);background:linear-gradient(#2ec5ff,#1899d6);color:#fff;font-weight:800;font-size:1.45rem;padding:14px 24px;border-radius:20px;box-shadow:0 6px 0 #1478ab,0 12px 30px rgba(0,0,0,.25);white-space:nowrap;pointer-events:none;animation:spop 1.5s ease-out forwards;text-align:center}
@@ -828,7 +844,7 @@ function stationView(){
   const el=$("review"),S_=STS,w=S_.phase==="learn"?S_.words[S_.i]:S_.q[0],N=S_.words.length;
   const head=`<div class="sess"><div class="sbar"><i style="width:${S_.phase==="learn"?S_.i/N*50:50+(N-S_.q.length)/N*50}%"></i></div><span>🛤️ المحطة ${S_.n} · ${S_.phase==="learn"?"تعلّم "+(S_.i+1)+" من "+N:"راجع"}</span><button class="link" id="stQuit">خروج</button></div>`;
   if(S_.phase==="learn"){
-    el.innerHTML=head+`<div class="box stlearn t-${w.t}"><span class="typedot">● ${TYPE[w.t]||""}</span><div class="word de">${artHTML(w.de)} ${sayBtn(w.de)}</div><div class="ar">${esc(w.ar)}</div>${exPairs(w)}</div>
+    el.innerHTML=head+`<div class="box stlearn t-${w.t}"><span class="typedot">● ${TYPE[w.t]||""}</span><div class="word de">${artHTML(w.de)} ${sayBtn(w.de)}${slowBtn(w.de)}</div><div class="ar">${esc(w.ar)}</div>${exPairs(w)}${repBtn(w)}</div>
      <button class="btn next" id="stNext">${S_.i<N-1?"التالي":"راجع الكلمات الخمس"}</button>`;
     $("stNext").onclick=()=>{if(S_.i<N-1)S_.i++;else{S_.phase="check";S_.q=shuffle([...S_.words])}stationView()};
   }else{
@@ -840,7 +856,7 @@ function stationView(){
       if(!ok){b.classList.add("no");S_.miss.add(w.k)}
       S_.q.shift();if(!ok)S_.q.push(w);       // الخطأ يعود في آخر المحطة
       comboHit(ok);
-      showFb(ok,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>S_.q.length?stationView():finishStation());
+      showFb(ok,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>S_.q.length?stationView():finishStation(),w);
     });
   }
   $("stQuit").onclick=quitStation;
@@ -868,14 +884,32 @@ function fx(kind){
   }catch(e){}
 }
 const PRAISE=["أحسنت!","رائع!","ممتاز!","صحيح!","عمل رائع!","مذهل!","تمام!","إجابة موفّقة!"];
-function showFb(ok,sub,next){
+function showFb(ok,sub,next,w){
   let b=$("fbar");if(!b){b=document.createElement("div");b.id="fbar";b.className="fbar";document.body.appendChild(b)}
   b.className="fbar "+(ok?"ok":"no");
-  b.innerHTML=`<h4>${I3(ok?"check":"warning")} ${ok?PRAISE[Math.floor(Math.random()*PRAISE.length)]:"الجواب الصحيح:"}</h4>${sub?`<p>${sub}</p>`:""}<button type="button" class="fbgo">المتابعة</button>`;
+  b.innerHTML=`<h4>${I3(ok?"check":"warning")} ${ok?PRAISE[Math.floor(Math.random()*PRAISE.length)]:"الجواب الصحيح:"}</h4>${sub?`<p>${sub}</p>`:""}<div class="fbrow">${w?`<button type="button" class="fbflag rep" data-k="${esc(w.k)}" aria-label="أبلغ عن خطأ">🚩</button>`:""}<button type="button" class="fbgo">المتابعة</button></div>`;
   document.body.classList.add("fbon");requestAnimationFrame(()=>b.classList.add("on"));
   b.querySelector(".fbgo").onclick=()=>{hideFb();next()};
 }
 function hideFb(){const b=$("fbar");if(b)b.classList.remove("on");document.body.classList.remove("fbon")}
+/* الإبلاغ عن خطأ في كلمة: يصل إلى المشرف في صفحة الرسائل */
+const repBtn=w=>isAdmin()?"":`<button type="button" class="rep" data-k="${esc(w.k)}" aria-label="أبلغ عن خطأ في هذه الكلمة">🚩</button>`;
+const REP_KINDS=[["ar","الترجمة العربية خاطئة"],["de","الكلمة الألمانية خاطئة"],["ex","المثال خاطئ"],["audio","النطق خاطئ"],["other","شيء آخر"]];
+async function apiPost(path,body){const r=await fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
+function reportWord(k){
+  const w=uniq(W).find(x=>x.k===k);if(!w)return;
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};let kind="ar";m.style.display="flex";
+  m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">🚩 الإبلاغ عن خطأ</h1><p class="rnote"><b class="de" dir="ltr">${esc(w.de)}</b> = ${esc(w.ar)}</p>
+   <div class="numpicks" id="rpK">${REP_KINDS.map(([id,n])=>`<button type="button" class="numpick${id===kind?" on":""}" data-v="${id}">${n}</button>`).join("")}</div>
+   <textarea id="rpN" maxlength="500" rows="3" placeholder="ما الصحيح برأيك؟ (اختياري)"></textarea>
+   <button class="btn next" id="rpGo">إرسال البلاغ</button><button class="link" id="rpNo">إلغاء</button></div>`;
+  m.onclick=e=>{if(e.target===m)close()};$("rpNo").onclick=close;
+  $("rpK").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;kind=b.dataset.v;$("rpK").querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b))};
+  $("rpGo").onclick=async()=>{$("rpGo").disabled=true;
+    try{await apiPost("/report",{op:"add",k:w.k,de:w.de,ar:w.ar,course:(COURSES[COURSE]||{}).name||"",kind,note:$("rpN").value.trim()});close();toast("🚩","وصل بلاغك، شكرًا لك!","سيراجعه المشرف ويصحّح الكلمة")}
+    catch(e){$("rpGo").disabled=false;toast(I3("warning"),"تعذّر إرسال البلاغ","تحقّق من الاتصال")}};
+}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".rep[data-k]");if(!b)return;e.stopPropagation();e.preventDefault();reportWord(b.dataset.k)},true);
 let CMB=0;   // الإجابات الصحيحة على التوالي في الدرس الحالي
 const comboHTML=()=>`<div class="combo" id="combo">${CMB>=2?CMB+" على التوالي":""}</div>`;
 function comboHit(ok){
@@ -1163,14 +1197,19 @@ function pickVoice(){try{const v=speechSynthesis.getVoices();DE_VOICE=v.find(x=>
 if("speechSynthesis" in window){pickVoice();try{speechSynthesis.onvoiceschanged=pickVoice}catch(e){}}
 const hasNative=()=>!!(window.MufApp&&MufApp.speak);
 const canSpeak=()=>hasNative()||("speechSynthesis" in window);
-function speak(t){
+function speak(t,slow){
   t=speakable(t);if(!t)return;
-  if(hasNative()){try{MufApp.speak(t);return}catch(e){}}
-  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(DE_VOICE)u.voice=DE_VOICE;u.rate=.9;speechSynthesis.speak(u)}catch(e){}
+  if(hasNative()){try{if(slow&&MufApp.speakRate){MufApp.speakRate(t,.5);return}MufApp.speak(t);return}catch(e){}}
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(DE_VOICE)u.voice=DE_VOICE;u.rate=slow?.55:.9;speechSynthesis.speak(u)}catch(e){}
 }
+// النطق البطيء: في تطبيق أندرويد يحتاج النسخة الجديدة من التطبيق
+// «لا أستطيع الاستماع الآن»: تتوقف تمارين الاستماع ساعة على هذا الجهاز
+const listenMuted=()=>{try{return +(localStorage.getItem("muf_nolisten")||0)>Date.now()}catch(e){return false}};
+const canSlow=()=>hasNative()?!!(window.MufApp&&MufApp.speakRate):("speechSynthesis" in window);
+const slowBtn=t=>canSpeak()&&canSlow()?`<button type="button" class="say slow" data-say="${esc(t)}" data-slow="1" aria-label="استمع ببطء">🐢</button>`:"";
 const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">${I3("speaker")}</button>`:"";
 // يعمل قبل أي ضغطة أخرى، فلا يقلب البطاقة ولا يختار جوابًا
-document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".say");if(!b)return;e.stopPropagation();e.preventDefault();speak(b.dataset.say)},true);
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".say");if(!b)return;e.stopPropagation();e.preventDefault();speak(b.dataset.say,b.dataset.slow==="1")},true);
 
 /* ================= التمارين ================= */
 const ART=/^(der|die|das)\s+/i;
@@ -1238,6 +1277,7 @@ const GAMES=[
  {id:"type",ic:I3("keyboard"),n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
  {id:"listen",ic:I3("headphones"),n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
  {id:"match",ic:I3("puzzle"),n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
+ {id:"order",ic:I3("books"),n:"رتّب الجملة",d:"ترى معنى الجملة بالعربية فتبني جملتها الألمانية بترتيب الكلمات"},
  {id:"s5",ic:I3("stopwatch"),n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
 ];
 function gamePool(id){
@@ -1245,10 +1285,18 @@ function gamePool(id){
   if(id==="cloze")return all.filter(w=>clozeOf(w));
   if(id==="art")return all.filter(w=>nounOf(w));
   if(id==="type")return all.filter(w=>answersOf(w).length);
-  if(id==="listen")return canSpeak()?all.filter(w=>answersOf(w).length):[];
+  if(id==="listen")return canSpeak()&&!listenMuted()?all.filter(w=>answersOf(w).length):[];
+  if(id==="order")return all.filter(w=>orderOf(w));
   return all;
 }
-const gameMin={cloze:4,art:4,type:4,listen:4,match:6,s5:4};
+const gameMin={cloze:4,art:4,type:4,listen:4,match:6,s5:4,order:4};
+// جملة المثال الأولى للكلمة مقسّمة إلى كلمات (من 3 إلى 9 كلمات)
+function orderOf(w){
+  if(!w.ex||!w.exar)return null;const de=String(w.ex).split("\n")[0].trim(),ar=String(w.exar).split("\n")[0].trim();
+  const toks=de.replace(/[.!?]+$/,"").split(/\s+/).filter(Boolean);
+  return toks.length>=3&&toks.length<=9&&ar?{de,ar,toks}:null;
+}
+const normO=s=>s.replace(/[.,;:!?„“"»«]/g,"").replace(/\s+/g," ").trim().toLowerCase();
 let GM=null,GTICK=null;
 const stopTick=()=>{clearInterval(GTICK);GTICK=null};
 const bestMatch=()=>{const t=QLOG.filter(q=>q[3]==="match"&&q[1]===q[2]&&q[4]).map(q=>q[4]);return t.length?Math.min(...t):0};
@@ -1259,13 +1307,13 @@ function renderGames(){
   const bm=bestMatch();
   el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
-     <em>${g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
+     <em>${g.id==="listen"&&listenMuted()?"متوقف مؤقتًا: يعود بعد "+Math.ceil((+(localStorage.getItem("muf_nolisten")||0)-Date.now())/60000)+" دقيقة":g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
 }
 function startGame(id){
   const pool=gamePool(id);stopTick();
-  GM={id,ok:0,n:0,i:0,t0:Date.now(),done:false};
+  GM={id,ok:0,n:0,i:0,t0:Date.now(),done:false};CMB=0;
   if(id==="match"){GM.words=pickWords(pool,6);GM.left=new Set(GM.words.map(w=>w.k));GM.miss=0;GM.sel=null;GM.ar=shuffle([...GM.words]);GM.de=shuffle([...GM.words])}
   else if(id==="s5"){GM.end=Date.now()+5*60*1000;stopTick();GTICK=setInterval(()=>{if(!GM||GM.id!=="s5"){stopTick();return}
       if(Date.now()>=GM.end){finishGame();return}const r=$("gTime");if(r)r.textContent=clock(GM.end-Date.now())},500);GM.q=nextMixed()}
@@ -1277,6 +1325,9 @@ const hearOf=w=>answersOf(w)[0];
 function makeQ(kind,w){
   if(kind==="listen")kind=GM&&GM.kinds?GM.kinds[GM.i]||"lmc":"lmc";
   if(kind==="lmc"){const q=makeQ("mc",w);q.kind="lmc";return q}
+  if(kind==="order"){const o=orderOf(w),have=new Set(o.toks.map(t=>normO(t)));
+    const extra=[];for(const x of shuffle(learnedList())){const ox=x.k!==w.k&&orderOf(x);if(!ox)continue;for(const t of ox.toks){if(!have.has(normO(t))&&extra.length<2){extra.push(t);have.add(normO(t))}}if(extra.length>=2)break}
+    return {kind,w,o,tiles:shuffle([...o.toks,...extra]),picked:[]}}
   if(kind==="mc"){const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(pool.filter(x=>x.t===w.t));return {kind,w,opts:shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)])}}
   if(kind==="cloze"){
     // الخيارات بالصيغة نفسها التي في الجملة (fährt مع holt وfällt، لا مع fahren)، وتُفضَّل الكلمات ذات النهاية نفسها
@@ -1289,12 +1340,15 @@ function makeQ(kind,w){
   return {kind,w};
 }
 function nextMixed(){
-  const kinds=[["mc",learnedList()],["lmc",gamePool("listen")],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
+  const kinds=[["mc",learnedList()],["lmc",gamePool("listen")],["order",gamePool("order")],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
   const [kind,pool]=kinds[Math.random()*kinds.length|0];
   const last=GM&&GM.q?GM.q.w.k:null;const cand=pickWords(pool.filter(w=>w.k!==last),1);
   return makeQ(kind,cand[0]||pool[0]);
 }
 function gameHead(){
+  if(GM.id!=="match")return comboHTML()+gameHead0();return gameHead0();
+}
+function gameHead0(){
   if(GM.id==="s5")return `<div class="sess"><span class="gtime">⏱️ <b id="gTime">${clock(GM.end-Date.now())}</b></span><span>✓ ${GM.ok} من ${GM.n}</span><button class="link" id="gQuit">إنهاء</button></div>`;
   if(GM.id==="match")return `<div class="sess"><span class="gtime">⏱️ <b id="gTime">0,0 ث</b></span><span>أخطاء: ${GM.miss}</span><button class="link" id="gQuit">إنهاء</button></div>`;
   return `<div class="sess"><div class="sbar"><i style="width:${GM.i/GM.list.length*100}%"></i></div><span>${GM.i+1} من ${GM.list.length} · ✓ ${GM.ok}</span><button class="link" id="gQuit">إنهاء</button></div>`;
@@ -1310,18 +1364,24 @@ function gameView(){
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
     <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
   else if(q.kind==="lmc"||q.kind==="ltype")body=`<p class="ghint">${q.kind==="lmc"?"استمع، ثم اختر المعنى:":"استمع، ثم اكتب ما سمعته بالألمانية:"}</p>
-    <div style="text-align:center"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${I3("speaker")}</button></div>
+    <div class="hears"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${I3("speaker")}</button>${canSlow()?'<button type="button" class="hear slow" id="gSlow" aria-label="استمع ببطء">🐢</button>':""}</div>
     ${q.kind==="lmc"?q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join(""):
     `<input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <button class="btn next" id="gCheck">تحقّق</button>`}`;
+  else if(q.kind==="order")body=`<p class="ghint">رتّب الكلمات لتكوّن هذه الجملة بالألمانية:</p><div class="ordar">${esc(q.o.ar)}</div>
+    <div class="oline de" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
+    <div class="obank de">${q.tiles.map((t,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(t)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(t)}</button>`).join("")}</div>
+    <button class="btn next" id="gCheck" ${q.picked.length?"":"disabled"}>تحقّق</button>`;
   else if(q.kind==="type")body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
     <input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <button class="btn next" id="gCheck">تحقّق</button>`;
-  el.innerHTML=gameHead()+`<div class="box" id="gBox">${body}<div id="gFb"></div></div>`;
+  el.innerHTML=gameHead()+`<div class="box" id="gBox">${body}<div id="gFb"></div>${q.kind==="lmc"||q.kind==="ltype"?'<button type="button" class="link nolisten" id="gNoL">لا أستطيع الاستماع الآن</button>':""}</div>`;
   $("gQuit").onclick=finishGame;
-  if(q.kind==="lmc"||q.kind==="ltype"){const h=$("gHear");h.onclick=()=>speak(hearOf(w));if(!q.played){q.played=1;setTimeout(()=>speak(hearOf(w)),250)}}
+  if(q.kind==="lmc"||q.kind==="ltype"){const h=$("gHear");h.onclick=()=>speak(hearOf(w));const sl=$("gSlow");if(sl)sl.onclick=()=>speak(hearOf(w),1);if(!q.played){q.played=1;setTimeout(()=>speak(hearOf(w)),250)}
+    $("gNoL").onclick=()=>{try{localStorage.setItem("muf_nolisten",String(Date.now()+3600e3))}catch(e){}toast(I3("headphones"),"أوقفنا تمارين الاستماع ساعة","تعود تلقائيًّا بعدها");
+      if(GM.id==="s5"){GM.answered=false;GM.q=nextMixed();gameView()}else finishGame()}}
   if(q.kind==="mc"||q.kind==="cloze"||q.kind==="lmc")el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
     if(GM.answered)return;const ok=b.dataset.k===w.k;
     el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
@@ -1333,6 +1393,12 @@ function gameView(){
     el.querySelectorAll(".artb").forEach(x=>{if(x.dataset.a===nn.art)x.classList.add("ok");else if(x===b)x.classList.add("no")});
     answered(ok,b,ok?600:0);
   });
+  if(q.kind==="order"){
+    el.querySelectorAll(".otile[data-t]").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.picked.push(+b.dataset.t);fx("tap");gameView()});
+    el.querySelectorAll(".otile[data-p]").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.picked.splice(+b.dataset.p,1);gameView()});
+    $("gCheck").onclick=()=>{if(GM.answered||!q.picked.length)return;const ok=normO(q.picked.map(i=>q.tiles[i]).join(" "))===normO(q.o.de);
+      $("gCheck").style.display="none";el.querySelectorAll(".otile").forEach(x=>x.disabled=true);$("oLine").classList.add(ok?"good":"bad");if(ok)speak(q.o.de);answered(ok,$("oLine"))};
+  }
   if(q.kind==="type"||q.kind==="ltype"){
     const inp=$("gIn");setTimeout(()=>inp.focus(),50);
     el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1)});
@@ -1345,12 +1411,14 @@ function gameView(){
 // بعد كل جواب: يُسجَّل للكلمات الصعبة، ثم يظهر التصحيح وزر التالي
 function answered(ok,el,auto){
   const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){GM.ok++}else{const b=$("gBox");if(b)b.classList.add("flash-no")}
+  comboHit(ok);
   (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);markStudied();
   let fb="";
   if(q.kind==="type"||q.kind==="ltype"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
     :`<div class="gres bad">الجواب الصحيح:</div><div class="gans de">${diffHTML(coreOf(r.a)||r.a,coreOf(GM.typed.v))}</div>`}
   else if(q.kind==="art"&&!ok){const nn=nounOf(w);fb=`<div class="gres bad">الصحيح: <span class="de art-${nn.art}">${esc(nn.art+" "+nn.noun)}</span></div>`}
-  fb+=`<div class="gword"><span class="de">${artHTML(w.de)}</span> ${sayBtn(w.de)} <span class="m">${esc(w.ar)}</span></div>`;
+  if(q.kind==="order")fb+=ok?"":`<div class="gres bad">الجملة الصحيحة:</div><div class="gans de">${esc(q.o.de)}</div>`;
+  fb+=`<div class="gword"><span class="de">${artHTML(w.de)}</span> ${sayBtn(w.de)} <span class="m">${esc(w.ar)}</span>${repBtn(w)}</div>`;
   if(q.kind!=="cloze")fb+=exPairs(w);
   $("gFb").innerHTML=fb+`<button class="btn next" id="gNext">التالي</button>`;
   $("gNext").onclick=nextQ;
@@ -1376,7 +1444,7 @@ function matchView(){
     if(s.side==="de")speak(GM.de.find(w=>w.k===s.k).de);
     if(!GM.sel||GM.sel.side===s.side){GM.sel=s;return matchView()}
     const ok=GM.sel.k===s.k;
-    (GM.qa=GM.qa||[]).push([s.k,ok?1:0]);
+    (GM.qa=GM.qa||[]).push([s.k,ok?1:0]);fx(ok?"ok":"no");
     if(ok){GM.left.delete(s.k);GM.sel=null;if(!GM.left.size){GM.ms=Date.now()-GM.t0;return finishGame()}matchView()}
     else{GM.miss++;GM.qa.push([GM.sel.k,0]);GM.sel=null;matchView();const g=el.querySelector(".mgrid");if(g)g.classList.add("flash-no")}
   });
@@ -2225,11 +2293,25 @@ async function userMsg(v){
 // المحادثة الممسوحة من عندي تختفي من القائمة حتى تصل رسالة جديدة
 const thHidden=t=>t.adminClr&&tsMs(t.adminClr)>=tsMs(t.updated);
 let THSEL=null;   // وضع التحديد: مجموعة المحادثات المختارة
+let REPS=null,REPAT=0;
+async function loadReports(force){
+  if(force||!REPS||Date.now()-REPAT>30000){try{REPS=(await apiPost("/report",{op:"list"})).list||[];REPAT=Date.now()}catch(e){REPS=REPS||[]}}
+  drawReports();
+}
+function drawReports(){
+  const box=$("repBox");if(!box||!REPS)return;
+  if(!REPS.length){box.innerHTML="";return}
+  const KN=Object.fromEntries(REP_KINDS);
+  box.innerHTML=`<div class="rsec"><h3>🚩 بلاغات الأخطاء في الكلمات (${REPS.length})</h3>${REPS.map(r_=>`<div class="rep1"><div style="flex:1;min-width:0"><b class="de" dir="ltr">${esc(r_.de)}</b> = ${esc(r_.ar)}
+    <small>${esc(KN[r_.kind]||"")} · ${esc(r_.name||"")}${r_.course?" · "+esc(r_.course):""} · ${ago(r_.at)}</small>${r_.note?`<p>${esc(r_.note)}</p>`:""}</div><button class="btn" data-rdel="${esc(r_.id)}">تمّ ✓</button></div>`).join("")}</div>`;
+  box.querySelectorAll("[data-rdel]").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await apiPost("/report",{op:"del",id:b.dataset.rdel});REPS=REPS.filter(x=>x.id!==b.dataset.rdel);drawReports()}catch(e){b.disabled=false;toast(I3("warning"),"تعذّر الحذف","")}});
+}
 function renderInbox(){
   const el=$("messages"),list=ADM_TH.filter(t=>!thHidden(t)),sel=THSEL;
-  el.innerHTML=`<div class="mhead"><h2>✉️ رسائل المستخدمين</h2>${list.length?`<button class="btn" id="thSel">${sel?"إلغاء":"تحديد"}</button>`:""}</div>
+  el.innerHTML=`<div id="repBox"></div><div class="mhead"><h2>✉️ رسائل المستخدمين</h2>${list.length?`<button class="btn" id="thSel">${sel?"إلغاء":"تحديد"}</button>`:""}</div>
    ${sel?`<div class="mclr"><button class="btn" id="thAll">${sel.size===list.length?"إلغاء الكل":"تحديد الكل"}</button><button class="btn" id="thDelMe" ${sel.size?"":"disabled"}>${I3("trash")} حذف من عندي (${sel.size})</button><button class="btn" id="thDelAll" ${sel.size?"":"disabled"}>${I3("trash")} من عندي وعنده</button></div>`:""}
    ${list.length?list.map(t=>`<div class="th ${sel&&sel.has(t.id)?"sel":""}" data-u="${esc(t.id)}">${sel?`<span class="ck">${sel.has(t.id)?"☑️":"⬜"}</span>`:""}<div style="flex:1"><b>${esc(t.name||"مستخدم")}</b><br><small>${fmt(t.updated)}</small></div>${t.state==="waiting"?'<span class="need">ينتظر ردّك</span>':'<small>تمّ الرد ✓</small>'}</div>`).join(""):'<div class="empty">لا رسائل بعد.</div>'}`;
+  loadReports();
   el.querySelectorAll(".th").forEach(d=>d.onclick=()=>{if(!THSEL)return openThread(d.dataset.u);const u=d.dataset.u;THSEL.has(u)?THSEL.delete(u):THSEL.add(u);renderInbox()});
   const b=$("thSel");if(b)b.onclick=()=>{THSEL=THSEL?null:new Set;renderInbox()};
   if(!sel)return;
