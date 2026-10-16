@@ -590,7 +590,7 @@ function floatAt(el,txt){
 function celebrate(prev){
   const e=econ();renderHeader();
   if(!prev)return;
-  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!","");confetti(120)}
+  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!",e.lv>(R.lv||1)?"+"+LV_GEMS+" 💎":"");confetti(120)}
   achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(a.ic,a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
   if(e.s.streak>prev.s.streak)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
 }
@@ -1864,6 +1864,8 @@ function renderPanel(p){
   if(p==="messages"){renderMessages();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
+  // الاختبار: يبدأ من جديد عند فتحه إلا إذا كان المستخدم في منتصفه، فيأخذ الكلمات التي تعلّمها للتوّ
+  if(p==="quiz"){if(!qzA.length||qi>=qz.length)startQuiz();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
 function refresh(){buildQueue();showCard();LPAGE=0;renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}

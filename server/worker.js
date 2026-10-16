@@ -141,6 +141,7 @@ const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:
  s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
 const achList=()=>ACH;
 const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
+const LV_GEMS=5;
 const lvlNeed=l=>80*l;                          // كل مستوى يحتاج 80 نقطة أكثر من سابقه
 let EC=null;
 function econ(){
@@ -174,7 +175,8 @@ function econ(){
   s.freezes=avail;
   s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
   // المستوى
-  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;}
+  // 5 جواهر لكل مستوى جديد (لا تتكرّر بعد التصفير للمستويات التي أُخذت جوائزها)
+  let lv=1,rest=xp;while(rest>=lvlNeed(lv)){rest-=lvlNeed(lv);lv++;if(lv>(R.lv||1))gems+=LV_GEMS}
   const paid=new Set((R.ach||[]).map(x=>OLD_ACH[x]||x)),got=[],alv={};
   for(const a of achList()){const k=achLevel(a,s);alv[a.id]=k;for(let i=1;i<=k;i++)got.push(a.id+":"+i)}
   // الجواهر: جوهرة لكل محطة مكتملة، وجوائز الدوري، وهدايا المشرف، وما بقي من قبل التصفير
