@@ -15,6 +15,7 @@ android {
     signingConfigs {
         release {
             // المفتاح محميّ بكلمة سرّ محفوظة في أسرار GitHub (KS_PASS)، ولا تظهر في الملفات
+            // يُنشأ المفتاح أول مرة داخل GitHub نفسه (انظر .github/workflows/apk.yml)
             storeFile file("../release.p12")
             storeType "pkcs12"
             storePassword System.getenv("KS_PASS")
