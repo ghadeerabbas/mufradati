@@ -592,7 +592,7 @@ body.fbon main{padding-bottom:210px}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=7"></script>
+<script src="core.js?v=8"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -841,6 +841,7 @@ async function noEnergy(){
 function startStation(){
   const fresh=uniq(filtered()).filter(w=>!P[w.k]);
   if(!fresh.length||stToday()>=ST_MAX)return;
+  if(drillLock()){toast(I3("puzzle"),"أكمل تدريب المحطة "+stToday()+" أولًا","التدريب بعد كل محطة يفتح المحطة التالية");return}
   if(enNow()<stCostAt(Date.now())){noEnergy();return}
   if(ev({type:"stStart"})!==true)return;renderEnergy();
   STS={n:stToday()+1,words:fresh.slice(0,ST_WORDS),phase:"learn",i:0,miss:new Set,q:[],t0:Date.now()};CMB=0;RES=null;
@@ -949,6 +950,7 @@ function lessonPop(o){
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
+const drillLock=()=>!!CFG.station.drillReq&&drillsToday()<stToday();   // المحطة التالية مقفلة حتى يُنهى التدريب
 function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
   const st=STN.filter(x=>dkey(x[0])===dkey(Date.now())).sort((a,b)=>a[0]-b[0]);if(!st[j])return [];
   const ts=st[j][0],by=new Map(uniq(W).map(w=>[w.k,w]));
@@ -1022,7 +1024,8 @@ function reviewHome(){
   const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها · ${CFG.energy.drill} طاقة</button>`:""}</div>`:"";
   // المسار المتعرّج: المكتملة ذهبية، والتالية خضراء تنبض، والمقفلة رمادية
   const N=ST_MAX,off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday(),dlow=en<CFG.energy.drill;
-  const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":i===N-1?"trophy":"lock";
+  const dl=drillLock(),pend=drillsToday()<done;
+  const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N&&!dl?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":i===N-1?"trophy":"lock";
     return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${i+1}</span></button>`};
   // بعد كل محطة محطة تدريبية صغيرة (مطابقة)، مكتملة أو متاحة أو مقفلة
   const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
@@ -1032,7 +1035,8 @@ function reviewHome(){
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
-  const coach=done>=N?"أنهيت مسار اليوم! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
+  const coach=pend&&(dl||done>=N)?"أحسنت! تدريب سريع على كلمات المحطة "+done+(done<N?" يفتح لك المحطة التالية":" يكمل مسار اليوم")+" "+I3("puzzle")
+    :done>=N?"أنهيت مسار اليوم! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
     :!fresh?(allDone?"أنهيت كل كلمات منهجك! 🌟 اطلب منهجًا جديدًا.":"تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى.")
     :low?(dueN?"طاقتك لا تكفي للمحطة. راجع الكلمات المستحقّة لتكسب طاقة 🔋":"استرح قليلًا، فالطاقة تمتلئ مع الوقت ⏳")
     :!cost?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
@@ -1040,10 +1044,11 @@ function reviewHome(){
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   el.innerHTML=msg+`
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
-  <div class="coach">${mascot(done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
+  <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*SP+50}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}</div>
-   ${done>=N?'':!fresh?(allDone?courseDoneHTML():'')
+   ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${done} · ${CFG.energy.drill} طاقة</button>`
+     :done>=N?'':!fresh?(allDone?courseDoneHTML():'')
      :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${done+1}${cost?"":" · مجانية "+I3("gift")}</button>`}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>
@@ -1055,7 +1060,7 @@ function reviewHome(){
   </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
   const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:"المحطة "+(stToday()+1)+" من "+ST_MAX,sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
-  const dg=$("dGo");if(dg)dg.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:ST_WORDS*CFG.xp.quiz,cost:CFG.energy.drill,blue:1,go:startDrill});
+  const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:ST_WORDS*CFG.xp.quiz,cost:CFG.energy.drill,blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
@@ -2086,7 +2091,7 @@ function renderCfg(){
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
    ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}
-   ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}</div>
+   ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}<label>التدريب بعد كل محطة شرط لفتح التالية<input type="checkbox" id="s_dr" ${C.station.drillReq?"checked":""}></label></div>
   <div class="rsec"><h3>${I3("freeze")} تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
   <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
   const sk=$("g_sk"),row=()=>{const l=document.createElement("label");l.innerHTML=`<span><input type="number" class="skd" value="7" min="1"> يومًا</span><span><input type="number" class="skg" value="10" min="0"> 💎 <button type="button" class="link skx">حذف</button></span>`;sk.appendChild(l)};
@@ -2097,7 +2102,7 @@ function renderCfg(){
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
-    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr")};c.station={words:v("s_w"),perDay:v("s_d")};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
