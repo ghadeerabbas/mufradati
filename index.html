@@ -459,7 +459,7 @@ svg.cup{width:1.1em;height:1.1em;vertical-align:-.2em;display:inline-block}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=2"></script>
+<script src="core.js?v=3"></script>
 <script>
 /* ================= أساسيات ================= */
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
@@ -653,6 +653,7 @@ async function noEnergy(){
   const D=x=>arN(x,"دقيقة","دقيقتين","دقائق"),Hh=x=>arN(x,"ساعة","ساعتين","ساعات");
   const msg="🪫 طاقتك "+n+"، والمحطة تحتاج "+ST_COST+".\n\nتحصل على الطاقة:\n• وحدة كل "+D(CFG.energy.minutes)+" (التالية بعد "+D(m)+")"+
     (per?"\n• وحدة لكل "+arN(per,"مراجعة","مراجعتين","مراجعات")+" لكلمات حان موعدها":"")+
+    (CFG.energy.game&&CFG.energy.gameMax?"\n• "+arN(CFG.energy.game,"وحدة","وحدتان","وحدات")+" لكل تمرين تكمله حتى آخره (بقي لك اليوم "+Math.max(0,CFG.energy.gameMax-gamesEnToday(Date.now()))+" من "+CFG.energy.gameMax+")":"")+
     "\n\nتكفيك للمحطة بالانتظار بعد "+(h?Hh(h)+(mm?" و":""):"")+(mm||!h?D(mm):"")+(per&&due?"، أو أسرع بالمراجعة.\n\nعندك "+arN(due,"كلمة مستحقّة","كلمتان مستحقّتان","كلمات مستحقّة")+" الآن. هل تراجعها؟":".");
   if(per&&due){if(await uiConfirm(msg)){RVSTATE="due";startReview("due",Math.min(due,Math.max(per,need*per)))}}
   else await uiAlert(msg);
@@ -1101,16 +1102,19 @@ function matchView(){
 }
 function finishGame(){
   if(!GM||GM.done)return;stopTick();clearTimeout(GM.autoT);
-  const prev=EC||econ();
+  const prev=EC||econ(),en0=enNow();
   if(GM.id==="match"){
     if(GM.left.size){GM=null;renderGames();return}            // خرج قبل أن ينهي
     GM.ok=Math.max(0,6-GM.miss);GM.n=6;GM.best=bestMatch();
-    ev({type:"quiz",kind:"match",ok:GM.ok,total:6,qa:GM.qa,ms:GM.ms});
+    ev({type:"quiz",kind:"match",ok:GM.ok,total:6,qa:GM.qa,ms:GM.ms,full:1});
   }else{
     if(!GM.n){GM=null;renderGames();return}
-    ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa});
+    // كامل: أجاب عن كل الأسئلة، أو انتهى وقت جلسة الدقائق الخمس
+    const full=GM.id==="s5"?Date.now()>=GM.end:GM.n>=GM.list.length;
+    ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa,...(full?{full:1}:{})});
   }
   GM.done=true;markStudied();celebrate(prev);gameView();
+  if(enNow()>en0){renderEnergy();toast("🔋","+"+(enNow()-en0)+" طاقة","أكملت التمرين")}
 }
 function gameResult(){
   const g=GAMES.find(x=>x.id===GM.id),pct=GM.n?GM.ok/GM.n:0;
@@ -1695,7 +1699,7 @@ function renderCfg(){
    <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
-   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}
+   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}</div>
   <div class="rsec"><h3>❄️ تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
   <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
@@ -1707,7 +1711,7 @@ function renderCfg(){
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
-    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr")};c.station={words:v("s_w"),perDay:v("s_d")};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm")};c.station={words:v("s_w"),perDay:v("s_d")};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
