@@ -13,7 +13,7 @@ const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databas
 
 /* ---------- متغيّرات الحالة التي يعمل عليها المنطق المشترك ---------- */
 let P = {}, LOG = [], QLOG = [], QA = [], BUY = [], R = { bank: 0, ach: [], lv: 1, ts: 0 },
-  LG = { tier: null, w: "", hist: [], ts: 0 }, EN = { v: 30, t: 0 }, STN = [], STV = 0, GIFTS = [];
+  LG = { tier: null, w: "", hist: [], ts: 0 }, EN = { v: 30, t: 0 }, STN = [], STV = 0, GIFTS = [], CW = 0;
 
 /* @@CORE@@ */
 
@@ -105,10 +105,10 @@ function makeFS(env) {
       } while (tok);
       return out;
     },
-    // writes: [{path, data, ifUpdateTime?, ifMissing?}]
+    // writes: [{path, data, ifUpdateTime?, ifMissing?}] أو [{path, del: true}] للحذف
     async commit(writes) {
       if (!writes.length) return;
-      const body = { writes: writes.map(w => { const x = { update: { name: `projects/${PROJECT}/databases/(default)/documents/${w.path}`, fields: enc(w.data).mapValue.fields } }; if (w.ifUpdateTime) x.currentDocument = { updateTime: w.ifUpdateTime }; else if (w.ifMissing) x.currentDocument = { exists: false }; return x }) };
+      const body = { writes: writes.map(w => { if (w.del) return { delete: `projects/${PROJECT}/databases/(default)/documents/${w.path}` }; const x = { update: { name: `projects/${PROJECT}/databases/(default)/documents/${w.path}`, fields: enc(w.data).mapValue.fields } }; if (w.ifUpdateTime) x.currentDocument = { updateTime: w.ifUpdateTime }; else if (w.ifMissing) x.currentDocument = { exists: false }; return x }) };
       const r = await fetch(FS_BASE + ":commit", { method: "POST", headers: await H(), body: JSON.stringify(body) });
       if (r.status === 409 || r.status === 400 && (await r.clone().text()).includes("FAILED_PRECONDITION")) { const e = new Error("conflict"); e.conflict = true; throw e }
       if (!r.ok) throw new Error("fs commit " + r.status + " " + (await r.text()).slice(0, 200));
@@ -129,11 +129,11 @@ async function wordSet() {
 function setState(c, log, qa) {
   P = c.P || {}; QLOG = c.QLOG || []; BUY = c.BUY || []; R = Object.assign({ bank: 0, ach: [], lv: 1, ts: 0 }, c.R || {});
   LG = Object.assign({ tier: null, w: "", hist: [], ts: 0 }, c.LG || {}); EN = c.EN || { v: 30, t: 0 }; STN = c.STN || []; STV = c.STV || 0;
-  LOG = unpackLog(log); QA = unpackQA(qa); EC = null;
+  LOG = unpackLog(log); QA = unpackQA(qa); EC = null; CW = c.wiped || 0;
   if (!c.lf) flagLog();             // مرة واحدة: وسم التدريب في السجلّ القديم
   if ((LG.v || 1) < 2) { if (LG.tier != null) LG.tier = 0; LG.v = 2 }
 }
-const coreObj = () => ({ P, QLOG, BUY, R, LG, EN, STN, STV, ver: 1, lf: 1 });
+const coreObj = () => ({ P, QLOG, BUY, R, LG, EN, STN, STV, ver: 1, lf: 1, ...(CW ? { wiped: CW } : {}) });
 const parseJ = (s, d) => { try { return s ? JSON.parse(s) : d } catch (e) { return d } };
 
 /* ---------- الدوري: التسوية الأسبوعية وسطر المتعلّم ---------- */
@@ -187,6 +187,7 @@ async function handleSync(fs, user, body) {
   let words = null;
   for (let i = 0; i < evs.length; i++) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); continue }
+    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); continue }      // أحداث من قبل حذف المشرف لا تُقبل
     if (e.type === "stDone" && !words) words = await wordSet();
     EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words });
     if (r !== true) rej.push([i, r]);
@@ -226,6 +227,25 @@ async function handleSync(fs, user, body) {
   return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "" } };
 }
 
+/* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */
+// يبقى حسابه وتفعيله واسمه الظاهر ورسائله، ويُحذف ما سوى ذلك: التقدّم والجواهر والمشتريات والهدايا والدوري والملف العام والمظهر
+async function handleWipe(fs, user, body) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  const uid = String(body.uid || ""); if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
+  const now = Date.now(), [uDoc, gifts] = await Promise.all([fs.get(`users/${uid}`), fs.list(`gifts/${uid}/g`)]);
+  const core = { P: {}, QLOG: [], BUY: [], R: { bank: 0, ach: [], lv: 1, ts: now }, LG: { tier: 0, w: "", hist: [], ts: now, v: 2, best: 0 }, EN: { v: 30, t: 0 }, STN: [], STV: 0, ver: 1, lf: 1, wiped: now };
+  const empty = JSON.stringify({ K: [], F: [] });
+  await fs.commit([
+    { path: `users/${uid}`, data: { name: (uDoc && uDoc.data.name) || "", wiped: now } },
+    { path: `users/${uid}/data/core`, data: { v: JSON.stringify(core) } },
+    { path: `users/${uid}/data/log`, data: { v: empty } },
+    { path: `users/${uid}/data/qa`, data: { v: empty } },
+    { path: `pub/${uid}`, del: true },
+    { path: `lg/${weekId(now)}/m/${uid}`, del: true },
+    ...gifts.map(g => ({ path: `gifts/${uid}/g/${g.id}`, del: true }))]);
+  return { status: 200, json: { ok: true } };
+}
+
 /* ---------- نقطة الدخول ---------- */
 function cors(req) {
   const o = req.headers.get("Origin") || "";
@@ -236,14 +256,14 @@ export default {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if (url.pathname !== "/sync" || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if ((url.pathname !== "/sync" && url.pathname !== "/wipe") || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
       const fs = env.__fs || makeFS(env);
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = await serial(() => handleSync(fs, user, body)); break }
+        try { out = await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       return new Response(JSON.stringify(out.json), { status: out.status, headers: { ...H, "Content-Type": "application/json" } });

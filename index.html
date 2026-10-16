@@ -1338,6 +1338,8 @@ function ev(e){
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
 function applyServer(j){
   const c=(typeof j.core==="string"?JSON.parse(j.core):j.core)||{},h0=(LG.hist||[]).length;
+  // حذف المشرف بياناتِ هذا الحساب: يبدأ من الصفر هنا أيضًا (المظهر والإعدادات وما لم يُرسل بعد)
+  if(c.wiped&&c.wiped>(+st(K("wiped"))||0)){st(K("wiped"),String(c.wiped));EVQ=[];E=Object.assign({},DEF_E,{ts:Date.now()});S=Object.assign({},DEF_S,{ts:Date.now()});st(K("giftSeen"),"[]");PREFLAST="";applyLook()}
   P=c.P||{};QLOG=c.QLOG||[];BUY=c.BUY||[];R=Object.assign({bank:0,ach:[],lv:1,ts:0},c.R||{});
   LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;
   LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));
@@ -1403,7 +1405,7 @@ function renderSettings(){
   ${isAdmin()?`<div class="rsec"><h3>🏆 مشاركتك في الدوري</h3><div class="numpicks" id="stSolo"><button type="button" class="numpick${E.lgSolo?"":" on"}" data-v="0">مع المستخدمين</button><button type="button" class="numpick${E.lgSolo?" on":""}" data-v="1">وحدي مع الآليّين (تجربة)</button></div>
    <p class="rnote" style="margin-top:6px">في وضع التجربة لا تظهر في مجموعات المستخدمين، وتتنافس مع منافسين آليّين فقط. ويبدأ مفعوله من أول تحديث لخبرتك.</p></div>`:""}
   ${isAdmin()?`<div class="rsec" id="giftBox">${giftBoxHTML(UID)}</div>`:""}
-  <div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
+  <div class="rsec"><h3>⚠️ تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`;
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(E.dark?1:0))return;E.dark=+b.dataset.v;E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
   $("stReset").onclick=resetProgress;bindNameBox();if(isAdmin())bindGiftBox(UID);
@@ -1847,10 +1849,24 @@ function renderUser(){
   <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
+  <div class="rsec"><h3>🗑️ حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
+   <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   renderAssign(u.id);bindGiftBox(u.id);
+  $("uWipe").onclick=()=>wipeUser(u);
+}
+async function wipeUser(u){
+  const nm=u.name||"";
+  if(!await uiConfirm("⚠️ ستُحذف كل بيانات «"+nm+"»: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري.\nلا يمكن التراجع. هل تريد المتابعة؟"))return;
+  const v=((await uiPrompt("للتأكيد، اكتب اسمه كما هو: "+nm))||"").trim();
+  if(v!==nm.trim()){if(v)await uiAlert("الاسم غير مطابق. لم يُحذف شيء.");return}
+  const m=$("uWipeMsg");m.textContent="جارٍ الحذف…";m.className="stmsg";
+  try{const r=await fetch(API+"/wipe",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},body:JSON.stringify({uid:u.id})});
+    if(!r.ok)throw 0;m.textContent="✓ حُذفت كل بياناته، ويبدأ من الصفر";m.className="stmsg ok";u.sum=null;
+    if(u.id===UID){LOG=[];await syncNow(true)}}
+  catch(e){m.textContent="تعذّر الحذف، تحقّق من الاتصال";m.className="stmsg bad"}
 }
 
 async function renderAssign(uid){
