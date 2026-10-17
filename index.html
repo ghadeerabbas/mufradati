@@ -765,6 +765,10 @@ function renderHeader(){
   hf.title=lit?"أكملت دراسة اليوم، سلسلتك "+e.s.streak+" يومًا":e.s.streak?"ادرس اليوم لتحافظ على سلسلتك":"ابدأ سلسلتك بالدراسة اليوم";
   if(lit&&FIRE_LIT===false&&FIRE_DAY===dkey(Date.now())){hf.classList.remove("ignite");void hf.offsetWidth;hf.classList.add("ignite");fx("streak")}
   FIRE_LIT=lit;FIRE_DAY=dkey(Date.now());
+  // الهاتف لا يُظهر التلميح عند اللمس: نعرضه رسالة قصيرة
+  hf.style.cursor="pointer";hf.onclick=()=>{const x=EC||econ(),fz=x.s.freezes||0;
+    toast(I3("fire"),x.s.today?"أكملت دراسة اليوم 🔥 سلسلتك "+x.s.streak+" يومًا":x.s.streak?"ادرس اليوم لتحافظ على سلسلتك ("+x.s.streak+" يومًا)":"ابدأ سلسلتك بالدراسة اليوم",
+      (x.s.today?"عُد غدًا لتزيدها":"محطة واحدة أو 10 مراجعات تكفي")+(fz?" · لديك "+(fz===1?"تجميد واحد":fz===2?"تجميدان":fz<=10?fz+" تجميدات":fz+" تجميدًا"):""))};
   $("hGem").innerHTML=I3("gem")+e.gems;renderEnergy();
 }
 
