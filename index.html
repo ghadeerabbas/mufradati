@@ -742,11 +742,11 @@ function bigDe(de,slow){
   const pi=String(de).indexOf("+"),dm=pi>0?de.slice(0,pi).trim():de,dn=pi>0?de.slice(pi).trim():"";
   return `${artHTML(dm)} ${sayBtn(de)}${slow?slowBtn(de):""}${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
 }
-// الكلمات البديلة في الصيغة (etwas، jemanden، jemandem، sich…): بلون مختلف لتمييزها عن الكلمة نفسها
-const PH_RE=/(^|[\s(\/])(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?|sich)(?=$|[\s,)\/.])/;
+// الكلمات البديلة في الصيغة (etwas، jemanden، jemandem…): بلون مختلف لتمييزها عن الكلمة نفسها
+const PH_RE=/(^|[\s(\/])(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?)(?=$|[\s,)\/.])/;
 function phHTML(de,m){
   const art=m?`<b class="art art-${m[1].toLowerCase()}">${esc(de.slice(0,m[1].length))}</b>`:"",rest=m?de.slice(m[1].length):de;
-  return art+rest.split(/(\s+|[(),\/])/).map(t=>/^(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?|sich)$/.test(t)?`<span class="ph">${esc(t)}</span>`:esc(t)).join("");
+  return art+rest.split(/(\s+|[(),\/])/).map(t=>/^(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?)$/.test(t)?`<span class="ph">${esc(t)}</span>`:esc(t)).join("");
 }
 function artHTML(de){
   // ما بعد أول «+» ملاحظة نحوية: تُعرض صغيرة باهتة ولا تُقرأ بالصوت
@@ -1371,8 +1371,21 @@ document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest
 const ART=/^(der|die|das)\s+/i;
 // المعنى المقابل للصيغة الأولى: إن كانت الكلمة «der Berg, die Berge» والمعنى «الجبل، الجبال» نأخذ «الجبل» وحده
 const arLemma=w=>{const d=String(w.de).split(",");if(d.length<2)return w.ar;const a=String(w.ar).split(/[،,]/);return a.length===d.length?a[0].trim():w.ar};
-const lemmaOf=w=>String(w.de).split(",")[0].replace(/\([^)]*\)/g,"").split("/")[0].replace(/\s+/g," ").trim();
-const answersOf=w=>String(w.de).split(",")[0].replace(/\([^)]*\)/g,"").split("/").map(s=>s.replace(/\s+/g," ").trim()).filter(Boolean);
+// الصيغة الأساسية: قبل أول فاصلة وقبل «+»، بلا أقواس. البدائل المفصولة بـ « / » (بمسافتين) كلمات مستقلة،
+// أما الشرطة الملتصقة (der/die، jemanden/etwas) فجزء من الكلمة نفسها ولا تُقطع
+const deBase=w=>{let s=String(w.de).split(",")[0];const pi=s.indexOf("+");if(pi>0)s=s.slice(0,pi);return s.replace(/\([^)]*\)/g,"")};
+const lemmaOf=w=>deBase(w).split(/\s+\/\s+/)[0].replace(/\s+/g," ").trim();
+function answersOf(w){
+  const out=[];
+  for(const p of deBase(w).split(/\s+\/\s+/).map(s=>s.replace(/\s+/g," ").trim()).filter(Boolean)){
+    out.push(p);
+    // der/die Vorgesetzte ← der Vorgesetzte أو die Vorgesetzte؛ jemanden/etwas abholen ← كل بديل وحده
+    const toks=p.split(" ");if(!toks.some(t=>/^[A-Za-zÄÖÜäöüß]+(\/[A-Za-zÄÖÜäöüß]+)+$/.test(t)))continue;
+    let vs=[[]];for(const t of toks){const alt=/^[A-Za-zÄÖÜäöüß]+(\/[A-Za-zÄÖÜäöüß]+)+$/.test(t)?t.split("/"):[t];vs=vs.flatMap(v=>alt.map(a=>[...v,a])).slice(0,12)}
+    for(const v of vs)out.push(v.join(" "));
+  }
+  return [...new Set(out)];
+}
 function nounOf(w){
   if(w.t!=="n")return null;const m=lemmaOf(w).match(/^(der|die|das)\s+(.+)$/i);
   return m?{art:m[1].toLowerCase(),noun:m[2]}:null;
