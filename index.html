@@ -55,7 +55,7 @@ html,body{overflow-x:clip;max-width:100%}
  nav button{font-size:0;padding-bottom:4px}nav button i{height:22px}nav button i .i3{width:22px;height:22px}#hXpT{font-size:.65rem}.coach .bub{font-size:.85rem}:root{--mz:88px}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
-.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -1922,7 +1922,7 @@ function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTim
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
-  return `<div class="rsec sync"><h3>${I3("cloud")} حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span></p>
+  return `<div class="rsec sync"><h3>${I3("cloud")} حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span>${MYNO!=null?` · رقمك: <b dir="ltr">${noTxt(MYNO)}</b>`:""}</p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
   <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
   <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
@@ -2069,7 +2069,7 @@ function joinHTML(){
 function bindJoins(){
   document.querySelectorAll(".jok,.jno").forEach(b=>b.onclick=async()=>{
     const u=b.dataset.u,ok=b.classList.contains("jok");b.disabled=true;
-    try{const bt=db.batch();if(ok)bt.set(db.collection("members").doc(u),{ts:firebase.firestore.FieldValue.serverTimestamp()});bt.delete(db.collection("join").doc(u));await bt.commit();
+    try{const bt=db.batch();if(ok)bt.set(db.collection("members").doc(u),{ts:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});bt.delete(db.collection("join").doc(u));await bt.commit();
       toast(ok?"✅":"🚫",ok?"فُعّل الحساب":"رُفض الطلب","");await loadNameReqs();renderUserList()}
     catch(e){b.disabled=false;await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
   });
@@ -2317,9 +2317,11 @@ async function accountActive(user){
   if(st("muf_act_"+user.uid)==="1")return true;   // فُعِّل من قبل على هذا الهاتف
   const ok=await accountCheck(user);if(ok)st("muf_act_"+user.uid,"1");return ok;
 }
+let MYNO=null;
+const noTxt=n=>n==null?"":String(n).padStart(6,"0");   // ست خانات على الأقل، وتزيد تلقائيًا بعد 999999
 async function accountCheck(user){
   let m;try{m=await db.collection("members").doc(user.uid).get()}catch(e){return true}   // قواعد قديمة لا تعرف التفعيل
-  if(m.exists)return true;
+  if(m.exists){MYNO=m.data().no??null;return true}
   try{const u=await db.collection("users").doc(user.uid).get();if(u.exists)return true}catch(e){}
   try{await db.collection("join").doc(user.uid).set({name:(user.email||"").split("@")[0].slice(0,60),ts:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
   return false;
@@ -2544,6 +2546,7 @@ async function renderUsers(){
     const [us,fs]=await Promise.all([db.collection("users").get(),db.collection("feedback").get()]);
     USERS=us.docs.filter(d=>d.id!==UID).map(d=>({id:d.id,...d.data()})).map(u=>({...u,st:ustatus(u.sum)}));
     await loadNameReqs();
+    try{await assignIds()}catch(e){console.warn("ids",e)}
     FEEDS={};fs.docs.forEach(d=>FEEDS[d.id]=d.data());
   }catch(e){el.innerHTML=`<div class="err">تعذّر التحميل: ${e.code==="permission-denied"?"حدّث قواعد الأمان في Firebase":esc(e.message)}</div>`;return}
   uOpen?renderUser():renderUserList();
@@ -2568,7 +2571,7 @@ function newAccount(){
     if(pass.length<6)return msg("كلمة المرور 6 أحرف على الأقل");
     if(!sel.size)return msg("اختر منهجًا واحدًا على الأقل");
     $("naGo").disabled=true;msg("جارٍ الإنشاء…");
-    try{await apiPost("/create",{login,pass,name,courses:[...sel]});
+    try{await apiPost("/create",{login,pass,name,courses:[...sel]});renderUsers().catch(()=>{});   // يأخذ الحساب الجديد رقمه فورًا
       m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">✅ أُنشئ الحساب وفُعّل</h1>
        <p class="rnote">أعطِ المتعلّم هذه البيانات ليدخل مباشرة:</p>
        <div id="naOut" style="background:#8882;padding:10px 14px;border-radius:10px;font-size:1rem;line-height:1.9;text-align:right;user-select:all">اسم المستخدم: <b dir="ltr">${esc(login)}</b><br>كلمة المرور: <b dir="ltr">${esc(pass)}</b></div>
@@ -2577,6 +2580,22 @@ function newAccount(){
     }catch(e){$("naGo").disabled=false;
       msg(e.error==="exists"?"اسم المستخدم هذا مستخدم من قبل، اختر غيره":e.error==="perm"?"حساب الخدمة في Firebase لا يملك صلاحية إنشاء الحسابات":e.error==="login"?"اسم المستخدم غير صالح":"تعذّر الإنشاء: "+(e.detail||e.error||e.message||"خطأ في الاتصال"))}
   };
+}
+// أرقام المستخدمين: المشرف 000000، وكل حساب جديد يأخذ الرقم التالي. تُحفظ في members/{uid}.no والعدّاد في config/ids
+let MEMB={};
+const noH=id=>MEMB[id]&&MEMB[id].no!=null?` <small class="uno" dir="ltr">#${noTxt(MEMB[id].no)}</small>`:"";
+const memMs=v=>v&&typeof v.toMillis==="function"?v.toMillis():typeof v==="number"?v:0;
+async function assignIds(){
+  const [ms,cf]=await Promise.all([db.collection("members").get(),db.collection("config").doc("ids").get()]);
+  MEMB={};ms.docs.forEach(d=>MEMB[d.id]=d.data());
+  let next=cf.exists?+cf.data().next||1:1;const bt=db.batch();let n=0;
+  if(!MEMB[UID]||MEMB[UID].no==null){bt.set(db.collection("members").doc(UID),{no:0},{merge:true});MEMB[UID]={...(MEMB[UID]||{}),no:0};n++}
+  // من لا رقم له: بترتيب تفعيله، ثم أول نشاط له
+  const ids=[...new Set([...Object.keys(MEMB),...USERS.map(u=>u.id)])].filter(id=>id!==UID&&(!MEMB[id]||MEMB[id].no==null));
+  const key=id=>Math.min(memMs((MEMB[id]||{}).ts)||9e15,((USERS.find(u=>u.id===id)||{}).sum||{}).first||9e15);
+  ids.sort((a,b)=>key(a)-key(b)||(a<b?-1:1));
+  for(const id of ids){bt.set(db.collection("members").doc(id),{no:next},{merge:true});MEMB[id]={...(MEMB[id]||{}),no:next};next++;n++}
+  if(n){bt.set(db.collection("config").doc("ids"),{next});await bt.commit()}
 }
 // شعلة المتعلّم في لوحة الإشراف: مشتعلة إن درس اليوم، ورمادية إن لم يدرس بعد
 const fireOf=sm=>`<span class="ufire${sm&&sm.sd===today()?"":" dim"}" title="${sm&&sm.sd===today()?"درس اليوم":"لم يدرس اليوم بعد"}">🔥</span>`;
@@ -2592,7 +2611,7 @@ function renderUserList(){
   </div>
   <div class="ufilter"><button data-f="all" class="${uFilter==="all"?"on":""}">الكل</button>${Object.keys(UST).map(k=>cnt(k)?`<button data-f="${k}" class="${uFilter===k?"on":""}">${UST[k][0]} ${cnt(k)}</button>`:"").join("")}</div>
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
-   <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
+   <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}${noH(u.id)}</b><span class="ust">${UST[u.st][0]}</span></div>
    <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>${fireOf(sm)} ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
   $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};$("uNew").onclick=newAccount;bindNameReqs();bindJoins();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
@@ -2602,7 +2621,7 @@ function renderUser(){
   const el=$("users"),u=USERS.find(x=>x.id===uOpen);if(!u){uOpen=null;return renderUserList()}
   const sm=u.sum,f=FEEDS[u.id];
   const lb=[...Array(14)].map((_,i)=>new Date(Date.now()-(13-i)*DAY).getDate());
-  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}</h2><button class="btn" id="uBack">→ رجوع</button></div>
+  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}${noH(u.id)}</h2><button class="btn" id="uBack">→ رجوع</button></div>
   <div class="rsec"><h3>✏️ اسمه الظاهر</h3><div class="strow"><input id="uNm" class="stin" maxlength="40" value="${esc(uName(u))}" autocomplete="off"><button class="btn stbtn" id="uNmBtn">حفظ</button></div><div class="stmsg" id="uNmMsg"></div></div>
   <div style="margin-bottom:10px"><span class="ust" style="--sc:${UST[u.st][1]};background:${UST[u.st][1]}">${UST[u.st][0]}</span></div>
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
