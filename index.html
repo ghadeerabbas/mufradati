@@ -1901,6 +1901,15 @@ function applyServer(j){
   if(pr.S&&(pr.S.ts||0)>(S.ts||0)){S.dir=pr.S.dir||S.dir;S.ts=pr.S.ts}
   save();EC=null;
   const hs=LG.hist||[];if(hs.length>h0&&h0+1===hs.length)leagueNews(hs[hs.length-1]);
+  setTimeout(staleStation,0);
+}
+// محطة بدأت ولم تنتهِ ولم يُضغط «خروج» (أُغلق التطبيق أو سُحب من الخلفية): تُعامل كالخروج، فتُستعاد الطاقة
+function staleStation(){
+  if(!STV||STS||isAdmin())return;
+  const free=!stCostAt(STV)||FREEU,rf=CFG.energy.refund;
+  if(ev({type:"stQuit"})!==true)return;
+  renderEnergy();renderHeader();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","من محطة لم تكتمل");
+  const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!DRL&&!RES)reviewHome();
 }
 let PREFLAST="";
 async function syncNow(manual){
@@ -2376,6 +2385,7 @@ async function onLogin(user){
   renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();
+  staleStation();
   syncNow(true);
   loadNameReqs();watchGifts();
   startMessages();
