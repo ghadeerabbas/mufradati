@@ -18,7 +18,7 @@ const DEF_CFG={
 let CFG=DEF_CFG;
 // «الدراسة الحرّة» للحساب الحالي: طاقة بلا حدود، ومحطات تتجدّد، ولا خبرة ولا جواهر من الدراسة
 // يضبطها التطبيق للمستخدم المسجّل، والخادم لكل طلب
-let FREEU=false;
+let FREEU=false,STMAXU=0;   // STMAXU: عدد محطات هذا المتعلّم اليومية إن حدّده المشرف
 let XPR,LV_GEMS,STREAK_G,PROMO_MIN,UP_N,DOWN_N,GROUP_MAX,TARGET,EN_MAX,EN_STEP,ST_COST,ST_WORDS,ST_MAX,FZ_MAX,FZ_START;
 const _num=(v,d,lo,hi)=>{v=+v;return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):d};
 // يدمج إعدادات المشرف مع الافتراضية ويتحقّق من كل رقم (فلا يكسر خطأٌ التطبيقَ)
@@ -36,7 +36,8 @@ function applyCfg(c){
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
-    free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]   // حسابات «الدراسة الحرّة» يختارها المشرف
+    free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف
+    stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
   GROUP_MAX=TARGET=CFG.league.group;EN_MAX=CFG.energy.max;EN_STEP=CFG.energy.minutes*60000;ST_COST=CFG.energy.stCost;
@@ -146,6 +147,9 @@ function buildShop(){
 }
 // هدية التجميد من المشرف (مساعدة لمرة واحدة): هدية ملاحظتها تبدأ بـ ❄️، تُحسب تجميدًا لا جواهر
 const isFzGift=g=>String(g.note||"").startsWith("❄️");
+const isEnGift=g=>String(g.note||"").startsWith("⚡");   // هدية طاقة بلا حدود: g = عدد الدقائق
+const isGemGift=g=>!isFzGift(g)&&!isEnGift(g);
+const qXp=q=>q[6]?0:q[1]*CFG.xp.quiz*(q[3]==="chal"?2:1);   // التحدي اليومي بخبرة مضاعفة
 const giftTs=g=>!g.ts?0:g.ts.toMillis?g.ts.toMillis():g.ts.ms||+g.ts||0;
 const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
@@ -218,7 +222,7 @@ function econ(){
   s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
   for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
     xp+=(x.n-(x.f||0)>=CFG.xp.dayN?CFG.xp.dayXp:0)}
-  for(const q of QLOG){xp+=q[6]?0:q[1]*CFG.xp.quiz;if(q[2]>=5&&q[1]===q[2])s.qfull++}
+  for(const q of QLOG){xp+=qXp(q);if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
@@ -249,7 +253,7 @@ function econ(){
   return EC;
 }
 
-const giftSum=()=>(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(g=>!isFzGift(g)).reduce((a,g)=>a+(g.g||0),0);
+const giftSum=()=>(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isGemGift).reduce((a,g)=>a+(g.g||0),0);
 
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ في يوم (وحدة كل 48 دقيقة) --- */
 const enAt=at=>Math.min(EN_MAX,Math.max(0,(EN.v||0)+Math.floor((at-(EN.t||0))/EN_STEP)));
@@ -258,11 +262,15 @@ const enNext=()=>enNow()>=EN_MAX?0:EN_STEP-((Date.now()-(EN.t||0))%EN_STEP);
 function enAdd(d,at){const cur=enAt(at),frac=cur>=EN_MAX?0:(at-(EN.t||0))%EN_STEP;EN={v:Math.min(EN_MAX,Math.max(0,cur+d)),t:at-frac,rc:EN.rc||0,lt:EN.lt||0}}
 const gamesEnToday=at=>QLOG.filter(q=>q[5]===1&&dkey(q[0])===dkey(at)).length;
 const stTodayAt=at=>STN.filter(x=>dkey(x[0])===dkey(at)).length;
-const stMaxHit=at=>!FREEU&&stTodayAt(at)>=ST_MAX;   // في الدراسة الحرّة تتجدّد المحطات بلا حدّ يومي
+const stMax=()=>STMAXU||ST_MAX;
+const stMaxHit=at=>!FREEU&&stTodayAt(at)>=stMax();   // في الدراسة الحرّة تتجدّد المحطات بلا حدّ يومي
 // المحطة التدريبية: مطابقة كلمات المحطة بعد إكمالها، واحدة لكل محطة مكتملة في اليوم
 const drillsTodayAt=at=>QLOG.filter(q=>q[3]==="drill"&&dkey(q[0])===dkey(at)).length;
 // كلفة المحطة: أول محطة في اليوم مجانية (إن فعّلها المشرف)
-const stCostAt=at=>FREEU?0:CFG.energy.firstFree&&stTodayAt(at)===0?0:ST_COST;
+const unlAt=at=>!!(EN.u&&at<EN.u);   // هدية الطاقة بلا حدود سارية
+const chalDoneAt=at=>QLOG.some(q=>q[3]==="chal"&&dkey(q[0])===dkey(at));
+const chalOpenAt=at=>!FREEU&&stTodayAt(at)>=stMax()&&drillsTodayAt(at)>=stTodayAt(at)&&!chalDoneAt(at);
+const stCostAt=at=>FREEU||unlAt(at)?0:CFG.energy.firstFree&&stTodayAt(at)===0?0:ST_COST;
 
 /* --- المقياس والدوري --- */
 function measure(){
@@ -283,7 +291,7 @@ function weekXP(ws){
   // السجلّ مرتّب زمنيًا: نقرأ من آخره حتى بداية الأسبوع فقط
   for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we&&x[3]<2){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
   for(const d in per)if(per[d]>=CFG.xp.dayN)xp+=CFG.xp.dayXp;
-  for(const q of QLOG)if(q[0]>=ws&&q[0]<we&&!q[6])xp+=q[1]*CFG.xp.quiz;
+  for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=qXp(q);
   return xp;
 }
 // عدد المتقدّمين والمتراجعين في كل دوري (من الأول إلى العاشر)
@@ -382,10 +390,11 @@ function applyAt(ev,T,now,ctx){
     if(!(total>=1&&total<=300&&ok>=0&&ok<=total))return "bad";
     if(ctx.server){const lq=QLOG.length?QLOG[QLOG.length-1][0]:0;if(now-lq<Math.min(total,20)*800)return "time";
       if(QLOG.filter(q=>dkey(q[0])===dkey(now)).length>=60)return "cap"}
-    if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(!FREEU){if(enAt(now)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,now)}}
+    if(kind==="chal"){if(total>12)return "bad";if(!chalOpenAt(now))return "lock"}   // التحدي: بعد آخر محطة وتدريبها، مرة في اليوم، بلا طاقة
+    if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(!FREEU&&!unlAt(now)){if(enAt(now)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,now)}}
     const q=[now,ok,total,kind,Math.max(0,+ev.ms|0)];
     // طاقة التمارين: لكل تمرين أكمله حتى آخره، بحدّ أقصى في اليوم (الاختبار لا يعطي طاقة)
-    if(ev.full&&!FREEU&&kind!=="quiz"&&CFG.energy.game&&gamesEnToday(now)<CFG.energy.gameMax){enAdd(CFG.energy.game,now);q.push(1)}
+    if(ev.full&&!FREEU&&kind!=="quiz"&&kind!=="chal"&&CFG.energy.game&&gamesEnToday(now)<CFG.energy.gameMax){enAdd(CFG.energy.game,now);q.push(1)}
     if(FREEU){while(q.length<6)q.push(0);q.push(1)}   // q[6]=1: بلا خبرة
     QLOG.push(q);
     for(const a of (ev.qa||[]).slice(0,300))if(Array.isArray(a))QA.push([now,String(a[0]),a[1]?1:0]);
@@ -400,11 +409,18 @@ function applyAt(ev,T,now,ctx){
     if(econ().gems<it.price)return "gems";
     BUY.push({id:String(ev.bid||now.toString(36)).slice(0,20),item:it.cat+":"+it.id,p:it.price,ts:now});return true;
   }
+  // تفعيل هدية الطاقة بلا حدود: يبدأ وقتها عند استلامها، ولكل هدية مرة واحدة
+  if(T==="unl"){
+    const id=String(ev.id||""),g=(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).find(x=>x.id===id&&isEnGift(x));if(!g)return "gift";
+    R.ug=R.ug||[];if(R.ug.includes(id))return "used";
+    R.ug.push(id);if(R.ug.length>300)R.ug=R.ug.slice(-300);
+    EN.u=Math.max(EN.u||0,now)+Math.min(Math.max(g.g|0,1),7*1440)*60000;return true;
+  }
   if(T==="reset"){
-    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now};   // pw: كلمات كوفئ عليها في المحطات
+    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now,...(R.ug?{ug:R.ug}:{})};   // pw: كلمات كوفئ عليها في المحطات
     // يعود كأنه جديد: بلا خبرة ولا دوري (تبقى جواهره ومشترياته)
     P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};
-    EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0};   // ويبدأ بطاقة كاملة
+    EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0,...(EN.u?{u:EN.u}:{})};   // ويبدأ بطاقة كاملة
     return true;
   }
   return "type";

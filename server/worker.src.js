@@ -176,10 +176,11 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
-  FREEU = false;
+  FREEU = false; STMAXU = 0;
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
+  STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
   const [uDoc, coreD, logD, qaD, nameD, gifts] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
     fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`)]);

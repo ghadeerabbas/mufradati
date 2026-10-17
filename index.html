@@ -189,7 +189,19 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 [data-dark] .rvbox .numpick.on{background:#0c3a52;color:#7dd3fc}
 .rvbox .numpick small{display:inline-block;background:var(--soft);border-radius:8px;padding:0 6px;font-size:.78em;margin-right:4px;font-weight:800}.rvbox .numpick.on small{background:#1cb0f6;color:#fff}.rvbox .numpick:disabled{opacity:.35}
 .lkh{display:block;font-size:.85rem;margin:10px 0 2px;color:var(--hd)}.lk .lkf{padding:6px;min-width:56px}.lk .lkf .frmini{display:block;width:40px;height:22px;border-radius:6px}.lk .numpick{font-size:1.15rem}
-#hEn.low{color:#ff4b4b}
+#hEn.low{color:#ff4b4b}#hEn.unl{color:#ce82ff}#hEn .unlt{font-size:.62rem;font-weight:800;margin-inline-start:3px;opacity:.85}
+.unlnote{text-align:center;margin-top:8px;color:#a855f7;font-weight:700}
+.engift .logo .i3{width:72px;height:72px;filter:drop-shadow(0 0 12px #c084fc)}.engift h1{color:#a855f7}
+/* التحدي اليومي: عقدة بنفسجية أكبر بإطار ذهبي */
+.zn.chal{width:96px;height:104px}.zn.chal .c{width:96px;height:90px}.zn.chal .i3{width:50px;height:50px}
+.zn.chal.cur,.zn.chal.lock{--hi:#f0d4ff;--base:#b05cf5;--lo:#7c2fd0;--depth:#5a1fa0;--rim:#ffd84d}
+.zn.chal.lock .c{filter:saturate(.35) brightness(.95)}.zn.chal.lock .i3{filter:grayscale(.2) drop-shadow(0 2px 1px rgba(0,0,0,.2));opacity:.9;width:46px;height:46px}
+.zn.chal .c:before{border-width:4px;border-style:dashed}.zn.chal.cur .c:before{border-style:solid}
+.zn.chal.cur:before{top:45px;width:118px;height:112px;margin:-56px 0 0 -59px;border-color:rgba(176,92,245,.5)}
+.zn.chal.cur:after{top:45px;width:120px;height:114px;margin:-57px 0 0 -60px;background:radial-gradient(closest-side,rgba(176,92,245,.4),rgba(176,92,245,0))}
+.zn.chal .go{color:#a855f7;top:-36px}.zn.chal .tl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;font-weight:800;font-size:.8rem;color:#a855f7}
+.zn.chal.ok .tl{color:#cf8a00}
+.btn.chalbtn{background:linear-gradient(135deg,#b05cf5,#7c2fd0);box-shadow:0 4px 0 #5a1fa0;color:#fff}
 .unit{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:16px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.18);margin-bottom:12px}
 .unit b{font-size:1.05rem;display:block;line-height:1.4}.unit small{opacity:.85;font-weight:700;font-size:.78rem}.unit .i3{width:40px;height:40px;background:rgba(255,255,255,.18);border-radius:12px;padding:4px}
 .coach{display:flex;align-items:flex-end;gap:6px;margin:4px 0 -10px}
@@ -601,7 +613,7 @@ body.fbon main{padding-bottom:210px}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=12"></script>
+<script src="core.js?v=13"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -821,7 +833,11 @@ function celebrate(prev){
 let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
 const I3=k=>`<img class="i3" src="img/3d/${k}.png" alt="">`;   // أيقونة مجسّمة
-function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){b.innerHTML=I3("battery")+"∞";b.classList.remove("low");return}const n=enNow();b.innerHTML=I3(n<ST_COST?"lowbat":"battery")+n;b.classList.toggle("low",n<ST_COST)}
+let UNLT=null;
+function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){b.innerHTML=I3("battery")+"∞";b.classList.remove("low");return}
+  if(unlAt(Date.now())){const left=EN.u-Date.now();b.innerHTML=I3("battery")+`∞<small class="unlt">${clock(left)}</small>`;b.classList.remove("low");b.classList.add("unl");b.title="طاقة بلا حدود: باقٍ "+durAr(left/60000);
+    if(!UNLT)UNLT=setInterval(()=>{if(!unlAt(Date.now())){clearInterval(UNLT);UNLT=null;b.classList.remove("unl");renderEnergy();toast(I3("battery"),"انتهت الطاقة بلا حدود","عادت الطاقة إلى وضعها المعتاد");const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES)reviewHome();return}const t=b.querySelector(".unlt");if(t)t.textContent=clock(EN.u-Date.now())},1000);return}
+  b.classList.remove("unl");b.title="";const n=enNow();b.innerHTML=I3(n<ST_COST?"lowbat":"battery")+n;b.classList.toggle("low",n<ST_COST)}
 /* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
 const stToday=()=>stTodayAt(Date.now());
 let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0,DRL=null;
@@ -1027,10 +1043,14 @@ function lessonPop(o){
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
-const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID))};
-const drillCost=()=>FREEU?0:CFG.energy.drill;
+const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
+// مدة بالعربية: 15 دقيقة، ساعة، ساعتان و30 دقيقة…
+function durAr(m){m=Math.round(m);const h=Math.floor(m/60),mm=m%60;
+  const hs=h===0?"":h===1?"ساعة":h===2?"ساعتان":h<=10?h+" ساعات":h+" ساعة",ms=mm===0?"":mm===1?"دقيقة":mm===2?"دقيقتان":mm<=10?mm+" دقائق":mm+" دقيقة";
+  return hs&&ms?hs+" و"+ms:hs||ms||"0 دقيقة"}
+const drillCost=()=>FREEU||unlAt(Date.now())?0:CFG.energy.drill;
 // في الدراسة الحرّة يبدأ المسار من جديد كلما اكتملت محطاته وتدريباتها
-const pathBase=()=>{if(!FREEU)return 0;const a=stToday(),d=drillsToday(),N=ST_MAX;return d>=a?Math.floor(a/N)*N:Math.floor((a-1)/N)*N};
+const pathBase=()=>{if(!FREEU)return 0;const a=stToday(),d=drillsToday(),N=stMax();return d>=a?Math.floor(a/N)*N:Math.floor((a-1)/N)*N};
 const drillLock=()=>!!CFG.station.drillReq&&drillsToday()<stToday();   // المحطة التالية مقفلة حتى يُنهى التدريب
 function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
   const st=STN.filter(x=>dkey(x[0])===dkey(Date.now())).sort((a,b)=>a[0]-b[0]);if(!st[j])return [];
@@ -1110,20 +1130,26 @@ function reviewHome(){
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
   const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}</div>`:"";
   // المسار المتعرّج: المكتملة ذهبية، والتالية خضراء تنبض، والمقفلة رمادية
-  const N=ST_MAX,off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday()-PB,dlow=en<drillCost();
+  const N=stMax(),off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday()-PB,dlow=en<drillCost(),UN=unlAt(Date.now());
+  // التحدي اليومي في آخر المسار: مقفل حتى تنتهي المحطات وتدريباتها، ثم متاح مرة واحدة بلا طاقة وبخبرة مضاعفة
+  const CH=!FREEU,chOk=CH&&chalDoneAt(Date.now()),chOpen=CH&&chalOpenAt(Date.now());
   const dl=drillLock(),pend=dn<done;
-  const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N&&!dl?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":i===N-1?"trophy":"lock";
-    return `<button type="button" class="zn ${c}${i===N-1?" last":""}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${cost||FREEU?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${PB+i+1}</span></button>`};
+  const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N&&!dl?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":"lock";
+    return `<button type="button" class="zn ${c}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${UN?"ابدأ ⚡":cost||FREEU?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${PB+i+1}</span></button>`};
   // بعد كل محطة محطة تدريبية صغيرة (مطابقة)، مكتملة أو متاحة أو مقفلة
   const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
   // التدريب: منتهٍ، أو متاح الآن، أو محطته منتهية وينتظر دوره (أزرق باهت)، أو مقفل
   const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):j<done?"wait":"lock";
     return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب${drillCost()?" · "+drillCost():""}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
   const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done&&i<=dn]);pts.push([dx(i),dy(i),i<dn])}
+  if(CH)pts.push([off[N%4],N*SP+44+48,chOk]);
+  const chNode=()=>CH?`<button type="button" class="zn chal ${chOk?"ok":chOpen?"cur":"lock"}" ${chOpen?'id="chNode"':""} style="top:${N*SP+44}px;margin-left:${off[N%4]-48}px" aria-label="تحدي اليوم">${chOpen?'<span class="go">تحدٍّ ×2</span>':""}<span class="c">${I3(chOk?"check":"trophy")}</span><span class="tl">تحدي اليوم</span></button>`:"";
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
-  const coach=pend&&(dl||done>=N)?"أحسنت! تدريب سريع على كلمات المحطة "+(PB+done)+(done<N?" يفتح لك المحطة التالية":" يكمل مسار اليوم")+" "+I3("puzzle")
+  const coach=!pend&&done>=N&&chOpen?"أحسنت! بقي تحدي اليوم: أسئلة سريعة بلا طاقة وبخبرة مضاعفة "+I3("trophy")
+    :!pend&&done>=N&&chOk?"أنهيت مسار اليوم وتحدّيه! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
+    :pend&&(dl||done>=N)?"أحسنت! تدريب سريع على كلمات المحطة "+(PB+done)+(done<N?" يفتح لك المحطة التالية":" يكمل مسار اليوم")+" "+I3("puzzle")
     :done>=N?"أنهيت مسار اليوم! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
     :!fresh?(allDone?"أنهيت كل كلمات منهجك! 🌟 اطلب منهجًا جديدًا.":"تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى.")
     :low?(dueN?"طاقتك لا تكفي للمحطة. راجع الكلمات المستحقّة لتكسب طاقة 🔋":"استرح قليلًا، فالطاقة تمتلئ مع الوقت ⏳")
@@ -1135,10 +1161,11 @@ function reviewHome(){
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
   <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
-   <div class="zz" style="height:${N*SP+50}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}</div>
+   <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
    ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}${drillCost()?" · "+drillCost()+" طاقة":""}</button>`
-     :done>=N?'':!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
+     :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${UN?" ⚡":cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
+   ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>
@@ -1149,9 +1176,11 @@ function reviewHome(){
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
   </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   bindSettings();
-  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+ST_MAX,sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
+  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
   const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
+  const chPop=()=>lessonPop({ic:"trophy",title:"تحدي اليوم",sub:arN(CHAL_N,"سؤال","سؤالان","أسئلة")+" منوّعة على كلماتك، مرة واحدة في اليوم",xp:CHAL_N*CFG.xp.quiz*2,cost:0,go:startChal});
+  const cn=$("chNode");if(cn)cn.onclick=chPop;const cs=$("chStart");if(cs)cs.onclick=chPop;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
     $("rvGo").onclick=()=>{if(RVN)startReview(RVSTATE,Math.min(RVN,cnt))}}
@@ -1401,7 +1430,20 @@ const GAMES=[
  {id:"match",ic:I3("puzzle"),n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
  {id:"order",ic:I3("books"),n:"رتّب الجملة",d:"ترى معنى الجملة بالعربية فتبني جملتها الألمانية بترتيب الكلمات"},
  {id:"s5",ic:I3("stopwatch"),n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
+ {id:"chal",ic:I3("trophy"),n:"تحدي اليوم",d:"أسئلة منوّعة على كلماتك بخبرة مضاعفة",hidden:1},
 ];
+// التحدي اليومي: أسئلة منوّعة، كلمات اليوم أولًا ثم ما تعلّمه قبلها
+const CHAL_N=8;
+function chalKind(w){const k=["mc"];if(clozeOf(w))k.push("cloze");if(nounOf(w))k.push("art");if(answersOf(w).length)k.push("type");if(orderOf(w))k.push("order");return k[Math.random()*k.length|0]}
+const qKindFor=(id,w)=>id==="chal"?chalKind(w):id;
+function startChal(){
+  const all=learnedList();if(all.length<4){toast(I3("warning"),"تحتاج 4 كلمات متعلّمة على الأقل","");return}
+  if(!chalOpenAt(Date.now())){toast(I3("lock"),"التحدي مقفل الآن","أنهِ محطات اليوم وتدريباتها أولًا");return}
+  const t0=new Date();t0.setHours(0,0,0,0);
+  const td=shuffle(all.filter(w=>P[w.k]&&P[w.k].t>=t0.getTime())),rest=shuffle(all.filter(w=>!td.includes(w)));
+  stopTick();GM={id:"chal",ok:0,n:0,i:0,t0:Date.now(),done:false,list:[...td,...rest].slice(0,CHAL_N)};CMB=0;
+  GM.q=makeQ(chalKind(GM.list[0]),GM.list[0]);goTab("games");renderGames();scrollTo(0,0);
+}
 function gamePool(id){
   const all=learnedList();
   if(id==="cloze")return all.filter(w=>clozeOf(w));
@@ -1427,7 +1469,7 @@ function renderGames(){
   const el=$("games");
   if(GM){gameView();return}
   const bm=bestMatch();
-  el.innerHTML=`<div class="gcards">${GAMES.map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
+  el.innerHTML=`<div class="gcards">${GAMES.filter(g=>!g.hidden).map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
      <em>${g.id==="listen"&&listenMuted()?"متوقف مؤقتًا: يعود بعد "+Math.ceil((+(localStorage.getItem("muf_nolisten")||0)-Date.now())/60000)+" دقيقة":g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
@@ -1550,13 +1592,13 @@ function nextQ(){
   if(!GM)return;clearTimeout(GM.autoT);GM.answered=false;GM.typed=null;
   if(GM.id==="s5"){if(Date.now()>=GM.end)return finishGame();GM.q=nextMixed();gameView();return}
   GM.i++;if(GM.i>=GM.list.length)return finishGame();
-  GM.q=makeQ(GM.id,GM.list[GM.i]);gameView();
+  GM.q=makeQ(qKindFor(GM.id,GM.list[GM.i]),GM.list[GM.i]);gameView();
 }
 function matchView(){
   const el=$("games");
   el.innerHTML=gameHead()+`<p class="ghint">اضغط كلمة ثم معناها. ✓ ${6-GM.left.size} من 6</p><div class="mgrid">
    ${GM.de.map((w,i)=>{const a_=GM.ar[i];return `<button lang="de" class="mb de${lemmaOf(w).length>18?" long":""} ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}"><span>${artHTML(lemmaOf(w))}</span></button><button class="mb${arLemma(a_).length>18?" long":""} ${GM.left.has(a_.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===a_.k?"sel":""}" data-side="ar" data-k="${esc(a_.k)}"><span>${esc(arLemma(a_))}</span></button>`}).join("")}</div>`;
-  $("gQuit").onclick=()=>{stopTick();GM=null;renderGames()};
+  $("gQuit").onclick=()=>{stopTick();const ch=GM&&GM.id==="chal";GM=null;renderGames();if(ch)goTab("review")};
   if(!GTICK)GTICK=setInterval(()=>{if(!GM||GM.id!=="match"||GM.done){stopTick();return}const t=$("gTime");if(t)t.textContent=secs(Date.now()-GM.t0)},100);
   el.querySelectorAll(".mb").forEach(b=>b.onclick=()=>{
     if(!GM.left.has(b.dataset.k))return;
@@ -1581,7 +1623,9 @@ function finishGame(){
     if(!GM.n){GM=null;renderGames();return}
     // كامل: أجاب عن كل الأسئلة، أو انتهى وقت جلسة الدقائق الخمس
     const full=GM.id==="s5"?Date.now()>=GM.end:GM.n>=GM.list.length;
-    ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa,...(full?{full:1}:{})});
+    if(GM.id==="chal"&&!full){GM=null;goTab("review");return}   // خرج من التحدي قبل أن ينهيه: يبقى متاحًا
+    const r=ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa,...(full&&GM.id!=="chal"?{full:1}:{})});
+    if(GM.id==="chal"&&r===true){fx("done");confetti(160)}
   }
   GM.done=true;markStudied();celebrate(prev);gameView();
   if(enNow()>en0){renderEnergy();toast("🔋","+"+(enNow()-en0)+" طاقة","أكملت التمرين")}
@@ -1594,6 +1638,7 @@ function gameResult(){
    ${rec?'<p style="color:var(--green);font-weight:700">رقم قياسي جديد!</p>':GM.id==="match"&&GM.best?`<p class="rnote">أفضل وقت لك: ${secs(GM.best)}</p>`:""}
    <button class="btn next" id="gAgain">مرة أخرى</button><button class="btn" id="gBack" style="width:100%;margin-top:8px">كل التمارين</button></div>`;
   if(pct===1||rec)confetti(120);
+  if(GM.id==="chal"){$("gAgain").style.display="none";$("gBack").textContent="العودة إلى المسار";$("gBack").onclick=()=>{GM=null;renderGames();goTab("review")};return}
   $("gAgain").onclick=()=>startGame(GM.id);$("gBack").onclick=()=>{GM=null;renderGames()};
 }
 function markStudied(){try{if(window.MufApp&&MufApp.markStudied)MufApp.markStudied(today())}catch(e){}
@@ -2140,10 +2185,28 @@ function watchGifts(){
     const seen=new Set(jget(K("giftSeen"),[])),fresh=GIFTS.filter(g=>!seen.has(g.id));
     econ();renderHeader();
     const on=document.querySelector(".panel.on");if(on&&(on.id==="shop"||on.id==="profile"))renderPanel(on.id);
-    if(fresh.length&&!isAdmin()){const fz=fresh.filter(isFzGift),gm=fresh.filter(g=>!isFzGift(g)),n=gm.reduce((a,g)=>a+g.g,0),note=gm.map(g=>g.note).filter(Boolean)[0];
-      if(n)toast(I3("gift"),"وصلتك هدية: "+n+" 💎",note||"من المشرف");if(fz.length)toast(I3("freeze"),"وصلك تجميد للسلسلة من المشرف","مساعدة لمرة واحدة");confetti(100)}
+    if(!isAdmin())claimEnGifts(fresh);
+    if(fresh.length&&!isAdmin()){const fz=fresh.filter(isFzGift),gm=fresh.filter(isGemGift),n=gm.reduce((a,g)=>a+g.g,0),note=gm.map(g=>g.note).filter(Boolean)[0];
+      if(n)toast(I3("gift"),"وصلتك هدية: "+n+" 💎",note||"من المشرف");if(fz.length)toast(I3("freeze"),"وصلك تجميد للسلسلة من المشرف","مساعدة لمرة واحدة");if(n||fz.length)confetti(100)}
     st(K("giftSeen"),JSON.stringify(GIFTS.map(g=>g.id)));
   },()=>{});
+}
+// هدية الطاقة بلا حدود: تظهر باحتفال وسببها، ويبدأ وقتها حين يستلمها المتعلّم
+const EN_SHOWN=new Set();
+function claimEnGifts(){
+  const todo=GIFTS.filter(g=>isEnGift(g)&&!(R.ug||[]).includes(g.id)&&!EN_SHOWN.has(g.id));if(!todo.length)return;
+  const g=todo[0];EN_SHOWN.add(g.id);const why=String(g.note||"").replace(/^⚡\s*/,"");
+  const m=$("fbModal");if(m.style.display==="flex"){EN_SHOWN.delete(g.id);setTimeout(claimEnGifts,4000);return}
+  m.style.display="flex";
+  m.innerHTML=`<div class="lbox stpop engift"><div class="logo">${I3("battery")}</div><h1>هدية من المشرف 🎁</h1>
+   <p style="font-size:1.25rem;font-weight:800;margin:6px 0">طاقة بلا حدود لمدة ${durAr(g.g)}</p>
+   ${why?`<p class="rnote" style="font-size:1rem">«${esc(why)}»</p>`:""}
+   <p class="rnote">يبدأ الوقت حين تضغط الزر. تتعلّم كالمعتاد بخبرتك وجواهرك، والمحطات والتدريبات بلا طاقة.</p>
+   <button class="btn next" id="egGo">استلم الهدية ⚡</button></div>`;
+  confetti(140);fx("done");
+  $("egGo").onclick=()=>{const r=ev({type:"unl",id:g.id});m.style.display="none";m.innerHTML="";
+    if(r===true){renderEnergy();toast(I3("battery"),"طاقة بلا حدود لمدة "+durAr(g.g),"ابدأ محطاتك الآن!");confetti(60);syncNow();const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES)reviewHome()}
+    setTimeout(claimEnGifts,800)};
 }
 // زر مساعدة التجميد: فقط لمن ليس عنده تجميد وجواهره أقل من سعره
 function fzNeeds(uid){
@@ -2156,13 +2219,19 @@ function giftBoxHTML(uid){
    <div class="numpicks" id="gfAmt">${[50,100,250,500,1000,5000].map(n=>`<button type="button" class="numpick" data-v="${n}">${n}</button>`).join("")}</div>
    <div class="strow" style="margin-top:8px"><input id="gfN" class="stin" type="number" min="1" max="100000" inputmode="numeric" placeholder="أو اكتب العدد"><input id="gfNote" class="stin" maxlength="100" placeholder="ملاحظة (اختياري)"></div>
    <button class="btn stbtn" id="gfSend" style="width:100%;margin-top:8px">إرسال الجواهر</button>
-   ${fzNeeds(uid)?'<button class="btn" id="gfFz" style="width:100%;margin-top:8px">'+I3("freeze")+' إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button>':""}<div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>`;
+   ${fzNeeds(uid)?'<button class="btn" id="gfFz" style="width:100%;margin-top:8px">'+I3("freeze")+' إرسال تجميد للسلسلة (مساعدة لمرة واحدة)</button>':""}<div class="stmsg" id="gfMsg"></div><div id="gfHist" class="rnote" style="margin-top:6px"></div>
+   <h3 style="margin-top:16px">${I3("battery")} هدية طاقة بلا حدود</h3>
+   <p class="rnote">يتعلّم كالمعتاد بخبرة وجواهر، والمحطات والتدريبات بلا طاقة طوال المدة. يبدأ الوقت حين يستلم الهدية.</p>
+   <div class="numpicks" id="egAmt">${[15,30,45,60,90,120,180,240].map(n=>`<button type="button" class="numpick" data-v="${n}">${durAr(n)}</button>`).join("")}</div>
+   <div class="strow" style="margin-top:8px"><input id="egN" class="stin" type="number" min="15" max="10080" step="15" inputmode="numeric" placeholder="أو بالدقائق"><input id="egWhy" class="stin" maxlength="90" placeholder="السبب (يظهر له)"></div>
+   <button class="btn stbtn" id="egSend" style="width:100%;margin-top:8px">${I3("battery")} إرسال الهدية</button><div class="stmsg" id="egMsg"></div><div id="egHist" class="rnote" style="margin-top:6px"></div>`;
 }
 async function bindGiftBox(uid){
   const box=$("giftBox");if(!box)return;
   const hist=async()=>{try{const q=uid===UID?{docs:GIFTS.map(g=>({data:()=>g}))}:await gref(uid).get();const l=q.docs.map(d=>d.data());
-    const gm=l.filter(g=>!isFzGift(g)),fzN=l.length-gm.length;
+    const gm=l.filter(isGemGift),fzN=l.filter(isFzGift).length,enl=l.filter(isEnGift);
     $("gfHist").textContent=(gm.length?"أُرسل له حتى الآن: "+gm.reduce((a,g)=>a+(g.g||0),0)+" 💎 في "+gm.length+" مرة":"")+(fzN?" · أخذ مساعدة التجميد":"");
+    const eh=$("egHist");if(eh)eh.textContent=enl.length?"أُرسل له "+enl.length+" هدية طاقة، آخرها "+durAr(enl.sort((a,b)=>tsOf(b.ts)-tsOf(a.ts))[0].g):"";
     const fb=$("gfFz");if(fb){fb.disabled=!!fzN;if(fzN)fb.textContent="❄️ أخذ مساعدة التجميد من قبل"}}catch(e){}};
   hist();
   $("gfAmt").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;$("gfN").value=b.dataset.v;$("gfAmt").querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b))};
@@ -2170,6 +2239,17 @@ async function bindGiftBox(uid){
     const m=$("gfMsg");if(!await uiConfirm("إرسال تجميد واحد للسلسلة"+(uid===UID?" لنفسك":"")+"؟ (مساعدة لمرة واحدة)"))return;
     try{await gref(uid).add({g:1,note:"❄️ تجميد السلسلة (مساعدة لمرة واحدة)",ts:firebase.firestore.FieldValue.serverTimestamp()});m.textContent="✓ أُرسل التجميد";m.className="stmsg ok";setTimeout(hist,500)}
     catch(e){m.textContent="تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad"}
+  };
+  $("egAmt").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;$("egN").value=b.dataset.v;$("egAmt").querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b))};
+  $("egSend").onclick=async()=>{
+    const n=Math.floor(+$("egN").value),m=$("egMsg"),why=$("egWhy").value.replace(/\s+/g," ").trim().slice(0,90);
+    if(!(n>=15&&n<=10080&&n%15===0)){m.textContent="اختر مدة من مضاعفات 15 دقيقة (حتى أسبوع)";m.className="stmsg bad";return}
+    if(!await uiConfirm(`إرسال طاقة بلا حدود لمدة ${durAr(n)}${uid===UID?" لنفسك":""}؟`))return;
+    $("egSend").disabled=true;
+    try{await gref(uid).add({g:n,note:"⚡ "+why,ts:firebase.firestore.FieldValue.serverTimestamp()});
+      m.textContent="✓ أُرسلت الهدية: "+durAr(n);m.className="stmsg ok";$("egN").value="";$("egWhy").value="";$("egAmt").querySelectorAll(".numpick").forEach(x=>x.classList.remove("on"));setTimeout(hist,500)}
+    catch(e){m.textContent=e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase":"تعذّر الإرسال، تحقّق من الاتصال";m.className="stmsg bad"}
+    $("egSend").disabled=false;
   };
   $("gfSend").onclick=async()=>{
     const n=Math.floor(+$("gfN").value),m=$("gfMsg"),note=$("gfNote").value.trim().slice(0,100);
@@ -2250,7 +2330,7 @@ function renderCfg(){
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
   };
   $("cfgDef").onclick=async()=>{if(!await uiConfirm("إرجاع كل الأرقام إلى الافتراضي؟ (تبقى تعديلات المتجر)"))return;
-    const c={shop:CFG.shop,items:CFG.items,free:CFG.free};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
+    const c={shop:CFG.shop,items:CFG.items,free:CFG.free,stn:CFG.stn};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
 }
 
 /* ================= لوحة الإشراف: محرّر المتجر ================= */
@@ -2695,6 +2775,8 @@ function renderUser(){
   <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec"><label class="hidepub"><input type="checkbox" id="uFree" ${(CFG.free||[]).includes(u.id)?"checked":""}><span><b>🎓 الدراسة الحرّة</b><small>طاقة بلا حدود، والمحطات تتجدّد كلما أنهاها بلا حدّ يومي، ولا يكسب من الدراسة خبرة ولا جواهر ولا تقدّمًا في الدوري. تحفظ كلماته ومراجعاته كالمعتاد.</small></span></label></div>
+  <div class="rsec"><h3>🛤️ عدد محطاته اليومية</h3><p class="rnote">بعد كل محطة تدريبها، وفي آخر المسار تحدٍّ قصير مجاني. اتركه «افتراضي» ليأخذ العدد العام (${ST_MAX}).</p>
+   <div class="numpicks" id="uStn"><button type="button" class="numpick${(CFG.stn||{})[u.id]?"":" on"}" data-v="0">افتراضي</button>${[1,2,3,4,5,6,7,8,10].map(n=>`<button type="button" class="numpick${(CFG.stn||{})[u.id]===n?" on":""}" data-v="${n}">${n}</button>`).join("")}</div></div>
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
   <div class="rsec"><h3>${I3("trash")} حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
@@ -2702,6 +2784,11 @@ function renderUser(){
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   renderAssign(u.id);bindGiftBox(u.id);
+  {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
+    const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
+    sp.querySelectorAll(".numpick").forEach(x=>x.disabled=true);
+    if(await saveCfg(c,v?"محطاته اليومية: "+v:"محطاته اليومية: الافتراضي"))applyCfg(c);
+    sp.querySelectorAll(".numpick").forEach(x=>{x.disabled=false;x.classList.toggle("on",+x.dataset.v===((CFG.stn||{})[u.id]||0))})}}
   {const cb=$("uFree");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setFree(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false}}
   $("uWipe").onclick=()=>wipeUser(u);
   $("uNmBtn").onclick=async()=>{
