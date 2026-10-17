@@ -55,7 +55,8 @@ html,body{overflow-x:clip;max-width:100%}
  nav button{font-size:0;padding-bottom:4px}nav button i{height:22px}nav button i .i3{width:22px;height:22px}#hXpT{font-size:.65rem}.coach .bub{font-size:.85rem}:root{--mz:88px}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
-.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.usearch{display:flex;gap:6px;margin:10px 0;scroll-margin-top:140px}.usearch input{flex:1;text-align:center;letter-spacing:1px}.upager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0}.upager span{color:var(--muted);font-size:.85rem}.upager .btn:disabled{opacity:.4}
+.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -2497,7 +2498,7 @@ function summary(){
 
 /* ================= تقارير المستخدمين (للمدير) ================= */
 const UST={active:["نشيط","#16a34a"],regular:["متابع","#2563eb"],partial:["متقطّع","#d97706"],idle:["خامل","#dc2626"],new:["لم يبدأ","#9ca3af"],old:["لا بيانات بعد","#9ca3af"]};
-let USERS=[],FEEDS={},uFilter="all",uOpen=null;
+let USERS=[],FEEDS={},uFilter="all",uOpen=null,uPage=0,uQ="";
 function ustatus(sm){
   if(!sm)return"old";if(!sm.total)return"new";
   const since=(Date.now()-sm.last)/DAY,act7=sm.d14.slice(-7).filter(n=>n>0).length;
@@ -2608,7 +2609,6 @@ const fireOf=sm=>`<span class="ufire${sm&&sm.sd===today()?"":" dim"}" title="${s
 function renderUserList(){
   const el=$("users"),cnt=k=>USERS.filter(u=>u.st===k).length;
   const fb=Object.values(FEEDS),avg=fb.length?(fb.reduce((a,f)=>a+f.stars,0)/fb.length).toFixed(1):"—";
-  const list=USERS.filter(u=>uFilter==="all"||u.st===uFilter).sort((a,b)=>((b.sum||{}).last||0)-((a.sum||{}).last||0));
   el.innerHTML=`<div class="mhead"><h2>👥 المستخدمون (${USERS.length})</h2><span><button class="btn" id="uNew">➕ حساب جديد</button> <button class="btn" id="uReload">↻ تحديث</button></span></div>${joinHTML()}${nameReqHTML()}
   <div class="gstats">
    <div class="gstat"><b style="color:#16a34a">${cnt("active")+cnt("regular")}</b><span>نشيط ومتابع</span></div>
@@ -2616,12 +2616,30 @@ function renderUserList(){
    <div class="gstat"><b>⭐ ${avg}</b><span>متوسط التقييم (${fb.length})</span></div>
   </div>
   <div class="ufilter"><button data-f="all" class="${uFilter==="all"?"on":""}">الكل</button>${Object.keys(UST).map(k=>cnt(k)?`<button data-f="${k}" class="${uFilter===k?"on":""}">${UST[k][0]} ${cnt(k)}</button>`:"").join("")}</div>
-  ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
-   <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}${noH(u.id)}</b><span class="ust">${UST[u.st][0]}</span></div>
-   <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>${fireOf(sm)} ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
+    <div class="usearch"><input id="uQ" class="stin" inputmode="numeric" dir="ltr" maxlength="10" placeholder="ابحث برقم المستخدم، مثل 000012" value="${esc(uQ)}"><button class="btn" id="uQx" style="${uQ?"":"display:none"}">✕</button></div>
+  <div id="uList"></div>`;
   $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};$("uNew").onclick=newAccount;bindNameReqs();bindJoins();
-  el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
-  el.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
+  el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;uPage=0;renderUserList()});
+  const q=$("uQ");q.oninput=()=>{uQ=q.value.replace(/\D/g,"");if(q.value!==uQ)q.value=uQ;$("uQx").style.display=uQ?"":"none";uPage=0;drawUList()};
+  $("uQx").onclick=()=>{uQ="";q.value="";$("uQx").style.display="none";uPage=0;drawUList();q.focus()};
+  drawUList();
+}
+// القائمة مرتّبة بالرقم، عشرة في كل صفحة، مع البحث بالرقم
+const U_PER=10;
+function drawUList(){
+  const box=$("uList");if(!box)return;
+  const noOf=u=>MEMB[u.id]&&MEMB[u.id].no!=null?MEMB[u.id].no:Infinity;
+  let list=USERS.filter(u=>uFilter==="all"||u.st===uFilter).sort((a,b)=>noOf(a)-noOf(b)||((b.sum||{}).last||0)-((a.sum||{}).last||0));
+  if(uQ)list=list.filter(u=>noOf(u)===+uQ);
+  const pages=Math.max(1,Math.ceil(list.length/U_PER));uPage=Math.min(Math.max(0,uPage),pages-1);
+  const shown=list.slice(uPage*U_PER,uPage*U_PER+U_PER);
+  box.innerHTML=(shown.length?shown.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
+   <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}${noH(u.id)}</b><span class="ust">${UST[u.st][0]}</span></div>
+   <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>${fireOf(sm)} ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):`<div class="empty">${uQ?"لا مستخدم بالرقم "+noTxt(+uQ):"لا مستخدمين في هذا التصنيف."}</div>`)+
+   (pages>1?`<div class="upager"><button class="btn" id="uPrev" ${uPage?"":"disabled"}>→ السابق</button><span>صفحة ${uPage+1} من ${pages}</span><button class="btn" id="uNext" ${uPage<pages-1?"":"disabled"}>التالي ←</button></div>`:"");
+  box.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
+  const go=d=>{uPage+=d;drawUList();const sb=document.querySelector(".usearch");if(sb)sb.scrollIntoView({block:"start",behavior:"smooth"})};
+  if($("uPrev"))$("uPrev").onclick=()=>go(-1);if($("uNext"))$("uNext").onclick=()=>go(1);
 }
 function renderUser(){
   const el=$("users"),u=USERS.find(x=>x.id===uOpen);if(!u){uOpen=null;return renderUserList()}
