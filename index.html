@@ -2028,21 +2028,32 @@ function watchName(){
     if($("stNameBox"))$("stNameBox").innerHTML=nameBoxHTML(loginName()),bindNameBox();
   },()=>{});
 }
+// الاسم الذي يطلبه المتعلّم: حروف عربية أو إنجليزية وأرقام ومسافات فقط، من 6 إلى 16 خانة
+const NAME_MIN=6,NAME_MAX=16;
+function nameErr(v){
+  if(/[^A-Za-z0-9\u0621-\u063A\u0641-\u064A\u0660-\u0669 ]/.test(v))return "استعمل حروفًا عربية أو إنجليزية وأرقامًا ومسافات فقط، بلا تشكيل أو علامات أو رموز";
+  if(v.length<NAME_MIN)return "الاسم قصير: "+NAME_MIN+" خانات على الأقل (الآن "+v.length+")";
+  if(v.length>NAME_MAX)return "الاسم طويل: "+NAME_MAX+" خانة على الأكثر (الآن "+v.length+")";
+  return "";
+}
 function nameBoxHTML(login){
   const okAt=tsOf(NM.okAt),left=Math.ceil((okAt+NAME_WAIT*DAY-Date.now())/DAY);
   let body;
   if(NM.pending)body=`<p>طلبت تغيير اسمك إلى <b>${esc(NM.pending)}</b>، وهو بانتظار موافقة المشرف.</p><button class="btn sec" id="stNameCancel" style="margin-top:6px">إلغاء الطلب</button>`;
   else if(!isAdmin()&&okAt&&left>0)body=`<p class="rnote">تستطيع تغيير اسمك مرة أخرى بعد ${left} ${left===1?"يوم":left===2?"يومين":left<=10?"أيام":"يومًا"}.</p>`;
-  else body=`<div class="strow"><input id="stName" class="stin" maxlength="40" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">${isAdmin()?"حفظ":"إرسال"}</button></div>
-   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل 7 أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
+  else body=`<div class="strow"><input id="stName" class="stin" maxlength="${isAdmin()?40:NAME_MAX}" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">${isAdmin()?"حفظ":"إرسال"}</button></div>
+   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">من 6 إلى 16 خانة: حروف عربية أو إنجليزية وأرقام ومسافات فقط. يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل 7 أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
   return `<h3>👤 الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
 }
 function bindNameBox(){
   const c=$("stNameCancel");if(c)c.onclick=async()=>{try{await nref(UID).set({pending:"",reqAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){toast(I3("warning"),"تعذّر الإلغاء","")}};
   const b=$("stNameBtn");if(!b)return;
+  // تنبيه فوري أثناء الكتابة
+  if(!isAdmin())$("stName").oninput=()=>{const v=$("stName").value.replace(/\s+/g," ").trim(),m=$("stNameMsg"),e=v?nameErr(v):"";m.textContent=e;m.className="stmsg"+(e?" bad":"")};
   b.onclick=async()=>{
     const v=$("stName").value.replace(/\s+/g," ").trim().slice(0,40),m=$("stNameMsg");
     if(!v){$("stName").focus();return}if(v===UNAME){m.textContent="هذا اسمك الحالي";m.className="stmsg bad";return}
+    if(!isAdmin()){const e=nameErr(v);if(e){m.textContent=e;m.className="stmsg bad";$("stName").focus();return}}
     b.disabled=true;
     try{
       if(isAdmin())await nref(UID).set({name:v,pending:"",okAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});
