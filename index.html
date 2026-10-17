@@ -56,7 +56,7 @@ html,body{overflow-x:clip;max-width:100%}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
 .chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.usearch{display:flex;gap:6px;margin:10px 0;scroll-margin-top:140px}.usearch input{flex:1;text-align:center;letter-spacing:1px}.upager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0}.upager span{color:var(--muted);font-size:.85rem}.upager .btn:disabled{opacity:.4}
-.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.denote{display:inline-block;font-size:.55em;font-weight:600;color:var(--muted);vertical-align:middle;white-space:nowrap}.denote.blk{display:block;font-size:.5em;margin-top:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ph{color:#a855f7;font-style:italic;font-weight:600}.denote{display:inline-block;font-size:.55em;font-weight:600;color:var(--muted);vertical-align:middle;white-space:nowrap}.denote.blk{display:block;font-size:.5em;margin-top:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -742,11 +742,18 @@ function bigDe(de,slow){
   const pi=String(de).indexOf("+"),dm=pi>0?de.slice(0,pi).trim():de,dn=pi>0?de.slice(pi).trim():"";
   return `${artHTML(dm)} ${sayBtn(de)}${slow?slowBtn(de):""}${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
 }
+// الكلمات البديلة في الصيغة (etwas، jemanden، jemandem، sich…): بلون مختلف لتمييزها عن الكلمة نفسها
+const PH_RE=/(^|[\s(\/])(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?|sich)(?=$|[\s,)\/.])/;
+function phHTML(de,m){
+  const art=m?`<b class="art art-${m[1].toLowerCase()}">${esc(de.slice(0,m[1].length))}</b>`:"",rest=m?de.slice(m[1].length):de;
+  return art+rest.split(/(\s+|[(),\/])/).map(t=>/^(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?|sich)$/.test(t)?`<span class="ph">${esc(t)}</span>`:esc(t)).join("");
+}
 function artHTML(de){
   // ما بعد أول «+» ملاحظة نحوية: تُعرض صغيرة باهتة ولا تُقرأ بالصوت
   const pi=String(de).indexOf("+");
   if(pi>0)return artHTML(de.slice(0,pi).trim())+` <span class="denote">${esc(de.slice(pi).trim())}</span>`;
   const m=de.match(/^(der|die|das)\s/i);
+  if(PH_RE.test(de))return phHTML(de,m);
   // اللون للأداة وحدها (der أزرق، die أحمر، das أخضر)، والكلمة بلون النص الثابت
   return m?`<b class="art art-${m[1].toLowerCase()}">${esc(de.slice(0,m[1].length))}</b>${esc(de.slice(m[1].length))}`:esc(de);
 }
@@ -872,14 +879,14 @@ async function askNewCourse(){
 // الطاقة لا تكفي للمحطة: كيف يحصل عليها، ومراجعة المستحقّ مباشرة إن وُجد
 // العدد مع المعدود: 1 ساعة، 2 ساعتان، 3–10 ساعات، 11 فأكثر ساعة
 const arN=(n,one,two,few)=>n===1?one:n===2?two:n>=3&&n<=10?n+" "+few:n+" "+one;
-async function noEnergy(){
-  const n=enNow(),need=ST_COST-n,m=Math.ceil(enNext()/60000),per=CFG.energy.perReviews,due=stateList("due").length;
+async function noEnergy(cost=ST_COST,what="المحطة"){
+  const n=enNow(),need=cost-n,m=Math.ceil(enNext()/60000),per=CFG.energy.perReviews,due=stateList("due").length;
   const wait=Math.ceil(((need-1)*EN_STEP+enNext())/60000),h=Math.floor(wait/60),mm=wait%60;
   const D=x=>arN(x,"دقيقة","دقيقتين","دقائق"),Hh=x=>arN(x,"ساعة","ساعتين","ساعات");
-  const msg="🪫 طاقتك "+n+"، والمحطة تحتاج "+ST_COST+".\n\nتحصل على الطاقة:\n• وحدة كل "+D(CFG.energy.minutes)+" (التالية بعد "+D(m)+")"+
+  const msg="🪫 طاقتك "+n+"، و"+what+(what==="المحطة"?" تحتاج ":" يحتاج ")+cost+".\n\nتحصل على الطاقة:\n• وحدة كل "+D(CFG.energy.minutes)+" (التالية بعد "+D(m)+")"+
     (per?"\n• وحدة لكل "+arN(per,"مراجعة","مراجعتين","مراجعات")+" لكلمات حان موعدها":"")+
     (CFG.energy.game&&CFG.energy.gameMax?"\n• "+arN(CFG.energy.game,"وحدة","وحدتان","وحدات")+" لكل تمرين تكمله حتى آخره (بقي لك اليوم "+Math.max(0,CFG.energy.gameMax-gamesEnToday(Date.now()))+" من "+CFG.energy.gameMax+")":"")+
-    "\n\nتكفيك للمحطة بالانتظار بعد "+(h?Hh(h)+(mm?" و":""):"")+(mm||!h?D(mm):"")+(per&&due?"، أو أسرع بالمراجعة.\n\nعندك "+arN(due,"كلمة مستحقّة","كلمتان مستحقّتان","كلمات مستحقّة")+" الآن. هل تراجعها؟":".");
+    "\n\nتكفيك "+(what.startsWith("ال")?"لل"+what.slice(2):"ل"+what)+" بالانتظار بعد "+(h?Hh(h)+(mm?" و":""):"")+(mm||!h?D(mm):"")+(per&&due?"، أو أسرع بالمراجعة.\n\nعندك "+arN(due,"كلمة مستحقّة","كلمتان مستحقّتان","كلمات مستحقّة")+" الآن. هل تراجعها؟":".");
   if(per&&due){if(await uiConfirm(msg)){RVSTATE="due";startReview("due",Math.min(due,Math.max(per,need*per)))}}
   else await uiAlert(msg);
 }
@@ -1060,7 +1067,7 @@ function stationWords(j){   // كلمات المحطة رقم j من محطات 
 }
 function startDrill(){
   const j=drillsToday();if(j>=stToday()){toast(I3("puzzle"),"أكمل محطة أولًا","التدريب يأتي بعد كل محطة");return}
-  syncFree();const need=drillCost();if(need&&enNow()<need){toast(I3("lowbat"),"طاقتك لا تكفي للتدريب","يحتاج "+need+" طاقة، ولديك "+enNow());return}
+  syncFree();const need=drillCost();if(need&&enNow()<need){noEnergy(need,"التدريب");return}
   const ws=stationWords(j);if(ws.length<2){toast(I3("warning"),"تعذّر تجهيز التدريب","لم أجد كلمات هذه المحطة");return}
   DRL={j,words:shuffle(ws),ar:shuffle([...ws]),sel:null,done:new Set,wrong:new Set,t0:Date.now(),fin:false};RVDONE=null;RES=null;CMB=0;drillView();scrollTo(0,0);
 }
