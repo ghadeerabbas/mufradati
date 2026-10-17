@@ -56,7 +56,7 @@ html,body{overflow-x:clip;max-width:100%}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
 .chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.usearch{display:flex;gap:6px;margin:10px 0;scroll-margin-top:140px}.usearch input{flex:1;text-align:center;letter-spacing:1px}.upager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0}.upager span{color:var(--muted);font-size:.85rem}.upager .btn:disabled{opacity:.4}
-.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.denote{display:inline-block;font-size:.55em;font-weight:600;color:var(--muted);vertical-align:middle;white-space:nowrap}.denote.blk{display:block;font-size:.5em;margin-top:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -725,7 +725,15 @@ function filtered(){
   const d=$("fDay").value,l=$("fLvl").value,c=$("fCore").value,j=$("fSubj").value;
   return W.filter(w=>(d==="all"||w.day==d)&&(l==="all"||w.lvl===l)&&(c==="all"||w.core==1)&&(j==="all"||w.subj===j));
 }
+// الكلمة الكبيرة: الأداة ملوّنة، ثم زر الصوت، ثم الملاحظة النحوية (ما بعد «+») في سطر صغير تحتها
+function bigDe(de,slow){
+  const pi=String(de).indexOf("+"),dm=pi>0?de.slice(0,pi).trim():de,dn=pi>0?de.slice(pi).trim():"";
+  return `${artHTML(dm)} ${sayBtn(de)}${slow?slowBtn(de):""}${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
+}
 function artHTML(de){
+  // ما بعد أول «+» ملاحظة نحوية: تُعرض صغيرة باهتة ولا تُقرأ بالصوت
+  const pi=String(de).indexOf("+");
+  if(pi>0)return artHTML(de.slice(0,pi).trim())+` <span class="denote">${esc(de.slice(pi).trim())}</span>`;
   const m=de.match(/^(der|die|das)\s/i);
   // اللون للأداة وحدها (der أزرق، die أحمر، das أخضر)، والكلمة بلون النص الثابت
   return m?`<b class="art art-${m[1].toLowerCase()}">${esc(de.slice(0,m[1].length))}</b>${esc(de.slice(m[1].length))}`:esc(de);
@@ -896,7 +904,7 @@ function stationView(){
   const st=S_.steps[S_.i],w=st.w,T=S_.steps.length;
   const head=`<div class="sess"><div class="sbar"><i style="width:${S_.i/T*100}%"></i></div><span>🛤️ المحطة ${S_.n} · ${S_.i+1} من ${T}</span><button class="link" id="stQuit">خروج</button></div>`;
   const next=()=>{S_.i++;if(S_.i<S_.steps.length){stationView();scrollTo(0,0)}else finishStation()};
-  const wordLine=`<div class="word de">${artHTML(w.de)} ${sayBtn(w.de)}${slowBtn(w.de)}</div>`;
+  const wordLine=`<div class="word de">${bigDe(w.de,1)}</div>`;
   // أجب عن سؤال: يُسجَّل الخطأ من المحاولة الأولى، وتعود الكلمة في آخر المحطة
   const judge=(ok,b,sub,after)=>{
     if(S_.ans)return;S_.ans=1;
@@ -928,7 +936,7 @@ function stationView(){
   else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
     if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
     el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("target")} ${st.retry?"مراجعة":"تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
-     ${rev?`<div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>`:`<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>`}
+     ${rev?`<div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>`:`<div class="qword de">${bigDe(w.de)}</div>`}
      ${st.o.map(o=>`<button class="btn gopt${rev?" de":""}" ${rev?'style="text-align:left"':""} data-k="${esc(o.k)}">${rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}</div>`;
     if(!rev)speak(w.de);
     el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{if(S_.ans)return;const ok=b.dataset.k===w.k;
@@ -1161,12 +1169,12 @@ function showCard(){
     reviewHome();scrollTo(0,0);return}
   cur=queue[0];flipped=false;
   const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${stkH(stkVal(E.sticker))}</span>`:"";
-  const front=S.dir==="de"?`<div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
+  const front=S.dir==="de"?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
   el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
   <div class="scene fr-${E.frame}"><div class="flip" id="flip">
    <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
-   <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${artHTML(cur.de)} ${sayBtn(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
+   <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${bigDe(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
     ${exPairs(cur)}</div>
   </div></div><div id="rate"></div>`+settingsHTML();
   $("flip").onclick=flip;bindSettings();$("rvQuit").onclick=()=>{queue=[];RVDONE=null;sessTotal=0;reviewHome()};
@@ -1273,7 +1281,7 @@ function showQ(){
   const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
   const opts=shuffle([w,...wrong]);
   el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span></div>
-   <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
+   <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${bigDe(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
     const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);markStudied();if(ok){qs++;streakQ++}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
@@ -1286,7 +1294,8 @@ function showQ(){
 /* ================= النطق ================= */
 // يُنطق النص الألماني: في تطبيق أندرويد عبر محرّك النطق في الهاتف، وفي المتصفح عبر نطق المتصفح
 function speakable(s){
-  return String(s||"").replace(/\([^)]*\)/g," ").split(",").map(p=>p.trim())
+  s=String(s||"");const pi=s.indexOf("+");if(pi>0)s=s.slice(0,pi);   // ما بعد «+» ملاحظة لا تُقرأ
+  return s.replace(/\([^)]*\)/g," ").split(",").map(p=>p.trim())
     .filter((p,i)=>i===0||(!/^[-–]/.test(p)&&p.replace(/[^A-Za-zÄÖÜäöüß]/g,"").length>=3)).join(", ").replace(/\s+/g," ").trim();
 }
 let DE_VOICE=null;
@@ -1471,7 +1480,7 @@ function gameView(){
   if(GM.done){gameResult();return}
   if(GM.id==="match"){matchView();return}
   const q=GM.q,w=q.w;let body="";
-  if(q.kind==="mc")body=`<div class="qword de">${artHTML(w.de)} ${sayBtn(w.de)}</div>${q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}`;
+  if(q.kind==="mc")body=`<div class="qword de">${bigDe(w.de)}</div>${q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}`;
   else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?`<div class="cloze-ar">${esc(q.c.ar)}</div>`:""}
     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}`;
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
@@ -1790,7 +1799,7 @@ function renderProfile(){
    <div class="gstat"><b>${I3("medal")} ${s.best}</b><span>أفضل سلسلة</span></div>
    <div class="gstat"><b>${I3("freeze")} ${s.freezes}</b><span>تجميد متاح</span></div>
    <div class="gstat"><b>💎 ${e.gems}</b><span>رصيد الجواهر</span></div>
-   <div class="gstat"><b>${I3("sparkles")} ${e.earned}</b><span>جواهر مكتسبة</span></div>
+   <div class="gstat"><b>${I3("sparkles")} ${e.xp}</b><span>إجمالي الخبرة</span></div>
    <div class="gstat"><b>🏆 ${e.got.size}/${maxL}</b><span>مستويات الإنجازات</span></div>
   </div>
   <div class="rsec"><h3>الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];

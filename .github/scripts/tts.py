@@ -10,7 +10,9 @@ PACE = 3.2          # الخطة المجانية: نحو 20 طلبًا في ا�
 COMMIT_EVERY = 200
 
 def speakable(s):
-    s = re.sub(r"\([^)]*\)", " ", str(s or ""))
+    s = str(s or "")
+    if s.find("+") > 0: s = s[:s.find("+")]   # ما بعد «+» ملاحظة لا تُقرأ
+    s = re.sub(r"\([^)]*\)", " ", s)
     parts = [p.strip() for p in s.split(",")]
     keep = [p for i, p in enumerate(parts) if i == 0 or (not re.match(r"^[-–]", p) and len(re.sub(r"[^A-Za-zÄÖÜäöüß]", "", p)) >= 3)]
     return re.sub(r"\s+", " ", ", ".join(keep)).strip()
