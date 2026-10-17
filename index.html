@@ -55,7 +55,7 @@ html,body{overflow-x:clip;max-width:100%}
  nav button{font-size:0;padding-bottom:4px}nav button i{height:22px}nav button i .i3{width:22px;height:22px}#hXpT{font-size:.65rem}.coach .bub{font-size:.85rem}:root{--mz:88px}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
-.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -2483,7 +2483,7 @@ function summary(){
   const qs=QLOG.reduce((a,q)=>a+q[1],0),qn=QLOG.reduce((a,q)=>a+q[2],0);
   return {login:loginName(),course:COURSE,last:LOG.length?LOG[LOG.length-1][0]:0,first:LOG.length?LOG[0][0]:0,days:days.length,
     total:e.s.reviews,acc:LOG.length?Math.round(ok/LOG.length*100):0,started:u.filter(w=>P[w.k]).length,
-    mem:u.filter(w=>P[w.k]&&P[w.k].box>=4).length,words:u.length,streak:e.s.streak,best:e.s.best,
+    mem:u.filter(w=>P[w.k]&&P[w.k].box>=4).length,words:u.length,streak:e.s.streak,best:e.s.best,sd:e.s.today?today():"",
     lv:e.lv,gems:e.gems,fz:e.s.freezes,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier};
 }
 
@@ -2578,6 +2578,8 @@ function newAccount(){
       msg(e.error==="exists"?"اسم المستخدم هذا مستخدم من قبل، اختر غيره":e.error==="perm"?"حساب الخدمة في Firebase لا يملك صلاحية إنشاء الحسابات":e.error==="login"?"اسم المستخدم غير صالح":"تعذّر الإنشاء: "+(e.detail||e.error||e.message||"خطأ في الاتصال"))}
   };
 }
+// شعلة المتعلّم في لوحة الإشراف: مشتعلة إن درس اليوم، ورمادية إن لم يدرس بعد
+const fireOf=sm=>`<span class="ufire${sm&&sm.sd===today()?"":" dim"}" title="${sm&&sm.sd===today()?"درس اليوم":"لم يدرس اليوم بعد"}">🔥</span>`;
 function renderUserList(){
   const el=$("users"),cnt=k=>USERS.filter(u=>u.st===k).length;
   const fb=Object.values(FEEDS),avg=fb.length?(fb.reduce((a,f)=>a+f.stars,0)/fb.length).toFixed(1):"—";
@@ -2591,7 +2593,7 @@ function renderUserList(){
   <div class="ufilter"><button data-f="all" class="${uFilter==="all"?"on":""}">الكل</button>${Object.keys(UST).map(k=>cnt(k)?`<button data-f="${k}" class="${uFilter===k?"on":""}">${UST[k][0]} ${cnt(k)}</button>`:"").join("")}</div>
   ${list.length?list.map(u=>{const sm=u.sum||{},f=FEEDS[u.id];return `<div class="ucard" style="--sc:${UST[u.st][1]}" data-u="${esc(u.id)}">
    <div class="top"><b>${esc(uName(u))}${sm.login?` <small dir="ltr" style="color:var(--muted);font-weight:400">@${esc(sm.login)}</small>`:""}</b><span class="ust">${UST[u.st][0]}</span></div>
-   <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>🔥 ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
+   <div class="umini"><span>🕒 ${ago(sm.last)}</span><span>${fireOf(sm)} ${sm.streak||0}</span><span>📅 ${(sm.d14||[]).slice(-7).reduce((a,b)=>a+b,0)} مراجعة/أسبوع</span><span>✅ ${sm.mem||0} محفوظة</span>${sm.ms?`<span>📏 ${sm.ms.total}/100</span>`:""}${sm.lg!=null?`<span>${TIERS[sm.lg][1]}</span>`:""}${f?`<span>${"⭐".repeat(f.stars)}</span>`:""}</div></div>`}).join(""):'<div class="empty">لا مستخدمين في هذا التصنيف.</div>'}`;
   $("uReload").onclick=()=>{loadNameReqs().then(renderUsers)};$("uNew").onclick=newAccount;bindNameReqs();bindJoins();
   el.querySelectorAll(".ufilter button").forEach(b=>b.onclick=()=>{uFilter=b.dataset.f;renderUserList()});
   el.querySelectorAll(".ucard").forEach(c=>c.onclick=()=>{uOpen=c.dataset.u;renderUser();scrollTo(0,0)});
@@ -2606,7 +2608,7 @@ function renderUser(){
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
   <div class="kpis">
    <div class="kpi"><b>${ago(sm.last)}</b><span>آخر نشاط</span></div>
-   <div class="kpi y"><b>🔥 ${sm.streak}</b><span>السلسلة (الأفضل ${sm.best})</span></div>
+   <div class="kpi y"><b>${fireOf(sm)} ${sm.streak||0}</b><span>السلسلة (الأفضل ${sm.best})</span></div>
    <div class="kpi g"><b>${sm.mem}</b><span>محفوظة من ${sm.words}</span></div>
    <div class="kpi"><b>${sm.started}</b><span>كلمة بدأها</span></div>
    <div class="kpi ${sm.acc<70?"r":"g"}"><b>${sm.acc}%</b><span>صواب المراجعة</span></div>
