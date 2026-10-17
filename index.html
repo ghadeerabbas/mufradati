@@ -1951,7 +1951,7 @@ function renderSettings(){
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
   ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}
-  ${isAdmin()?`<div class="rsec"><h3>🚪 الخروج</h3><p class="rnote">أنت مسجّل باسم المشرف: <span dir="ltr">${esc(login)}</span></p><button class="btn" id="admOut" style="width:100%;margin-top:6px">تسجيل الخروج</button></div>`:""}`;
+  ${isAdmin()?`<div class="rsec"><h3>🚪 الخروج</h3><p class="rnote">أنت مسجّل باسم المشرف: <span dir="ltr">${esc(login)}</span> · رقمك: <b dir="ltr">${noTxt(0)}</b></p><button class="btn" id="admOut" style="width:100%;margin-top:6px">تسجيل الخروج</button></div>`:""}`;
   {const ao=$("admOut");if(ao)ao.onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من حساب المشرف على هذا الجهاز؟"))return;await auth.signOut();location.reload()}}
   $("stSnd").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;try{localStorage.setItem("muf_snd",b.dataset.v)}catch(_){}if(b.dataset.v==="1")fx("ok");renderSettings()};
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(isDark()?1:0))return;E.dark=+b.dataset.v;setDevDark(E.dark);E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
@@ -2314,14 +2314,20 @@ function showLogin(msg){
 // تفعيل الحسابات: الحساب الجديد لا يعمل حتى يفعّله المشرف (المستخدمون القدامى مفعّلون تلقائيًا)
 async function accountActive(user){
   if(((user.email||"").toLowerCase())===ADMIN)return true;
-  if(st("muf_act_"+user.uid)==="1")return true;   // فُعِّل من قبل على هذا الهاتف
+  if(st("muf_act_"+user.uid)==="1"){loadMyNo(user.uid);return true}   // فُعِّل من قبل على هذا الهاتف
   const ok=await accountCheck(user);if(ok)st("muf_act_"+user.uid,"1");return ok;
 }
 let MYNO=null;
+// رقم المستخدم: يُقرأ في الخلفية، ويُحفظ على الجهاز ليظهر فورًا في المرة التالية
+function loadMyNo(uid){
+  const c=st("muf_no_"+uid);if(c!==null&&c!=="")MYNO=+c;
+  db.collection("members").doc(uid).get().then(m=>{const n=m.exists?m.data().no:null;if(n==null||n===MYNO)return;MYNO=n;st("muf_no_"+uid,String(n));
+    const on=document.querySelector(".panel.on");if(on&&on.id==="profile")renderPanel("profile")}).catch(()=>{});
+}
 const noTxt=n=>n==null?"":String(n).padStart(6,"0");   // ست خانات على الأقل، وتزيد تلقائيًا بعد 999999
 async function accountCheck(user){
   let m;try{m=await db.collection("members").doc(user.uid).get()}catch(e){return true}   // قواعد قديمة لا تعرف التفعيل
-  if(m.exists){MYNO=m.data().no??null;return true}
+  if(m.exists){MYNO=m.data().no??null;if(MYNO!=null)st("muf_no_"+user.uid,String(MYNO));return true}
   try{const u=await db.collection("users").doc(user.uid).get();if(u.exists)return true}catch(e){}
   try{await db.collection("join").doc(user.uid).set({name:(user.email||"").split("@")[0].slice(0,60),ts:firebase.firestore.FieldValue.serverTimestamp()})}catch(e){}
   return false;
