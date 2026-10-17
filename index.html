@@ -55,7 +55,8 @@ html,body{overflow-x:clip;max-width:100%}
  nav button{font-size:0;padding-bottom:4px}nav button i{height:22px}nav button i .i3{width:22px;height:22px}#hXpT{font-size:.65rem}.coach .bub{font-size:.85rem}:root{--mz:88px}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
-.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}#hGem{color:#1cb0f6}#hEn{color:#58a700}
+.chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
 .ring{width:38px;height:38px;flex:none;position:relative}
@@ -599,7 +600,7 @@ body.fbon main{padding-bottom:210px}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=11"></script>
+<script src="core.js?v=12"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -750,13 +751,20 @@ function applyLook(){
   if(isDark())r.dataset.dark="1";else delete r.dataset.dark;
   document.querySelector('meta[name=theme-color]').content=getComputedStyle(r).getPropertyValue("--navy").trim()||"#1f2a5a";
 }
+let FIRE_LIT=null,FIRE_DAY="";
+// يتغيّر اليوم والتطبيق مفتوح: نعيد رسم الشريط لتنطفئ الشعلة
+setInterval(()=>{if(UID&&FIRE_DAY&&FIRE_DAY!==dkey(Date.now())){EC=null;renderHeader()}},60000);
 function renderHeader(){
   const e=EC||econ(),t=itemOf("title",E.title);
   $("hAv").innerHTML=stkH(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
   $("hTitle").innerHTML=`<bdi>${esc(UNAME)}</bdi>`;$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
   $("hXpT").innerHTML=`${I3("sparkles")} ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
-  $("hFire").innerHTML=I3("fire")+e.s.streak;$("hFire").classList.toggle("on",e.s.streak>0);
+  // الشعلة: رمادية من منتصف الليل حتى أول دراسة في اليوم، ثم تشتعل
+  const hf=$("hFire"),lit=!!e.s.today;hf.innerHTML=I3("fire")+e.s.streak;hf.classList.toggle("on",lit);hf.classList.toggle("dim",!lit);
+  hf.title=lit?"أكملت دراسة اليوم، سلسلتك "+e.s.streak+" يومًا":e.s.streak?"ادرس اليوم لتحافظ على سلسلتك":"ابدأ سلسلتك بالدراسة اليوم";
+  if(lit&&FIRE_LIT===false&&FIRE_DAY===dkey(Date.now())){hf.classList.remove("ignite");void hf.offsetWidth;hf.classList.add("ignite");fx("streak")}
+  FIRE_LIT=lit;FIRE_DAY=dkey(Date.now());
   $("hGem").innerHTML=I3("gem")+e.gems;renderEnergy();
 }
 

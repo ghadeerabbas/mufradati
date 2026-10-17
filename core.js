@@ -230,7 +230,7 @@ function econ(){
       s.best=Math.max(s.best,s.streak);if(d>=end)break}
   }
   while(fi<fz.length){avail++;fi++}
-  s.freezes=avail;
+  s.freezes=avail;s.today=qd(today());     // هل حُسب اليوم الحالي في السلسلة؟ (تشتعل الشعلة)
   s.items=BUY.filter(b=>!b.item.startsWith("power:")).length;
   // المستوى
   // 5 جواهر لكل مستوى جديد (لا تتكرّر بعد التصفير للمستويات التي أُخذت جوائزها)
