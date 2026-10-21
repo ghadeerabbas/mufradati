@@ -72,7 +72,11 @@ html,body{overflow-x:clip;max-width:100%}
 .btit{font-size:1.5rem;margin-top:8px}.bsub{color:var(--muted);font-weight:700}.blg{width:100%;margin-top:10px;display:flex;flex-direction:column;gap:4px}
 .blr{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line)}.blr b{width:22px;color:var(--muted)}.blr span{flex:1;text-align:right;font-weight:700}.blr em{font-style:normal;color:var(--muted);font-size:.85rem}
 .blr.me{border:2px solid #1cb0f6;background:rgba(28,176,246,.08)}
-.qintro{align-items:center;text-align:center;gap:8px}.qintro>.i3{width:96px;height:96px}.qintro .btn.next{width:100%}.pracnote{text-align:center;margin:0 0 8px;font-size:.82rem}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.qintro{align-items:center;text-align:center;gap:8px}.qintro>.i3{width:96px;height:96px}.qintro .btn.next{width:100%}.crsbtn{display:flex;align-items:center;justify-content:space-between;width:100%;margin-bottom:8px;padding:8px 14px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--hd);font:inherit;font-weight:800;font-size:.95rem}
+.crsbtn span{color:#1cb0f6;font-size:.85rem}
+.crsopt{display:flex;flex-direction:column;align-items:flex-start;gap:2px;width:100%;padding:12px 14px;margin:6px 0;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);font:inherit;text-align:right;position:relative}
+.crsopt.on{border-color:#58cc02;background:rgba(88,204,2,.08)}.crsopt small{color:var(--muted)}.crsopt i{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-style:normal;color:#58cc02;font-weight:900}
+.pracnote{text-align:center;margin:0 0 8px;font-size:.82rem}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -687,7 +691,7 @@ function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={
 }
 const uiConfirm=msg=>uiDialog(msg);
 // الاختبار والتمارين لا تعرض إلا الكلمات التي تعلّمها المستخدم في المحطات
-const learnedList=()=>uniq(filtered()).filter(w=>P[w.k]);
+const learnedList=()=>studyPool().filter(w=>P[w.k]);
 // الكلمات الألمانية الطويلة: يصغر خطّها لتبقى داخل البطاقة
 try{document.fonts&&document.fonts.ready.then(()=>{document.querySelectorAll(".word[data-fit]").forEach(e=>delete e.dataset.fit);fitWords()})}catch(e){}
 addEventListener("resize",()=>fitWords());
@@ -746,17 +750,36 @@ const aref=u=>db.collection("assign").doc(u);
 async function myCourses(){
   if(isAdmin())return Object.keys(COURSES);
   const ck=K("myc"),c=jget(ck,null),net=myCoursesNet().then(x=>{st(ck,JSON.stringify(x));return x});
-  if(Array.isArray(c)&&c.length){net.then(x=>{if(JSON.stringify(x)!==JSON.stringify(MY_COURSES)){MY_COURSES=x;renderCourseSel()}}).catch(()=>{});return c.filter(id=>COURSES[id]).length?c.filter(id=>COURSES[id]):DEF_COURSES}
+  if(Array.isArray(c)&&c.length){net.then(x=>{if(JSON.stringify(x)!==JSON.stringify(MY_COURSES)){MY_COURSES=x;renderCourseSel();loadOtherWords()}applyStart()}).catch(()=>{});return c.filter(id=>COURSES[id]).length?c.filter(id=>COURSES[id]):DEF_COURSES}
   return await net;
 }
+let ASTART=null;
 async function myCoursesNet(){
-  try{const d=await aref(UID).get();const c=d.exists?(d.data().courses||[]).filter(id=>COURSES[id]):[];if(c.length)return c}catch(e){}
+  try{const d=await aref(UID).get();const c=d.exists?(d.data().courses||[]).filter(id=>COURSES[id]):[];ASTART=d.exists&&d.data().start||null;if(c.length)return c}catch(e){}
   return DEF_COURSES;
 }
+// المشرف غيّر منهج البداية: ينتقل إليه المتعلّم مرة واحدة
+function applyStart(){
+  if(!ASTART||!MY_COURSES.includes(ASTART)||st(K("startSeen"))===ASTART)return;st(K("startSeen"),ASTART);
+  if(ASTART!==COURSE&&!STS&&!DRL&&!GM)switchCourse(ASTART);
+}
+// كلمات المناهج الأخرى للمتعلّم: لتأتيه مراجعاتها وتمارينها مهما كان المنهج المختار
+let OTHERC={};
+async function loadOtherWords(){
+  const o={};
+  for(const c of MY_COURSES){if(c===COURSE||!COURSES[c])continue;const f=COURSES[c].file,ck="muf_w_"+f;
+    let t=st(ck);if(!t){try{const q=await fetch(f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
+    try{const d=JSON.parse(t||"{}");o[c]=uniq((d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
+  OTHERC=o;
+  const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES&&!queue.length)reviewHome();
+}
+const noFilter=()=>["fDay","fLvl","fCore","fSubj"].every(id=>!$(id)||$(id).value==="all");
+// مجموعة المراجعة والتمارين والاختبار: كل مناهجه (إلا إذا اختار تصفية معيّنة)
+const studyPool=()=>noFilter()?uniq([...W,...Object.values(OTHERC).flat()]):filtered();
 function renderCourseSel(){const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
-async function switchCourse(c){
+async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
-  await loadWords(c);renderCourseSel();econ();renderHeader();refresh();toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
+  await loadWords(c);loadOtherWords();renderCourseSel();econ();renderHeader();refresh();if(!silent)toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
 }
 async function loadWords(c){
   COURSE=c;const f=COURSES[c].file,ck="muf_w_"+f;
@@ -916,7 +939,7 @@ const isDue=p=>!!p&&dkey(p.due||0)<=today();
 const RSTATES=[["due","المستحقّة اليوم",(w,p)=>isDue(p)],["hard","الصعبة",(w,p,now,r)=>!isDue(p)&&r<=1],["mid","المتوسطة",(w,p,now,r)=>!isDue(p)&&r===2&&p.box<4],["easy","السهلة",(w,p,now,r)=>!isDue(p)&&(r===3||p.box>=4)],["all","كلها",()=>true]];
 function stateList(id){
   const st=RSTATES.find(x=>x[0]===id),now=Date.now(),last={};for(const x of LOG)last[x[1]]=x[2];
-  return uniq(filtered()).filter(w=>P[w.k]&&st[2](w,P[w.k],now,last[w.k]??2));
+  return studyPool().filter(w=>P[w.k]&&st[2](w,P[w.k],now,last[w.k]??2));
 }
 // شخصية النرد بوضعياتها: يلوّح بيد ثم بالأخرى، أو وضعية ثابتة (كتاب، نوم، تفكير، تشجيع، فرح، كأس، قفز)
 function mascot(pose,cls){
@@ -1185,12 +1208,22 @@ function startReview(state,n){
   list=state==="due"?list.sort((a,b)=>P[a.k].due-P[b.k].due):shuffle(list);
   queue=list.slice(0,n);sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length,t0:Date.now(),xp0:econ().xp,fail:new Set};showCard();scrollTo(0,0);
 }
-let REVH={h:"",n:null};
+let REVH={h:"",n:null},AUTOSW=0;
+// اختيار المنهج من فوق المسار مباشرة
+function coursePicker(){
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
+  const row=c=>{const ws=c===COURSE?uniq(W):(OTHERC[c]||[]),n=ws.filter(w=>P[w.k]).length;
+    return `<button type="button" class="crsopt${c===COURSE?" on":""}" data-c="${esc(c)}"><b>${esc(COURSES[c].name)}</b><small>${ws.length?"تعلّمت "+n+" من "+ws.length+" كلمة":""}</small>${c===COURSE?"<i>✓</i>":""}</button>`};
+  m.innerHTML=`<div class="lbox"><h1 style="font-size:1.15rem">📘 اختر المنهج</h1><p class="rnote">المحطات تعلّمك كلمات المنهج الذي تختاره، أما المراجعة والتمارين فمن كل مناهجك.</p>
+   ${MY_COURSES.filter(c=>COURSES[c]).map(row).join("")}<button class="link" id="crsNo">إغلاق</button></div>`;
+  m.onclick=e=>{if(e.target===m)close()};$("crsNo").onclick=close;
+  m.querySelectorAll(".crsopt").forEach(b=>b.onclick=async()=>{close();if(b.dataset.c!==COURSE){await switchCourse(b.dataset.c)}});
+}
 function reviewHome(){
   if(STS)return stationView();
   if(DRL)return drillView();
   if(RES)return resultView();
-  const el=$("review"),f=uniq(filtered()),learned=f.filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
+  const el=$("review"),f=uniq(filtered()),learned=studyPool().filter(w=>P[w.k]).length,fresh=f.filter(w=>!P[w.k]).length;
   if(S.newDate!==today()){S.newDate=today();S.newCount=0;save()}
   syncFree();const PB=pathBase(),done=stToday()-PB,en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
   if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
@@ -1225,6 +1258,7 @@ function reviewHome(){
     :done?"أحسنت! بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")+" اليوم 💪"
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   const html=msg+`
+  ${MY_COURSES.filter(c=>COURSES[c]).length>1&&!isAdmin()?`<button type="button" class="crsbtn" id="crsBtn">📘 ${esc((COURSES[COURSE]||{}).name||"")} <span>تغيير ▾</span></button>`:""}
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
   <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
@@ -1248,6 +1282,10 @@ function reviewHome(){
   const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
   const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
+  const cb=$("crsBtn");if(cb)cb.onclick=coursePicker;
+  // أنهى كل كلمات منهجه: ينتقل وحده إلى منهجه التالي الذي فيه كلمات جديدة
+  if(allDone&&noFilter()&&!FREEU&&!AUTOSW){const nx=MY_COURSES.find(c=>c!==COURSE&&(OTHERC[c]||[]).some(w=>!P[w.k]));
+    if(nx){AUTOSW=1;const from=(COURSES[COURSE]||{}).name;setTimeout(async()=>{await switchCourse(nx,1);toast("🎓","أنهيت «"+from+"»!","بدأنا «"+COURSES[nx].name+"»");confetti(120)},400)}}
   const chPop=()=>lessonPop({ic:"trophy",title:"تحدي اليوم",sub:arN(CHAL_N,"سؤال","سؤالان","أسئلة")+" منوّعة على كلماتك، مرة واحدة في اليوم",xp:CHAL_N*CFG.xp.quiz*2,cost:0,go:startChal});
   const cn=$("chNode");if(cn)cn.onclick=chPop;const cs=$("chStart");if(cs)cs.onclick=chPop;
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
@@ -2633,7 +2671,7 @@ async function onLogin(user){
     $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");return;
   }
   const saved=st(K("course"));
-  await loadWords(MY_COURSES.includes(saved)?saved:MY_COURSES[0]);
+  await loadWords(MY_COURSES.includes(saved)?saved:MY_COURSES[0]);loadOtherWords();
   renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");
@@ -2993,15 +3031,18 @@ async function wipeUser(u){
 
 async function renderAssign(uid){
   const box=$("assignBox");if(!box)return;
-  let cur=[];try{const d=await aref(uid).get();cur=d.exists?(d.data().courses||[]):[]}catch(e){}
+  let cur=[],start0=null;try{const d=await aref(uid).get();cur=d.exists?(d.data().courses||[]):[];start0=d.exists&&d.data().start||null}catch(e){}
   const using=cur.filter(id=>COURSES[id]),eff=using.length?using:DEF_COURSES;
   box.innerHTML=`<h3>📘 مناهجه</h3><p style="font-size:.8rem;color:var(--muted);margin-bottom:8px">${using.length?"مناهج معيّنة له:":"لم تعيّن له شيئًا، فيدرس المنهج العام."} اختر ما تريد ثم احفظ. إن اخترت أكثر من منهج، يبدّل بينها بنفسه.</p>
-   ${Object.keys(COURSES).map(id=>`<label style="display:flex;gap:8px;align-items:center;padding:6px 0;font-size:.92rem"><input type="checkbox" value="${esc(id)}" ${eff.includes(id)?"checked":""}> ${esc(COURSES[id].name)}</label>`).join("")}
+   ${Object.keys(COURSES).map(id=>`<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:6px 0;font-size:.92rem"><label style="display:flex;gap:8px;align-items:center"><input type="checkbox" class="asC" value="${esc(id)}" ${eff.includes(id)?"checked":""}> ${esc(COURSES[id].name)}</label><label style="font-size:.78rem;color:var(--muted);display:flex;gap:4px;align-items:center"><input type="radio" name="asStart" value="${esc(id)}" ${(start0||eff[0])===id?"checked":""}> يبدأ به</label></div>`).join("")}
+   <p class="rnote">«يبدأ به»: المنهج الذي تفتح عليه محطاته. وحين ينهيه ينتقل وحده إلى التالي.</p>
    <div class="btns" style="margin-top:8px"><button class="btn" id="asSave" style="background:var(--navy);color:#fff;padding:8px 16px">حفظ المناهج</button></div>`;
   $("asSave").onclick=async()=>{
-    const pick=[...box.querySelectorAll("input:checked")].map(x=>x.value);
+    let pick=[...box.querySelectorAll(".asC:checked")].map(x=>x.value);
     if(!pick.length){await uiAlert("اختر منهجًا واحدًا على الأقل.");return}
-    try{await aref(uid).set({courses:pick,ts:firebase.firestore.FieldValue.serverTimestamp()});toast("📘","حُفظت مناهجه",pick.map(id=>COURSES[id].name).join("، "))}
+    let start=(box.querySelector("input[name=asStart]:checked")||{}).value;if(!pick.includes(start))start=pick[0];
+    pick=[start,...pick.filter(x=>x!==start)];
+    try{await aref(uid).set({courses:pick,start,ts:firebase.firestore.FieldValue.serverTimestamp()});toast("📘","حُفظت مناهجه",pick.map(id=>COURSES[id].name).join("، "))}
     catch(e){await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
   };
 }
