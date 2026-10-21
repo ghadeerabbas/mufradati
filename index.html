@@ -1746,7 +1746,7 @@ function gameView(){
   if(q.kind==="art")el.querySelectorAll(".artb").forEach(b=>b.onclick=()=>{
     if(GM.answered)return;const nn=nounOf(w),ok=b.dataset.a===nn.art;
     el.querySelectorAll(".artb").forEach(x=>{if(x.dataset.a===nn.art)x.classList.add("ok");else if(x===b)x.classList.add("no")});
-    answered(ok,b,ok?600:0);
+    answered(ok,b);   // لا انتقال تلقائي: يقرأ المتعلّم المثال ثم يضغط «التالي»
   });
   if(q.kind==="order"){
     el.querySelectorAll(".otile[data-t]").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.picked.push(+b.dataset.t);gameView()});
