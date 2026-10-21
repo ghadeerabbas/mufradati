@@ -1206,7 +1206,7 @@ function reviewHome(){
   const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
   // التدريب: منتهٍ، أو متاح الآن، أو محطته منتهية وينتظر دوره (أزرق باهت)، أو مقفل
   const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):j<done?"wait":"lock";
-    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب${drillCost()?" · "+drillCost():""}</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
+    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
   const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done&&i<=dn]);pts.push([dx(i),dy(i),i<dn])}
   if(CH)pts.push([off[N%4],N*SP+44+48,chOk]);
   const chNode=()=>CH?`<button type="button" class="zn chal ${chOk?"ok":chOpen?"cur":"lock"}" ${chOpen?'id="chNode"':""} style="top:${N*SP+44}px;margin-left:${off[N%4]-48}px" aria-label="تحدي اليوم">${chOpen?'<span class="go">تحدٍّ ×2</span>':""}<span class="c">${I3(chOk?"check":"trophy")}</span><span class="tl">تحدي اليوم</span></button>`:"";
@@ -1228,7 +1228,7 @@ function reviewHome(){
   <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
-   ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}${drillCost()?" · "+drillCost()+" طاقة":""}</button>`
+   ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
      :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${UN?" ⚡":cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
