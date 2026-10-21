@@ -77,12 +77,14 @@ const SHOP_BASE=[
  {id:"lux",cat:"theme",name:"الذهبي الفاخر",price:2500,old:300,sw:["#241b12","#8c1c13","#e0b84f"]},
  // إطارات البطاقة
  {id:"none",cat:"frame",name:"بلا إطار",price:0},
- {id:"red",cat:"frame",tier:0,name:"إطار أحمر",price:150},
- {id:"green",cat:"frame",tier:0,name:"إطار أخضر",price:150},
- {id:"blue",cat:"frame",tier:0,name:"إطار أزرق",price:150},
- {id:"orange",cat:"frame",tier:1,name:"إطار برتقالي",price:200},
- {id:"purple",cat:"frame",tier:1,name:"إطار بنفسجي",price:250},
- {id:"pink",cat:"frame",tier:1,name:"إطار وردي",price:250},
+ // الإطارات الملوّنة العادية: مجانية تنفتح بالمستوى (كل 5 مستويات إطار)، ومن اشتراها قبل ذلك تبقى له
+ // old: ثمنها القديم، ليبقى ما دُفع فيها محسوبًا من الجواهر
+ {id:"red",cat:"frame",lvl:5,name:"إطار أحمر",price:0,old:75},
+ {id:"green",cat:"frame",lvl:10,name:"إطار أخضر",price:0,old:75},
+ {id:"blue",cat:"frame",lvl:15,name:"إطار أزرق",price:0,old:75},
+ {id:"orange",cat:"frame",lvl:20,name:"إطار برتقالي",price:0,old:100},
+ {id:"purple",cat:"frame",lvl:25,name:"إطار بنفسجي",price:0,old:125},
+ {id:"pink",cat:"frame",lvl:30,name:"إطار وردي",price:0,old:125},
  {id:"silver",cat:"frame",tier:2,name:"إطار فضّي",price:450},
  {id:"gold",cat:"frame",tier:3,name:"إطار ذهبي",price:800,old:100},
  {id:"wood",cat:"frame",tier:4,name:"إطار نحاسي",price:950,old:120},
@@ -157,8 +159,9 @@ const CATS={avatar:"الرموز",frame:"الإطارات",namecolor:"ألوان
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
 const stkVal=v=>{if(!v)return"";const it=SHOP.find(x=>x.cat==="sticker"&&x.id===v);return it?it.val:v};
 const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
-const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.streak?streakBest()>=it.streak:it.price===0||BUY.some(b=>b.item===cat+":"+id))};
+const owned=(cat,id)=>{const it=itemOf(cat,id);return it&&(it.streak?streakBest()>=it.streak:it.lvl?lvlBest()>=it.lvl||BUY.some(b=>b.item===cat+":"+id):it.price===0||BUY.some(b=>b.item===cat+":"+id))};
 // أطول سلسلة وصلها (ولا تُقفل مكافآتها بعد التصفير)
+const lvlBest=()=>Math.max((EC||econ()).lv,R.lv||1);   // أعلى مستوى وصله (لا ينقص بعد التصفير)
 const streakBest=()=>Math.max((EC||econ()).s.best,R.sb||0);
 // جواهر السلسلة: مرة واحدة لكل مرحلة
 

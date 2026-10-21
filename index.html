@@ -672,7 +672,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=15"></script>
+<script src="core.js?v=16"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -919,7 +919,8 @@ function floatAt(el,txt){
 function celebrate(prev){
   const e=econ();renderHeader();
   if(!prev)return;
-  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!",e.lv>(R.lv||1)?"+"+LV_GEMS+" 💎":"");confetti(120)}
+  if(e.lv>prev.lv){toast("⬆️","وصلت إلى المستوى "+e.lv+"!",e.lv>(R.lv||1)?"+"+LV_GEMS+" 💎":"");confetti(120);
+    const lu=SHOP.filter(x=>x.lvl&&x.lvl>Math.max(prev.lv,R.lv||1)&&x.lvl<=e.lv);if(lu.length)setTimeout(()=>toast(I3("gift"),"هدية مستوى جديدة في المتجر",lu.map(x=>x.name).join("، ")),1600)}
   achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(achIc(a),a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
   {const pb=Math.max(prev.s.best,R.sb||0);for(const [d,g] of STREAK_G)if(e.s.best>=d&&pb<d){toast("🔥","سلسلة "+d+" يومًا!","+"+g+" 💎");confetti(120)}
    const nu=SHOP.filter(x=>x.streak&&x.streak>pb&&x.streak<=e.s.best);if(nu.length)setTimeout(()=>toast(I3("gift"),"هدية سلسلة جديدة في المتجر",nu.map(x=>x.name).join("، ")),1200)}
@@ -2063,11 +2064,12 @@ function renderShop(){
   const e=econ(),el=$("shop"),oc=el.querySelector(".cats"),sx=oc?oc.scrollLeft:null,sy=window.scrollY,keep=el.classList.contains("on")&&el.innerHTML!==""&&el._cat===shopCat;el._cat=shopCat;
   if(keep){el.style.minHeight=el.offsetHeight+"px";clearTimeout(el._mh);el._mh=setTimeout(()=>el.style.minHeight="",1500)}   // يثبّت الطول حتى تُحمَّل الصور
   const vis=x=>!x.hidden||(x.cat!=="power"&&owned(x.cat,x.id));
-  const items=(shopCat==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===shopCat&&!x.streak)).filter(vis),sb=streakBest();
+  const items=(shopCat==="streak"?SHOP.filter(x=>x.streak):shopCat==="lvl"?SHOP.filter(x=>x.lvl).sort((a,b)=>a.lvl-b.lvl):SHOP.filter(x=>x.cat===shopCat&&!x.streak&&!x.lvl)).filter(vis),sb=streakBest(),lb=lvlBest();
   el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>💎 ${e.gems}</b></div><div style="text-align:left"><small>المستوى ${e.lv}</small><small>اكسب المزيد بالمحطات والدوري 💪</small></div></div>
-  <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}<button data-c="streak" class="${shopCat==="streak"?"on":""}">🔥 السلسلة</button></div>
+  <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}<button data-c="streak" class="${shopCat==="streak"?"on":""}">🔥 السلسلة</button><button data-c="lvl" class="${shopCat==="lvl"?"on":""}">⭐ المستوى</button></div>
   ${shopCat==="streak"?`<p class="rnote" style="margin-bottom:8px">هدايا مجانية تنفتح بطول سلسلتك. أطول سلسلة وصلتها: 🔥 ${sb} ${sb===1?"يوم":"يومًا"}</p>`:""}
-  ${shopCat!=="power"&&shopCat!=="streak"?`<p class="rnote" style="margin-bottom:8px">كلما صعدت في الدوري انفتحت هدايا أجمل. أعلى دوري وصلته: ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
+  ${shopCat==="lvl"?`<p class="rnote" style="margin-bottom:8px">هدايا مجانية تنفتح بمستواك: إطار جديد كل 5 مستويات. أعلى مستوى وصلته: ⭐ ${lb}</p>`:""}
+  ${shopCat!=="power"&&shopCat!=="streak"&&shopCat!=="lvl"?`<p class="rnote" style="margin-bottom:8px">كلما صعدت في الدوري انفتحت هدايا أجمل. أعلى دوري وصلته: ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
   <div class="shop">${items.map(it=>{
     const mine=it.cat!=="power"&&owned(it.cat,it.id),ek=EQKEY[it.cat];
     const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
@@ -2076,11 +2078,12 @@ function renderShop(){
     if(it.cat==="power")btn=it.id==="freeze"&&e.s.freezes>=FZ_MAX?`<button class="btn buy" disabled>الحدّ الأقصى ${FZ_MAX}</button>`
       :`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`+(it.id==="freeze"&&!e.s.freezes&&e.gems<it.price&&!fzHelped()?`<button class="btn eq" id="fzHelp" style="margin-top:6px">🆘 اطلب مساعدة المشرف</button><small style="font-size:.7rem;color:var(--muted)">مرة واحدة فقط</small>`:"");
     else if(it.streak&&!mine)btn=`<button class="btn buy" disabled>🔒 سلسلة ${it.streak} يومًا</button>`;
+    else if(it.lvl&&!mine)btn=`<button class="btn buy" disabled>🔒 المستوى ${it.lvl}</button>`;
     else if(!mine&&itemLocked(it))btn=`<button class="btn buy" disabled>🔒 ${TIERS[it.tier][1]} ${TIERS[it.tier][0]}</button>`;
     else if(!mine)btn=`<button class="btn buy" data-buy="${it.id}" ${e.gems<it.price?"disabled":""}>💎 ${it.price}</button>`;
     else if(isEq)btn=it.cat==="sticker"?`<button class="btn eqd" data-uneq="1">مثبّت ✓ (إزالة)</button>`:`<button class="btn eqd" disabled>مُستخدم ✓</button>`;
     else btn=`<button class="btn eq" data-eq="${esc(eqv)}" data-cat="${it.cat}">استخدام</button>`;
-    return `<div class="si ${mine?"mine":""}"><div class="pv" style="${it.cat==="theme"?"background:"+it.sw[0]:""}">${pv}</div><div class="nm">${esc(it.name)}</div>${it.streak?`<div class="skn">${mine?"✓ حصلت عليه":"🔥 "+Math.min(sb,it.streak)+" / "+it.streak+" يومًا"}</div>`:""}${it.desc?`<small style="font-size:.7rem;color:var(--muted)">${it.desc} · لديك ${e.s.freezes} من ${FZ_MAX}</small>`:""}${btn}</div>`}).join("")}</div>`;
+    return `<div class="si ${mine?"mine":""}"><div class="pv" style="${it.cat==="theme"?"background:"+it.sw[0]:""}">${pv}</div><div class="nm">${esc(it.name)}</div>${it.streak?`<div class="skn">${mine?"✓ حصلت عليه":"🔥 "+Math.min(sb,it.streak)+" / "+it.streak+" يومًا"}</div>`:""}${it.lvl?`<div class="skn">${mine?"✓ حصلت عليه":"⭐ المستوى "+Math.min(lb,it.lvl)+" / "+it.lvl}</div>`:""}${it.desc?`<small style="font-size:.7rem;color:var(--muted)">${it.desc} · لديك ${e.s.freezes} من ${FZ_MAX}</small>`:""}${btn}</div>`}).join("")}</div>`;
   // يبقى شريط الأقسام حيث كان، ويظهر القسم المختار فيه
   if(keep)window.scrollTo(0,sy);   // إعادة الرسم (شراء أو استخدام أو حفظ) لا تُرجع الصفحة إلى أعلاها
   {const nc=el.querySelector(".cats");if(nc){if(sx!=null)nc.scrollLeft=sx;const on=nc.querySelector(".on");if(on){const r=on.getBoundingClientRect(),cr=nc.getBoundingClientRect();if(r.left<cr.left)nc.scrollLeft-=cr.left-r.left+8;else if(r.right>cr.right)nc.scrollLeft+=r.right-cr.right+8}}}
@@ -2567,7 +2570,7 @@ let SEDCAT="avatar";
 const SED_CATS={...CATS,streak:"🔥 السلسلة"};
 function sedPv(x){return x.cat==="namecolor"?`<span class="nc-${x.id}" style="font-size:.8rem">اسم</span>`:x.cat==="frame"?`<div class="frmini fr-${x.id}"></div>`:x.cat==="theme"?`<div class="sw">${x.sw.map(c=>`<i style="background:${c}"></i>`).join("")}</div>`:x.cat==="title"?"🏷️":stkH(x.val)}
 function renderShopEd(){
-  const list=SEDCAT==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===SEDCAT&&!x.streak);
+  const list=SEDCAT==="streak"?SHOP.filter(x=>x.streak):SHOP.filter(x=>x.cat===SEDCAT&&!x.streak&&!x.lvl);
   const tierSel=(v,cls)=>`<select class="${cls}"><option value="">مفتوح</option>${TIERS.map((t,i)=>`<option value="${i}" ${v===i?"selected":""}>${t[1]} ${i+1}</option>`).join("")}</select>`;
   $("shopEd").innerHTML=`<div class="cfg"><h2 class="sth">🛍️ محرّر المتجر</h2>
   <div class="cats">${Object.keys(SED_CATS).map(c=>`<button data-c="${c}" class="${c===SEDCAT?"on":""}">${SED_CATS[c]}</button>`).join("")}</div>
