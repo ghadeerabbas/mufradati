@@ -667,7 +667,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
 try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
   if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"){
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
-    document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r;
+    document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
     document.getElementById("login").style.display="none";document.body.classList.add("shell")}}catch(e){}
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
