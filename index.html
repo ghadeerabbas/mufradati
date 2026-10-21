@@ -249,7 +249,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .bub:after{content:"";position:absolute;right:-10px;bottom:12px;border:9px solid transparent;border-left-color:var(--line)}
 .zz{position:relative;height:320px;margin:6px 0 4px}
 .zmas{position:absolute;width:150px;display:flex;flex-direction:column;align-items:center;transform:translateY(-100%);z-index:0;pointer-events:none}
-.zmas.r{left:calc(50% + 14px)}.zmas.l{left:calc(50% - 164px)}
+.zmas.r{left:calc(50% + 14px)}.zmas .flip{transform:scaleX(-1)}.zmas.l{left:calc(50% - 164px)}
 .zmas .bub{margin:0 0 12px;font-size:.78rem;padding:6px 10px;line-height:1.5;pointer-events:auto;text-align:center}
 .zmas .bub:after{right:auto;left:50%;bottom:-18px;margin-left:-9px;border-left-color:transparent;border-top-color:var(--line)}
 .zmas .pose,.zmas .jmp,.zmas .mz2{width:84px;margin:0}
@@ -1283,7 +1283,7 @@ function reviewHome(){
   <div class="unitw"><div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div></div>
   ${N<2?`<div class="coach">${mascot(pose1)}<div class="bub">${coach}</div></div>`:""}
   <div class="rvbox" style="margin-bottom:14px">
-   <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+44+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+44+80}px">${mascot(pose2)}</div>`:""}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
+   <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+44+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+44+80}px"><div class="flip">${mascot(pose2)}</div></div>`:""}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
    ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
      :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${UN?" ⚡":cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
