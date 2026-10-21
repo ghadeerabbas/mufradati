@@ -565,7 +565,7 @@ body.lesson .box>.sttag{align-self:center;font-size:.9rem;padding:4px 14px}
 body.lesson .box>.typedot{position:static;align-self:center;margin-bottom:4px}
 body.lesson .stlearn .word{font-size:2.2rem}
 /* الكلمة في التعليم بسطر واحد: يصغر الخط ليتّسع لها السطر (الجمل تبقى تلتفّ) */
-.stlearn .word,.scene .word{white-space:nowrap}.stlearn .word .sayrow{display:block;font-size:1.5rem;line-height:1.2;margin-top:2px}.stlearn .word .denote.blk,.scene .word .denote.blk{white-space:normal}body.lesson .stlearn .ar{font-size:1.5rem}
+.stlearn .word,.scene .word{white-space:nowrap}.altsep{opacity:.5}.stlearn .word .sayrow{display:block;font-size:1.5rem;line-height:1.2;margin-top:2px}.stlearn .word .denote.blk,.scene .word .denote.blk{white-space:normal}body.lesson .stlearn .ar{font-size:1.5rem}
 body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60;margin:0}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
@@ -783,7 +783,9 @@ function filtered(){
 // الكلمة الكبيرة: الأداة ملوّنة، ثم زر الصوت، ثم الملاحظة النحوية (ما بعد «+») في سطر صغير تحتها
 function bigDe(de,slow){
   const pi=String(de).indexOf("+"),dm=pi>0?de.slice(0,pi).trim():de,dn=pi>0?de.slice(pi).trim():"";
-  return `${artHTML(dm)}<span class="sayrow"> ${sayBtn(de)}${slow?slowBtn(de):""}</span>${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
+  // بدائل منفصلة (der Wissenschaftler / die Wissenschaftlerin): كل بديل في سطر، فلا يصغر الخط كثيرًا
+  const alts=dm.split(/\s+\/\s+/),main=alts.map(artHTML).join('<span class="altsep"> /</span><br>');
+  return `${main}<span class="sayrow"> ${sayBtn(de)}${slow?slowBtn(de):""}</span>${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
 }
 // الكلمات البديلة في الصيغة (etwas، jemanden، jemandem…): بلون مختلف لتمييزها عن الكلمة نفسها
 const PH_RE=/(^|[\s(\/])(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?)(?=$|[\s,)\/.])/;
