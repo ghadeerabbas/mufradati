@@ -2519,11 +2519,11 @@ function renderShopEd(){
   ${CUSTOM_CATS.includes(SEDCAT)||SEDCAT==="streak"?`<div class="rsec"><h3>➕ غرض جديد</h3><div class="addit">
     ${SEDCAT==="streak"?`<select id="nCat">${CUSTOM_CATS.map(c=>`<option value="${c}">${CATS[c]}</option>`).join("")}</select>`:""}
     <input id="nName" maxlength="40" placeholder="الاسم">
-    <input id="nVal" maxlength="40" placeholder="الرمز (إيموجي) أو نصّ اللقب">
+    <input id="nVal" maxlength="40" placeholder="الرمز (إيموجي)">
     <label style="border:0">اللون الأول<input type="color" id="nC" value="#2563eb"></label><label style="border:0">اللون الثاني (للإطار)<input type="color" id="nC2" value="#f59e0b"></label>
     <label style="border:0"><span>اسم بحافة وخلفية داكنة</span><input type="checkbox" id="nBadge"></label>
     ${SEDCAT==="streak"?`<input id="nStk" type="number" min="1" placeholder="طول السلسلة المطلوب (أيام)">`:`<input id="nPr" type="number" min="1" placeholder="السعر بالجواهر">${tierSel("","nTier")}`}
-    <button class="btn" id="nAdd">إضافة</button></div><p class="rnote">الرمز والملصق: إيموجي واحد · اللقب: نصّ · لون الاسم والإطار: الألوان.</p></div>`:""}
+    <button class="btn" id="nAdd">إضافة</button></div><p class="rnote">الرمز: إيموجي واحد · لون الاسم والإطار: الألوان.</p></div>`:""}
   <div class="cfgbar"><button class="btn next" id="sedSave">حفظ المتجر</button></div></div>`;
   const el=$("shopEd");
   el.querySelectorAll(".cats button").forEach(b=>b.onclick=()=>{SEDCAT=b.dataset.c;renderShopEd()});
@@ -2533,7 +2533,7 @@ function renderShopEd(){
   const add=$("nAdd");if(add)add.onclick=async()=>{
     const cat=$("nCat")?$("nCat").value:SEDCAT,name=$("nName").value.trim(),val=$("nVal").value.trim();
     if(!name){toast(I3("warning"),"اكتب اسم الغرض","");return}
-    if((cat==="avatar"||cat==="sticker"||cat==="title")&&!val){toast(I3("warning"),"اكتب الرمز أو نصّ اللقب","");return}
+    if(cat==="avatar"&&!val){toast(I3("warning"),"اكتب الرمز","");return}
     const it={id:"c"+Date.now().toString(36),cat,name,val,c:$("nC").value,c2:$("nC2").value,badge:$("nBadge").checked};
     if(SEDCAT==="streak"){it.streak=+$("nStk").value;if(!(it.streak>=1)){toast(I3("warning"),"اكتب طول السلسلة","");return}it.price=0}
     else{it.price=+$("nPr").value;if(!(it.price>=1)){toast(I3("warning"),"اكتب السعر","");return}const t=el.querySelector(".nTier").value;if(t!=="")it.tier=+t}
