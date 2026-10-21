@@ -72,7 +72,7 @@ html,body{overflow-x:clip;max-width:100%}
 .btit{font-size:1.5rem;margin-top:8px}.bsub{color:var(--muted);font-weight:700}.blg{width:100%;margin-top:10px;display:flex;flex-direction:column;gap:4px}
 .blr{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line)}.blr b{width:22px;color:var(--muted)}.blr span{flex:1;text-align:right;font-weight:700}.blr em{font-style:normal;color:var(--muted);font-size:.85rem}
 .blr.me{border:2px solid #1cb0f6;background:rgba(28,176,246,.08)}
-.pracnote{text-align:center;margin:0 0 8px;font-size:.82rem}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.qintro{align-items:center;text-align:center;gap:8px}.qintro>.i3{width:96px;height:96px}.qintro .btn.next{width:100%}.pracnote{text-align:center;margin:0 0 8px;font-size:.82rem}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -563,7 +563,7 @@ body.lesson .sess{position:sticky;top:0;z-index:5;background:var(--paper);paddin
 /* الدرس كدولينغو: المحتوى بلا إطار في وسط الشاشة، وزرّ المتابعة ثابت في الأسفل قرب الإبهام */
 body.lesson main{min-height:100dvh;display:flex;flex-direction:column;padding-bottom:calc(100px + env(safe-area-inset-bottom))}
 body.lesson .panel.on{flex:1;display:flex;flex-direction:column}
-body.lesson #review>.box,body.lesson #games>.box{flex:1;display:flex;flex-direction:column;justify-content:center;background:none!important;border:0!important;box-shadow:none!important;padding-left:4px;padding-right:4px}
+body.lesson #review>.box,body.lesson #games>.box,body.lesson #quiz>.box{flex:1;display:flex;flex-direction:column;justify-content:center;background:none!important;border:0!important;box-shadow:none!important;padding-left:4px;padding-right:4px}
 body.lesson #review>.box:before,body.lesson #games>.box:before{display:none}
 body.lesson #review>.pills{display:none}body.lesson #review>.scene{margin-top:auto;margin-bottom:auto}body.lesson #review>.settings{margin-bottom:96px}
 body.lesson #rate{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60}
@@ -572,7 +572,7 @@ body.lesson .box>.typedot{position:static;align-self:center;margin-bottom:4px}
 body.lesson .stlearn .word{font-size:2.2rem}
 /* الكلمة في التعليم بسطر واحد: يصغر الخط ليتّسع لها السطر (الجمل تبقى تلتفّ) */
 .stlearn .word,.scene .word{white-space:nowrap}.altsep{opacity:.5}.stlearn .word .sayrow{display:block;font-size:1.5rem;line-height:1.2;margin-top:2px}.stlearn .word .denote.blk,.scene .word .denote.blk{white-space:normal}body.lesson .stlearn .ar{font-size:1.5rem}
-body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60;margin:0}
+body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60;margin:0}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 </style>
@@ -1356,6 +1356,17 @@ function hardScores(){
   QA.forEach(x=>{if(!x[2])sc[x[1]]=(sc[x[1]]||0)+2});return sc;
 }
 // 60% صعبة لم تُختبر، 20% صعبة اختُبرت، 20% من باقي الكلمات
+// شاشة البداية: لا يبدأ الاختبار إلا بضغط الزر
+const quizOn=()=>qz.length>0&&qi<qz.length&&!qz.done;
+function quizIntro(){
+  const n=learnedList().length,hard=Object.keys(hardScores()).length,last=QLOG.filter(q=>q[3]==="quiz").slice(-1)[0];
+  $("quiz").innerHTML=`<div class="box qintro">${I3("quiz")}<h2>الاختبار</h2>
+   <p class="rnote">${arN(Math.max(4,Math.min(10,n)),"سؤال","سؤالان","أسئلة")} على الكلمات التي تعلّمتها: ترى الكلمة الألمانية وتختار معناها. أغلب الأسئلة من الكلمات التي تخطئ فيها أو تجدها صعبة.</p>
+   <div class="ppills"><span>${I3("sparkles")} حتى ${Math.max(4,Math.min(10,n))*CFG.xp.quiz} خبرة</span><span>${I3("gift")} بلا طاقة</span></div>
+   ${last?`<p class="rnote">آخر نتيجة: ${last[1]} من ${last[2]}</p>`:""}
+   ${n<4?'<p class="rnote">يحتاج الاختبار 4 كلمات متعلّمة على الأقل. تعلّم كلمات جديدة في المحطات أولًا.</p>':`<button class="btn next" id="qStart">ابدأ الاختبار</button>`}</div>`;
+  const b=$("qStart");if(b)b.onclick=startQuiz;
+}
 function startQuiz(){
   const N=10,all=learnedList(),sc=hardScores(),seen=new Set(QA.map(x=>x[1]));
   const byScore=a=>shuffle(a).sort((x,y)=>sc[y.k]-sc[x.k]);
@@ -1372,14 +1383,15 @@ function showQ(){
   if(qi>=qz.length){
     const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA})}celebrate(prev);
     const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
-    el.innerHTML=`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.png" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button></div>`;
+    el.innerHTML=`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.png" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`;
     if(qs===qz.length)confetti(150);
-    $("again").onclick=startQuiz;return}
+    $("again").onclick=startQuiz;$("qBack").onclick=()=>{qz=[];quizIntro()};return}
   const w=qz[qi],pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar);
   const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
   const opts=shuffle([w,...wrong]);
-  el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span></div>
+  el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span><button class="link" id="qQuit">إنهاء</button></div>
    <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${bigDe(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
+  $("qQuit").onclick=()=>{qz=[];quizIntro();scrollTo(0,0)};
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
     const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);markStudied();if(ok){qs++;streakQ++}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
@@ -2083,7 +2095,7 @@ const viewSig=()=>{try{const e=EC||econ();return JSON.stringify([e.xp,e.gems,e.l
 // وضع الدرس: يُحسب بعد كل تغيير في المحتوى
 function lessonMode(){
   const on=document.querySelector(".panel.on"),id=on&&on.id;
-  const a=!!(UID&&!isAdmin()&&((id==="review"&&(STS||DRL||queue.length))||(id==="games"&&GM&&!GM.done)));
+  const a=!!(UID&&!isAdmin()&&((id==="review"&&(STS||DRL||queue.length))||(id==="games"&&GM&&!GM.done)||(id==="quiz"&&quizOn())));
   if(document.body.classList.contains("lesson")!==a){document.body.classList.toggle("lesson",a);if(a)scrollTo(0,0)}
 }
 function fitWords(){
@@ -3019,7 +3031,7 @@ function renderPanel(p){
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
   // الاختبار: يبدأ من جديد عند فتحه إلا إذا كان المستخدم في منتصفه، فيأخذ الكلمات التي تعلّمها للتوّ
-  if(p==="quiz"){if(!qzA.length||qi>=qz.length)startQuiz();return}
+  if(p==="quiz"){if(quizOn()&&qzA.length)showQ();else quizIntro();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
 function refresh(){buildQueue();showCard();LPAGE=0;renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
