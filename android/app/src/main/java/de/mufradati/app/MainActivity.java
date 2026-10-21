@@ -18,7 +18,7 @@ import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
-import android.view.ViewTreeObserver;
+import android.widget.FrameLayout;
 import java.util.Locale;
 
 // تطبيق مفرداتي: يعرض الموقع بملء الشاشة، فيتحدّث تلقائيًّا مع كل تحديث للموقع.
@@ -28,26 +28,33 @@ public class MainActivity extends Activity {
     private WebView web;
     private TextToSpeech tts;
     private boolean ttsReady = false;
-    // شاشة البداية تبقى حتى تقول الصفحة إنها رسمت واجهتها (MufApp.ready) أو تمضي 8 ثوانٍ، فلا تظهر شاشة فارغة بينهما
-    private volatile boolean ready = false;
-    private void markReady() { runOnUiThread(() -> { if (!ready) { ready = true; View c = findViewById(android.R.id.content); if (c != null) c.invalidate(); } }); }
+    // غطاء شاشة البداية فوق الصفحة: الصفحة تُرسم تحته، ويُزال حين تقول إنها جاهزة (MufApp.ready) أو بعد 8 ثوانٍ
+    private View cover;
+    private boolean ready = false;
+    private void markReady() {
+        runOnUiThread(() -> {
+            if (ready || cover == null) return;
+            ready = true;
+            final View c = cover;
+            c.animate().alpha(0f).setDuration(180).withEndAction(() -> { ((FrameLayout) c.getParent()).removeView(c); cover = null; }).start();
+        });
+    }
 
     @Override
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         web = new WebView(this);
         web.setBackgroundColor(Color.TRANSPARENT);   // تظهر شاشة البداية (خلفية النافذة) حتى ترسم الصفحة نفسها
-        setContentView(web);
-        final View content = findViewById(android.R.id.content);
-        content.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-            @Override public boolean onPreDraw() {
-                if (!ready) return false;
-                content.getViewTreeObserver().removeOnPreDrawListener(this);
-                return true;
-            }
-        });
-        new Handler(Looper.getMainLooper()).postDelayed(this::markReady, 8000);
-        if (state != null) ready = true;
+        FrameLayout root = new FrameLayout(this);
+        root.addView(web, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+        if (state == null) {
+            cover = new View(this);
+            cover.setBackgroundResource(R.drawable.splash);
+            cover.setClickable(true);   // لا تصل اللمسات إلى الصفحة قبل ظهورها
+            root.addView(cover, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, FrameLayout.LayoutParams.MATCH_PARENT));
+            new Handler(Looper.getMainLooper()).postDelayed(this::markReady, 8000);
+        }
+        setContentView(root);
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
