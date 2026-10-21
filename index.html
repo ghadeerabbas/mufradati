@@ -554,6 +554,17 @@ body.shell main,body.shell header .chips{pointer-events:none}
 /* الدرس بشاشة كاملة: تختفي الأشرطة والتبويبات أثناء المحطة والتدريب والمراجعة والتمارين */
 body.lesson header,body.lesson #mainFilters{display:none!important}body.lesson main{padding-top:14px}
 body.lesson .sess{position:sticky;top:0;z-index:5;background:var(--paper);padding-top:6px;padding-bottom:6px}
+/* الدرس كدولينغو: المحتوى بلا إطار في وسط الشاشة، وزرّ المتابعة ثابت في الأسفل قرب الإبهام */
+body.lesson main{min-height:100dvh;display:flex;flex-direction:column;padding-bottom:calc(100px + env(safe-area-inset-bottom))}
+body.lesson .panel.on{flex:1;display:flex;flex-direction:column}
+body.lesson #review>.box,body.lesson #games>.box{flex:1;display:flex;flex-direction:column;justify-content:center;background:none!important;border:0!important;box-shadow:none!important;padding-left:4px;padding-right:4px}
+body.lesson #review>.box:before,body.lesson #games>.box:before{display:none}
+body.lesson #review>.pills{display:none}body.lesson #review>.scene{margin-top:auto;margin-bottom:auto}body.lesson #review>.settings{margin-bottom:96px}
+body.lesson #rate{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60}
+body.lesson .box>.sttag{align-self:center;font-size:.9rem;padding:4px 14px}
+body.lesson .box>.typedot{position:static;align-self:center;margin-bottom:4px}
+body.lesson .stlearn .word{font-size:2.2rem}body.lesson .stlearn .ar{font-size:1.5rem}
+body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60;margin:0}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 </style>
