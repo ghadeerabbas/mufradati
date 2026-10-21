@@ -6,7 +6,9 @@
 <meta name="theme-color" content="#1f2a5a">
 <script>/* في تطبيق أندرويد: الصفحة شفافة لحظة الفتح، فتبقى شاشة البداية (الشعار والاسم) ظاهرة حتى تُرسم الواجهة */
 if(window.MufApp)document.documentElement.classList.add("boot");
-function bootDone(){document.documentElement.classList.remove("boot");try{if(window.MufApp&&MufApp.ready)setTimeout(()=>MufApp.ready(),60)}catch(e){}}setTimeout(bootDone,10000);</script>
+function bootDone(){document.documentElement.classList.remove("boot")}
+// إشارة إلى تطبيق أندرويد: الواجهة الحقيقية رُسمت، فلتُخفَ شاشة البداية
+function appReady(){bootDone();try{if(window.MufApp&&MufApp.ready)setTimeout(()=>MufApp.ready(),120)}catch(e){}}setTimeout(bootDone,10000);</script>
 <style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}</style>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -2667,7 +2669,7 @@ const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-pa
 const DOMAIN="@mufradati.app";               // اسم المستخدم يتحوّل داخليًا إلى عنوان بهذا النطاق
 function showLogin(msg){
   try{localStorage.removeItem("muf_shell")}catch(e){}document.body.classList.remove("shell");
-  bootDone();$("login").style.display="flex";
+  appReady();$("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><button type="button" class="ldark" id="lDark" aria-label="الوضع الليلي">${isDark()?"☀️":I3("moon")}</button><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
    <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr">
    <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr">
@@ -2707,7 +2709,7 @@ async function accountCheck(user){
   return false;
 }
 function showPending(user){
-  bootDone();$("login").style.display="flex";
+  appReady();$("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><div class="logo">${I3("hourglass")}</div><h1 style="font-size:1.2rem">حسابك بانتظار التفعيل</h1>
    <p class="sub">أُرسل طلب تفعيل حسابك <b dir="ltr">${esc((user.email||"").split("@")[0])}</b> إلى المشرف. حاول مرة أخرى بعد قليل.</p>
    <button class="btn lgo" id="pdAgain">تحقّق الآن</button><button class="link" id="pdOut">تسجيل الخروج</button></div>`;
@@ -2721,7 +2723,7 @@ async function onLogin(user){
   await loadCourses();MY_COURSES=await myCourses();
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
-    document.body.classList.add("adm");bootDone();$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
+    document.body.classList.add("adm");appReady();$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
     $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");return;
   }
   const saved=st(K("course"));let first=MY_COURSES.includes(saved)?saved:MY_COURSES[0];
@@ -2730,7 +2732,7 @@ async function onLogin(user){
   await loadWords(first);loadOtherWords();
   renderCourseSel();
   bootDone();$("login").style.display="none";
-  econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");
+  econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");appReady();
   staleStation();
   syncNow(true);
   loadNameReqs();watchGifts();
