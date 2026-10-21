@@ -1277,7 +1277,7 @@ function reviewHome(){
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   // شكلان مختلفان للنرد: الأول بحسب الحال، والثاني غيره
   const pose1=pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle";
-  const pose2=pose1==="think"?"cheer":"think";
+  const pose2=pose1==="thumbs"?"cheer":"thumbs";
   const html=msg+`
   ${MY_COURSES.filter(c=>COURSES[c]).length>1&&!isAdmin()?`<button type="button" class="crsbtn" id="crsBtn">📘 ${esc((COURSES[COURSE]||{}).name||"")} <span>تغيير ▾</span></button>`:""}
   <div class="unitw"><div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div></div>
