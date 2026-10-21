@@ -2670,8 +2670,10 @@ async function onLogin(user){
     document.body.classList.add("adm");$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
     $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");return;
   }
-  const saved=st(K("course"));
-  await loadWords(MY_COURSES.includes(saved)?saved:MY_COURSES[0]);loadOtherWords();
+  const saved=st(K("course"));let first=MY_COURSES.includes(saved)?saved:MY_COURSES[0];
+  // منهج البداية الذي حدّده المشرف: يُطبَّق من أول دخول، مرة واحدة
+  if(ASTART&&MY_COURSES.includes(ASTART)&&st(K("startSeen"))!==ASTART){first=ASTART;st(K("startSeen"),ASTART);st(K("course"),ASTART)}
+  await loadWords(first);loadOtherWords();
   renderCourseSel();
   $("login").style.display="none";
   econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");
