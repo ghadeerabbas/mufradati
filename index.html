@@ -563,7 +563,9 @@ body.lesson #review>.pills{display:none}body.lesson #review>.scene{margin-top:au
 body.lesson #rate{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(14px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60}
 body.lesson .box>.sttag{align-self:center;font-size:.9rem;padding:4px 14px}
 body.lesson .box>.typedot{position:static;align-self:center;margin-bottom:4px}
-body.lesson .stlearn .word{font-size:2.2rem}body.lesson .stlearn .ar{font-size:1.5rem}
+body.lesson .stlearn .word{font-size:2.2rem}
+/* الكلمة في التعليم بسطر واحد: يصغر الخط ليتّسع لها السطر (الجمل تبقى تلتفّ) */
+.stlearn .word,.scene .word{white-space:nowrap}.stlearn .word .sayrow{display:block;font-size:1.5rem;line-height:1.2;margin-top:2px}.stlearn .word .denote.blk,.scene .word .denote.blk{white-space:normal}body.lesson .stlearn .ar{font-size:1.5rem}
 body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60;margin:0}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
@@ -681,6 +683,8 @@ const uiConfirm=msg=>uiDialog(msg);
 // الاختبار والتمارين لا تعرض إلا الكلمات التي تعلّمها المستخدم في المحطات
 const learnedList=()=>uniq(filtered()).filter(w=>P[w.k]);
 // الكلمات الألمانية الطويلة: يصغر خطّها لتبقى داخل البطاقة
+try{document.fonts&&document.fonts.ready.then(()=>{document.querySelectorAll(".word[data-fit]").forEach(e=>delete e.dataset.fit);fitWords()})}catch(e){}
+addEventListener("resize",()=>fitWords());
 function fitWords(){document.querySelectorAll(".word.de,.qword.de").forEach(el=>{if(el.dataset.fit)return;el.dataset.fit=1;
   const L=Math.max(0,...el.textContent.trim().split(/\s+/).map(x=>x.length));if(L>13)el.style.fontSize=Math.max(1,(L>22?1.05:L>18?1.2:1.35))+"rem"})}
 new MutationObserver(()=>requestAnimationFrame(fitWords)).observe(document.documentElement,{childList:true,subtree:true});
@@ -779,7 +783,7 @@ function filtered(){
 // الكلمة الكبيرة: الأداة ملوّنة، ثم زر الصوت، ثم الملاحظة النحوية (ما بعد «+») في سطر صغير تحتها
 function bigDe(de,slow){
   const pi=String(de).indexOf("+"),dm=pi>0?de.slice(0,pi).trim():de,dn=pi>0?de.slice(pi).trim():"";
-  return `${artHTML(dm)} ${sayBtn(de)}${slow?slowBtn(de):""}${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
+  return `${artHTML(dm)}<span class="sayrow"> ${sayBtn(de)}${slow?slowBtn(de):""}</span>${dn?`<span class="denote blk">${esc(dn)}</span>`:""}`;
 }
 // الكلمات البديلة في الصيغة (etwas، jemanden، jemandem…): بلون مختلف لتمييزها عن الكلمة نفسها
 const PH_RE=/(^|[\s(\/])(etwas|etw\.?|jemand(?:en|em|es)?|jmd[nms]?\.?|jdn\.?|jdm\.?)(?=$|[\s,)\/.])/;
@@ -2074,7 +2078,12 @@ function lessonMode(){
   const a=!!(UID&&!isAdmin()&&((id==="review"&&(STS||DRL||queue.length))||(id==="games"&&GM&&!GM.done)));
   if(document.body.classList.contains("lesson")!==a){document.body.classList.toggle("lesson",a);if(a)scrollTo(0,0)}
 }
-{let lmq=0;new MutationObserver(()=>{if(!lmq)lmq=requestAnimationFrame(()=>{lmq=0;lessonMode()})}).observe(document.querySelector("main"),{childList:true,subtree:true})}
+function fitWords(){
+  document.querySelectorAll(".stlearn .word,.scene .word").forEach(el=>{
+    if(!el.offsetParent||!el.clientWidth||el.dataset.fit===el.textContent+"|"+el.clientWidth)return;el.dataset.fit=el.textContent+"|"+el.clientWidth;el.style.fontSize="";
+    let fs=parseFloat(getComputedStyle(el).fontSize);while(el.scrollWidth>el.clientWidth+1&&fs>15){fs-=1.5;el.style.fontSize=fs+"px"}});
+}
+{let lmq=0;new MutationObserver(()=>{if(!lmq)lmq=requestAnimationFrame(()=>{lmq=0;lessonMode();fitWords();setTimeout(fitWords,150)})}).observe(document.querySelector("main"),{childList:true,subtree:true})}
 let VER0=null,UPD=false;
 async function checkUpdate(){
   try{const q=await fetch("index.html",{method:"HEAD",cache:"no-cache"});const v=q.ok&&(q.headers.get("etag")||q.headers.get("last-modified"));if(!v)return;
