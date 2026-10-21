@@ -3041,7 +3041,7 @@ function renderPanel(p){
   if(p==="quiz"){if(quizOn()&&qzA.length)showQ();else quizIntro();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
-function refresh(){buildQueue();const on=document.querySelector(".panel.on");if(!on||on.id!=="review")showCard();LPAGE=0;renderList();if(on)renderPanel(on.id)}
+function refresh(){buildQueue();showCard();LPAGE=0;renderList();const on=document.querySelector(".panel.on");if(on&&on.id!=="review")renderPanel(on.id)}
 function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     // تبويب المستخدمين والرسائل يفتح القائمة كلها دائمًا
