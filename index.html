@@ -377,7 +377,7 @@ body.fbon main{padding-bottom:210px}
 .lghead{display:flex;gap:10px;align-items:center;margin-bottom:8px}.lgic{font-size:3rem;line-height:1;animation:bob 2.4s ease-in-out infinite}.lghead b{display:block;font-size:1.05rem;color:var(--hd)}.lghead small{font-size:.78rem;color:var(--muted)}
 .cup{width:1.35em;height:1.35em;object-fit:contain;vertical-align:-.28em;display:inline-block;filter:drop-shadow(0 2px 1px rgba(0,0,0,.18))}
 .tiers{display:flex;justify-content:space-between;margin:8px 0 12px;font-size:1.45rem}.tiers span{opacity:.95}.tiers .lock{opacity:.55;filter:grayscale(.3)}.tiers .on{transform:scale(1.45)}
-.lgrow{--tint:transparent;display:grid;grid-template-columns:24px 26px minmax(0,1fr) 30px 66px;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;font-size:.9rem;border:3px solid transparent;background:var(--tint);margin-bottom:3px}.lgrow b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lgrow .stc{text-align:center;font-size:1.25rem;line-height:1}.lgrow .av{text-align:center}
+.lgrow{--tint:transparent;display:grid;grid-template-columns:24px 26px minmax(0,1fr) 72px;align-items:center;gap:6px;padding:6px 8px;border-radius:12px;font-size:.9rem;border:3px solid transparent;background:var(--tint);margin-bottom:3px}.lgrow b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lgrow .stc{text-align:center;font-size:1.25rem;line-height:1}.lgrow .av{text-align:center}
 .lgrow .rk{width:24px;text-align:center;font-weight:700}.lgrow .xp{font-size:.8rem;color:var(--muted);text-align:left;white-space:nowrap}.lgrow.me{--tint:#22c55e26}.lgrow{cursor:pointer}
 
 .nc-red{color:#e53935}.nc-green{color:#2e9e44}.nc-blue{color:#2f6fdf}.nc-orange{color:#f57c00}.nc-purple{color:#8e44ad}.nc-pink{color:#e84393}.nc-teal{color:#0a9396}.nc-brown{color:#8d5a2b}.nc-crimson{color:#b0103a}
@@ -1225,7 +1225,7 @@ function reviewHome(){
    ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}${drillCost()?" · "+drillCost()+" طاقة":""}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
      :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${UN?" ⚡":cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
-   ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
+   ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
   ${learned?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>
@@ -1901,7 +1901,7 @@ function reportDetailsHTML(){
   const lb14=d14.map(t=>new Date(t).getDate());
   const sod=new Date();sod.setHours(0,0,0,0);
   const fc=[...Array(7)].map((_,i)=>f.filter(w=>{const p=P[w.k];if(!p)return false;const en=sod.getTime()+(i+1)*DAY;return i===0?p.due<en:p.due>=en-DAY&&p.due<en}).length);
-  const fl=["اليوم","غدًا",...[2,3,4,5,6].map(i=>new Date(sod.getTime()+i*DAY).toLocaleDateString("ar",{weekday:"short"}))];
+  const fl=["اليوم","غدًا",...[2,3,4,5,6].map(i=>new Date(sod.getTime()+i*DAY).toLocaleDateString("ar-u-nu-latn",{weekday:"short"}))];
   const miss={};L.forEach(x=>{if(x[2]===0)miss[x[1]]=(miss[x[1]]||0)+1});
   const hard=f.filter(w=>miss[w.k]).sort((a,b)=>miss[b.k]-miss[a.k]).slice(0,10);
   const groupRows=g=>g.filter(x=>x.list.length).map(x=>{const s=stackBar(x.list);const done=s.c[2]+s.c[3];
@@ -2130,7 +2130,7 @@ async function syncNow(manual){
 }
 let syncFails=0;
 function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
-function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar",{hour:"2-digit",minute:"2-digit"}):"…"}
+function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
   return `<div class="rsec sync"><h3>${I3("cloud")} حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span>${MYNO!=null?` · رقمك: <b dir="ltr">${noTxt(MYNO)}</b>`:""}</p>
@@ -2628,7 +2628,7 @@ const isAdmin=()=>((auth.currentUser||{}).email||"").toLowerCase()===ADMIN;
 const tref=u=>db.collection("threads").doc(u);
 let TH=null,MSGS=[],ADM_TH=[],openTh=null,openMsgs=[],unsubs=[];
 const tsMs=t=>t&&t.toMillis?t.toMillis():Date.now();
-const fmt=t=>new Date(tsMs(t)).toLocaleString("ar",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+const fmt=t=>new Date(tsMs(t)).toLocaleString("ar-u-nu-latn",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 function setBadge(n){const b=$("mBadge");b.textContent=n>9?"9+":n;b.classList.toggle("on",n>0)}
 let MSG_RETRY=null;const msgErr=()=>{clearTimeout(MSG_RETRY);MSG_RETRY=setTimeout(()=>{if(UID)startMessages()},8000)};
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&UID&&unsubs.length)startMessages()});
@@ -2924,7 +2924,7 @@ function renderUser(){
   </div>
   ${sm.ms?`<div class="rsec"><h3>📏 المقياس: ${sm.ms.total} من 100${sm.lg!=null?" · "+TIERS[sm.lg][1]+" "+tierName(sm.lg):""}</h3>${Object.keys(MPARTS).map(k=>`<div class="mbar"><span>${MPARTS[k][0]}</span><i><b style="width:${(sm.ms.parts[k]||0)/MPARTS[k][1]*100}%"></b></i><em>${sm.ms.parts[k]||0}/${MPARTS[k][1]}</em></div>`).join("")}<p class="rnote" style="margin-top:6px">يراه المدير وحده، ويُستعمل لوضع المتعلّمين المتقاربين في مجموعة واحدة من الدوري.</p></div>`:""}
   <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
-  <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
+  <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar-u-nu-latn",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec"><label class="hidepub"><input type="checkbox" id="uFree" ${(CFG.free||[]).includes(u.id)?"checked":""}><span><b>🎓 الدراسة الحرّة</b><small>طاقة بلا حدود، والمحطات تتجدّد كلما أنهاها بلا حدّ يومي، ولا يكسب من الدراسة خبرة ولا جواهر ولا تقدّمًا في الدوري. تحفظ كلماته ومراجعاته كالمعتاد.</small></span></label></div>
   <div class="rsec"><h3>🛤️ عدد محطاته اليومية</h3><p class="rnote">بعد كل محطة تدريبها، وفي آخر المسار تحدٍّ قصير مجاني. اتركه «افتراضي» ليأخذ العدد العام (${ST_MAX}).</p>
    <div class="numpicks" id="uStn"><button type="button" class="numpick${(CFG.stn||{})[u.id]?"":" on"}" data-v="0">افتراضي</button>${[1,2,3,4,5,6,7,8,10].map(n=>`<button type="button" class="numpick${(CFG.stn||{})[u.id]===n?" on":""}" data-v="${n}">${n}</button>`).join("")}</div></div>
