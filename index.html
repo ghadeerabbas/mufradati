@@ -1002,7 +1002,9 @@ function stationSteps1(words){
     if(x<0)return false;
     const p=pend.splice(x,1)[0];out.push(p.s);if(p.next)pend.push({s:p.next,ready:out.length+3});return true;
   };
-  words.forEach((w,i)=>{out.push({t:"intro",w});pend.push({s:second(w),next:third(w,i),ready:out.length+2});take(false);});
+  // لا تأتي ثلاث كلمات جديدة متتالية: بعد عرضين متتاليين يأتي تمرين على كلمة سبق عرضها
+  const twoIntros=()=>out.length>=2&&out[out.length-1].t==="intro"&&out[out.length-2].t==="intro";
+  words.forEach((w,i)=>{if(twoIntros())take(true);out.push({t:"intro",w});pend.push({s:second(w),next:third(w,i),ready:out.length+2});take(false);});
   while(pend.length)take(true);
   return out;
 }
