@@ -551,6 +551,12 @@ body.fbon main{padding-bottom:210px}
 .toast b{display:block;color:var(--hd)}
 @keyframes tin{from{transform:translateY(-30px);opacity:0}}
 body.shell main,body.shell header .chips{pointer-events:none}
+/* شريط التبويبات في أسفل الشاشة كالتطبيقات */
+#mainNav,#admNav{position:fixed;left:0;right:0;bottom:0;z-index:40;max-width:none;justify-content:center;background:var(--card);border-top:2px solid var(--line);padding:2px max(4px,calc((100vw - 720px)/2)) env(safe-area-inset-bottom);box-shadow:0 -4px 14px rgba(0,0,0,.08)}
+#mainNav button,#admNav button{border-bottom:0;border-top:4px solid transparent;padding:6px 1px 6px}
+#mainNav button.on,#admNav button.on{border-top-color:var(--navy)}[data-dark] #mainNav button.on,[data-dark] #admNav button.on{border-top-color:var(--hd)}
+body:not(.lesson) main{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+body.lesson #mainNav,body.lesson #admNav{display:none}
 /* الدرس بشاشة كاملة: تختفي الأشرطة والتبويبات أثناء المحطة والتدريب والمراجعة والتمارين */
 body.lesson header,body.lesson #mainFilters{display:none!important}body.lesson main{padding-top:14px}
 body.lesson .sess{position:sticky;top:0;z-index:5;background:var(--paper);padding-top:6px;padding-bottom:6px}
