@@ -1401,10 +1401,10 @@ function pagerHTML(pages){
 }
 function renderList(){
   const q=$("q").value.trim().toLowerCase(),t=$("fType").value;
-  const r=filtered().filter(w=>(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));
+  const r=filtered().filter(w=>P[w.k]&&(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));   // الكلمات التي تعلّمها فقط
   const pages=Math.max(1,Math.ceil(r.length/LSIZE));LPAGE=Math.min(Math.max(0,LPAGE),pages-1);
   const from=LPAGE*LSIZE,part=r.slice(from,from+LSIZE);
-  $("lcount").textContent=r.length?`${r.length} كلمة · ${from+1}–${from+part.length}`:"لا كلمات";
+  $("lcount").textContent=r.length?`تعلّمت ${arN(r.length,"كلمة واحدة","كلمتين","كلمات")} · ${from+1}–${from+part.length}`:q||t!=="all"?"لا كلمات":"لم تتعلّم كلمات بعد. ابدأ أول محطة لتظهر كلماتك هنا";
   $("litems").innerHTML=part.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
    return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>
    ${exPairs(w,"list")}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
