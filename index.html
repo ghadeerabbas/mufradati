@@ -677,7 +677,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=17"></script>
+<script src="core.js?v=18"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2197,6 +2197,7 @@ function fitWords(){
 {let lmq=0;new MutationObserver(()=>{if(!lmq)lmq=requestAnimationFrame(()=>{lmq=0;lessonMode();fitWords();setTimeout(fitWords,150)})}).observe(document.querySelector("main"),{childList:true,subtree:true})}
 let VER0=null,UPD=false;
 async function checkUpdate(){
+  if(UPD){tryReload();return}   // نسخة جديدة معروفة تنتظر وقتًا مناسبًا لإعادة التحميل
   try{const q=await fetch("index.html",{method:"HEAD",cache:"no-cache"});const v=q.ok&&(q.headers.get("etag")||q.headers.get("last-modified"));if(!v)return;
     if(VER0==null){VER0=v;return}if(v!==VER0){UPD=true;tryReload()}}catch(e){}
 }
@@ -2528,7 +2529,7 @@ function watchCfg(){
   cfgUnsub=db.collection("config").doc("app").onSnapshot(d=>{
     const v=d.exists?d.data().v||"":"";try{localStorage.setItem("muf_cfg",v)}catch(e){}if(v===CFGRAW)return;CFGRAW=v;
     let c=null;try{c=v?JSON.parse(v):null}catch(e){}
-    applyCfg(c);cfgCss();econ();renderHeader();
+    applyCfg(c);cfgCss();econ();renderHeader();applyOffMode();
     const on=document.querySelector(".panel.on");if(on&&on.id!=="review"&&on.id!=="cfgP"&&on.id!=="shopEd")renderPanel(on.id);
   },()=>{});
 }
@@ -2711,7 +2712,7 @@ async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
   UID=user.uid;loadState();GIFTS=jget(K("gifts"),[]);
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
-  watchCfg();
+  watchCfg();applyOffMode();
   await loadCourses();MY_COURSES=await myCourses();
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
@@ -3039,6 +3040,9 @@ function renderUser(){
   <div class="rsec"><h3>نشاطه في آخر 14 يومًا</h3>${colChart(sm.d14,lb)}</div>
   <div class="rsec"><h3>منذ</h3><p style="font-size:.88rem">أول مراجعة: ${sm.first?new Date(sm.first).toLocaleDateString("ar-u-nu-latn",{day:"numeric",month:"long"}):"—"} · آخر تحديث للملخّص: ${ago(sm.at)}</p></div>`}
   <div class="rsec"><label class="hidepub"><input type="checkbox" id="uFree" ${(CFG.free||[]).includes(u.id)?"checked":""}><span><b>🎓 الدراسة الحرّة</b><small>طاقة بلا حدود، والمحطات تتجدّد كلما أنهاها بلا حدّ يومي، ولا يكسب من الدراسة خبرة ولا جواهر ولا تقدّمًا في الدوري. تحفظ كلماته ومراجعاته كالمعتاد.</small></span></label></div>
+  <div class="rsec"><h3>📶 العمل بلا إنترنت (تجريبي)</h3><p class="rnote">يُفتح التطبيق فورًا من نسخة محفوظة في هاتفه، ويعمل بلا إنترنت، ويُرسل تقدّمه حين يعود الاتصال. إلغاؤه يعيده إلى الطريقة العادية ويحذف النسخة المحفوظة.</p>
+   <label class="hidepub"><input type="checkbox" id="uOff" ${(CFG.off&&CFG.off.u||[]).includes(u.id)?"checked":""}><span><b>لهذا المتعلّم</b></span></label>
+   <label class="hidepub"><input type="checkbox" id="uOffAll" ${CFG.off&&CFG.off.all?"checked":""}><span><b>لكل المتعلّمين</b><small>الإلغاء من هنا يوقفه عند الجميع (إلا من فُعّل له وحده)</small></span></label></div>
   <div class="rsec"><h3>🛤️ عدد محطاته اليومية</h3><p class="rnote">بعد كل محطة تدريبها، وفي آخر المسار تحدٍّ قصير مجاني. اتركه «افتراضي» ليأخذ العدد العام (${ST_MAX}).</p>
    <div class="numpicks" id="uStn"><button type="button" class="numpick${(CFG.stn||{})[u.id]?"":" on"}" data-v="0">افتراضي</button>${[1,2,3,4,5,6,7,8,10].map(n=>`<button type="button" class="numpick${(CFG.stn||{})[u.id]===n?" on":""}" data-v="${n}">${n}</button>`).join("")}</div></div>
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
@@ -3054,6 +3058,10 @@ function renderUser(){
     sp.querySelectorAll(".numpick").forEach(x=>x.disabled=true);
     if(await saveCfg(c,v?"محطاته اليومية: "+v:"محطاته اليومية: الافتراضي"))applyCfg(c);
     sp.querySelectorAll(".numpick").forEach(x=>{x.disabled=false;x.classList.toggle("on",+x.dataset.v===((CFG.stn||{})[u.id]||0))})}}
+  {const a=$("uOff"),b=$("uOffAll");const sv=async(el,f,msg)=>{el.disabled=true;const o=CFG.off||{all:0,u:[]},c={...CFG,off:f({all:o.all?1:0,u:[...(o.u||[])]})};
+     if(await saveCfg(c,msg(el.checked)))applyCfg(c);else el.checked=!el.checked;el.disabled=false};
+   if(a)a.onchange=()=>sv(a,o=>{const s=new Set(o.u);a.checked?s.add(u.id):s.delete(u.id);return {...o,u:[...s]}},on=>on?"فُعّل العمل بلا إنترنت لهذا المتعلّم":"أُلغي العمل بلا إنترنت لهذا المتعلّم");
+   if(b)b.onchange=()=>sv(b,o=>({...o,all:b.checked?1:0}),on=>on?"فُعّل العمل بلا إنترنت للجميع":"أُلغي العمل بلا إنترنت للجميع")}
   {const cb=$("uFree");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setFree(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false}}
   $("uWipe").onclick=()=>wipeUser(u);
   $("uNmBtn").onclick=async()=>{
@@ -3188,7 +3196,18 @@ window.mufBack=()=>{handleBack()};
 document.addEventListener("click",()=>{if(!(history.state&&history.state.muf))trapBack()},true);
 
 // البدء بعد تعريف كل شيء
-if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+if("serviceWorker" in navigator){navigator.serviceWorker.register("sw.js").catch(()=>{});
+  // في وضع «العمل بلا إنترنت» يخبرنا عامل الخدمة بوصول نسخة جديدة، فنعيد التحميل في وقت مناسب
+  navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.type==="updated"){UPD=true;tryReload()}});
+  navigator.serviceWorker.ready.then(r=>{if(r.active)r.active.postMessage({type:"hello"})}).catch(()=>{})}
+// «العمل بلا إنترنت»: يفعّله المشرف لمتعلّم بعينه أو للجميع، ويُرسَل الوضع إلى عامل الخدمة عند تغيّره فقط
+const offOn=()=>!!(UID&&!isAdmin()&&CFG.off&&(CFG.off.all||(CFG.off.u||[]).includes(UID)));
+function applyOffMode(){
+  if(!("serviceWorker" in navigator)||!UID)return;const on=offOn(),k="muf_offmode";
+  let was=null;try{was=localStorage.getItem(k)}catch(e){}
+  if(was===(on?"1":"0"))return;
+  navigator.serviceWorker.ready.then(r=>{if(r.active){r.active.postMessage({type:"mode",on});try{localStorage.setItem(k,on?"1":"0")}catch(e){}}}).catch(()=>{});
+}
 init();trapBack();
 auth.onAuthStateChanged(u=>{if(u)onLogin(u);else showLogin()});
 </script>
