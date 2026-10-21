@@ -499,6 +499,10 @@ body.fbon main{padding-bottom:210px}
 .sw{display:flex;gap:3px;justify-content:center}.sw i{width:16px;height:16px;border-radius:50%}
 /* شاشة الدخول */
 #login .lbox{position:relative}.ldark{position:absolute;top:12px;left:12px;width:40px;height:40px;border-radius:50%;border:2px solid var(--line);background:var(--soft);font-size:1.25rem;display:grid;place-items:center;cursor:pointer;padding:0}.ldark .i3{width:24px;height:24px}
+/* شاشة البداية لحظة فتح التطبيق */
+.boot{display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;animation:fade .4s}.boot img{width:132px;height:132px;border-radius:30px}
+.boot b{font-size:2.6rem;font-weight:800;line-height:1.2;margin-top:6px}.boot small{color:var(--gold);font-weight:600;font-size:1rem}
+.boot i{width:26px;height:26px;border-radius:50%;border:3px solid rgba(255,255,255,.25);border-top-color:#fff;margin-top:18px;animation:spin .9s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
 #login{position:fixed;inset:0;z-index:90;background:linear-gradient(160deg,var(--navy),var(--navy2) 60%,#000);display:flex;align-items:center;justify-content:center;padding:20px;overflow:auto}
 .lbox{background:var(--card);color:var(--ink);border-radius:22px;padding:26px 22px;width:min(400px,100%);text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4);display:flex;flex-direction:column;gap:10px}
 .lbox .logo{font-size:3rem;line-height:1}
@@ -591,7 +595,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
 <body>
 <div id="toasts"></div>
 <div id="fbModal"></div>
-<div id="login"><div class="lbox"><div class="logo">📚</div><p class="sub">جارٍ التحميل…</p></div></div>
+<div id="login"><div class="boot"><img src="icons/icon-192.png" alt=""><b>مفرداتي</b><small>ادرس مفرداتك الألمانية بذكاء</small><i></i></div></div>
 <header>
   <div class="hrow">
     <div class="avatar" id="hAv">🎓<span class="lv" id="hLv">1</span></div>

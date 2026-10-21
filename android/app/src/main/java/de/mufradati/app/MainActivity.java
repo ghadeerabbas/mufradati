@@ -29,7 +29,7 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle state) {
         super.onCreate(state);
         web = new WebView(this);
-        web.setBackgroundColor(Color.parseColor("#1f2a5a"));
+        web.setBackgroundColor(Color.TRANSPARENT);   // تظهر شاشة البداية (خلفية النافذة) حتى ترسم الصفحة نفسها
         setContentView(web);
 
         WebSettings s = web.getSettings();

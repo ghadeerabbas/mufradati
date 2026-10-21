@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- شاشة البداية: أيقونة التطبيق واسمه على الخلفية الكحلية، تظهر حتى تُحمَّل الصفحة -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/bg"/>
+    <item android:gravity="center" android:width="220dp" android:height="264dp" android:drawable="@drawable/splash_logo"/>
+</layer-list>
