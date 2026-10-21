@@ -222,8 +222,9 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .zn.chal .go{color:#a855f7;top:-36px}.zn.chal .tl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;font-weight:800;font-size:.8rem;color:#a855f7}
 .zn.chal.ok .tl{color:#cf8a00}
 .btn.chalbtn{background:linear-gradient(135deg,#b05cf5,#7c2fd0);box-shadow:0 4px 0 #5a1fa0;color:#fff}
-.unit{background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border-radius:16px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.18);margin-bottom:12px}
-.unit b{font-size:1.05rem;display:block;line-height:1.4}.unit small{opacity:.85;font-weight:700;font-size:.78rem}.unit .i3{width:40px;height:40px;background:rgba(255,255,255,.18);border-radius:12px;padding:4px}
+/* شريط المنهج: ثابت تحت شريط الاسم عند التمرير */
+.unit{position:sticky;top:calc(var(--hdrH,64px) + 6px);z-index:15;background:linear-gradient(135deg,#0b6e69,#139a8f);color:#fff;border-radius:14px;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 3px 10px rgba(0,0,0,.22);margin:0 6px 12px}
+.unit>div{min-width:0}.unit b{font-size:.95rem;display:block;line-height:1.35}.unit small{opacity:.9;font-weight:700;font-size:.7rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.unit .i3{width:30px;height:30px;background:rgba(255,255,255,.18);border-radius:10px;padding:3px;flex:none}
 .coach{display:flex;align-items:flex-end;gap:6px;margin:4px 0 -10px}
 /* النرد يرقص: يتمايل ويقفز، يلوّح بيد ثم ينزلها ويلوّح بالأخرى */
 .mz{width:100px;aspect-ratio:360/320;position:relative;flex:none;animation:dance 6s ease-in-out infinite;transform-origin:50% 100%}
@@ -620,6 +621,8 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
     <button data-p="shop"><i><img class="i3" src="img/3d/shop.png" alt=""></i>المتجر</button>
   </nav>
 </header>
+<script>/* ارتفاع شريط الاسم: ليثبت شريط المنهج تحته مباشرة */
+(function(){const h=document.querySelector("header"),set=()=>document.documentElement.style.setProperty("--hdrH",h.offsetHeight+"px");set();try{new ResizeObserver(set).observe(h)}catch(e){addEventListener("resize",set)}})();</script>
 <main>
   <div class="filters" id="mainFilters">
     <select id="fDay"><option value="all">كل الأيام</option></select>
