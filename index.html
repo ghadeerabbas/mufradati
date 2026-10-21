@@ -982,15 +982,22 @@ function startStation(){
   RVDONE=null;stationView();scrollTo(0,0);
 }
 // المحطة درس متدرّج: لكل كلمة ثلاث خطوات (تعرّف، ثم جملة، ثم تمرين)، ثم تُعاد الكلمات التي أُخطئ فيها
-function stationSteps(words){
+function stationSteps(words){   // نحاول عدة ترتيبات عشوائية ونأخذ أول ترتيب لا تتكرّر فيه الكلمة نفسها مرتين متتاليتين
+  let s;for(let n=0;n<30;n++){s=stationSteps1(words);if(!s.some((x,i)=>i&&s[i-1].w===x.w))break}
+  return s;
+}
+function stationSteps1(words){
   // تُعرَّف الكلمات واحدة بعد أخرى، وتمارين كل كلمة تتوزّع بين الكلمات التالية:
   // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
-  const out=[],pend=[];
-  const second=w=>({t:clozeOf(w)?"cloze":w.ex?"ex":"rev",w}),third=(w,i)=>({t:i%2?"rev":"mc",w});
+  // الترتيب عشوائي في كل مرة: ترتيب الكلمات، ونوع التمرين الثالث، وأيّ تمرين جاهز يأتي أولًا
+  const out=[],pend=[];words=shuffle([...words]);
+  const second=w=>({t:clozeOf(w)?"cloze":w.ex?"ex":"rev",w}),third=w=>({t:Math.random()<.5?"rev":"mc",w});
+  const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:-1;
   const take=force=>{
     const last=out.length?out[out.length-1].w:null;
-    let x=pend.findIndex(p=>p.ready<=out.length&&p.s.w!==last);
-    if(x<0&&force)x=pend.findIndex(p=>p.s.w!==last);
+    const idx=f=>pend.map((p,i)=>f(p)?i:-1).filter(i=>i>=0);
+    let x=pick(idx(p=>p.ready<=out.length&&p.s.w!==last));
+    if(x<0&&force)x=pick(idx(p=>p.s.w!==last));
     if(x<0&&force)x=0;
     if(x<0)return false;
     const p=pend.splice(x,1)[0];out.push(p.s);if(p.next)pend.push({s:p.next,ready:out.length+3});return true;
