@@ -127,7 +127,7 @@ const UNLOCK={avatar:{av1:0,av2:0,av3:1,av4:1,av5:1,av6:2,av7:2,av8:3,av9:3,av10
  namecolor:{red:0,green:0,blue:0,orange:1,purple:1,pink:2,teal:2,brown:3,silver:4,gold:5,emerald:7,sapphire:9}};
 SHOP_BASE.forEach(x=>{const t=(UNLOCK[x.cat]||{})[x.id];if(t!=null)x.tier=t;if(x.cat!=="power")x.price=Math.round(x.price/2)});   // الأسعار نصف ما كانت
 let SHOP=[];
-const CUSTOM_CATS=["avatar","sticker","title","namecolor","frame"];
+const CUSTOM_CATS=["avatar","title","namecolor","frame"];   // الملصقات أُلغيت (أكتوبر 2026)
 const _col=v=>/^#[0-9a-fA-F]{6}$/.test(String(v||""))?String(v):"";
 function buildShop(){
   const ov=CFG.shop||{};
@@ -144,6 +144,7 @@ function buildShop(){
     if(!y.price&&!y.streak)y.price=1;      // الغرض المجاني يكون بالسلسلة فقط
     SHOP.push(y);
   }
+  SHOP=SHOP.filter(x=>x.cat!=="sticker");
 }
 // هدية التجميد من المشرف (مساعدة لمرة واحدة): هدية ملاحظتها تبدأ بـ ❄️، تُحسب تجميدًا لا جواهر
 const isFzGift=g=>String(g.note||"").startsWith("❄️");
@@ -151,7 +152,7 @@ const isEnGift=g=>String(g.note||"").startsWith("⚡");   // هدية طاقة �
 const isGemGift=g=>!isFzGift(g)&&!isEnGift(g);
 const qXp=q=>q[6]?0:q[1]*CFG.xp.quiz*(q[3]==="chal"?2:1);   // التحدي اليومي بخبرة مضاعفة
 const giftTs=g=>!g.ts?0:g.ts.toMillis?g.ts.toMillis():g.ts.ms||+g.ts||0;
-const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",sticker:"الملصقات",confetti:"الاحتفالات",power:"المعزّزات"};
+const CATS={avatar:"الرموز",title:"الألقاب",theme:"السمات",frame:"الإطارات",namecolor:"ألوان الاسم",confetti:"الاحتفالات",power:"المعزّزات"};
 const EQKEY={namecolor:"ncolor",avatar:"avatar",title:"title",theme:"theme",frame:"frame",sticker:"sticker",confetti:"confetti"};
 const stkVal=v=>{if(!v)return"";const it=SHOP.find(x=>x.cat==="sticker"&&x.id===v);return it?it.val:v};
 const itemOf=(cat,id)=>SHOP.find(x=>x.cat===cat&&x.id===id);
@@ -247,7 +248,8 @@ function econ(){
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   gems+=giftSum();                                      // هدايا المشرف
-  const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
+  // الملصقات أُلغيت: ما اشتُري منها لا يُحسب من الجواهر، فيعود ثمنه إلى الرصيد (ويبقى في السجلّ لإنجاز «جامع التحف»)
+  const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");if(c==="sticker")return a;const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
   EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got),alv,todayN:td.n,per};
   return EC;

@@ -60,7 +60,19 @@ html,body{overflow-x:clip;max-width:100%}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
 .chip{display:inline-flex;align-items:center;gap:1px;font-size:1rem;font-weight:800;white-space:nowrap;color:var(--muted)}
 .chip .i3{width:24px;height:24px}.chip.fire.on{color:#ff9600}.usearch{display:flex;gap:6px;margin:10px 0;scroll-margin-top:140px}.usearch input{flex:1;text-align:center;letter-spacing:1px}.upager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0}.upager span{color:var(--muted);font-size:.85rem}.upager .btn:disabled{opacity:.4}
-.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ph{color:#a855f7;font-style:italic;font-weight:600}.denote{display:inline-block;font-size:.55em;font-weight:600;color:var(--muted);vertical-align:middle;white-space:nowrap}.denote.blk{display:block;font-size:.5em;margin-top:4px}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
+.uno{color:var(--muted);font-weight:400;font-size:.75rem;margin-inline-start:4px}.ph{color:#a855f7;font-style:italic;font-weight:600}.denote{display:inline-block;font-size:.55em;font-weight:600;color:var(--muted);vertical-align:middle;white-space:nowrap}.denote.blk{display:block;font-size:.5em;margin-top:4px}.bigfx{position:fixed;inset:0;z-index:90;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px 18px;opacity:0;transition:opacity .25s}
+.bigfx.on{opacity:1}.bfin{width:min(420px,100%);text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}.bfin #bfGo{width:100%;margin-top:18px}
+.bfire .i3{width:150px;height:150px;animation:bpop .7s cubic-bezier(.2,1.6,.4,1)}.bcup .cup{width:150px;height:150px;animation:bpop .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes bpop{0%{transform:scale(.2);opacity:0}100%{transform:scale(1);opacity:1}}
+.bnum{font-size:5rem;font-weight:900;line-height:1;background:linear-gradient(#ffb02e,#ff4b1f);-webkit-background-clip:text;background-clip:text;color:transparent}
+.blab{font-size:1.5rem;font-weight:800;color:#ff6a1f}.bmsg{color:var(--ink);font-size:1.05rem;margin-top:10px}
+.wk{display:flex;gap:6px;margin-top:18px;width:100%;justify-content:center}.wd{flex:1;max-width:46px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.wd small{color:var(--muted);font-weight:700}.wd.now small{color:#ff6a1f}.wd i{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--soft);font-style:normal;font-weight:900;color:#3a1a00}
+.wd.ok i{background:linear-gradient(#ffb02e,#ff5a1f);box-shadow:0 3px 0 #c43d0e}.wd.fut i{opacity:.5}
+.btit{font-size:1.5rem;margin-top:8px}.bsub{color:var(--muted);font-weight:700}.blg{width:100%;margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.blr{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:12px;background:var(--card);border:1px solid var(--line)}.blr b{width:22px;color:var(--muted)}.blr span{flex:1;text-align:right;font-weight:700}.blr em{font-style:normal;color:var(--muted);font-size:.85rem}
+.blr.me{border:2px solid #1cb0f6;background:rgba(28,176,246,.08)}
+.pracnote{text-align:center;margin:0 0 8px;font-size:.82rem}.ufire.dim{filter:grayscale(1);opacity:.45}.chip.fire.dim{color:var(--muted)}.chip.fire.dim .i3{filter:grayscale(1);opacity:.45}
 .chip.fire.ignite .i3{animation:ignite .9s ease-out}@keyframes ignite{0%{transform:scale(.6);filter:grayscale(1)}45%{transform:scale(1.55) rotate(-8deg);filter:drop-shadow(0 0 8px #ff9600)}100%{transform:scale(1);filter:none}}#hGem{color:#1cb0f6}#hEn{color:#58a700}
 .i3{display:inline-block;vertical-align:middle;object-fit:contain;width:1.3em;height:1.3em}
 .gic .i3{width:1.15em;height:1.15em}.logo .i3{width:1em;height:1em}.say .i3,.hear .i3{width:1.1em;height:1.1em}
@@ -539,6 +551,9 @@ body.fbon main{padding-bottom:210px}
 .toast b{display:block;color:var(--hd)}
 @keyframes tin{from{transform:translateY(-30px);opacity:0}}
 body.shell main,body.shell header .chips{pointer-events:none}
+/* الدرس بشاشة كاملة: تختفي الأشرطة والتبويبات أثناء المحطة والتدريب والمراجعة والتمارين */
+body.lesson header,body.lesson #mainFilters{display:none!important}body.lesson main{padding-top:14px}
+body.lesson .sess{position:sticky;top:0;z-index:5;background:var(--paper);padding-top:6px;padding-bottom:6px}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 </style>
@@ -626,7 +641,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=13"></script>
+<script src="core.js?v=14"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -765,6 +780,9 @@ function artHTML(de){
   // ما بعد أول «+» ملاحظة نحوية: تُعرض صغيرة باهتة ولا تُقرأ بالصوت
   const pi=String(de).indexOf("+");
   if(pi>0)return artHTML(de.slice(0,pi).trim())+` <span class="denote">${esc(de.slice(pi).trim())}</span>`;
+  // der/die Angestellte: كل أداة بلونها
+  const m2=de.match(/^(der|die|das)\/(der|die|das)\s/i);
+  if(m2)return `<b class="art art-${m2[1].toLowerCase()}">${esc(m2[1])}</b>/<b class="art art-${m2[2].toLowerCase()}">${esc(m2[2])}</b>`+(PH_RE.test(de)?phHTML(de.slice(m2[0].length-1),null):esc(de.slice(m2[0].length-1)));
   const m=de.match(/^(der|die|das)\s/i);
   if(PH_RE.test(de))return phHTML(de,m);
   // اللون للأداة وحدها (der أزرق، die أحمر، das أخضر)، والكلمة بلون النص الثابت
@@ -851,7 +869,7 @@ function celebrate(prev){
   achList().forEach(a=>{const k=e.alv[a.id]||0,pk=(prev.alv||{})[a.id]||0;if(k>pk){toast(achIc(a),a.n+" · المستوى "+k,a.L[k-1][0]+" "+a.u);confetti(60)}});
   {const pb=Math.max(prev.s.best,R.sb||0);for(const [d,g] of STREAK_G)if(e.s.best>=d&&pb<d){toast("🔥","سلسلة "+d+" يومًا!","+"+g+" 💎");confetti(120)}
    const nu=SHOP.filter(x=>x.streak&&x.streak>pb&&x.streak<=e.s.best);if(nu.length)setTimeout(()=>toast(I3("gift"),"هدية سلسلة جديدة في المتجر",nu.map(x=>x.name).join("، ")),1200)}
-  if(e.s.streak>prev.s.streak)toast("🔥","سلسلتك الآن "+e.s.streak+" "+(e.s.streak===1?"يوم":"أيام"),"عُد غدًا لتحافظ عليها");
+  if(e.s.streak>prev.s.streak)streakScreen(e);
 }
 
 /* ================= المراجعة ================= */
@@ -1223,7 +1241,7 @@ function showCard(){
       RES={title:"أحسنت! راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
     reviewHome();scrollTo(0,0);return}
   cur=queue[0];flipped=false;
-  const isNew=!P[cur.k],tc="t-"+cur.t,stk=E.sticker?`<span class="stk">${stkH(stkVal(E.sticker))}</span>`:"";
+  const isNew=!P[cur.k],tc="t-"+cur.t,stk="";
   const front=S.dir==="de"?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
   el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
@@ -1236,10 +1254,12 @@ function showCard(){
 }
 function flip(){
   if(flipped)return;flipped=true;$("flip").classList.add("on");
-  const b=(P[cur.k]||{box:0}).box,d=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
-  $("rate").innerHTML=`<div class="rate">
-   <button class="btn r0" data-r="0">نسيت<small>الآن</small></button>
-   <button class="btn r1" data-r="1">صعبة<small>${d(1)}</small></button>
+  const b=(P[cur.k]||{box:0}).box,d0=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
+  // مراجعة قبل موعدها: تدريب لا يغيّر موعد الكلمة، فلا نعرض مواعيد تحت الأزرار
+  const prac=!!(P[cur.k]&&P[cur.k].box>0&&!rewarded(P[cur.k],cur.k,Date.now(),LOG)),d=n=>prac?"تدريب":d0(n);
+  $("rate").innerHTML=`${prac?'<p class="rnote pracnote">🔁 تدريب: لم يحن موعد هذه الكلمة، فمراجعتها الآن لا تغيّر موعدها ولا تعطي خبرة.</p>':""}<div class="rate">
+   <button class="btn r0" data-r="0">نسيت<small>${prac?"تدريب":"الآن"}</small></button>
+   <button class="btn r1" data-r="1">صعبة<small>${d(IV[Math.max(1,b)])}</small></button>
    <button class="btn r2" data-r="2">عرفتها<small>${d(IV[Math.min(b+1,8)])}</small></button>
    <button class="btn r3" data-r="3">سهلة<small>${d(IV[Math.min(b+2,8)])}</small></button></div>`;
   document.querySelectorAll(".rate button").forEach(x=>x.onclick=()=>rate(+x.dataset.r,x));
@@ -1440,6 +1460,9 @@ const coreOf=s=>normT(s).replace(/[.,!?;:"„“]+/g,"").replace(ART,"").split("
 function checkTyped(w,v){
   v=normT(v);const ans=answersOf(w).map(normT),key=coreOf(v).toLowerCase();
   const a=ans.find(x=>coreOf(x).toLowerCase()===key&&key);
+  // في الأفعال يكفي الفعل وحده (träumen بدل von etwas träumen)، وتظهر الصيغة الكاملة ملاحظةً لا خطأً
+  if(!a&&w.t==="v"&&key&&!key.includes(" ")){const h=ans.find(x=>{const c=coreOf(x).toLowerCase().split(" ");return c.length>1&&c[c.length-1]===key});
+    if(h)return {ok:1,a:h,note:"الصيغة الكاملة: "+String(w.de).split(",")[0].replace(/\s+/g," ").trim()}}
   if(!a)return {ok:0,a:ans[0]};
   const nn=nounOf(w),m=v.match(ART);let note="";
   if(nn&&!m)note="تذكّر الأداة: "+nn.art+" "+nn.noun;
@@ -1722,8 +1745,38 @@ async function groupTable(w,prog,fresh){
   return tableFor(UID,w,docs,prev,prog);
 }
 // نتيجة الأسبوع الماضي يحسبها الخادم، والتطبيق يعرضها عند وصولها
+// شاشات الاحتفال الكاملة (السلسلة، ونتيجة الأسبوع في الدوري): تنتظر انتهاء الدرس، وتأتي واحدة بعد أخرى
+let BIGQ=Promise.resolve();
+function bigScreen(html,cls,after){
+  BIGQ=BIGQ.then(()=>new Promise(res=>{
+    const show=()=>{if(document.body.classList.contains("lesson")){setTimeout(show,1200);return}
+      const d=document.createElement("div");d.className="bigfx "+(cls||"");d.innerHTML=`<div class="bfin">${html}<button class="btn next" id="bfGo">متابعة</button></div>`;
+      document.body.appendChild(d);requestAnimationFrame(()=>d.classList.add("on"));if(after)after(d);
+      d.querySelector("#bfGo").onclick=()=>{d.classList.remove("on");setTimeout(()=>{d.remove();res()},260)}};
+    show()}));
+}
+const WD=["ن","ث","ر","خ","ج","س","ح"];   // الاثنين … الأحد (الأسبوع كأسبوع الدوري)
+function dayDone(e,d){return d<"2026-10-16"?!!e.per[d]:!!((e.per[d]&&e.per[d].n>=10)||STN.some(x=>dkey(x[0])===d))}
+function streakScreen(e){
+  const n=e.s.streak,ws=weekStart(Date.now()),td=today();
+  const days=[...Array(7)].map((_,i)=>{const d=dkey(ws+i*DAY+12*3600e3);return {d,done:dayDone(e,d),fut:d>td,now:d===td}});
+  const missed=days.some(x=>!x.fut&&!x.done),left=days.filter(x=>x.fut).length;
+  const lab=n===1?"يوم في سلسلتك":n===2?"يومان متتاليان":n<=10?"أيام متتالية":"يومًا متتاليًا";
+  const msg=missed?"عُد غدًا لتحافظ على سلسلتك وتكبر شعلتك!":left?"ادرس "+arN(left,"يومًا آخر","يومين آخرين","أيام أخرى")+" لتكمل أسبوعًا مثاليًا!":"أكملت أسبوعًا مثاليًا! 🌟";
+  bigScreen(`<div class="bfire">${I3("fire")}</div><div class="bnum">${n}</div><div class="blab">${lab}</div>
+    <div class="wk">${days.map((x,i)=>`<div class="wd${x.done?" ok":""}${x.now?" now":""}${x.fut?" fut":""}"><small>${WD[i]}</small><i>${x.done?"✓":""}</i></div>`).join("")}</div>
+    <p class="bmsg">${msg}</p>`,"streakfx",()=>{fx("streak");confetti(90)});
+}
 function leagueNews(res){
   if(!res)return;const t=res.tier+res.mv;
+  {const title=res.mv>0?"صعدت إلى "+tierName(t)+"!":res.mv<0?"نزلت إلى "+tierName(t):"بقيت في "+tierName(t);
+   const sub="المركز "+res.rank+" من "+res.n+" · "+res.xp+" خبرة"+(res.g?" · <bdi dir=ltr>+"+res.g+" 💎</bdi>":"");
+   bigScreen(`<div class="bcup">${TIERS[t][1]}</div><h2 class="btit">${title}</h2><p class="bsub">${sub}</p><div class="blg" id="bLg"></div>
+     <p class="bmsg">${res.mv>0?"أحسنت! أسبوع جديد في دوري أعلى ينتظرك.":res.mv<0?"لا بأس، عُد أقوى هذا الأسبوع.":"أسبوع جديد بدأ، هيا نتقدّم!"}</p>`,"lgfx",async d=>{
+     if(res.mv>0){fx("done");confetti(140)}
+     try{const rows=await groupTable(res.w,1,false),i=rows.findIndex(r=>r.id===UID);if(i<0)return;const a=Math.max(0,Math.min(i-2,rows.length-5)),sl=rows.slice(a,a+5);
+       const box=d.querySelector("#bLg");if(box)box.innerHTML=sl.map((r,j)=>`<div class="blr${r.id===UID?" me":""}"><b>${a+j+1}</b><span>${esc(r.name||"")}${r.bot?" 🤖":""}</span><em>${r.xp} خبرة</em></div>`).join("")}catch(e){}})}
+  return;
   if(res.mv>0){const nf=SHOP.filter(x=>x.tier===t&&x.cat!=="power");if(nf.length)setTimeout(()=>toast(I3("gift"),"انفتحت "+nf.length+" هدايا جديدة في المتجر",nf.map(x=>x.cat==="title"||x.cat==="theme"||x.cat==="frame"?x.name:x.val).join(" ")),1500);toast(TIERS[t][1],"صعدت إلى "+tierName(t)+"!","المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));confetti(150)}
   else if(res.mv<0)toast("⬇️","نزلت إلى "+tierName(t),"المركز "+res.rank+" من "+res.n+" · عُد أقوى هذا الأسبوع");
   else toast(TIERS[t][1],"بقيت في "+tierName(t),"المركز "+res.rank+" من "+res.n+(res.g?" · +"+res.g+" 💎":""));
@@ -1737,7 +1790,7 @@ async function leagueRows(){
 // سطري في الدوري بمظهري الحالي، دون انتظار الحفظ
 function myLook(rows){
   const me=rows.find(r=>r.id===UID);if(!me)return rows;const lf=E.lgFrame??E.frame,ls=E.lgSticker??E.sticker;
-  me.av=String(E.avatar||"🎓");me.fr=owned("frame",lf)?lf||"none":"none";me.st=stkVal(ls);me.nc=myNc();me.name=UNAME;return rows;
+  me.av=String(E.avatar||"🎓");me.fr=owned("frame",lf)?lf||"none":"none";me.st="";me.nc=myNc();me.name=UNAME;return rows;
 }
 function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
 async function fillLeague(){
@@ -1757,7 +1810,7 @@ function drawLeague(rows){
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
+    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
@@ -1862,7 +1915,7 @@ function reportDetailsHTML(){
 // تبويب الدوري
 function renderRewards(){$("rewards").innerHTML=leagueHTML();fillLeague()}
 // الملف الشخصي: يُفتح بالضغط على الصورة في الأعلى
-// مظهري: إطار وملصق مختلفان للبطاقة ولاسمي في الدوري (من مقتنياتي)
+// مظهري: إطار مختلف للبطاقة ولاسمي في الدوري (من مقتنياتي)
 function looksHTML(){
   const frs=SHOP.filter(x=>x.cat==="frame"&&owned("frame",x.id)),sts=SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id));
   const cf=E.frame||"none",lf=E.lgFrame??cf,cs=stkVal(E.sticker),ls=stkVal(E.lgSticker??E.sticker);
@@ -1900,9 +1953,7 @@ function renderProfile(){
     ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec" id="looks">${looksHTML()}</div>
   <div class="rsec"><label class="hidepub"><input type="checkbox" id="hidePub" ${E.hidePub?"checked":""}><span><b>🔒 إخفاء ملفي</b><small>لا يرى المتعلّمون الآخرون إنجازاتك ولا ملصقاتك ولا مستواك وسلسلتك؛ يظهر لهم اسمك ومظهرك ودوريك فقط.</small></span></label></div>
-  <div class="rsec"><h3>ألبوم الملصقات (${stickers.filter(x=>owned("sticker",x.id)).length}/${stickers.length})</h3>
-   <div class="album">${stickers.map(x=>`<span class="${owned("sticker",x.id)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
-   <p style="font-size:.78rem;color:var(--muted);margin-top:6px">اشترِ الملصقات من المتجر، وثبّت أحدها ليظهر على بطاقاتك.</p></div>`+syncHTML();
+`+syncHTML();
   bindLooks();
   $("hidePub").onchange=ev=>{E.hidePub=ev.target.checked?1:0;E.ts=Date.now();save();schedSync(300);toast("🔒",E.hidePub?"ملفك مخفي الآن":"ملفك ظاهر الآن",E.hidePub?"يظهر للآخرين اسمك ومظهرك ودوريك فقط":"يرى الآخرون إنجازاتك وملصقاتك")};
   bindSync();
@@ -2006,6 +2057,13 @@ let PREFLAST="";
 // بصمة ما تعرضه الصفحات: إن لم تتغيّر بعد الحفظ فلا داعي لإعادة الرسم
 let VSIG="";
 const viewSig=()=>{try{const e=EC||econ();return JSON.stringify([e.xp,e.gems,e.lv,e.s.streak,e.s.freezes,BUY.length,LG.tier,(LG.hist||[]).length,STN.length,QLOG.length,LOG.length,Object.keys(P).length,E])}catch(x){return Math.random()+""}};
+// وضع الدرس: يُحسب بعد كل تغيير في المحتوى
+function lessonMode(){
+  const on=document.querySelector(".panel.on"),id=on&&on.id;
+  const a=!!(UID&&!isAdmin()&&((id==="review"&&(STS||DRL||queue.length))||(id==="games"&&GM&&!GM.done)));
+  if(document.body.classList.contains("lesson")!==a){document.body.classList.toggle("lesson",a);if(a)scrollTo(0,0)}
+}
+{let lmq=0;new MutationObserver(()=>{if(!lmq)lmq=requestAnimationFrame(()=>{lmq=0;lessonMode()})}).observe(document.querySelector("main"),{childList:true,subtree:true})}
 let VER0=null,UPD=false;
 async function checkUpdate(){
   try{const q=await fetch("index.html",{method:"HEAD",cache:"no-cache"});const v=q.ok&&(q.headers.get("etag")||q.headers.get("last-modified"));if(!v)return;
@@ -2118,7 +2176,7 @@ function pubData(){
   const lf=E.lgFrame??E.frame;
   return {name:UNAME.slice(0,60),av:String(E.avatar||"🎓").slice(0,8),nc:myNc(),
     fr:owned("frame",lf)?String(lf||"none").slice(0,16):"none",lv:e.lv,xp:e.xp,streak:e.s.streak,best:e.s.best,tier:LG.tier??0,
-    title:(itemOf("title",E.title)||{}).val||"",alv,stk:SHOP.filter(x=>x.cat==="sticker"&&owned("sticker",x.id)).map(x=>x.val),hide:E.hidePub?1:0};
+    title:(itemOf("title",E.title)||{}).val||"",alv,hide:E.hidePub?1:0};
 }
 async function showPlayer(row){
   const m=$("fbModal"),bot=row.dataset.bot==="1",close=()=>{m.style.display="none";m.innerHTML=""};
@@ -2139,7 +2197,6 @@ async function showPlayer(row){
    ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
    <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>${I3("medal")} ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
    <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${achIc(a)}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
-   <h3 class="pch">ألبوم الملصقات (${stickers.filter(x=>have.has(x.val)).length}/${stickers.length})</h3><div class="album">${stickers.map(x=>`<span class="${have.has(x.val)?"":"no"}">${stkH(x.val)}</span>`).join("")}</div>
    <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;
   $("pcClose").onclick=close;
 }
@@ -2641,7 +2698,7 @@ function openThread(u){
   renderAdminThread();
 }
 function renderAdminThread(){
-  const el=$("messages"),t=ADM_TH.find(x=>x.id===openTh)||{};
+  const el=$("messages"),t0=ADM_TH.find(x=>x.id===openTh),t=t0||{name:(()=>{const u=USERS.find(x=>x.id===openTh);return u?uName(u):""})()};
   const ac=t.adminClr?tsMs(t.adminClr):0,shown=ac?openMsgs.filter(m=>tsMs(m.ts)>ac):openMsgs;
   el.innerHTML=`<div class="mhead"><h2>${esc(t.name||"مستخدم")}</h2><button class="btn" id="mBack">→ رجوع</button></div>
    ${openMsgs.length?'<div class="mclr"><button class="btn" id="mClrMe">${I3("trash")} مسح من عندي</button><button class="btn" id="mClrAll">${I3("trash")} مسح من عندي وعنده</button></div>':""}${chatHTML(shown,"admin")}
@@ -2654,6 +2711,8 @@ function renderAdminThread(){
       openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();toast(I3("trash"),"حُذفت المحادثة من الطرفين","")}
     catch(e){toast(I3("warning"),"تعذّر الحذف",e.code==="permission-denied"?"حدّث قواعد الأمان":"")}};
   bindCompose(async v=>{
+    // محادثة جديدة لم يبدأها المتعلّم: يُنشئها الخادم (قواعد الأمان لا تسمح للمشرف بإنشائها مباشرة)
+    if(!ADM_TH.find(x=>x.id===openTh)){await apiPost("/msg",{to:openTh,text:v});return}
     const b=db.batch(),now=firebase.firestore.FieldValue.serverTimestamp();
     const r=tref(openTh).collection("msgs").doc();
     b.set(r,{from:"admin",text:v,ts:now});
@@ -2823,7 +2882,7 @@ function renderUser(){
   const el=$("users"),u=USERS.find(x=>x.id===uOpen);if(!u){uOpen=null;return renderUserList()}
   const sm=u.sum,f=FEEDS[u.id];
   const lb=[...Array(14)].map((_,i)=>new Date(Date.now()-(13-i)*DAY).getDate());
-  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}${noH(u.id)}</h2><button class="btn" id="uBack">→ رجوع</button></div>
+  el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}${noH(u.id)}</h2><span><button class="btn" id="uMsg">✉️ رسالة</button> <button class="btn" id="uBack">→ رجوع</button></span></div>
   <div class="rsec"><h3>✏️ اسمه الظاهر</h3><div class="strow"><input id="uNm" class="stin" maxlength="40" value="${esc(uName(u))}" autocomplete="off"><button class="btn stbtn" id="uNmBtn">حفظ</button></div><div class="stmsg" id="uNmMsg"></div></div>
   <div style="margin-bottom:10px"><span class="ust" style="--sc:${UST[u.st][1]};background:${UST[u.st][1]}">${UST[u.st][0]}</span></div>
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
@@ -2851,6 +2910,7 @@ function renderUser(){
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
+  $("uMsg").onclick=()=>{goTab("messages");openThread(u.id)};
   renderAssign(u.id);bindGiftBox(u.id);
   {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
     const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
