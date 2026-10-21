@@ -12,6 +12,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="مفرداتي">
 <title>مفرداتي</title>
+<link rel="preload" href="fonts/baloo-bhaijaan-2-arabic-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/baloo-bhaijaan-2-arabic-500-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/baloo-bhaijaan-2-arabic-800-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/baloo-bhaijaan-2-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 @font-face{font-family:Baloo;src:url(fonts/baloo-bhaijaan-2-arabic-500-normal.woff2) format("woff2");font-weight:400 500;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF;font-display:swap}
 @font-face{font-family:Baloo;src:url(fonts/baloo-bhaijaan-2-arabic-700-normal.woff2) format("woff2");font-weight:600 700;unicode-range:U+0600-06FF,U+0750-077F,U+08A0-08FF,U+FB50-FDFF,U+FE70-FEFF;font-display:swap}
@@ -534,6 +538,7 @@ body.fbon main{padding-bottom:210px}
 .toast .ic{font-size:1.8rem}
 .toast b{display:block;color:var(--hd)}
 @keyframes tin{from{transform:translateY(-30px);opacity:0}}
+body.shell main,body.shell header .chips{pointer-events:none}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
 </style>
@@ -610,6 +615,14 @@ body.fbon main{padding-bottom:210px}
   <section id="usage" class="panel"></section>
 </main>
 
+<script>
+// فتح فوري: آخر شاشة رئيسية محفوظة على الجهاز تظهر مباشرة، ريثما يتحقّق التطبيق من الحساب ويحمّل الجديد
+try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
+  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"){
+    if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
+    document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r;
+    document.getElementById("login").style.display="none";document.body.classList.add("shell")}}catch(e){}
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -688,7 +701,7 @@ const useSubj=()=>!!(COURSES[COURSE]&&COURSES[COURSE].subjects);   // تصنيف
 // المناهج والكلمات تُحفظ في الهاتف: يفتح التطبيق فورًا منها، ثم تُحدَّث من الإنترنت في الخلفية
 function setCourses(d){COURSES={};d.courses.forEach(c=>COURSES[c.id]=c);DEF_COURSES=(d.default||[]).filter(id=>COURSES[id]);if(!DEF_COURSES.length)DEF_COURSES=[Object.keys(COURSES)[0]]}
 async function loadCourses(){
-  const fresh=fetch("courses.json?v="+Date.now(),{cache:"no-store"}).then(r=>r.text()).then(t=>{const d=JSON.parse(t);if(t!==st("muf_courses")){st("muf_courses",t);setCourses(d)}return true}).catch(()=>false);
+  const fresh=fetch("courses.json",{cache:"no-cache"}).then(r=>r.text()).then(t=>{const d=JSON.parse(t);if(t!==st("muf_courses")){st("muf_courses",t);setCourses(d)}return true}).catch(()=>false);
   const c=jget("muf_courses",null);if(c&&c.courses){setCourses(c);return}
   await fresh;
 }
@@ -711,7 +724,7 @@ async function switchCourse(c){
 }
 async function loadWords(c){
   COURSE=c;const f=COURSES[c].file,ck="muf_w_"+f;
-  const net=fetch(f+"?v="+Date.now(),{cache:"no-store"}).then(r=>r.ok?r.text():null).catch(()=>null);
+  const net=fetch(f,{cache:"no-cache"}).then(r=>r.ok?r.text():null).catch(()=>null);
   let txt=st(ck);
   if(txt){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){st(ck,t);applyWords(JSON.parse(t));if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
   else{txt=await net;if(txt)st(ck,txt)}
@@ -781,23 +794,28 @@ function applyLook(){
 }
 let FIRE_LIT=null,FIRE_DAY="";
 // يتغيّر اليوم والتطبيق مفتوح: نعيد رسم الشريط لتنطفئ الشعلة
-setInterval(()=>{if(UID&&FIRE_DAY&&FIRE_DAY!==dkey(Date.now())){EC=null;renderHeader()}},60000);
+function dayTick(){if(!UID||!FIRE_DAY||FIRE_DAY===dkey(Date.now()))return;EC=null;renderHeader();renderEnergy();
+  const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES&&!isAdmin()){RVDONE=null;reviewHome()}}
+setInterval(dayTick,30000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)dayTick()});
+// يكتب المحتوى فقط إن تغيّر، فلا تُعاد الصور ولا يرمش الشريط
+const setH=(el,h)=>{if(el&&el.dataset.h!==h){el.innerHTML=h;el.dataset.h=h}};
 function renderHeader(){
   const e=EC||econ(),t=itemOf("title",E.title);
-  $("hAv").innerHTML=stkH(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`;
-  $("hTitle").innerHTML=`<bdi>${esc(UNAME)}</bdi>`;$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
+  setH($("hAv"),stkH(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`);
+  setH($("hTitle"),`<bdi>${esc(UNAME)}</bdi>`);$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
-  $("hXpT").innerHTML=`${I3("sparkles")} ${e.rest}/${e.need}`;$("hXpT").title="نقاط الخبرة";
+  setH($("hXpT"),`${I3("sparkles")} ${e.rest}/${e.need}`);$("hXpT").title="نقاط الخبرة";
   // الشعلة: رمادية من منتصف الليل حتى أول دراسة في اليوم، ثم تشتعل
-  const hf=$("hFire"),lit=!!e.s.today;hf.innerHTML=I3("fire")+e.s.streak;hf.classList.toggle("on",lit);hf.classList.toggle("dim",!lit);
+  const hf=$("hFire"),lit=!!e.s.today;setH(hf,I3("fire")+e.s.streak);hf.classList.toggle("on",lit);hf.classList.toggle("dim",!lit);
   hf.title=lit?"أكملت دراسة اليوم، سلسلتك "+e.s.streak+" يومًا":e.s.streak?"ادرس اليوم لتحافظ على سلسلتك":"ابدأ سلسلتك بالدراسة اليوم";
-  if(lit&&FIRE_LIT===false&&FIRE_DAY===dkey(Date.now())){hf.classList.remove("ignite");void hf.offsetWidth;hf.classList.add("ignite");fx("streak")}
+  hf.classList.remove("ignite");
+  if(lit&&FIRE_LIT===false&&FIRE_DAY===dkey(Date.now())){void hf.offsetWidth;hf.classList.add("ignite");fx("streak");setTimeout(()=>hf.classList.remove("ignite"),1000)}
   FIRE_LIT=lit;FIRE_DAY=dkey(Date.now());
   // الهاتف لا يُظهر التلميح عند اللمس: نعرضه رسالة قصيرة
   hf.style.cursor="pointer";hf.onclick=()=>{const x=EC||econ(),fz=x.s.freezes||0;
     toast(I3("fire"),x.s.today?"أكملت دراسة اليوم 🔥 سلسلتك "+x.s.streak+" يومًا":x.s.streak?"ادرس اليوم لتحافظ على سلسلتك ("+x.s.streak+" يومًا)":"ابدأ سلسلتك بالدراسة اليوم",
       (x.s.today?"عُد غدًا لتزيدها":"محطة واحدة أو 10 مراجعات تكفي")+(fz?" · لديك "+(fz===1?"تجميد واحد":fz===2?"تجميدان":fz<=10?fz+" تجميدات":fz+" تجميدًا"):""))};
-  $("hGem").innerHTML=I3("gem")+e.gems;renderEnergy();
+  setH($("hGem"),I3("gem")+e.gems);renderEnergy();saveShell();
 }
 
 /* ================= احتفالات وإشعارات ================= */
@@ -841,10 +859,10 @@ let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
 const I3=k=>`<img class="i3" src="img/3d/${k}.png" alt="">`;   // أيقونة مجسّمة
 let UNLT=null;
-function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){b.innerHTML=I3("battery")+"∞";b.classList.remove("low");return}
-  if(unlAt(Date.now())){const left=EN.u-Date.now();b.innerHTML=I3("battery")+`∞<small class="unlt">${clock(left)}</small>`;b.classList.remove("low");b.classList.add("unl");b.title="طاقة بلا حدود: باقٍ "+durAr(left/60000);
+function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){setH(b,I3("battery")+"∞");b.classList.remove("low");return}
+  if(unlAt(Date.now())){const left=EN.u-Date.now();const ut=b.querySelector(".unlt");if(ut)ut.textContent=clock(left);else{b.innerHTML=I3("battery")+`∞<small class="unlt">${clock(left)}</small>`;b.dataset.h=""}b.classList.remove("low");b.classList.add("unl");b.title="طاقة بلا حدود: باقٍ "+durAr(left/60000);
     if(!UNLT)UNLT=setInterval(()=>{if(!unlAt(Date.now())){clearInterval(UNLT);UNLT=null;b.classList.remove("unl");renderEnergy();toast(I3("battery"),"انتهت الطاقة بلا حدود","عادت الطاقة إلى وضعها المعتاد");const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES)reviewHome();return}const t=b.querySelector(".unlt");if(t)t.textContent=clock(EN.u-Date.now())},1000);return}
-  b.classList.remove("unl");b.title="";const n=enNow();b.innerHTML=I3(n<ST_COST?"lowbat":"battery")+n;b.classList.toggle("low",n<ST_COST)}
+  b.classList.remove("unl");b.title="";const n=enNow();setH(b,I3(n<ST_COST?"lowbat":"battery")+n);b.classList.toggle("low",n<ST_COST)}
 /* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
 const stToday=()=>stTodayAt(Date.now());
 let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0,DRL=null;
@@ -1191,6 +1209,7 @@ function reviewHome(){
   const ss=$("rvState");if(ss)ss.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;RVSTATE=b.dataset.v;if(RVDONE)RVDONE.finished=false;reviewHome()};
   const rg=$("rvRange");if(rg){rg.oninput=()=>{RVN=+rg.value;$("rvNv").textContent=Math.min(RVN,cnt);$("rvGo").disabled=!RVN};$("rvGo").disabled=!RVN;
     $("rvGo").onclick=()=>{if(RVN)startReview(RVSTATE,Math.min(RVN,cnt))}}
+  saveShell();if(UPD)setTimeout(tryReload,300);
 }
 function reviewPills(){
   const u=uniq(filtered()),now=Date.now();
@@ -1713,7 +1732,7 @@ async function leagueRows(){
   const ws=weekStart(Date.now()),w=weekId(ws);
   if(LGC.rows&&LGC.w===w&&Date.now()-LGC.at<60000)return LGC.rows;
   const rows=await groupTable(w,Math.min(1,(Date.now()-ws)/(7*DAY)),true);
-  LGC={at:Date.now(),rows,w};return rows;
+  LGC={at:Date.now(),rows,w};try{st(K("lgc"),JSON.stringify(LGC))}catch(e){}return rows.map(r=>({...r}));
 }
 // سطري في الدوري بمظهري الحالي، دون انتظار الحفظ
 function myLook(rows){
@@ -1723,22 +1742,29 @@ function myLook(rows){
 function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
 async function fillLeague(){
   const box=$("lgBox");if(!box)return;
+  // يُعرض آخر جدول محفوظ فورًا، ثم يُحدَّث في الخلفية دون مسح ولا «جارٍ التحميل»
+  const wk=weekId(Date.now());if(!LGC.rows){const c=jget(K("lgc"),null);if(c&&c.rows)LGC={...c,at:0}}
+  const had=!!(LGC.rows&&LGC.w===wk);if(had)drawLeague(myLook(LGC.rows.map(r=>({...r}))));
   let rows;
   try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=myLook(await leagueRows());
     // كسب خبرة ولم يظهر بعد في الدوري: نحفظ الآن ثم نقرأ من جديد
     if(!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0){await syncNow();LGC.at=0;rows=myLook(await leagueRows())}}
-  catch(e){box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
-  if(!$("lgBox"))return;
+  catch(e){if(had)return;box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
+  drawLeague(rows);
+}
+function drawLeague(rows){
+  const box=$("lgBox");if(!box)return;
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
     return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="stc">${stkH(r.st)}</span><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
-  box.innerHTML=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
+  const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
    ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
 `;
+  if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}
 }
 
 /* ================= التقارير ================= */
@@ -1977,6 +2003,26 @@ function staleStation(){
   const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!DRL&&!RES)reviewHome();
 }
 let PREFLAST="";
+// بصمة ما تعرضه الصفحات: إن لم تتغيّر بعد الحفظ فلا داعي لإعادة الرسم
+let VSIG="";
+const viewSig=()=>{try{const e=EC||econ();return JSON.stringify([e.xp,e.gems,e.lv,e.s.streak,e.s.freezes,BUY.length,LG.tier,(LG.hist||[]).length,STN.length,QLOG.length,LOG.length,Object.keys(P).length,E])}catch(x){return Math.random()+""}};
+let VER0=null,UPD=false;
+async function checkUpdate(){
+  try{const q=await fetch("index.html",{method:"HEAD",cache:"no-cache"});const v=q.ok&&(q.headers.get("etag")||q.headers.get("last-modified"));if(!v)return;
+    if(VER0==null){VER0=v;return}if(v!==VER0){UPD=true;tryReload()}}catch(e){}
+}
+function tryReload(){
+  if(!UPD||STS||DRL||GM||RES||document.querySelector(".uidlg")||$("fbModal").style.display==="flex"||syncing)return;
+  const on=document.querySelector(".panel.on");if(on&&(on.id==="quiz"||on.id==="messages"))return;
+  location.reload();
+}
+checkUpdate();setInterval(checkUpdate,30*60000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
+let SHT=null;
+function saveShell(){clearTimeout(SHT);SHT=setTimeout(()=>{try{
+  if(!UID||isAdmin()||STS||DRL||RES||GM||document.body.classList.contains("shell"))return;const on=document.querySelector(".panel.on");if(!on||on.id!=="review")return;
+  localStorage.setItem("muf_shell",JSON.stringify({v:1,uid:UID,h:document.querySelector("header .hrow").innerHTML,f:$("mainFilters").innerHTML,r:$("review").innerHTML,th:document.documentElement.dataset.theme||""}))}catch(e){}},800)}
+const signOutAll=()=>{try{localStorage.removeItem("muf_shell")}catch(e){}return auth.signOut()};
 async function syncNow(manual){
   if(!UID||isAdmin())return !!UID;
   if(syncing){await new Promise(r=>{const w=()=>syncing?setTimeout(w,200):r();w()});return !syncErr}
@@ -1985,7 +2031,7 @@ async function syncNow(manual){
     // الملخّص والاسم والتفضيلات يكتبها التطبيق، والتقدّم يكتبه الخادم وحده
     const prefs=JSON.stringify({E,S:{dir:S.dir,ts:S.ts}}),sum=summary(),key=prefs+JSON.stringify({...sum,at:0,ms:0})+UNAME;
     if(key!==PREFLAST){await uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});PREFLAST=key}
-    const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();
+    const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();VSIG=viewSig();
     const r=await fetch(API+"/sync",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w}})});const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
@@ -1994,7 +2040,8 @@ async function syncNow(manual){
     lastSync=Date.now();syncErr="";ok=true;syncFails=0;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}
-    const on=document.querySelector(".panel.on");if(on&&on.id!=="review")renderPanel(on.id);
+    const on=document.querySelector(".panel.on");
+    if(on&&on.id!=="review"&&!GM&&viewSig()!==VSIG){const y=scrollY;renderPanel(on.id);requestAnimationFrame(()=>scrollTo(0,y))}
     if(EVQ.length)schedSync(1000);
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
     // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
@@ -2013,7 +2060,7 @@ function syncHTML(){
 }
 function bindSync(){
   if($("syncBtn"))$("syncBtn").onclick=()=>syncNow(true);
-  if($("outBtn"))$("outBtn").onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من هذا الجهاز؟ تقدّمك محفوظ في حسابك."))return;await syncNow();await auth.signOut();location.reload()};
+  if($("outBtn"))$("outBtn").onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من هذا الجهاز؟ تقدّمك محفوظ في حسابك."))return;await syncNow();await signOutAll();location.reload()};
 }
 
 /* ================= الإعدادات ================= */
@@ -2036,7 +2083,7 @@ function renderSettings(){
   ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}
   ${isAdmin()?`<div class="rsec"><h3>🚪 الخروج</h3><p class="rnote">أنت مسجّل باسم المشرف: <span dir="ltr">${esc(login)}</span> · رقمك: <b dir="ltr">${noTxt(0)}</b></p><button class="btn" id="admOut" style="width:100%;margin-top:6px">تسجيل الخروج</button></div>`:""}`;
-  {const ao=$("admOut");if(ao)ao.onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من حساب المشرف على هذا الجهاز؟"))return;await auth.signOut();location.reload()}}
+  {const ao=$("admOut");if(ao)ao.onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من حساب المشرف على هذا الجهاز؟"))return;await signOutAll();location.reload()}}
   $("stSnd").onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;try{localStorage.setItem("muf_snd",b.dataset.v)}catch(_){}if(b.dataset.v==="1")fx("ok");renderSettings()};
   $("stDark").onclick=e=>{const b=e.target.closest(".numpick");if(!b||+b.dataset.v===(isDark()?1:0))return;E.dark=+b.dataset.v;setDevDark(E.dark);E.ts=Date.now();save();applyLook();schedSync();renderSettings()};
   if($("stReset"))$("stReset").onclick=resetProgress;if($("stNameBox"))bindNameBox();
@@ -2423,6 +2470,7 @@ const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-pa
  "auth/popup-closed-by-user":"أُغلقت نافذة غوغل قبل الإكمال","auth/network-request-failed":"لا يوجد اتصال بالإنترنت","auth/unauthorized-domain":"هذا الموقع غير مضاف إلى النطاقات المسموح بها في Firebase"};
 const DOMAIN="@mufradati.app";               // اسم المستخدم يتحوّل داخليًا إلى عنوان بهذا النطاق
 function showLogin(msg){
+  try{localStorage.removeItem("muf_shell")}catch(e){}document.body.classList.remove("shell");
   $("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><button type="button" class="ldark" id="lDark" aria-label="الوضع الليلي">${isDark()?"☀️":I3("moon")}</button><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
    <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr">
@@ -2467,7 +2515,7 @@ function showPending(user){
   $("login").innerHTML=`<div class="lbox"><div class="logo">${I3("hourglass")}</div><h1 style="font-size:1.2rem">حسابك بانتظار التفعيل</h1>
    <p class="sub">أُرسل طلب تفعيل حسابك <b dir="ltr">${esc((user.email||"").split("@")[0])}</b> إلى المشرف. حاول مرة أخرى بعد قليل.</p>
    <button class="btn lgo" id="pdAgain">تحقّق الآن</button><button class="link" id="pdOut">تسجيل الخروج</button></div>`;
-  $("pdAgain").onclick=()=>location.reload();$("pdOut").onclick=async()=>{await auth.signOut();location.reload()};
+  $("pdAgain").onclick=()=>location.reload();$("pdOut").onclick=async()=>{await signOutAll();location.reload()};
 }
 async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
@@ -2484,7 +2532,7 @@ async function onLogin(user){
   await loadWords(MY_COURSES.includes(saved)?saved:MY_COURSES[0]);
   renderCourseSel();
   $("login").style.display="none";
-  econ();applyLook();renderHeader();refresh();
+  econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");
   staleStation();
   syncNow(true);
   loadNameReqs();watchGifts();
