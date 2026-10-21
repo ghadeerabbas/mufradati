@@ -1359,6 +1359,7 @@ function hardScores(){
 // شاشة البداية: لا يبدأ الاختبار إلا بضغط الزر
 const quizOn=()=>qz.length>0&&qi<qz.length&&!qz.done;
 function quizIntro(){
+  qz=[];qi=0;
   const n=learnedList().length,hard=Object.keys(hardScores()).length,last=QLOG.filter(q=>q[3]==="quiz").slice(-1)[0];
   $("quiz").innerHTML=`<div class="box qintro">${I3("quiz")}<h2>الاختبار</h2>
    <p class="rnote">${arN(Math.max(4,Math.min(10,n)),"سؤال","سؤالان","أسئلة")} على الكلمات التي تعلّمتها: ترى الكلمة الألمانية وتختار معناها. أغلب الأسئلة من الكلمات التي تخطئ فيها أو تجدها صعبة.</p>
@@ -2095,7 +2096,7 @@ const viewSig=()=>{try{const e=EC||econ();return JSON.stringify([e.xp,e.gems,e.l
 // وضع الدرس: يُحسب بعد كل تغيير في المحتوى
 function lessonMode(){
   const on=document.querySelector(".panel.on"),id=on&&on.id;
-  const a=!!(UID&&!isAdmin()&&((id==="review"&&(STS||DRL||queue.length))||(id==="games"&&GM&&!GM.done)||(id==="quiz"&&quizOn())));
+  const a=!!(UID&&!isAdmin()&&on&&on.querySelector(".sess"));
   if(document.body.classList.contains("lesson")!==a){document.body.classList.toggle("lesson",a);if(a)scrollTo(0,0)}
 }
 function fitWords(){
@@ -3079,6 +3080,7 @@ async function handleBack(){
     if(queue.length){if(await uiConfirm("إنهاء المراجعة الآن؟")){queue=[];RVDONE=null;sessTotal=0;reviewHome()}return}
     if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return;
   }
+  if(id==="quiz"&&quizOn()&&document.querySelector("#quiz .sess")){if(await uiConfirm("إنهاء الاختبار الآن؟")){quizIntro();scrollTo(0,0)}return}
   if(id==="games"&&GM&&!GM.done){if(await uiConfirm("الخروج من التمرين؟")){stopTick();GM=null;renderGames()}return}
   if(id==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
   if(id==="users"&&uOpen){uOpen=null;renderUserList();return}
