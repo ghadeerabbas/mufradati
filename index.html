@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1f2a5a">
+<script>/* في تطبيق أندرويد: الصفحة شفافة لحظة الفتح، فتبقى شاشة البداية (الشعار والاسم) ظاهرة حتى تُرسم الواجهة */
+if(window.MufApp)document.documentElement.classList.add("boot");
+function bootDone(){document.documentElement.classList.remove("boot")}setTimeout(bootDone,10000);</script>
+<style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}</style>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -672,7 +676,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
   if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"){
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
     document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
-    document.getElementById("login").style.display="none";document.body.classList.add("shell")}}catch(e){}
+    document.getElementById("login").style.display="none";document.body.classList.add("shell");bootDone()}}catch(e){}
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -2663,7 +2667,7 @@ const AERR={"auth/invalid-email":"البريد غير صحيح","auth/missing-pa
 const DOMAIN="@mufradati.app";               // اسم المستخدم يتحوّل داخليًا إلى عنوان بهذا النطاق
 function showLogin(msg){
   try{localStorage.removeItem("muf_shell")}catch(e){}document.body.classList.remove("shell");
-  $("login").style.display="flex";
+  bootDone();$("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><button type="button" class="ldark" id="lDark" aria-label="الوضع الليلي">${isDark()?"☀️":I3("moon")}</button><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
    <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr">
    <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr">
@@ -2703,7 +2707,7 @@ async function accountCheck(user){
   return false;
 }
 function showPending(user){
-  $("login").style.display="flex";
+  bootDone();$("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><div class="logo">${I3("hourglass")}</div><h1 style="font-size:1.2rem">حسابك بانتظار التفعيل</h1>
    <p class="sub">أُرسل طلب تفعيل حسابك <b dir="ltr">${esc((user.email||"").split("@")[0])}</b> إلى المشرف. حاول مرة أخرى بعد قليل.</p>
    <button class="btn lgo" id="pdAgain">تحقّق الآن</button><button class="link" id="pdOut">تسجيل الخروج</button></div>`;
@@ -2717,7 +2721,7 @@ async function onLogin(user){
   await loadCourses();MY_COURSES=await myCourses();
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
-    document.body.classList.add("adm");$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
+    document.body.classList.add("adm");bootDone();$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
     $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");return;
   }
   const saved=st(K("course"));let first=MY_COURSES.includes(saved)?saved:MY_COURSES[0];
@@ -2725,7 +2729,7 @@ async function onLogin(user){
   if(ASTART&&MY_COURSES.includes(ASTART)&&st(K("startSeen"))!==ASTART){first=ASTART;st(K("startSeen"),ASTART);st(K("course"),ASTART)}
   await loadWords(first);loadOtherWords();
   renderCourseSel();
-  $("login").style.display="none";
+  bootDone();$("login").style.display="none";
   econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");
   staleStation();
   syncNow(true);
