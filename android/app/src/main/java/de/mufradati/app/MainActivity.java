@@ -15,6 +15,10 @@ import android.webkit.JavascriptInterface;
 import android.speech.tts.TextToSpeech;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.View;
+import android.view.ViewTreeObserver;
 import java.util.Locale;
 
 // تطبيق مفرداتي: يعرض الموقع بملء الشاشة، فيتحدّث تلقائيًّا مع كل تحديث للموقع.
@@ -24,6 +28,9 @@ public class MainActivity extends Activity {
     private WebView web;
     private TextToSpeech tts;
     private boolean ttsReady = false;
+    // شاشة البداية تبقى حتى تقول الصفحة إنها رسمت واجهتها (MufApp.ready) أو تمضي 8 ثوانٍ، فلا تظهر شاشة فارغة بينهما
+    private volatile boolean ready = false;
+    private void markReady() { runOnUiThread(() -> { if (!ready) { ready = true; View c = findViewById(android.R.id.content); if (c != null) c.invalidate(); } }); }
 
     @Override
     protected void onCreate(Bundle state) {
@@ -31,6 +38,16 @@ public class MainActivity extends Activity {
         web = new WebView(this);
         web.setBackgroundColor(Color.TRANSPARENT);   // تظهر شاشة البداية (خلفية النافذة) حتى ترسم الصفحة نفسها
         setContentView(web);
+        final View content = findViewById(android.R.id.content);
+        content.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override public boolean onPreDraw() {
+                if (!ready) return false;
+                content.getViewTreeObserver().removeOnPreDrawListener(this);
+                return true;
+            }
+        });
+        new Handler(Looper.getMainLooper()).postDelayed(this::markReady, 8000);
+        if (state != null) ready = true;
 
         WebSettings s = web.getSettings();
         s.setJavaScriptEnabled(true);
@@ -59,6 +76,7 @@ public class MainActivity extends Activity {
             @Override
             public void onReceivedError(WebView v, WebResourceRequest r, WebResourceError e) {
                 if (r.isForMainFrame()) {
+                    markReady();
                     v.loadDataWithBaseURL(null,
                         "<html dir='rtl'><body style='background:#1f2a5a;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh'>"
                         + "<h2>لا يوجد اتصال بالإنترنت</h2><p>تأكّد من الاتصال ثم اضغط للمحاولة مجددًا</p>"
@@ -85,6 +103,7 @@ public class MainActivity extends Activity {
             Reminder.set(MainActivity.this, on, hour, minute);
         }
         @JavascriptInterface public void markStudied(String day) { Reminder.markStudied(MainActivity.this, day); }
+        @JavascriptInterface public void ready() { markReady(); }
         @JavascriptInterface public void exit() { runOnUiThread(MainActivity.this::finish); }
     }
 

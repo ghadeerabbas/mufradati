@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#1f2a5a">
 <script>/* في تطبيق أندرويد: الصفحة شفافة لحظة الفتح، فتبقى شاشة البداية (الشعار والاسم) ظاهرة حتى تُرسم الواجهة */
 if(window.MufApp)document.documentElement.classList.add("boot");
-function bootDone(){document.documentElement.classList.remove("boot")}setTimeout(bootDone,10000);</script>
+function bootDone(){document.documentElement.classList.remove("boot");try{if(window.MufApp&&MufApp.ready)setTimeout(()=>MufApp.ready(),60)}catch(e){}}setTimeout(bootDone,10000);</script>
 <style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}</style>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
