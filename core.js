@@ -319,13 +319,15 @@ const MINR=5;
 function clusters(members){
   // من اختار الدوري التجريبي يبقى وحده مع الآليّين، ولا يدخل مجموعات الآخرين
   const solo=members.filter(m=>m.solo).map(m=>({key:"solo-"+m.id,m:[m]}));members=members.filter(m=>!m.solo);
-  const units={};members.forEach(m=>{const k=(m.tier||0)*1000+(m.grp||0);(units[k]=units[k]||[]).push(m)});
-  const out=[];let cur=null;
-  for(const k of Object.keys(units).map(Number).sort((a,b)=>a-b)){
-    if(!cur)cur={key:k,m:[]};cur.m.push(...units[k]);
-    if(cur.m.length>=MINR){out.push(cur);cur=null}
+  // لا يجتمع إلا من في الدوري نفسه. يُقسَّم متعلّمو كل دوري على أقل عدد من المجموعات (حجمها TARGET)
+  // بالتساوي تقريبًا، ثم يُكمَّل كل منها بالآليّين: 50 متعلّمًا ← 4 مجموعات من 12 أو 13
+  const byT={};members.forEach(m=>{const t=m.tier||0;(byT[t]=byT[t]||[]).push(m)});
+  const out=[];
+  for(const t of Object.keys(byT).map(Number).sort((a,b)=>a-b)){
+    const arr=byT[t].sort((a,b)=>(a.grp||0)-(b.grp||0)||(a.id<b.id?-1:a.id>b.id?1:0));   // المتقاربون في المقياس معًا
+    const g=Math.max(1,Math.ceil(arr.length/TARGET)),base=Math.floor(arr.length/g),extra=arr.length%g;
+    let i=0;for(let j=0;j<g;j++){const n=base+(j<extra?1:0);out.push({key:t*1000+j,m:arr.slice(i,i+n)});i+=n}
   }
-  if(cur){if(out.length)out[out.length-1].m.push(...cur.m);else out.push(cur)}
   return [...out,...solo];
 }
 function rngOf(seed){let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
