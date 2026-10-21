@@ -2628,6 +2628,8 @@ let TH=null,MSGS=[],ADM_TH=[],openTh=null,openMsgs=[],unsubs=[];
 const tsMs=t=>t&&t.toMillis?t.toMillis():Date.now();
 const fmt=t=>new Date(tsMs(t)).toLocaleString("ar",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
 function setBadge(n){const b=$("mBadge");b.textContent=n>9?"9+":n;b.classList.toggle("on",n>0)}
+let MSG_RETRY=null;const msgErr=()=>{clearTimeout(MSG_RETRY);MSG_RETRY=setTimeout(()=>{if(UID)startMessages()},8000)};
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&UID&&unsubs.length)startMessages()});
 function startMessages(){
   unsubs.forEach(f=>f());unsubs=[];
   if(isAdmin()){
@@ -2637,14 +2639,14 @@ function startMessages(){
       const n=ADM_TH.filter(t=>t.state==="waiting"&&!thHidden(t)).length;setBadge(n);
       if(n>prev&&prev>=0&&q.metadata&&!q.metadata.hasPendingWrites)toast("✉️","رسالة جديدة","");
       if($("messages").classList.contains("on")&&!openTh)renderMessages();
-    },()=>{}));
+    },msgErr));
   }else{
     unsubs.push(tref(UID).onSnapshot(d=>{
       const was=TH&&TH.unreadUser;TH=d.exists?d.data():null;setBadge(TH&&TH.unreadUser?1:0);
       if(TH&&TH.unreadUser&&!was)toast("✉️","وصلك رد من المشرف","افتح الرسائل لقراءته");
       if($("messages").classList.contains("on"))renderMessages();
-    },()=>{}));
-    unsubs.push(tref(UID).collection("msgs").orderBy("ts").onSnapshot(q=>{MSGS=q.docs.map(d=>d.data());if($("messages").classList.contains("on"))renderMessages()},()=>{}));
+    },msgErr));
+    unsubs.push(tref(UID).collection("msgs").orderBy("ts").onSnapshot(q=>{MSGS=q.docs.map(d=>d.data());if($("messages").classList.contains("on"))renderMessages()},msgErr));
   }
 }
 function chatHTML(list,mine){
@@ -2665,8 +2667,8 @@ function renderMessages(){
   if(isAdmin())return openTh?renderAdminThread():renderInbox();
   const waiting=TH&&TH.state==="waiting";
   const uc=TH&&TH.userClr?tsMs(TH.userClr):0,shown=uc?MSGS.filter(m=>tsMs(m.ts)>uc):MSGS;
-  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة المشرف</h2>${shown.length?'<button class="btn" id="mClr">${I3("trash")} مسح السجل</button>':""}</div>${chatHTML(shown,"user")}
-   ${waiting?'<div class="wait">${I3("hourglass")} رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ المشرف.</div>':composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
+  el.innerHTML=`<div class="mhead"><h2>✉️ مراسلة المشرف</h2>${shown.length?`<button class="btn" id="mClr">${I3("trash")} مسح السجل</button>`:""}</div>${chatHTML(shown,"user")}
+   ${waiting?`<div class="wait">${I3("hourglass")} رسالتك وصلت. تستطيع الإرسال من جديد بعد أن يردّ المشرف.</div>`:composeHTML("اكتب رسالتك (رسالة واحدة، ثم تنتظر الرد)")}`;
   if(TH&&TH.unreadUser)tref(UID).update({unreadUser:false}).catch(()=>{});
   const cb=$("mClr");if(cb)cb.onclick=async()=>{if(!await uiConfirm("مسح سجلّ الرسائل من عندك فقط؟ تبقى الرسائل عند المشرف."))return;
     try{await tref(UID).update({userClr:firebase.firestore.FieldValue.serverTimestamp()});toast(I3("trash"),"مُسح السجلّ من عندك","")}catch(e){toast(I3("warning"),"تعذّر المسح","")}};
@@ -2721,7 +2723,7 @@ function renderAdminThread(){
   const el=$("messages"),t0=ADM_TH.find(x=>x.id===openTh),t=t0||{name:(()=>{const u=USERS.find(x=>x.id===openTh);return u?uName(u):""})()};
   const ac=t.adminClr?tsMs(t.adminClr):0,shown=ac?openMsgs.filter(m=>tsMs(m.ts)>ac):openMsgs;
   el.innerHTML=`<div class="mhead"><h2>${esc(t.name||"مستخدم")}</h2><button class="btn" id="mBack">→ رجوع</button></div>
-   ${openMsgs.length?'<div class="mclr"><button class="btn" id="mClrMe">${I3("trash")} مسح من عندي</button><button class="btn" id="mClrAll">${I3("trash")} مسح من عندي وعنده</button></div>':""}${chatHTML(shown,"admin")}
+   ${openMsgs.length?`<div class="mclr"><button class="btn" id="mClrMe">${I3("trash")} مسح من عندي</button><button class="btn" id="mClrAll">${I3("trash")} مسح من عندي وعنده</button></div>`:""}${chatHTML(shown,"admin")}
    ${composeHTML(t.state==="waiting"?"اكتب ردّك":"أرسل رسالة أو استفسارًا (يُفتح له الإرسال مرة واحدة)")}`;
   $("mBack").onclick=()=>{openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox()};
   const me=$("mClrMe");if(me)me.onclick=async()=>{if(!await uiConfirm("مسح المحادثة من عندك فقط؟ تبقى عند المستخدم."))return;
