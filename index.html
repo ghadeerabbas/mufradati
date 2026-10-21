@@ -660,7 +660,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=14"></script>
+<script src="core.js?v=15"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -828,7 +828,7 @@ function tags(w){
 /* ================= الرأس والمظهر ================= */
 function applyLook(){
   const r=document.documentElement;
-  if(E.theme&&E.theme!=="classic")r.dataset.theme=E.theme;else delete r.dataset.theme;
+  delete r.dataset.theme;   // السمات أُلغيت: اللون الكلاسيكي للجميع
   if(DEV_DARK()==null&&E&&E.dark)setDevDark(1);   // نقل الإعداد القديم المحفوظ في الحساب إلى الجهاز
   if(isDark())r.dataset.dark="1";else delete r.dataset.dark;
   document.querySelector('meta[name=theme-color]').content=getComputedStyle(r).getPropertyValue("--navy").trim()||"#1f2a5a";
@@ -843,7 +843,7 @@ const setH=(el,h)=>{if(el&&el.dataset.h!==h){el.innerHTML=h;el.dataset.h=h}};
 function renderHeader(){
   const e=EC||econ(),t=itemOf("title",E.title);
   setH($("hAv"),stkH(E.avatar||"🎓")+`<span class="lv">${e.lv}</span>`);
-  setH($("hTitle"),`<bdi>${esc(UNAME)}</bdi>`);$("hTitle").title=(t?t.val:"مبتدئ طموح")+" · المستوى "+e.lv;
+  setH($("hTitle"),`<bdi>${esc(UNAME)}</bdi>`);$("hTitle").title="المستوى "+e.lv;
   $("hXp").style.width=(e.rest/e.need*100)+"%";
   setH($("hXpT"),`${I3("sparkles")} ${e.rest}/${e.need}`);$("hXpT").title="نقاط الخبرة";
   // الشعلة: رمادية من منتصف الليل حتى أول دراسة في اليوم، ثم تشتعل
@@ -1976,7 +1976,7 @@ function renderProfile(){
   const e=econ(),t=itemOf("title",E.title),s=e.s;
   const stickers=SHOP.filter(x=>x.cat==="sticker"),al=achList(),maxL=al.reduce((a,x)=>a+x.L.length,0);
   $("profile").innerHTML=`<div class="hero"><div class="av">${stkH(E.avatar)}</div><div style="flex:1">
-   <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv} · ${esc(t?t.val:"")}${LG.tier!=null?" · "+TIERS[LG.tier][1]:""}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
+   <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv}${LG.tier!=null?" · "+TIERS[LG.tier][1]:""}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
    <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
   <div class="gstats">
    <div class="gstat"><b>🔥 ${s.streak}</b><span>السلسلة الحالية</span></div>
@@ -2221,7 +2221,7 @@ function pubData(){
   const lf=E.lgFrame??E.frame;
   return {name:UNAME.slice(0,60),av:String(E.avatar||"🎓").slice(0,8),nc:myNc(),
     fr:owned("frame",lf)?String(lf||"none").slice(0,16):"none",lv:e.lv,xp:e.xp,streak:e.s.streak,best:e.s.best,tier:LG.tier??0,
-    title:(itemOf("title",E.title)||{}).val||"",alv,hide:E.hidePub?1:0};
+    alv,hide:E.hidePub?1:0};
 }
 async function showPlayer(row){
   const m=$("fbModal"),bot=row.dataset.bot==="1",close=()=>{m.style.display="none";m.innerHTML=""};
