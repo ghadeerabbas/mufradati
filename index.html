@@ -340,7 +340,8 @@ body.fbon main{padding-bottom:210px}
 .zpath{position:absolute;left:50%;top:0;width:1px;height:1px;overflow:visible;pointer-events:none;z-index:0}
 .zpath .bg{stroke:var(--line);stroke-width:12;fill:none;stroke-linecap:round;stroke-dasharray:2 18}
 .zpath .dn{stroke:#ffcb1f;stroke-width:12;fill:none;stroke-linecap:round;stroke-dasharray:2 18}
-.zn .go{position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:var(--card);border:2px solid var(--line);color:#58cc02;font-weight:800;padding:2px 12px;border-radius:12px;white-space:nowrap;animation:bob 1.6s infinite;font-size:.9rem}
+.zn .go{position:absolute;top:-40px;left:50%;transform:translateX(-50%);background:var(--card);border:2px solid var(--line);color:#58cc02;font-weight:800;padding:2px 12px;border-radius:12px;white-space:nowrap;animation:gobob 1.6s infinite;font-size:.9rem}
+@keyframes gobob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
 .zn .go:after{content:"";position:absolute;left:50%;bottom:-9px;margin-left:-7px;border:7px solid transparent;border-top-color:var(--card)}
 .zn.lowen .c{background:#c9c9d6;box-shadow:0 7px 0 #a9a9b8}.zn.lowen:before{display:none}
 .path{display:flex;align-items:center;justify-content:space-between;margin:8px 4px 10px;direction:rtl}
@@ -1253,15 +1254,15 @@ function reviewHome(){
   const CH=!FREEU,chOk=CH&&chalDoneAt(Date.now()),chOpen=CH&&chalOpenAt(Date.now());
   const dl=drillLock(),pend=dn<done;
   const node=i=>{const c=i<done?"ok":i===done&&fresh&&done<N&&!dl?"cur"+(low?" lowen":""):"lock",ic=i<done?"check":i===done?"star":"lock";
-    return `<button type="button" class="zn ${c}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go">${UN?"ابدأ ⚡":cost||FREEU?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${PB+i+1}</span></button>`};
+    return `<button type="button" class="zn ${c}" ${c.startsWith("cur")?'id="stNode"':""} style="top:${i*SP+44}px;margin-left:${off[i%4]-38}px">${c.startsWith("cur")?`<span class="go" style="animation-delay:-${Date.now()%1600}ms">${UN?"ابدأ ⚡":cost||FREEU?"ابدأ":"مجانية "+I3("gift")}</span>`:""}<span class="c">${I3(ic)}</span><span class="n">${PB+i+1}</span></button>`};
   // بعد كل محطة محطة تدريبية صغيرة (مطابقة)، مكتملة أو متاحة أو مقفلة
   const dx=j=>(off[j%4]+off[(j+1)%4])/2,dy=j=>j*SP+44+35+SP*.46;
   // التدريب: منتهٍ، أو متاح الآن، أو محطته منتهية وينتظر دوره (أزرق باهت)، أو مقفل
   const dnode=j=>{const c=j<dn?"ok":j===dn&&j<done?"cur"+(dlow?" lowen":""):j<done?"wait":"lock";
-    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go">تدريب</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
+    return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go" style="animation-delay:-${Date.now()%1600}ms">تدريب</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
   const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done&&i<=dn]);pts.push([dx(i),dy(i),i<dn])}
   if(CH)pts.push([off[N%4],N*SP+44+48,chOk]);
-  const chNode=()=>CH?`<button type="button" class="zn chal ${chOk?"ok":chOpen?"cur":"lock"}" ${chOpen?'id="chNode"':""} style="top:${N*SP+44}px;margin-left:${off[N%4]-48}px" aria-label="تحدي اليوم">${chOpen?'<span class="go">تحدٍّ ×2</span>':""}<span class="c">${I3(chOk?"check":"trophy")}</span><span class="tl">تحدي اليوم</span></button>`:"";
+  const chNode=()=>CH?`<button type="button" class="zn chal ${chOk?"ok":chOpen?"cur":"lock"}" ${chOpen?'id="chNode"':""} style="top:${N*SP+44}px;margin-left:${off[N%4]-48}px" aria-label="تحدي اليوم">${chOpen?'<span class="go" style="animation-delay:-${Date.now()%1600}ms">تحدٍّ ×2</span>':""}<span class="c">${I3(chOk?"check":"trophy")}</span><span class="tl">تحدي اليوم</span></button>`:"";
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
