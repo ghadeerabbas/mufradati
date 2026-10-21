@@ -1185,6 +1185,7 @@ function startReview(state,n){
   list=state==="due"?list.sort((a,b)=>P[a.k].due-P[b.k].due):shuffle(list);
   queue=list.slice(0,n);sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length,t0:Date.now(),xp0:econ().xp,fail:new Set};showCard();scrollTo(0,0);
 }
+let REVH={h:"",n:null};
 function reviewHome(){
   if(STS)return stationView();
   if(DRL)return drillView();
@@ -1223,7 +1224,7 @@ function reviewHome(){
     :!cost?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
     :done?"أحسنت! بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")+" اليوم 💪"
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
-  el.innerHTML=msg+`
+  const html=msg+`
   <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
   <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
   <div class="rvbox" style="margin-bottom:14px">
@@ -1241,6 +1242,8 @@ function reviewHome(){
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
   </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
+  // لا نعيد كتابة الشاشة إن كانت هي نفسها معروضة (يمنع الارتجاف والقفز أثناء التمرير)
+  if(!(REVH.h===html&&el.firstElementChild===REVH.n&&REVH.n)){const y=scrollY;el.innerHTML=html;REVH={h:html,n:el.firstElementChild};if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
   bindSettings();
   const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
   const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
@@ -1260,9 +1263,10 @@ function showCard(){
   const el=$("review");
   if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
   if(!queue.length){
+    const ended=!!(sessTotal&&RVDONE);
     if(RVDONE&&RVDONE.mode==="review"&&sessTotal&&sessDone>=sessTotal){const D=RVDONE,n=D.n||1;
       RES={title:"أحسنت! راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
-    reviewHome();scrollTo(0,0);return}
+    reviewHome();if(ended)scrollTo(0,0);return}
   cur=queue[0];flipped=false;
   const isNew=!P[cur.k],tc="t-"+cur.t,stk="";
   const front=S.dir==="de"?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
@@ -2344,9 +2348,10 @@ function bindNameReqs(){
 let GIFTS=[],giftUnsub=null;
 const gref=u=>db.collection("gifts").doc(u).collection("g");
 function watchGifts(){
-  if(giftUnsub)giftUnsub();GIFTS=[];
+  if(giftUnsub)giftUnsub();
   giftUnsub=gref(UID).onSnapshot(q=>{
     GIFTS=q.docs.map(d=>({id:d.id,...d.data()}));
+    try{st(K("gifts"),JSON.stringify(GIFTS.map(g=>({...g,ts:giftTs(g)}))))}catch(e){}
     const seen=new Set(jget(K("giftSeen"),[])),fresh=GIFTS.filter(g=>!seen.has(g.id));
     econ();renderHeader();
     const on=document.querySelector(".panel.on");if(on&&(on.id==="shop"||on.id==="profile"))renderPanel(on.id);
@@ -2431,10 +2436,11 @@ async function bindGiftBox(uid){
 
 /* ================= إعدادات التطبيق من المشرف ================= */
 let cfgUnsub=null,CFGRAW="";
+function cachedCfg(){try{const v=localStorage.getItem("muf_cfg");if(v==null||v===CFGRAW)return;CFGRAW=v;applyCfg(v?JSON.parse(v):null);cfgCss()}catch(e){}}
 function watchCfg(){
-  if(cfgUnsub)cfgUnsub();
+  if(cfgUnsub)cfgUnsub();cachedCfg();
   cfgUnsub=db.collection("config").doc("app").onSnapshot(d=>{
-    const v=d.exists?d.data().v||"":"";if(v===CFGRAW)return;CFGRAW=v;
+    const v=d.exists?d.data().v||"":"";try{localStorage.setItem("muf_cfg",v)}catch(e){}if(v===CFGRAW)return;CFGRAW=v;
     let c=null;try{c=v?JSON.parse(v):null}catch(e){}
     applyCfg(c);cfgCss();econ();renderHeader();
     const on=document.querySelector(".panel.on");if(on&&on.id!=="review"&&on.id!=="cfgP"&&on.id!=="shopEd")renderPanel(on.id);
@@ -2617,7 +2623,7 @@ function showPending(user){
 }
 async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
-  UID=user.uid;loadState();
+  UID=user.uid;loadState();GIFTS=jget(K("gifts"),[]);
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
   watchCfg();
   await loadCourses();MY_COURSES=await myCourses();
@@ -3035,7 +3041,7 @@ function renderPanel(p){
   if(p==="quiz"){if(quizOn()&&qzA.length)showQ();else quizIntro();return}
   if(p==="report")renderReport();else if(p==="rewards")renderRewards();else if(p==="shop")renderShop();else if(p==="list")renderList();
 }
-function refresh(){buildQueue();showCard();LPAGE=0;renderList();startQuiz();const on=document.querySelector(".panel.on");if(on)renderPanel(on.id)}
+function refresh(){buildQueue();const on=document.querySelector(".panel.on");if(!on||on.id!=="review")showCard();LPAGE=0;renderList();if(on)renderPanel(on.id)}
 function init(){
   document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>{
     // تبويب المستخدمين والرسائل يفتح القائمة كلها دائمًا
