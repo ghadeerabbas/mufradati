@@ -54,7 +54,7 @@ header{background:var(--card);color:var(--ink);position:sticky;top:0;z-index:20;
 .chips{display:flex;gap:4px;align-items:center;flex:none}
 html,body{overflow-x:clip;max-width:100%}
 @media (max-width:360px){.hrow{gap:4px;padding:8px 6px 6px}.chips{gap:2px}.chip{font-size:.85rem}.chip .i3,.iconbtn .i3{width:20px!important;height:20px!important}
- nav button{font-size:.6rem}nav button i{height:24px}nav button i .i3{width:24px;height:24px}main{padding:12px 10px 60px}}
+ nav button{font-size:.6rem}nav button i{height:24px}nav button i .i3{width:24px;height:24px}main{padding:12px 10px 60px;--mp:10px}}
 @media (max-width:300px){.hrow .avatar{width:38px;height:38px;font-size:1.3rem}.chip{font-size:.75rem}.chip .i3,.iconbtn .i3{width:17px!important;height:17px!important}
  nav button{font-size:0;padding-bottom:4px}nav button i{height:22px}nav button i .i3{width:22px;height:22px}#hXpT{font-size:.65rem}.coach .bub{font-size:.85rem}:root{--mz:88px}
  .zz .zn.mini .go{right:auto;left:50%;top:-34px;transform:translateX(-50%)}.zz .zn.mini .go:after{right:auto;left:50%;top:auto;bottom:-16px;margin:0 0 0 -7px;border-left-color:transparent;border-top-color:var(--card)}}
@@ -89,7 +89,7 @@ nav button{flex:1;background:none;border:0;color:var(--muted);padding:4px 1px 6p
 nav button i{display:block;font-style:normal;font-size:1.3rem;height:30px}nav button i .i3{width:30px;height:30px;transition:transform .2s}
 nav button.on{color:var(--navy);border-bottom-color:var(--navy)}nav button.on i .i3{transform:scale(1.12)}
 [data-dark] nav button.on{color:var(--hd);border-bottom-color:var(--hd)}
-main{max-width:720px;margin:0 auto;padding:14px 16px 60px}
+main{max-width:720px;margin:0 auto;padding:14px 16px 60px;--mp:16px}
 .panel{display:none;animation:fade .25s}.panel.on{display:block}
 #admNav{display:none}body.adm #admNav{display:flex}body.adm #mainNav,body.adm #mainFilters,body.adm .chips .chip,body.adm #setBtn,body.adm .xpbar,body.adm #hXpT,body.adm .avatar .lv{display:none!important}
 .cfg h3{margin-bottom:6px}.cfg label{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:5px 0;border-bottom:1px dashed var(--line);font-size:.88rem}
@@ -223,7 +223,8 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .zn.chal.ok .tl{color:#cf8a00}
 .btn.chalbtn{background:linear-gradient(135deg,#b05cf5,#7c2fd0);box-shadow:0 4px 0 #5a1fa0;color:#fff}
 /* شريط المنهج: ثابت تحت شريط الاسم عند التمرير */
-.unit{position:sticky;top:calc(var(--hdrH,64px) + 6px);z-index:15;background:linear-gradient(135deg,#0b6e69,#139a8f);color:#fff;border-radius:14px;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 3px 10px rgba(0,0,0,.22);margin:0 6px 12px}
+.unitw{position:sticky;top:var(--hdrH,64px);z-index:15;background:var(--paper);margin:0 calc(-1 * var(--mp,16px)) 12px;padding:6px calc(var(--mp,16px) + 6px) 4px;transition:background .3s}
+.unit{background:linear-gradient(135deg,#0b6e69,#139a8f);color:#fff;border-radius:14px;padding:6px 12px;display:flex;justify-content:space-between;align-items:center;gap:8px;box-shadow:0 3px 10px rgba(0,0,0,.22)}
 .unit>div{min-width:0}.unit b{font-size:.95rem;display:block;line-height:1.35}.unit small{opacity:.9;font-weight:700;font-size:.7rem;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.unit .i3{width:30px;height:30px;background:rgba(255,255,255,.18);border-radius:10px;padding:3px;flex:none}
 .coach{display:flex;align-items:flex-end;gap:6px;margin:4px 0 -10px}
 /* النرد يرقص: يتمايل ويقفز، يلوّح بيد ثم ينزلها ويلوّح بالأخرى */
@@ -247,6 +248,11 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .bub{background:var(--card);border:2px solid var(--line);border-radius:16px;padding:8px 12px;font-weight:700;font-size:.92rem;position:relative;margin-bottom:26px;line-height:1.6}
 .bub:after{content:"";position:absolute;right:-10px;bottom:12px;border:9px solid transparent;border-left-color:var(--line)}
 .zz{position:relative;height:320px;margin:6px 0 4px}
+.zmas{position:absolute;width:150px;display:flex;flex-direction:column;align-items:center;transform:translateY(-100%);z-index:0;pointer-events:none}
+.zmas.r{left:calc(50% + 14px)}.zmas.l{left:calc(50% - 164px)}
+.zmas .bub{margin:0 0 12px;font-size:.78rem;padding:6px 10px;line-height:1.5;pointer-events:auto;text-align:center}
+.zmas .bub:after{right:auto;left:50%;bottom:-18px;margin-left:-9px;border-left-color:transparent;border-top-color:var(--line)}
+.zmas .pose,.zmas .jmp,.zmas .mz2{width:84px;margin:0}
 .zn{position:absolute;width:76px;height:80px;left:50%;border:0;background:none!important;box-shadow:none;overflow:visible!important;padding:0;-webkit-tap-highlight-color:transparent;z-index:1}
 /* القرص: تدرّج كروي، وحافة لامعة، وعمق سفلي، وظلّ ناعم */
 .zn .c{width:76px;height:70px;border-radius:50%;display:grid;place-items:center;position:relative;
@@ -1269,12 +1275,15 @@ function reviewHome(){
     :!cost?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
     :done?"أحسنت! بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")+" اليوم 💪"
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
+  // شكلان مختلفان للنرد: الأول بحسب الحال، والثاني غيره
+  const pose1=pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle";
+  const pose2=pose1==="think"?"cheer":"think";
   const html=msg+`
   ${MY_COURSES.filter(c=>COURSES[c]).length>1&&!isAdmin()?`<button type="button" class="crsbtn" id="crsBtn">📘 ${esc((COURSES[COURSE]||{}).name||"")} <span>تغيير ▾</span></button>`:""}
-  <div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div>
-  <div class="coach">${mascot(pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle")}<div class="bub">${coach}</div></div>
+  <div class="unitw"><div class="unit"><div><small>${esc((COURSES[COURSE]||{}).name||"")} · ${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"مسار اليوم: المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div></div>
+  ${N<2?`<div class="coach">${mascot(pose1)}<div class="bub">${coach}</div></div>`:""}
   <div class="rvbox" style="margin-bottom:14px">
-   <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
+   <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+44+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+44+80}px">${mascot(pose2)}</div>`:""}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
    ${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
      :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${UN?" ⚡":cost||FREEU?"":" · مجانية "+I3("gift")}</button>`}
