@@ -142,6 +142,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .ex{font-size:.98rem;background:var(--soft);border-radius:10px;padding:8px 10px}
 .exar{font-size:.95rem;color:var(--muted)}
 .hint{font-size:.8rem;color:var(--muted)}
+.remtime{display:flex;align-items:center;gap:10px;margin:8px 32px 12px 0}.remtime input{font:inherit;font-size:1.1rem;padding:6px 10px;border:2px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}.remtime input:disabled{opacity:.45}
 .hidepub{display:flex;gap:10px;align-items:flex-start;cursor:pointer}.hidepub input{width:22px;height:22px;margin-top:3px;accent-color:var(--accent,#1cb0f6);flex:none}.hidepub b{display:block}.hidepub small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
 .sti{width:1.3em;height:1.3em;object-fit:contain;vertical-align:middle;display:inline-block}
 .stk{position:absolute;top:8px;left:10px;font-size:1.6rem;transform:rotate(-12deg);filter:drop-shadow(0 2px 2px rgba(0,0,0,.2))}
@@ -1397,11 +1398,14 @@ function bindSettings(){
   $("sDir").onchange=e=>{S.dir=e.target.value;set();showCard()};
 }
 // التذكير اليومي: في تطبيق أندرويد فقط، ويُحفظ على الجهاز نفسه
-const REM=()=>Object.assign({on:false,h:19},jget("muf_rem",{}));
+const REM=()=>Object.assign({on:false,h:19,m:0,eod:true},jget("muf_rem",{}));
+const p2=n=>String(n).padStart(2,"0");
 function reminderHTML(){
   if(!(window.MufApp&&MufApp.setReminder))return "";
-  const r=REM(),opt=[["off","إيقاف"],[8,"8:00"],[12,"12:00"],[17,"17:00"],[19,"19:00"],[21,"21:00"]];
-  return `<div class="limrow"><span class="numpicks" id="sRem">${opt.map(([v,l])=>`<button type="button" class="numpick${(v==="off"?!r.on:r.on&&r.h===v)?" on":""}" data-v="${v}">${l}</button>`).join("")}</span></div>`;
+  const r=REM();
+  return `<label class="hidepub"><input type="checkbox" id="remOn" ${r.on?"checked":""}><span><b>تذكير يومي في ساعة تختارها</b><small>يصلك إن لم تكمل دراسة اليوم قبلها</small></span></label>
+   <div class="remtime"><span>الساعة:</span><input type="time" id="remT" value="${p2(r.h)}:${p2(r.m||0)}" ${r.on?"":"disabled"}></div>
+   ${MufApp.setEod?`<label class="hidepub"><input type="checkbox" id="remEod" ${r.eod?"checked":""}><span><b>تذكير قبل نهاية اليوم</b><small>قبل منتصف الليل بساعة، ونصف ساعة، وربع ساعة، و5 دقائق، إن لم تكمل دراسة اليوم</small></span></label>`:""}`;
 }
 
 /* ================= القائمة ================= */
@@ -1834,7 +1838,7 @@ function gameResult(){
   if(GM.id==="chal"){$("gAgain").style.display="none";$("gBack").textContent="العودة إلى المسار";$("gBack").onclick=()=>{GM=null;renderGames();goTab("review")};return}
   $("gAgain").onclick=()=>startGame(GM.id);$("gBack").onclick=()=>{GM=null;renderGames()};
 }
-function markStudied(){try{if(window.MufApp&&MufApp.markStudied)MufApp.markStudied(today())}catch(e){}
+function markStudied(){try{if(window.MufApp&&MufApp.markStudied&&econ().s.today)MufApp.markStudied(today())}catch(e){}
 }
 
 /* ================= المقياس والدوري ================= */
@@ -2269,7 +2273,7 @@ function renderSettings(){
   <div class="rsec"><h3>${I3("speaker")} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div><p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p></div>
   ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
-  <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يصلك إشعار في الساعة المختارة إن لم تراجع قبلها في ذلك اليوم.</p>'
+  <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">تصل التذكيرات إن سمحت بإشعارات التطبيق في هاتفك. ويُعدّ اليوم مكتملًا بمحطة أو بعشر مراجعات.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
   ${isAdmin()?"":`<div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>`}
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
@@ -2289,10 +2293,12 @@ function renderSettings(){
     try{if(!await syncNow())throw 0;LGC.at=0;toast("🏆",v?"أنت الآن في دوري تجريبي مع الآليّين":"عدت إلى الدوري مع المستخدمين","")}catch(err){toast(I3("warning"),"تعذّر الحفظ","")}};
   const cs=$("stCourse");if(cs)cs.onclick=e=>{const b=e.target.closest(".numpick");if(!b||b.dataset.v===COURSE)return;
     cs.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));switchCourse(b.dataset.v)};
-  const rm=$("sRem");if(rm)rm.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;const v=b.dataset.v,r={on:v!=="off",h:v==="off"?REM().h:+v};
-    try{st("muf_rem",JSON.stringify(r));MufApp.setReminder(r.on,r.h,0)}catch(err){}
-    rm.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));
-    toast(I3("bell"),r.on?"سيصلك تذكير يومي الساعة "+r.h+":00":"أوقفت التذكير اليومي",r.on?"إن لم تراجع قبلها في ذلك اليوم":"")};
+  {const on=$("remOn"),tm=$("remT"),eo=$("remEod");
+   const saveRem=(r,msg,sub)=>{try{st("muf_rem",JSON.stringify(r))}catch(err){}if(msg)toast(I3("bell"),msg,sub||"")};
+   const applyRem=()=>{const r=REM(),[h,m]=(tm.value||"19:00").split(":").map(Number);r.on=on.checked;r.h=h;r.m=m;tm.disabled=!r.on;
+     try{MufApp.setReminder(r.on,r.h,r.m)}catch(err){}saveRem(r,r.on?"سيصلك تذكير يومي الساعة "+p2(r.h)+":"+p2(r.m):"أوقفت التذكير اليومي",r.on?"إن لم تكمل دراسة اليوم قبلها":"")};
+   if(on){on.onchange=applyRem;tm.onchange=applyRem}
+   if(eo)eo.onchange=()=>{const r=REM();r.eod=eo.checked;try{MufApp.setEod(r.eod)}catch(err){}saveRem(r,r.eod?"فُعّلت تذكيرات نهاية اليوم":"أوقفت تذكيرات نهاية اليوم",r.eod?"قبل منتصف الليل بساعة ونصف ساعة وربع ساعة و5 دقائق":"")}}
   $("pwBtn").onclick=async()=>{
     const cur=$("pwCur").value,n1=$("pwNew").value,n2=$("pwNew2").value,m=$("pwMsg"),say=(t,ok)=>{m.textContent=t;m.className="stmsg "+(ok?"ok":"bad")};
     if(!cur)return say("اكتب كلمة المرور الحالية");
@@ -2733,6 +2739,7 @@ async function onLogin(user){
   renderCourseSel();
   bootDone();$("login").style.display="none";
   econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");appReady();
+  markStudied();   // إن أكمل يومه من جهاز آخر فلا تصله تذكيرات اليوم
   staleStation();
   syncNow(true);
   loadNameReqs();watchGifts();

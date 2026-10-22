@@ -93,6 +93,7 @@ public class MainActivity extends Activity {
             }
         });
 
+        Reminder.schedule(this);   // تذكيرات نهاية اليوم مفعّلة افتراضيًّا (لا تصل إلا إن سمح المستخدم بالإشعارات)
         if (state != null) web.restoreState(state);
         else web.loadUrl(HOME + "?t=" + System.currentTimeMillis());   // دائمًا آخر نسخة من الموقع
     }
@@ -108,6 +109,12 @@ public class MainActivity extends Activity {
                 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED)
                 runOnUiThread(() -> requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1));
             Reminder.set(MainActivity.this, on, hour, minute);
+        }
+        @JavascriptInterface public void setEod(boolean on) {
+            if (on && Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED)
+                runOnUiThread(() -> requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1));
+            Reminder.setEod(MainActivity.this, on);
         }
         @JavascriptInterface public void markStudied(String day) { Reminder.markStudied(MainActivity.this, day); }
         @JavascriptInterface public void ready() { markReady(); }
