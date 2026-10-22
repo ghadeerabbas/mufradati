@@ -10,9 +10,11 @@ function bootDone(){document.documentElement.classList.remove("boot")}
 // عند فتح التطبيق: تظهر المحطة التي وصل إليها في الربع العلوي من الشاشة، وإن وصل إلى التحدي (أو أنهى كل شيء) يظهر التحدي أسفل الشاشة
 var OPENSC=0;
 function openScroll(){try{if(OPENSC>1)return;const rv=document.getElementById("review");if(!rv||!rv.classList.contains("on")||rv.querySelector(".sess"))return;
-  const ch=rv.querySelector("#chNode"),cur=rv.querySelector("#dNode,#stNode"),hd=(document.querySelector("header")||{}).offsetHeight||70;let y=0;
-  if(cur){y=cur.getBoundingClientRect().top+scrollY-hd-innerHeight*.18}
-  else{const z=rv.querySelector(".zz");if(!z)return;const e=ch||z.lastElementChild||z;y=e.getBoundingClientRect().bottom+scrollY-innerHeight+190}
+  const ch=rv.querySelector(".zn.chal"),cur=rv.querySelector("#dNode,#stNode"),hd=(document.querySelector("header")||{}).offsetHeight||70;let y=0;
+  // حدّ النزول: أن يكون التحدي (آخر المسار) فوق الشريط السفلي مباشرة، فلا ترتفع الصفحة أكثر من ذلك
+  const z=rv.querySelector(".zz");if(!z)return;const e=ch||z.lastElementChild||z,yEnd=e.getBoundingClientRect().bottom+scrollY-innerHeight+112;
+  // إن ظهرت المحطة الحالية والتحدي أسفل الشاشة معًا (من المحطة 3 فما بعد) فالتحدي أسفل الشاشة؛ وإلا فالمحطة الحالية في الربع العلوي
+  if(cur){const ct=cur.getBoundingClientRect().top+scrollY;y=ct-yEnd>=hd+90?yEnd:Math.min(ct-hd-innerHeight*.18,yEnd)}else y=yEnd;
   y=Math.max(0,Math.round(y));scrollTo(0,y<40?0:y)}catch(e){}}
 addEventListener("touchmove",()=>{OPENSC=2},{passive:true});addEventListener("wheel",()=>{OPENSC=2},{passive:true});
 // إشارة إلى تطبيق أندرويد: الواجهة الحقيقية رُسمت، فلتُخفَ شاشة البداية
