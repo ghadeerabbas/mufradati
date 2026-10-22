@@ -6,6 +6,6 @@
         <item name="android:navigationBarColor">#1f2a5a</item>
         <item name="android:windowBackground">@drawable/splash</item>
         <item name="android:windowSplashScreenBackground">#1f2a5a</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>   <!-- بلا أيقونة: تظهر شاشة البداية بالشعار والاسم وحدها -->
     </style>
 </resources>
