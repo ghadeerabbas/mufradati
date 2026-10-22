@@ -12,6 +12,19 @@ android {
         versionCode run
         versionName "1.0." + run
     }
+    // نسختان من التطبيق نفسه تُثبَّتان معًا على الجهاز: الأساسية، والثانوية «مفرداتي 1» (لحساب ثانٍ مثلًا)
+    flavorDimensions "v"
+    productFlavors {
+        primary {
+            dimension "v"
+            manifestPlaceholders = [appLabel: "مفرداتي"]
+        }
+        second {
+            dimension "v"
+            applicationIdSuffix ".one"
+            manifestPlaceholders = [appLabel: "مفرداتي 1"]
+        }
+    }
     signingConfigs {
         release {
             // المفتاح محميّ بكلمة سرّ محفوظة في أسرار GitHub (KS_PASS)، ولا تظهر في الملفات

@@ -43,13 +43,17 @@ jobs:
           KS_PASS: ${{ secrets.KS_PASS }}
         run: gradle assembleRelease --no-daemon
       - if: steps.ks.outputs.ok == '1'
-        run: cp android/app/build/outputs/apk/release/app-release.apk mufradati.apk
+        run: |
+          cp android/app/build/outputs/apk/primary/release/app-primary-release.apk mufradati.apk
+          cp android/app/build/outputs/apk/second/release/app-second-release.apk mufradati1.apk
       - name: Publish
         if: steps.ks.outputs.ok == '1'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-latest
           name: "مفرداتي – تطبيق أندرويد"
-          body: "حمّل ملف mufradati.apk وثبّته على هاتفك."
-          files: mufradati.apk
+          body: "حمّل ملف mufradati.apk وثبّته على هاتفك. ونسخة ثانوية تُثبَّت بجانبها: mufradati1.apk"
+          files: |
+            mufradati.apk
+            mufradati1.apk
           make_latest: true
