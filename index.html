@@ -7,6 +7,14 @@
 <script>/* في تطبيق أندرويد: الصفحة شفافة لحظة الفتح، فتبقى شاشة البداية (الشعار والاسم) ظاهرة حتى تُرسم الواجهة */
 if(window.MufApp)document.documentElement.classList.add("boot");
 function bootDone(){document.documentElement.classList.remove("boot")}
+// عند فتح التطبيق: تظهر المحطة التي وصل إليها في الربع العلوي من الشاشة، وإن وصل إلى التحدي (أو أنهى كل شيء) يظهر التحدي أسفل الشاشة
+var OPENSC=0;
+function openScroll(){try{if(OPENSC>1)return;const rv=document.getElementById("review");if(!rv||!rv.classList.contains("on")||rv.querySelector(".sess"))return;
+  const ch=rv.querySelector("#chNode"),cur=rv.querySelector("#dNode,#stNode"),hd=(document.querySelector("header")||{}).offsetHeight||70;let y=0;
+  if(cur){y=cur.getBoundingClientRect().top+scrollY-hd-innerHeight*.18}
+  else{const z=rv.querySelector(".zz");if(!z)return;const e=ch||z.lastElementChild||z;y=e.getBoundingClientRect().bottom+scrollY-innerHeight+190}
+  y=Math.max(0,Math.round(y));scrollTo(0,y<40?0:y)}catch(e){}}
+addEventListener("touchmove",()=>{OPENSC=2},{passive:true});addEventListener("wheel",()=>{OPENSC=2},{passive:true});
 // إشارة إلى تطبيق أندرويد: الواجهة الحقيقية رُسمت، فلتُخفَ شاشة البداية
 function appReady(){bootDone();try{if(window.MufApp&&MufApp.ready)setTimeout(()=>MufApp.ready(),120)}catch(e){}}setTimeout(bootDone,10000);</script>
 <style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}</style>
@@ -679,7 +687,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
   if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"){
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
     document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
-    document.getElementById("login").style.display="none";document.body.classList.add("shell");bootDone()}}catch(e){}
+    document.getElementById("login").style.display="none";document.body.classList.add("shell");bootDone();openScroll();OPENSC=1}}catch(e){}
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -2745,7 +2753,7 @@ async function onLogin(user){
   await loadWords(first);loadOtherWords();
   renderCourseSel();
   bootDone();$("login").style.display="none";
-  econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");appReady();
+  econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");openScroll();OPENSC=2;appReady();
   markStudied();   // إن أكمل يومه من جهاز آخر فلا تصله تذكيرات اليوم
   staleStation();
   syncNow(true);
