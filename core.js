@@ -216,7 +216,9 @@ const OLD_ACH={first:"rev:1",r100:"rev:2",r500:"rev:3",r1000:"rev:4",r5000:"rev:
  s3:"streak:1",s7:"streak:2",s14:"streak:3",s30:"streak:4",s60:"streak:5",s100:"streak:6",perfect:"perfect:1",marathon:"marathon:2",q10:"quiz:1",qfull:"qfull:1",dayall:"dayall:1",owl:"owl:1",bird:"bird:1",shop5:"shop:1"};
 const achList=()=>ACH;
 const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k++;return k};
-const lvlNeed=l=>CFG.xp.level*l;                 // كل مستوى يحتاج نقاطًا أكثر من سابقه
+// خبرة الانتقال من المستوى l إلى التالي: حتى المستوى 8 تزيد 80 في كل مستوى (80، 160 … 560)،
+// وبعده تزيد بعشرة أضعاف رقم المستوى الجديد: للمستوى 9 ‏560+90=650، وللمستوى 10 ‏650+100=750، ثم +110، +120 …
+const lvlNeed=l=>{if(l<8)return CFG.xp.level*l;let n=CFG.xp.level*7;for(let k=8;k<=l;k++)n+=10*(k+1);return n};
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;

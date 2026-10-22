@@ -694,7 +694,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=23"></script>
+<script src="core.js?v=24"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2589,7 +2589,7 @@ function renderCfg(){
    ${n("x_r0",C.xp.review[0],"مراجعة: نسيت")}${n("x_r1",C.xp.review[1],"مراجعة: صعبة")}${n("x_r2",C.xp.review[2],"مراجعة: متوسطة")}${n("x_r3",C.xp.review[3],"مراجعة: سهلة")}
    ${n("x_st",C.xp.stOk,"كلمة جديدة في المحطة")}${n("x_sm",C.xp.stMiss,"كلمة في المحطة أخطأ فيها")}
    ${n("x_q",C.xp.quiz,"كل جواب صحيح في الاختبار والتمارين")}${n("x_mem",C.xp.mem,"كلمة ترسخ (موعدها بعد أسبوع)")}${n("x_sol",C.xp.solid,"كلمة تثبت (موعدها بعد شهر)")}
-   ${n("x_dn",C.xp.dayN,"عدد مراجعات اليوم للمكافأة")}${n("x_dx",C.xp.dayXp,"خبرة مكافأة اليوم")}${n("x_lv",C.xp.level,"زيادة النقاط لكل مستوى")}</div>
+   ${n("x_dn",C.xp.dayN,"عدد مراجعات اليوم للمكافأة")}${n("x_dx",C.xp.dayXp,"خبرة مكافأة اليوم")}${n("x_lv",C.xp.level,"زيادة النقاط لكل مستوى حتى المستوى 8 (بعده: +10 × رقم المستوى)")}</div>
   <div class="rsec"><h3>💎 الجواهر</h3>
    ${n("g_st",C.gems.station,"كل محطة مكتملة")}${n("g_lv",C.gems.level,"كل مستوى جديد")}
    ${n("g_p1",C.gems.prize[0],"جائزة الأول في الدوري")}${n("g_p2",C.gems.prize[1],"جائزة الثاني")}${n("g_p3",C.gems.prize[2],"جائزة الثالث")}
