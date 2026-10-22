@@ -238,6 +238,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .zn.chal.cur:after{top:45px;width:120px;height:114px;margin:-57px 0 0 -60px;background:radial-gradient(closest-side,rgba(176,92,245,.4),rgba(176,92,245,0))}
 .zn.chal .go{color:#a855f7;top:-36px}.zn.chal .tl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;font-weight:800;font-size:.8rem;color:#a855f7}
 .zn.chal.ok .tl{color:#cf8a00}
+.zn.chal.ok .c .i3{width:44px;height:44px;transform:translateY(-9px)}.zn.chal.ok .ckb{position:absolute;left:50%;bottom:9px;width:24px;height:24px;transform:translateX(-50%);filter:drop-shadow(0 1px 1px rgba(0,0,0,.25))}
 .btn.chalbtn{background:linear-gradient(135deg,#b05cf5,#7c2fd0);box-shadow:0 4px 0 #5a1fa0;color:#fff}
 /* شريط المنهج: ثابت تحت شريط الاسم عند التمرير */
 .unitw{position:sticky;top:var(--hdrH,64px);z-index:15;background:var(--paper);margin:0 calc(-1 * var(--mp,16px)) 12px;padding:6px calc(var(--mp,16px) + 6px) 4px;transition:background .3s}
@@ -1291,7 +1292,7 @@ function reviewHome(){
     return `<button type="button" class="zn mini ${c}" ${c.startsWith("cur")?'id="dNode"':""} style="top:${dy(j)-24}px;margin-left:${dx(j)-26}px" aria-label="تدريب المحطة ${j+1}">${c.startsWith("cur")?`<span class="go" style="animation-delay:-${Date.now()%1600}ms">تدريب</span>`:""}<span class="c">${I3(j<dn?"check":"puzzle")}</span>${c==="wait"?'<span class="n">'+(PB+j+1)+'</span>':""}</button>`};
   const pts=[];for(let i=0;i<N;i++){pts.push([off[i%4],i*SP+44+35,i<done&&i<=dn]);pts.push([dx(i),dy(i),i<dn])}
   if(CH)pts.push([off[N%4],N*SP+44+48,chOk]);
-  const chNode=()=>CH?`<button type="button" class="zn chal ${chOk?"ok":chOpen?"cur":"lock"}" ${chOpen?'id="chNode"':""} style="top:${N*SP+44}px;margin-left:${off[N%4]-48}px" aria-label="تحدي اليوم">${chOpen?'<span class="go" style="animation-delay:-${Date.now()%1600}ms">تحدٍّ ×2</span>':""}<span class="c">${I3(chOk?"check":"trophy")}</span><span class="tl">تحدي اليوم</span></button>`:"";
+  const chNode=()=>CH?`<button type="button" class="zn chal ${chOk?"ok":chOpen?"cur":"lock"}" ${chOpen?'id="chNode"':""} style="top:${N*SP+44}px;margin-left:${off[N%4]-48}px" aria-label="تحدي اليوم">${chOpen?'<span class="go" style="animation-delay:-${Date.now()%1600}ms">تحدٍّ ×2</span>':""}<span class="c">${I3("trophy")}${chOk?'<img class="ckb" src="img/3d/check.png" alt="">':""}</span><span class="tl">تحدي اليوم</span></button>`:"";
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
