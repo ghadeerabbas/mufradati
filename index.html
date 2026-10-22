@@ -2355,7 +2355,7 @@ async function showPlayer(row){
     <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;$("pcClose").onclick=close;return}
   const al=achList(),stickers=SHOP.filter(x=>x.cat==="sticker"),have=new Set(d.stk||[]),lvSum=Object.values(d.alv||{}).reduce((a,b)=>a+b,0);
   m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
-    <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1}${d.title?" · "+esc(d.title):""} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
+    <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
    ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
    <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>${I3("medal")} ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
    <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${achIc(a)}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
