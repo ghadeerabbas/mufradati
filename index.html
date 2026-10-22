@@ -1652,7 +1652,10 @@ function chalKind(w){const k=["mc"];if(clozeOf(w))k.push("cloze");if(nounOf(w))k
 const qKindFor=(id,w)=>id==="chal"?chalKind(w):id;
 function startChal(){
   const all=learnedList();if(all.length<4){toast(I3("warning"),"تحتاج 4 كلمات متعلّمة على الأقل","");return}
-  if(!chalOpenAt(Date.now())){toast(I3("lock"),"التحدي مقفل الآن","أنهِ محطات اليوم وتدريباتها أولًا");return}
+  if(!chalOpenAt(Date.now())){   // تغيّرت الحال منذ رُسمت الصفحة (حفظٌ من جهازٍ آخر مثلًا): نعيد رسمها ونذكر السبب الصحيح
+    if(chalDoneAt(Date.now()))toast(I3("check"),"أنهيت تحدي اليوم","يعود تحدٍّ جديد غدًا");
+    else toast(I3("lock"),"التحدي مقفل الآن","أنهِ محطات اليوم وتدريباتها أولًا");
+    if(document.querySelector("#review .zz"))reviewHome();return}
   const t0=new Date();t0.setHours(0,0,0,0);
   const td=shuffle(all.filter(w=>P[w.k]&&P[w.k].t>=t0.getTime())),rest=shuffle(all.filter(w=>!td.includes(w)));
   stopTick();GM={id:"chal",ok:0,n:0,i:0,t0:Date.now(),done:false,list:[...td,...rest].slice(0,CHAL_N)};CMB=0;
@@ -2262,6 +2265,8 @@ async function syncNow(manual){
     if(manual){buildQueue();showCard()}
     const on=document.querySelector(".panel.on");
     if(on&&on.id!=="review"&&!GM&&viewSig()!==VSIG){const y=scrollY;renderPanel(on.id);requestAnimationFrame(()=>scrollTo(0,y))}
+    // صفحة المسار نفسها (لا محطة ولا مراجعة جارية): تُرسم من جديد إن غيّر الخادم شيئًا، فلا تبقى حالة التحدي أو المحطات قديمة
+    else if(on&&on.id==="review"&&!GM&&viewSig()!==VSIG&&document.querySelector("#review .zz")&&!document.querySelector("#fbModal .lbox")){const y=scrollY;reviewHome();requestAnimationFrame(()=>scrollTo(0,y))}
     if(EVQ.length)schedSync(1000);
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
     // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
