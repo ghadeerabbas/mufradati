@@ -192,6 +192,8 @@ async function handleSync(fs, user, body) {
   if (coreD) c = parseJ(coreD.data.v, {});
   else { const m = parseJ(u.main, {}); c = { P: m.P, QLOG: m.QLOG, BUY: m.BUY, R: m.R, LG: m.LG, EN: m.EN, STN: m.STN, STV: 0 } }
   setState(c, parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
+  // مستخدم جديد تمامًا (أول دخول، بلا بيانات سابقة): طاقة بلا حدود أول 24 ساعة، ليتعلّم ما يكفي فتكون له كلمات يراجعها في اليوم التالي
+  if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
   const before = { log: LOG.length, qa: QA.length, core: JSON.stringify(coreObj()) };
   // الأحداث
