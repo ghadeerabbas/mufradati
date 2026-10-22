@@ -259,9 +259,14 @@ function econ(){
   const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
   const days=Object.keys(per).sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
   if(days.length){
-    let t=new Date(days[0]+"T12:00:00").getTime();const end=today();
+    let t=new Date(days[0]+"T12:00:00").getTime(),gap=0,gapUsed=0;const end=today();
     for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
-      if(qd(d))s.streak++;else if(d!==end){if(avail>0)avail--;else s.streak=0}
+      // التجميد يحمي سلسلة طولها 3 أيام فأكثر، ولغياب لا يزيد على يومين متتاليين؛
+      // فإن طال الغياب انكسرت السلسلة وعادت إليه التجميدات التي صُرفت في هذا الغياب
+      if(qd(d)){s.streak++;gap=0;gapUsed=0}
+      else if(d!==end){gap++;
+        if(s.streak>=3&&gap<=2&&avail>0){avail--;gapUsed++}
+        else{s.streak=0;avail+=gapUsed;gapUsed=0}}
       s.best=Math.max(s.best,s.streak);if(d>=end)break}
   }
   while(fi<fz.length){avail++;fi++}
