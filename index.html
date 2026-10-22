@@ -1671,7 +1671,9 @@ const gameMin={cloze:4,art:4,type:4,listen:4,match:6,s5:4,order:4};
 // جملة المثال الأولى للكلمة مقسّمة إلى كلمات (من 3 إلى 9 كلمات)
 function orderOf(w){
   if(!w.ex||!w.exar)return null;const de=String(w.ex).split("\n")[0].trim(),ar=String(w.exar).split("\n")[0].trim();
-  const toks=de.replace(/[.!?]+$/,"").split(/\s+/).filter(Boolean);
+  // جملة كاملة فقط: تبدأ بحرف كبير وتنتهي بنقطة أو استفهام أو تعجّب (لا عبارات ولا جمل ثانوية مقطوعة)
+  if(!/^[„"»]?[A-ZÄÖÜ]/.test(de)||!/[.!?]["“«]?$/.test(de))return null;
+  const toks=de.replace(/[.!?]+["“«]?$/,"").split(/\s+/).filter(Boolean);
   return toks.length>=3&&toks.length<=9&&ar?{de,ar,toks}:null;
 }
 const normO=s=>s.replace(/[.,;:!?„“"»«]/g,"").replace(/\s+/g," ").trim().toLowerCase();
