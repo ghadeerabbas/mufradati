@@ -1660,8 +1660,10 @@ function startChal(){
   const t0=new Date();t0.setHours(0,0,0,0);
   const td=shuffle(all.filter(w=>P[w.k]&&P[w.k].t>=t0.getTime())),rest=shuffle(all.filter(w=>!td.includes(w)));
   stopTick();GM={id:"chal",ok:0,n:0,i:0,t0:Date.now(),done:false,list:[...td,...rest].slice(0,CHAL_N)};CMB=0;
-  GM.q=makeQ(chalKind(GM.list[0]),GM.list[0]);goTab("games");renderGames();scrollTo(0,0);
+  HOMEY=LASTHOME;GM.q=makeQ(chalKind(GM.list[0]),GM.list[0]);goTab("games");renderGames();scrollTo(0,0);
 }
+// العودة من التحدي إلى المسار: تُرسم صفحة المسار من جديد (فتظهر محطة التحدي ذهبية فورًا) وتعود إلى موضعها
+function chalHome(){GM=null;renderGames();goTab("review");reviewHome();toCur()}
 function gamePool(id){
   const all=learnedList();
   if(id==="cloze")return all.filter(w=>clozeOf(w));
@@ -1818,7 +1820,7 @@ function matchView(){
   const el=$("games");
   el.innerHTML=gameHead()+`<p class="ghint">اضغط كلمة ثم معناها. ✓ ${6-GM.left.size} من 6</p><div class="mgrid">
    ${GM.de.map((w,i)=>{const a_=GM.ar[i];return `<button lang="de" class="mb de${lemmaOf(w).length>18?" long":""} ${GM.left.has(w.k)?"":"gone"} ${GM.sel&&GM.sel.side==="de"&&GM.sel.k===w.k?"sel":""}" data-side="de" data-k="${esc(w.k)}"><span>${artHTML(lemmaOf(w))}</span></button><button class="mb${arLemma(a_).length>18?" long":""} ${GM.left.has(a_.k)?"":"gone"} ${GM.sel&&GM.sel.side==="ar"&&GM.sel.k===a_.k?"sel":""}" data-side="ar" data-k="${esc(a_.k)}"><span>${esc(arLemma(a_))}</span></button>`}).join("")}</div>`;
-  $("gQuit").onclick=()=>{stopTick();const ch=GM&&GM.id==="chal";GM=null;renderGames();if(ch)goTab("review")};
+  $("gQuit").onclick=()=>{stopTick();const ch=GM&&GM.id==="chal";if(ch)return chalHome();GM=null;renderGames()};
   if(!GTICK)GTICK=setInterval(()=>{if(!GM||GM.id!=="match"||GM.done){stopTick();return}const t=$("gTime");if(t)t.textContent=secs(Date.now()-GM.t0)},100);
   el.querySelectorAll(".mb").forEach(b=>b.onclick=()=>{
     if(!GM.left.has(b.dataset.k))return;
@@ -1843,7 +1845,7 @@ function finishGame(){
     if(!GM.n){GM=null;renderGames();return}
     // كامل: أجاب عن كل الأسئلة، أو انتهى وقت جلسة الدقائق الخمس
     const full=GM.id==="s5"?Date.now()>=GM.end:GM.n>=GM.list.length;
-    if(GM.id==="chal"&&!full){GM=null;goTab("review");return}   // خرج من التحدي قبل أن ينهيه: يبقى متاحًا
+    if(GM.id==="chal"&&!full){chalHome();return}   // خرج من التحدي قبل أن ينهيه: يبقى متاحًا
     const r=ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa,...(full&&GM.id!=="chal"?{full:1}:{})});
     if(GM.id==="chal"&&r===true){fx("done");confetti(160)}
   }
@@ -1858,7 +1860,7 @@ function gameResult(){
    ${rec?'<p style="color:var(--green);font-weight:700">رقم قياسي جديد!</p>':GM.id==="match"&&GM.best?`<p class="rnote">أفضل وقت لك: ${secs(GM.best)}</p>`:""}
    <button class="btn next" id="gAgain">مرة أخرى</button><button class="btn" id="gBack" style="width:100%;margin-top:8px">كل التمارين</button></div>`;
   if(pct===1||rec)confetti(120);
-  if(GM.id==="chal"){$("gAgain").style.display="none";$("gBack").textContent="العودة إلى المسار";$("gBack").onclick=()=>{GM=null;renderGames();goTab("review")};return}
+  if(GM.id==="chal"){$("gAgain").style.display="none";$("gBack").textContent="العودة إلى المسار";$("gBack").onclick=chalHome;return}
   $("gAgain").onclick=()=>startGame(GM.id);$("gBack").onclick=()=>{GM=null;renderGames()};
 }
 function markStudied(){try{if(window.MufApp&&MufApp.markStudied&&econ().s.today)MufApp.markStudied(today())}catch(e){}
