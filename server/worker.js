@@ -797,6 +797,21 @@ async function handleCreate(fs, user, body, env) {
   return { status: 200, json: { ok: true, uid } };
 }
 
+// تعيين كلمة مرور جديدة لمستخدم (المشرف وحده). يخرج المستخدم من أجهزته الأخرى، ويبقى تقدّمه كما هو
+async function handlePass(fs, user, body, env) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  const uid = String(body.uid || ""), pass = String(body.pass || "");
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
+  if (pass.length < 6 || pass.length > 64) return { status: 400, json: { error: "pass" } };
+  if (uid === user.uid) return { status: 400, json: { error: "self" } };
+  if (env.__fs) return { status: 200, json: { ok: true } };   // الاختبار المحلي
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:update`, { method: "POST", headers: { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" },
+    body: JSON.stringify({ localId: uid, password: pass }) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) { const m = String((j.error && j.error.message) || r.status); return { status: m.includes("USER_NOT_FOUND") ? 404 : r.status === 403 ? 403 : 500, json: { error: m.includes("USER_NOT_FOUND") ? "nouser" : r.status === 403 ? "perm" : "auth", detail: m.slice(0, 200) } } }
+  return { status: 200, json: { ok: true } };
+}
+
 /* ---------- نقطة الدخول ---------- */
 function cors(req) {
   const o = req.headers.get("Origin") || "";
@@ -807,7 +822,7 @@ export default {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/msg"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/msg"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -817,7 +832,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

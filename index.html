@@ -2996,6 +2996,31 @@ function newAccount(){
       msg(e.error==="exists"?"اسم المستخدم هذا مستخدم من قبل، اختر غيره":e.error==="perm"?"حساب الخدمة في Firebase لا يملك صلاحية إنشاء الحسابات":e.error==="login"?"اسم المستخدم غير صالح":"تعذّر الإنشاء: "+(e.detail||e.error||e.message||"خطأ في الاتصال"))}
   };
 }
+// تغيير كلمة مرور متعلّم من لوحة الإشراف: كلمة مولّدة تلقائيًّا يمكن تعديلها
+function resetPass(u){
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
+  const login=(u.sum||{}).login||"",nm=uName(u);
+  m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">🔑 كلمة مرور جديدة</h1>
+   <p class="rnote">${esc(nm)}${login?` · <span dir="ltr">@${esc(login)}</span>`:""}</p>
+   <div style="display:flex;gap:6px"><input id="pwPass" dir="ltr" maxlength="64" style="flex:1" value="${genPass()}" autocomplete="off"><button type="button" class="btn" id="pwGen">🎲</button></div>
+   <p class="rnote" id="pwMsg"></p>
+   <button class="btn next" id="pwGo">حفظ كلمة المرور</button><button class="link" id="pwNo">إلغاء</button></div>`;
+  m.onclick=e=>{if(e.target===m)close()};$("pwNo").onclick=close;$("pwGen").onclick=()=>$("pwPass").value=genPass();
+  $("pwGo").onclick=async()=>{
+    const pass=$("pwPass").value,msg=t=>$("pwMsg").textContent=t;
+    if(pass.length<6)return msg("كلمة المرور 6 أحرف على الأقل");
+    $("pwGo").disabled=true;msg("جارٍ الحفظ…");
+    try{await apiPost("/pass",{uid:u.id,pass});
+      const txt=(login?"اسم المستخدم: "+login+"\n":"")+"كلمة المرور: "+pass;
+      m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">✅ تغيّرت كلمة المرور</h1>
+       <p class="rnote">أعطِ المتعلّم هذه البيانات ليدخل بها:</p>
+       <div style="background:#8882;padding:10px 14px;border-radius:10px;font-size:1rem;line-height:1.9;text-align:right;user-select:all">${login?`اسم المستخدم: <b dir="ltr">${esc(login)}</b><br>`:""}كلمة المرور: <b dir="ltr">${esc(pass)}</b></div>
+       <button class="btn next" id="pwCp">📋 نسخ</button><button class="link" id="pwNo">تم</button></div>`;
+      $("pwNo").onclick=close;$("pwCp").onclick=()=>{navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>toast("📋","نُسخت البيانات",""))};
+    }catch(e){$("pwGo").disabled=false;
+      msg(e.error==="nouser"?"لم يُعثر على هذا الحساب في Firebase":e.error==="self"?"لا يمكن تغيير كلمة مرور حسابك من هنا":e.error==="perm"?"حساب الخدمة في Firebase لا يملك صلاحية تعديل الحسابات":"تعذّر الحفظ: "+(e.detail||e.error||e.message||"خطأ في الاتصال"))}
+  };
+}
 // أرقام المستخدمين: المشرف 000000، وكل حساب جديد يأخذ الرقم التالي. تُحفظ في members/{uid}.no والعدّاد في config/ids
 let MEMB={};
 const noH=id=>MEMB[id]&&MEMB[id].no!=null?` <small class="uno" dir="ltr">#${noTxt(MEMB[id].no)}</small>`:"";
@@ -3055,6 +3080,7 @@ function renderUser(){
   const lb=[...Array(14)].map((_,i)=>new Date(Date.now()-(13-i)*DAY).getDate());
   el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}${noH(u.id)}</h2><span><button class="btn" id="uMsg">✉️ رسالة</button> <button class="btn" id="uBack">→ رجوع</button></span></div>
   <div class="rsec"><h3>✏️ اسمه الظاهر</h3><div class="strow"><input id="uNm" class="stin" maxlength="40" value="${esc(uName(u))}" autocomplete="off"><button class="btn stbtn" id="uNmBtn">حفظ</button></div><div class="stmsg" id="uNmMsg"></div></div>
+  <div class="rsec"><h3>🔑 كلمة المرور</h3><p class="rnote">تعيّن له كلمة مرور جديدة، فيخرج من أجهزته الأخرى ويدخل بها. تقدّمه لا يتأثر.</p><button class="btn" id="uPass" style="width:100%;margin-top:6px">تغيير كلمة المرور</button></div>
   <div style="margin-bottom:10px"><span class="ust" style="--sc:${UST[u.st][1]};background:${UST[u.st][1]}">${UST[u.st][0]}</span></div>
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
   <div class="kpis">
@@ -3097,6 +3123,7 @@ function renderUser(){
    if(b)b.onchange=()=>sv(b,o=>({...o,all:b.checked?1:0}),on=>on?"فُعّل العمل بلا إنترنت للجميع":"أُلغي العمل بلا إنترنت للجميع")}
   {const cb=$("uFree");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setFree(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false}}
   $("uWipe").onclick=()=>wipeUser(u);
+  $("uPass").onclick=()=>resetPass(u);
   $("uNmBtn").onclick=async()=>{
     const v=$("uNm").value.trim().replace(/\s+/g," "),m=$("uNmMsg");
     if(!v||v.length>40){m.textContent="اكتب اسمًا من 1 إلى 40 حرفًا";m.className="stmsg bad";return}
