@@ -2694,20 +2694,22 @@ function showLogin(msg){
   try{localStorage.removeItem("muf_shell")}catch(e){}document.body.classList.remove("shell");
   appReady();$("login").style.display="flex";
   $("login").innerHTML=`<div class="lbox"><button type="button" class="ldark" id="lDark" aria-label="الوضع الليلي">${isDark()?"☀️":I3("moon")}</button><div class="logo">📚</div><h1>مفردا<span>تي</span></h1><p class="sub">ادرس مفرداتك الألمانية بذكاء</p>
-   <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr">
-   <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr">
+   <input id="lUser" placeholder="اسم المستخدم" autocomplete="username" autocapitalize="none" spellcheck="false" dir="ltr" maxlength="30" inputmode="latin">
+   <input id="lPass" type="password" placeholder="كلمة السر" autocomplete="current-password" dir="ltr" maxlength="64">
    <button class="btn lgo" id="lGo">دخول</button>
    <div class="lmsg" id="lMsg">${msg?esc(msg):""}</div>
    <a class="btn tgbtn" href="https://t.me/mufradati_de_bot?start=account" target="_blank" rel="noopener">✈️ لا تملك حسابًا؟ اطلبه عبر تيليغرام</a></div>`;
   const m=t=>{$("lMsg").textContent=t};
   const go=async()=>{
-    const u=$("lUser").value.trim().toLowerCase(),pass=$("lPass").value;
+    const u=$("lUser").value.trim().toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,30),pass=$("lPass").value.slice(0,64);
     if(!u||!pass){m("اكتب اسم المستخدم وكلمة السر");return}
     $("lGo").disabled=true;m("…");
-    try{await auth.signInWithEmailAndPassword(u.includes("@")?u:u+DOMAIN,pass)}
+    try{await auth.signInWithEmailAndPassword(u+DOMAIN,pass)}
     catch(e){m(e.code==="auth/invalid-email"?"اسم المستخدم يُكتب بأحرف إنجليزية وأرقام فقط":AERR[e.code]||e.message);$("lGo").disabled=false}
   };
   $("lGo").onclick=go;$("lPass").onkeydown=e=>{if(e.key==="Enter")go()};
+  // اسم المستخدم: أحرف إنجليزية صغيرة وأرقام فقط، يُحذف غيرها فور كتابته
+  {const lu=$("lUser");lu.oninput=()=>{const v=lu.value.toLowerCase().replace(/[^a-z0-9]/g,"").slice(0,30);if(v!==lu.value)lu.value=v}}
   $("lDark").onclick=()=>{setDevDark(!isDark());$("lDark").innerHTML=isDark()?"☀️":I3("moon");try{document.querySelector('meta[name=theme-color]').content=getComputedStyle(document.documentElement).getPropertyValue("--navy").trim()||"#1f2a5a"}catch(e){}};
 }
 // تفعيل الحسابات: الحساب الجديد لا يعمل حتى يفعّله المشرف (المستخدمون القدامى مفعّلون تلقائيًا)
