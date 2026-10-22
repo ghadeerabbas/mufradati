@@ -1087,7 +1087,7 @@ async function quitStation(){
   if(!STS)return;
   const free=!stCostAt(STV||Date.now()),rf=CFG.energy.refund;
   if(!await uiConfirm("إذا خرجت دون إكمال المحطة فلن تُحسب كلماتها"+(free?"، وتبقى محطتك المجانية متاحة لتبدأها من جديد":"، وستستعيد "+rf+" طاقة فقط من "+ST_COST)+". هل تريد الخروج؟"))return;
-  hideFb();STS=null;ev({type:"stQuit"});renderEnergy();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","");reviewHome();
+  hideFb();STS=null;ev({type:"stQuit"});renderEnergy();if(!free&&rf)toast("🔋","استعدت "+rf+" طاقة","");reviewHome();toCur();
 }
 /* ================= مؤثرات الدرس: صوت، وشريط ملاحظات، وعدّاد التوالي، وشاشة النتيجة ================= */
 const sndOn=()=>{try{return localStorage.getItem("muf_snd")!=="0"}catch(e){return true}};
@@ -1250,9 +1250,13 @@ function coursePicker(){
   m.onclick=e=>{if(e.target===m)close()};$("crsNo").onclick=close;
   m.querySelectorAll(".crsopt").forEach(b=>b.onclick=async()=>{close();if(b.dataset.c!==COURSE){await switchCourse(b.dataset.c)}});
 }
-// العودة إلى صفحة الدراسة: تظهر المحطة الحالية (أو تدريبها أو التحدي) في وسط الشاشة، لا أول المسار
-function toCur(){scrollTo(0,0);requestAnimationFrame(()=>{const n=document.querySelector("#review #dNode,#review #stNode,#review #chNode");if(!n)return;
-  const r=n.getBoundingClientRect();if(r.top>innerHeight*.6||r.bottom<0)scrollTo(0,Math.max(0,scrollY+r.top-innerHeight*.45))})}
+// العودة إلى صفحة الدراسة: تعود الصفحة إلى الموضع نفسه الذي كانت عليه قبل بدء المحطة أو التدريب أو المراجعة
+let HOMEY=null,LASTHOME=0;
+// آخر موضع للصفحة الرئيسية للدراسة (خارج المحطات والتمارين)، يُحفظ مع كل تمرير
+addEventListener("scroll",()=>{const r=$("review");if(r&&r.classList.contains("on")&&!document.body.classList.contains("lesson")&&!r.querySelector(".sess"))LASTHOME=scrollY},{passive:true});
+function toCur(){if(STS||DRL||RES){scrollTo(0,0);return}   // شاشة النتيجة أو جلسة: الموضع يُستعاد عند العودة الفعلية إلى المسار
+  const y=HOMEY;HOMEY=null;if(y==null){scrollTo(0,0);return}
+  scrollTo(0,y);requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,y)))}
 function reviewHome(){
   if(STS)return stationView();
   if(DRL)return drillView();
@@ -2201,7 +2205,7 @@ const viewSig=()=>{try{const e=EC||econ();return JSON.stringify([e.xp,e.gems,e.l
 function lessonMode(){
   const on=document.querySelector(".panel.on"),id=on&&on.id;
   const a=!!(UID&&!isAdmin()&&on&&on.querySelector(".sess"));
-  if(document.body.classList.contains("lesson")!==a){document.body.classList.toggle("lesson",a);if(a)scrollTo(0,0)}
+  if(document.body.classList.contains("lesson")!==a){if(a&&HOMEY==null&&$("review").classList.contains("on"))HOMEY=LASTHOME;document.body.classList.toggle("lesson",a);if(a)scrollTo(0,0)}
 }
 function fitWords(){
   document.querySelectorAll(".stlearn .word,.scene .word").forEach(el=>{
@@ -3164,7 +3168,7 @@ function init(){
     if(b.dataset.p==="users")uOpen=null;
     if(b.dataset.p==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}}
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
-    hideFb();b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);if(b.dataset.p==="review")toCur();else scrollTo(0,0)});
+    hideFb();b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=refresh);
   $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
   $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
@@ -3206,7 +3210,7 @@ async function handleBack(){
   if(id==="games"&&GM&&!GM.done){if(await uiConfirm("الخروج من التمرين؟")){stopTick();GM=null;renderGames()}return}
   if(id==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
   if(id==="users"&&uOpen){uOpen=null;renderUserList();return}
-  goTab("review");toCur();
+  goTab("review");scrollTo(0,0);
 }
 window.addEventListener("popstate",()=>{if(EXITING)return;trapBack();handleBack()});
 window.mufBack=()=>{handleBack()};
