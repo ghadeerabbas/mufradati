@@ -121,6 +121,13 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void exit() { runOnUiThread(MainActivity.this::finish); }
     }
 
+    // فتح التطبيق يُزيل إشعار التذكير من لوحة الإشعارات
+    @Override
+    protected void onResume() {
+        super.onResume();
+        try { ((android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(1); } catch (Exception ignored) {}
+    }
+
     @Override
     protected void onDestroy() {
         if (tts != null) tts.shutdown();

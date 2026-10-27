@@ -81,7 +81,11 @@ public class Reminder extends BroadcastReceiver {
         }
     }
 
-    static void markStudied(Context c, String day) { prefs(c).edit().putString("studied", day).apply(); }
+    static void markStudied(Context c, String day) {
+        prefs(c).edit().putString("studied", day).apply();
+        // أكمل دراسة اليوم: لا يبقى تذكير ظاهر
+        try { ((NotificationManager) c.getSystemService(Context.NOTIFICATION_SERVICE)).cancel(1); } catch (Exception ignored) {}
+    }
 
     @Override
     public void onReceive(Context c, Intent intent) {
