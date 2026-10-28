@@ -1183,16 +1183,25 @@ const drillCost=()=>FREEU||unlAt(Date.now())?0:CFG.energy.drill;
 // في الدراسة الحرّة يبدأ المسار من جديد كلما اكتملت محطاته وتدريباتها
 const pathBase=()=>{if(!FREEU)return 0;const a=stToday(),d=drillsToday(),N=stMax();return d>=a?Math.floor(a/N)*N:Math.floor((a-1)/N)*N};
 const drillLock=()=>!!CFG.station.drillReq&&drillsToday()<stToday();   // المحطة التالية مقفلة حتى يُنهى التدريب
+// كلمات المناهج التي لم تعد من مناهجه (أزالها المشرف بعد أن درس منها محطة اليوم): تُحمَّل عند الحاجة فقط
+let EXTRAW=[];
+async function loadAllCourseWords(){
+  const have=new Set([COURSE,...Object.keys(OTHERC)]),o=[];
+  for(const c of Object.keys(COURSES)){if(have.has(c))continue;const f=COURSES[c].file,ck="muf_w_"+f;
+    let t=st(ck);if(!t){try{const q=await fetch(f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
+    try{const d=JSON.parse(t||"{}");o.push(...(d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
+  EXTRAW=uniq(o);
+}
 function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
   const st=STN.filter(x=>dkey(x[0])===dkey(Date.now())).sort((a,b)=>a[0]-b[0]);if(!st[j])return [];
-  const ts=st[j][0],by=new Map([...Object.values(OTHERC).flat(),...uniq(W)].map(w=>[w.k,w]));   // كل مناهجه: قد يكون غيّر المنهج بعد المحطة
+  const ts=st[j][0],by=new Map([...EXTRAW,...Object.values(OTHERC).flat(),...uniq(W)].map(w=>[w.k,w]));   // كل المناهج: قد يكون غيّر المنهج بعد المحطة
   const t0=Math.floor(ts/1000)*1000;   // السجلّ المحفوظ يقرّب الوقت إلى الثانية
   return [...new Set(LOG.filter(x=>isNewF(x)&&x[0]>=t0&&x[0]<t0+2000).map(x=>x[1]))].slice(0,ST_WORDS).map(k=>by.get(k)).filter(Boolean);
 }
-function startDrill(){
+async function startDrill(){
   const j=drillsToday();if(j>=stToday()){toast(I3("puzzle"),"أكمل محطة أولًا","التدريب يأتي بعد كل محطة");return}
   syncFree();const need=drillCost();if(need&&enNow()<need){noEnergy(need,"التدريب");return}
-  const ws=stationWords(j);if(ws.length<2){toast(I3("warning"),"تعذّر تجهيز التدريب","لم أجد كلمات هذه المحطة");return}
+  let ws=stationWords(j);if(ws.length<2){await loadAllCourseWords();ws=stationWords(j)}if(ws.length<2){toast(I3("warning"),"تعذّر تجهيز التدريب","لم أجد كلمات هذه المحطة");return}
   DRL={j,words:shuffle(ws),ar:shuffle([...ws]),sel:null,done:new Set,wrong:new Set,t0:Date.now(),fin:false};RVDONE=null;RES=null;CMB=0;drillView();scrollTo(0,0);
 }
 function drillView(){
