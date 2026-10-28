@@ -237,6 +237,9 @@ const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k
 // خبرة الانتقال من المستوى l إلى التالي: حتى المستوى 8 تزيد 80 في كل مستوى (80، 160 … 560)،
 // وبعده تزيد بعشرة أضعاف رقم المستوى الجديد: للمستوى 9 ‏560+90=650، وللمستوى 10 ‏650+100=750، ثم +110، +120 …
 const lvlNeed=l=>{if(l<8)return CFG.xp.level*l;let n=CFG.xp.level*7;for(let k=8;k<=l;k++)n+=10*(k+1);return n};
+// أيام سلسلة استعادها المشرف (بعد تصفيرٍ قديم كان يمسح السلسلة): R.sk={t:آخر يوم,n:عددها}
+function carryDays(){const o=new Set,k=R.sk;if(!k||!(k.n>0)||!/^\d{4}-\d\d-\d\d$/.test(k.t||""))return o;
+  const t=new Date(k.t+"T12:00:00").getTime();for(let i=0;i<Math.min(k.n,3650);i++)o.add(dkey(t-i*DAY));return o}
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -258,8 +261,8 @@ function econ(){
   for(const q of QLOG){xp+=qXp(q);if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
-  const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
-  const days=Object.keys(per).sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
+  const stDays=new Set(STN.map(x=>dkey(x[0]))),cd=carryDays(),qd=d=>cd.has(d)||(d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d)));
+  const days=[...new Set([...Object.keys(per),...cd])].sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
   if(days.length){
     let t=new Date(days[0]+"T12:00:00").getTime(),gap=0,gapUsed=0;const end=today();
     for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
@@ -423,8 +426,8 @@ function applyAt(ev,T,now,ctx){
     const ws=[...new Set((ev.words||[]).map(String))].slice(0,ST_WORDS);
     if(!ws.length||ws.some(k=>P[k]||(ctx.words&&!ctx.words.has(k))))return "word";
     const miss=new Set((ev.miss||[]).map(String));
-    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU?4:1])});
-    const pw=new Set(R.pw||[]);STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
+    const pw=new Set(R.pw||[]);   // كلمة كوفئ عليها قبل التصفير: تُعلَّم 4 فلا خبرة لها مرة ثانية
+    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU||pw.has(k)?4:1])});STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
   }
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
@@ -458,10 +461,10 @@ function applyAt(ev,T,now,ctx){
     EN.u=Math.max(EN.u||0,now)+Math.min(Math.max(g.g|0,1),7*1440)*60000;return true;
   }
   if(T==="reset"){
-    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now,...(R.ug?{ug:R.ug}:{})};   // pw: كلمات كوفئ عليها في المحطات
-    // يعود كأنه جديد: بلا خبرة ولا دوري (تبقى جواهره ومشترياته)
-    P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};
-    EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0,...(EN.u?{u:EN.u}:{})};   // ويبدأ بطاقة كاملة
+    // تصفير الكلمات فقط: تعود كل الكلمات جديدة، وتبقى السلسلة والخبرة (المستوى) والدوري والجواهر والمشتريات والإنجازات
+    // pw: كلمات تعلّمها من قبل؛ إن أعاد تعلّمها في محطة فلا خبرة لها مرة ثانية
+    R={...R,pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now};
+    P={};QA=[];STV=0;
     return true;
   }
   return "type";
@@ -714,6 +717,31 @@ async function handleWipe(fs, user, body) {
   return { status: 200, json: { ok: true } };
 }
 
+/* ---------- المشرف: استعادة سلسلة متعلّم ومستواه في الدوري (بعد تصفيرٍ قديم كان يمسحهما) ---------- */
+// streak: السلسلة التي يجب أن تظهر له الآن (تُحفظ أيامًا متتالية تنتهي أمس، واليوم يُضاف إن درس)، tier: مستواه في الدوري
+async function handleFix(fs, user, body, env) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  const uid = String(body.uid || ""); if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
+  const streak = body.streak == null || body.streak === "" ? null : Math.floor(+body.streak), tier = body.tier == null || body.tier === "" ? null : Math.floor(+body.tier);
+  if (streak != null && !(streak >= 0 && streak <= 3650)) return { status: 400, json: { error: "streak" } };
+  if (tier != null && !(tier >= 0 && tier < CFG.league.up.length)) return { status: 400, json: { error: "tier" } };
+  await loadCfg(fs);
+  const [coreD, logD, qaD] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`)]);
+  if (!coreD) return { status: 404, json: { error: "nouser" } };
+  setState(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
+  const now = Date.now();
+  if (streak != null) {
+    R = { ...R }; delete R.sk; EC = null;
+    const todayIn = econ().s.today, n = Math.max(0, streak - (todayIn ? 1 : 0));
+    if (n > 0) R.sk = { t: dkey(now - DAY), n };
+    EC = null;
+  }
+  if (tier != null) LG = { ...LG, tier, best: Math.max(LG.best || 0, tier) };
+  await fs.commit([{ path: `users/${uid}/data/core`, data: { v: JSON.stringify(coreObj()) }, ifUpdateTime: coreD.updateTime }]);
+  EC = null; const e = econ();
+  return { status: 200, json: { ok: true, streak: e.s.streak, tier: LG.tier } };
+}
+
 /* ---------- بلاغات الأخطاء في الكلمات: المتعلّم يرسل، والمشرف يقرأ ويحذف ---------- */
 const RKINDS = ["ar", "de", "ex", "audio", "other"];
 async function handleReport(fs, user, body) {
@@ -824,7 +852,7 @@ export default {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/msg"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -834,7 +862,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

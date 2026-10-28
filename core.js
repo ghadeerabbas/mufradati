@@ -219,6 +219,9 @@ const achLevel=(a,s)=>{const v=a.v(s);let k=0;while(k<a.L.length&&v>=a.L[k][0])k
 // خبرة الانتقال من المستوى l إلى التالي: حتى المستوى 8 تزيد 80 في كل مستوى (80، 160 … 560)،
 // وبعده تزيد بعشرة أضعاف رقم المستوى الجديد: للمستوى 9 ‏560+90=650، وللمستوى 10 ‏650+100=750، ثم +110، +120 …
 const lvlNeed=l=>{if(l<8)return CFG.xp.level*l;let n=CFG.xp.level*7;for(let k=8;k<=l;k++)n+=10*(k+1);return n};
+// أيام سلسلة استعادها المشرف (بعد تصفيرٍ قديم كان يمسح السلسلة): R.sk={t:آخر يوم,n:عددها}
+function carryDays(){const o=new Set,k=R.sk;if(!k||!(k.n>0)||!/^\d{4}-\d\d-\d\d$/.test(k.t||""))return o;
+  const t=new Date(k.t+"T12:00:00").getTime();for(let i=0;i<Math.min(k.n,3650);i++)o.add(dkey(t-i*DAY));return o}
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -240,8 +243,8 @@ function econ(){
   for(const q of QLOG){xp+=qXp(q);if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
-  const stDays=new Set(STN.map(x=>dkey(x[0]))),qd=d=>d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d));
-  const days=Object.keys(per).sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
+  const stDays=new Set(STN.map(x=>dkey(x[0]))),cd=carryDays(),qd=d=>cd.has(d)||(d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d)));
+  const days=[...new Set([...Object.keys(per),...cd])].sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
   if(days.length){
     let t=new Date(days[0]+"T12:00:00").getTime(),gap=0,gapUsed=0;const end=today();
     for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
@@ -405,8 +408,8 @@ function applyAt(ev,T,now,ctx){
     const ws=[...new Set((ev.words||[]).map(String))].slice(0,ST_WORDS);
     if(!ws.length||ws.some(k=>P[k]||(ctx.words&&!ctx.words.has(k))))return "word";
     const miss=new Set((ev.miss||[]).map(String));
-    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU?4:1])});
-    const pw=new Set(R.pw||[]);STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
+    const pw=new Set(R.pw||[]);   // كلمة كوفئ عليها قبل التصفير: تُعلَّم 4 فلا خبرة لها مرة ثانية
+    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU||pw.has(k)?4:1])});STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
   }
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
@@ -440,10 +443,10 @@ function applyAt(ev,T,now,ctx){
     EN.u=Math.max(EN.u||0,now)+Math.min(Math.max(g.g|0,1),7*1440)*60000;return true;
   }
   if(T==="reset"){
-    const e0=econ();R={bank:e0.earned-giftSum(),ach:[...new Set([...(R.ach||[]),...e0.got])],lv:Math.max(R.lv||1,e0.lv),sb:Math.max(R.sb||0,e0.s.best),pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now,...(R.ug?{ug:R.ug}:{})};   // pw: كلمات كوفئ عليها في المحطات
-    // يعود كأنه جديد: بلا خبرة ولا دوري (تبقى جواهره ومشترياته)
-    P={};LOG=[];QLOG=[];QA=[];STN=[];STV=0;LG={tier:0,w:LG.w,hist:[],ts:now,v:2,best:0};
-    EN={v:EN_MAX,t:now,rc:0,lt:EN.lt||0,...(EN.u?{u:EN.u}:{})};   // ويبدأ بطاقة كاملة
+    // تصفير الكلمات فقط: تعود كل الكلمات جديدة، وتبقى السلسلة والخبرة (المستوى) والدوري والجواهر والمشتريات والإنجازات
+    // pw: كلمات تعلّمها من قبل؛ إن أعاد تعلّمها في محطة فلا خبرة لها مرة ثانية
+    R={...R,pw:[...new Set([...(R.pw||[]),...Object.keys(P)])],ts:now};
+    P={};QA=[];STV=0;
     return true;
   }
   return "type";

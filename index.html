@@ -695,7 +695,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=24"></script>
+<script src="core.js?v=25"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -1410,7 +1410,7 @@ function rate(r,btn){
 // تصفير التقدّم: تأكيد بكتابة اسم المستخدم، ثم يُمسح محليًّا وفي الحساب معًا
 async function resetProgress(){
   const uname=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
-  if(!await uiConfirm("⚠️ سيُحذف كلّ تقدّمك: المراجعات، والكلمات المحفوظة، والاختبارات، والمستوى، والسلسلة، ودوريك (تعود إلى الدوري الأول وتخرج من دوري هذا الأسبوع).\nتبقى جواهرك ومشترياتك كما هي.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
+  if(!await uiConfirm("⚠️ ستعود كل كلماتك جديدةً كأنك لم تتعلّمها: تُحذف الكلمات التي تعلّمتها ومراجعاتها.\nتبقى سلسلتك وخبرتك ومستواك ودوريك وجواهرك ومشترياتك وإنجازاتك.\nلا يمكن التراجع عن هذا. هل تريد المتابعة؟"))return;
   const v=(await uiPrompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
   if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
   ev({type:"reset"});S.newCount=0;save();
@@ -2320,7 +2320,7 @@ function renderSettings(){
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
-  ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">يحذف المراجعات والكلمات المحفوظة والاختبارات والمستوى والسلسلة ودوريك، وتبقى جواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
+  ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">تعود كل الكلمات جديدةً كأنك لم تتعلّمها، وتُحذف مراجعاتها. تبقى سلسلتك وخبرتك ومستواك ودوريك وجواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}
   ${isAdmin()?`<div class="rsec"><h3>🚪 الخروج</h3><p class="rnote">أنت مسجّل باسم المشرف: <span dir="ltr">${esc(login)}</span> · رقمك: <b dir="ltr">${noTxt(0)}</b></p><button class="btn" id="admOut" style="width:100%;margin-top:6px">تسجيل الخروج</button></div>`:""}`;
   {const ao=$("admOut");if(ao)ao.onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من حساب المشرف على هذا الجهاز؟"))return;await signOutAll();location.reload()}}
@@ -3102,6 +3102,9 @@ function renderUser(){
   const lb=[...Array(14)].map((_,i)=>new Date(Date.now()-(13-i)*DAY).getDate());
   el.innerHTML=`<div class="mhead"><h2>${esc(uName(u))}${(u.sum||{}).login?` <small dir="ltr" style="color:var(--muted);font-weight:400;font-size:.8rem">@${esc(u.sum.login)}</small>`:""}${noH(u.id)}</h2><span><button class="btn" id="uMsg">✉️ رسالة</button> <button class="btn" id="uBack">→ رجوع</button></span></div>
   <div class="rsec"><h3>✏️ اسمه الظاهر</h3><div class="strow"><input id="uNm" class="stin" maxlength="40" value="${esc(uName(u))}" autocomplete="off"><button class="btn stbtn" id="uNmBtn">حفظ</button></div><div class="stmsg" id="uNmMsg"></div></div>
+  <div class="rsec"><h3>🛠️ استعادة السلسلة والدوري</h3><p class="rnote">لمن صفّر تقدّمه قبل أن يصير التصفير يُبقي السلسلة والدوري. اكتب السلسلة التي يجب أن تظهر له الآن، واختر دوريه.</p>
+   <div class="strow"><input id="fxSt" class="stin" type="number" min="0" max="3650" placeholder="السلسلة (أيام)" dir="ltr"><select id="fxTier" class="stin"><option value="">الدوري: بلا تغيير</option>${TIERS.map((t,i)=>`<option value="${i}">${esc(tierName(i))}</option>`).join("")}</select></div>
+   <button class="btn" id="fxGo" style="width:100%;margin-top:6px">حفظ</button><div class="stmsg" id="fxMsg"></div></div>
   <div class="rsec"><h3>🔑 كلمة المرور</h3><p class="rnote">تعيّن له كلمة مرور جديدة، فيخرج من أجهزته الأخرى ويدخل بها. تقدّمه لا يتأثر.</p><button class="btn" id="uPass" style="width:100%;margin-top:6px">تغيير كلمة المرور</button></div>
   <div style="margin-bottom:10px"><span class="ust" style="--sc:${UST[u.st][1]};background:${UST[u.st][1]}">${UST[u.st][0]}</span></div>
   ${!sm?'<div class="empty">لم يفتح هذا المستخدم التطبيق منذ إضافة التقارير، فلا ملخّص له بعد.</div>':`
@@ -3146,6 +3149,13 @@ function renderUser(){
   {const cb=$("uFree");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setFree(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false}}
   $("uWipe").onclick=()=>wipeUser(u);
   $("uPass").onclick=()=>resetPass(u);
+  $("fxGo").onclick=async()=>{const st=$("fxSt").value.trim(),tr=$("fxTier").value,m=t=>$("fxMsg").textContent=t;
+    if(st===""&&tr==="")return m("اكتب السلسلة أو اختر الدوري");
+    if(!await uiConfirm("تعديل "+(st!==""?"السلسلة إلى "+st+" يومًا":"")+(st!==""&&tr!==""?" و":"")+(tr!==""?tierName(+tr):"")+" لهذا المتعلّم؟"))return;
+    $("fxGo").disabled=true;m("جارٍ الحفظ…");
+    try{const r=await apiPost("/fix",{uid:u.id,streak:st,tier:tr});m("✓ حُفظ: السلسلة الآن "+r.streak+" · "+tierName(r.tier)+". يظهر عنده حين يفتح التطبيق.")}
+    catch(e){m("تعذّر الحفظ: "+(e.error==="nouser"?"لا بيانات له بعد":e.detail||e.error||e.message||"خطأ في الاتصال"))}
+    $("fxGo").disabled=false};
   $("uNmBtn").onclick=async()=>{
     const v=$("uNm").value.trim().replace(/\s+/g," "),m=$("uNmMsg");
     if(!v||v.length>40){m.textContent="اكتب اسمًا من 1 إلى 40 حرفًا";m.className="stmsg bad";return}
