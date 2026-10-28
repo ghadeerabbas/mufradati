@@ -795,18 +795,21 @@ function applyStart(){
   if(ASTART!==COURSE&&!STS&&!DRL&&!GM)switchCourse(ASTART);
 }
 // كلمات المناهج الأخرى للمتعلّم: لتأتيه مراجعاتها وتمارينها مهما كان المنهج المختار
-let OTHERC={};
+let OTHERC={},ORPH=[];
 async function loadOtherWords(){
   const o={};
   for(const c of MY_COURSES){if(c===COURSE||!COURSES[c])continue;const f=COURSES[c].file,ck="muf_w_"+f;
     let t=st(ck);if(!t){try{const q=await fetch(f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
     try{const d=JSON.parse(t||"{}");o[c]=uniq((d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
   OTHERC=o;
+  // كلمات تعلّمها من منهجٍ لم يعد من مناهجه: تبقى في قائمته ومراجعاته
+  const known=new Set([...W,...Object.values(OTHERC).flat()].map(w=>w.k));
+  if(Object.keys(P).some(k=>!known.has(k))){await loadAllCourseWords();ORPH=uniq(EXTRAW.filter(w=>P[w.k]&&!known.has(w.k)))}else ORPH=[];
   const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES&&!queue.length)reviewHome();
 }
 const noFilter=()=>["fDay","fLvl","fCore","fSubj"].every(id=>!$(id)||$(id).value==="all");
 // مجموعة المراجعة والتمارين والاختبار: كل مناهجه (إلا إذا اختار تصفية معيّنة)
-const studyPool=()=>noFilter()?uniq([...W,...Object.values(OTHERC).flat()]):filtered();
+const studyPool=()=>noFilter()?uniq([...W,...Object.values(OTHERC).flat(),...ORPH]):filtered();
 function renderCourseSel(){const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
 async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
@@ -1444,7 +1447,7 @@ function pagerHTML(pages){
 }
 function renderList(){
   const q=$("q").value.trim().toLowerCase(),t=$("fType").value;
-  const r=uniq(filtered()).filter(w=>P[w.k]&&(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));   // الكلمات التي تعلّمها فقط
+  const r=uniq(studyPool()).filter(w=>P[w.k]&&(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));   // الكلمات التي تعلّمها فقط
   const pages=Math.max(1,Math.ceil(r.length/LSIZE));LPAGE=Math.min(Math.max(0,LPAGE),pages-1);
   const from=LPAGE*LSIZE,part=r.slice(from,from+LSIZE);
   $("lcount").textContent=r.length?`تعلّمت ${arN(r.length,"كلمة واحدة","كلمتين","كلمات")} · ${from+1}–${from+part.length}`:q||t!=="all"?"لا كلمات":"لم تتعلّم كلمات بعد. ابدأ أول محطة لتظهر كلماتك هنا";
