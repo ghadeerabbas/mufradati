@@ -5,6 +5,7 @@
  {"id": "a2", "name": "A2 · المنهج العام", "file": "words-a2.json"},
  {"id": "b2", "name": "B2 · منهج غدير", "file": "words.json", "days": true},
  {"id": "b2p", "name": "B2 · المنهج المهني", "file": "words.json"},
- {"id": "k3", "name": "Klasse 3", "file": "words-k3.json", "subjects": true}
+ {"id": "k3", "name": "Klasse 3", "file": "words-k3.json", "subjects": true},
+ {"id": "c1", "name": "C1 · منهج غدير", "file": "words-c1.json", "days": true}
 ]
 }
