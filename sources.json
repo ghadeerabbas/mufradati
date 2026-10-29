@@ -1,0 +1,129 @@
+{
+ "_": "الأوراق التي أُخذت كلماتها في كل منهج. sha = أول 16 حرفًا من بصمة sha256 للملف، فتُعرف الورقة حتى لو تغيّر اسمها. ورقة جديدة = بصمتها ليست هنا.",
+ "k3": {
+  "folder": "C:\\klasse3",
+  "files": [
+   {
+    "file": "1a22503a-1499-4642-9ce8-695e44add0d6.jpg",
+    "sha": "0c291f6c9de10af4"
+   },
+   {
+    "file": "23af13e3-b454-40f9-892b-f33178887dc2.jpg",
+    "sha": "d089a612ab80c74a"
+   },
+   {
+    "file": "28a1023c-41e5-481c-b085-0f98538fa6a4.jpg",
+    "sha": "af5c569a4840acf6"
+   },
+   {
+    "file": "5181ae8e-e627-424d-8595-2537686bf14e.jpg",
+    "sha": "475c7d1f65d83f37"
+   },
+   {
+    "file": "5c519e61-9cd8-4b7c-9a43-3b8a7f1fc791.jpg",
+    "sha": "5a5cb4ed614feb16"
+   },
+   {
+    "file": "6fe4c40d-b6c7-487d-b5f9-0fecd13c6edf.jpg",
+    "sha": "cd32093c5b477781"
+   },
+   {
+    "file": "7c36f3df-89a2-48f7-96bd-915d7d43b682.jpg",
+    "sha": "30769a9d522a2074"
+   },
+   {
+    "file": "872ae91b-3114-4e56-b87c-311a7548e4a0.jpg",
+    "sha": "63b21aa7b0adb8ac"
+   },
+   {
+    "file": "WhatsApp Image 2026-10-13 at 9.51.20 PM (1).jpeg",
+    "sha": "748b39e78ec71102"
+   },
+   {
+    "file": "WhatsApp Image 2026-10-13 at 9.51.20 PM.jpeg",
+    "sha": "da309bb3baedcf9f"
+   },
+   {
+    "file": "WhatsApp Image 2026-10-13 at 9.51.21 PM (1).jpeg",
+    "sha": "d1520e7268166cfc"
+   },
+   {
+    "file": "WhatsApp Image 2026-10-13 at 9.51.21 PM.jpeg",
+    "sha": "472224dbbf9d82b0"
+   },
+   {
+    "file": "aca58ec5-b2b3-4631-bbad-2b9cfac8b452.jpg",
+    "sha": "84ee0c666e442b4f"
+   },
+   {
+    "file": "b9b1047a-765d-4ec0-920a-f2c6fcc88a7c.jpg",
+    "sha": "9edd35761e685594"
+   },
+   {
+    "file": "f2297a80-bca9-4f3f-b02a-9d407dd8a71d.jpg",
+    "sha": "0d2a8bf1fcd36184"
+   },
+   {
+    "file": "fbb67f9c-cc88-4771-a248-1c6a45cb7f73.jpg",
+    "sha": "7b1e909a90756c48"
+   }
+  ]
+ },
+ "k4": {
+  "folder": "C:\\klasse4",
+  "files": [
+   {
+    "file": "New folder (2)/6c1fba08-ffb8-40b9-9feb-a4caede08cb4.jpg",
+    "sha": "d1bab004c03c1c3d"
+   },
+   {
+    "file": "New folder (2)/dd26e341-82f4-4d07-b30d-2fc51d2a7260.jpg",
+    "sha": "1990904ad3566c53"
+   },
+   {
+    "file": "New folder (2)/e6c1b80b-188d-46fa-bd08-a82016de76c1.jpg",
+    "sha": "03b1a25eae8d0e48"
+   },
+   {
+    "file": "New folder (2)/fb65c195-643e-4004-82cb-f32389b4a2e2.jpg",
+    "sha": "f323d3d89ba9ba33"
+   },
+   {
+    "file": "New folder (3)/05d4952f-49b4-412b-8bab-45da8446046b.jpg",
+    "sha": "bab23f3dda525984"
+   },
+   {
+    "file": "New folder (3)/3b1a30b5-c8a0-4bea-99db-2ccf249302bf.jpg",
+    "sha": "9281934d95d5f70a"
+   },
+   {
+    "file": "New folder (3)/72523776-4ca2-40ce-aac9-93cc5b7f5ca4.jpg",
+    "sha": "f6761f227117b15c"
+   },
+   {
+    "file": "New folder (3)/7404e804-cb72-4277-a67b-0c9c9da2c10e.jpg",
+    "sha": "dc5cd6e85bab7050"
+   },
+   {
+    "file": "New folder (3)/9f7b6a59-70c5-47e5-937c-2efdfed08832.jpg",
+    "sha": "d556ecba49570bd0"
+   },
+   {
+    "file": "New folder/21b55fbc-11f6-4906-87c0-9830b5d8c781.jpg",
+    "sha": "8cf3d5746f400845"
+   },
+   {
+    "file": "New folder/28423c07-d8e9-422b-b84a-af543e6ec96c.jpg",
+    "sha": "b033b849188a6eda"
+   }
+  ]
+ },
+ "c1": {
+  "folder": "C:\\c1",
+  "book": "Aspekte Beruf C1 (مقسّم: Aspekte Beruf C1-N.pdf، كل جزء 10 صفحات)",
+  "pages": [
+   "8",
+   "9"
+  ]
+ }
+}
