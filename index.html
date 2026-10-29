@@ -1623,7 +1623,10 @@ const normT=s=>String(s).normalize("NFC").replace(/[‘’]/g,"'").replace(/\s+/
 const FILL=new Set(["etwas","etw.","etw","jemandem","jemanden","jemand","jdm.","jdn.","jmdm.","jmdn.","jdm","jdn","jmd.","sich","einen","eine","einem","einer","ein"]);
 const coreOf=s=>normT(s).replace(/[.,!?;:"„“]+/g,"").replace(ART,"").split(" ").filter(t=>t&&!FILL.has(t.toLowerCase())).join(" ");
 function checkTyped(w,v){
-  v=normT(v);const ans=answersOf(w).map(normT),key=coreOf(v).toLowerCase();
+  v=normT(v);
+  // كتب الكلمة كاملةً كما في القائمة (مع الجمع مثلًا: das Land, die Länder): تُقبل، ولا تهمّ المسافات حول الفاصلة
+  const cmp=x=>normT(x).replace(/\s*,\s*/g,", ").toLowerCase();
+  if(v.includes(",")&&cmp(v)===cmp(w.de))v=normT(v.split(",")[0]);const ans=answersOf(w).map(normT),key=coreOf(v).toLowerCase();
   const a=ans.find(x=>coreOf(x).toLowerCase()===key&&key);
   // في الأفعال يكفي الفعل وحده (träumen بدل von etwas träumen)، وتظهر الصيغة الكاملة ملاحظةً لا خطأً
   if(!a&&w.t==="v"&&key&&!key.includes(" ")){const h=ans.find(x=>{const c=coreOf(x).toLowerCase().split(" ");return c.length>1&&c[c.length-1]===key});
