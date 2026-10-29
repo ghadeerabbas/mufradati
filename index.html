@@ -396,7 +396,7 @@ body.fbon main{padding-bottom:210px}
 .artb.art-der{color:#2563eb}.artb.art-die{color:#dc2626}.artb.art-das{color:#16a34a}.artb.ok{background:#22c55e33;border-color:var(--green)}.artb.no{background:#ef444433;border-color:var(--red)}
 .gin{width:100%;font:inherit;font-size:1.2rem;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);text-align:left;margin-top:8px}
 .gin.good{border-color:var(--green)}.gin.bad{border-color:var(--red)}
-.tlen{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;direction:ltr;margin:6px 0 0}.tlen b{width:20px;height:28px;border-bottom:3px solid var(--line);text-align:center;font-weight:800;font-size:1.05rem;color:var(--green)}.tlen .sp{width:10px}
+.tbox{position:relative}.tbox .tin{padding-bottom:40px}.tlen{position:absolute;left:12px;right:12px;bottom:9px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap;direction:ltr;pointer-events:none}.tlen b{width:18px;height:22px;border-bottom:2.5px solid var(--line);text-align:center;font-weight:700;font-size:.95rem;line-height:22px;color:var(--muted)}.tlen b.rv{color:var(--green)}.tlen .sp{width:10px}
 .thints{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;align-items:center;margin:4px 0 6px;font-size:.85rem;color:var(--muted)}.thints button{padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-size:.85rem}.thints button:disabled{opacity:.45}
 .thelp{font-size:1rem;margin:6px 0}.tmix{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;direction:ltr;margin:6px 0}.tmix button{min-width:38px;padding:8px 0;border-radius:10px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:inherit;font-weight:800;font-size:1.05rem}.tmix button:disabled{opacity:.3}.tmix .tback{border-color:var(--red);color:var(--red)}
 .ukeys{display:flex;gap:6px;justify-content:center;margin:8px 0;flex-wrap:wrap;direction:ltr}.ukeys button{min-width:40px;padding:7px 0;border-radius:10px;border:1px solid var(--line);background:var(--soft);color:var(--ink);font-size:1.05rem}
@@ -1782,8 +1782,7 @@ function gameView(){
     <button class="btn next" id="gCheck" ${q.picked.length?"":"disabled"}>تحقّق</button>`;
   else if(q.kind==="type"){const T=typeTarget(w),cz=clozeOf(w);
     body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
-    <div class="tlen de" id="tLen">${lenHTML(T,q.rev||0)}</div>
-    <input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
+    <div class="tbox"><input id="gIn" class="gin de tin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا"><div class="tlen de" id="tLen">${lenHTML(T,"",q.rev||0)}</div></div>
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <div class="thints"><span>مساعدة:</span><button type="button" data-h="letter">🔤 حرف</button>${canSpeak()?'<button type="button" data-h="hear">🔊 استمع</button>':""}${cz?'<button type="button" data-h="sent">📝 جملة</button>':""}<button type="button" data-h="mix">🧩 الأحرف</button></div>
     <div id="tHelp"></div>
@@ -1812,7 +1811,7 @@ function gameView(){
   }
   if(q.kind==="type"||q.kind==="ltype"){
     const inp=$("gIn");setTimeout(()=>inp.focus(),50);
-    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1)});
+    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1);inp.dispatchEvent(new Event("input"))});
     const go=()=>{if(GM.answered)return;if(!inp.value.trim()){inp.focus();return}
       const r=checkTyped(w,inp.value);inp.disabled=true;inp.classList.add(r.ok?"good":"bad");$("gCheck").style.display="none";
       GM.typed={r,v:normT(inp.value)};answered(!!r.ok,inp)};
@@ -1822,18 +1821,27 @@ function gameView(){
 }
 // وسائل المساعدة في تمرين الكتابة: عدد الأحرف ظاهر دائمًا، والباقي بالضغط. من استعمل أيًّا منها وأصاب تُحسب إجابته صحيحة بلا خبرة
 const typeTarget=w=>coreOf(answersOf(w)[0]||w.de)||lemmaOf(w);
-function lenHTML(T,k){let i=0;return [...T].map(ch=>ch===" "?'<i class="sp"></i>':`<b>${i++<k?esc(ch):""}</b>`).join("")}
+// خانات الأحرف داخل مستطيل الكتابة: تمتلئ بما يكتبه (بلا الأداة)، والأحرف المكشوفة بالمساعدة خضراء
+function lenHTML(T,typed,k){const tv=[...String(typed||"").replace(ART,"").replace(/\s+/g,"")];let i=0;
+  return [...T].map(ch=>{if(ch===" ")return '<i class="sp"></i>';const j=i++;return `<b class="${j<k?"rv":""}">${tv[j]!=null?esc(tv[j]):""}</b>`}).join("")}
 function bindTypeHints(q,w,inp){
-  const T=typeTarget(w),help=$("tHelp"),used=()=>{q.hint=1};
-  document.querySelectorAll(".thints button").forEach(b=>b.onclick=()=>{if(GM.answered)return;const h=b.dataset.h;used();
-    if(h==="letter"){q.rev=Math.min((q.rev||0)+1,[...T.replace(/ /g,"")].length);let n=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(n++<q.rev)out+=ch;else break}
-      const nn=nounOf(w);inp.value=(nn?nn.art+" ":"")+out;$("tLen").innerHTML=lenHTML(T,q.rev);inp.focus()}
+  const T=typeTarget(w),help=$("tHelp"),used=()=>{q.hint=1},upd=()=>{const l=$("tLen");if(l)l.innerHTML=lenHTML(T,inp.value,q.rev||0)};
+  inp.addEventListener("input",upd);upd();
+  const INFO={letter:"🔤 حرف: يُكتب لك الحرف التالي من الكلمة. ويمكنك الضغط مرة أخرى لحرفٍ آخر.",hear:"🔊 استمع: تسمع نطق الكلمة الألمانية.",
+    sent:"📝 جملة: يظهر مثال الكلمة، وفيه فراغ مكانها.",mix:"🧩 الأحرف: تظهر أحرف الكلمة مخلوطة، فترتّبها بالضغط عليها."};
+  const asked=q.asked=q.asked||{};
+  document.querySelectorAll(".thints button").forEach(b=>b.onclick=async()=>{if(GM.answered)return;const h=b.dataset.h;
+    if(!asked[h]){if(!await uiDialog(INFO[h]+(q.hint?"":"\n\nإن استعملت المساعدة تُحسب إجابتك الصحيحة بلا خبرة."),{ok:"استعمل",cancel:"إلغاء"}))return;asked[h]=1}
+    if(GM.answered)return;used();
+    if(h==="letter"){const L=[...T.replace(/ /g,"")],tv=[...inp.value.replace(ART,"").replace(/\s+/g,"")];let ok=0;while(ok<tv.length&&ok<L.length&&tv[ok].toLowerCase()===L[ok].toLowerCase())ok++;   // ما كتبه صحيحًا من أول الكلمة يبقى، ويُضاف الحرف الذي بعده
+      q.rev=Math.min(Math.max((q.rev||0),ok)+1,L.length);let n=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(n++<q.rev)out+=ch;else break}
+      const nn=nounOf(w);inp.value=(nn?nn.art+" ":"")+out;upd();inp.focus()}
     else if(h==="hear")speak(lemmaOf(w));
     else if(h==="sent"){const c=clozeOf(w);if(c)help.innerHTML=`<div class="cloze de thelp">${esc(c.pre)}<span class="blank">_____</span>${esc(c.post)}</div>`;b.disabled=true}
     else if(h==="mix"){const ls=shuffle([...T.replace(/ /g,"")].slice(q.rev||0));   // الأحرف الباقية بعد ما كُشف
       help.innerHTML=`<div class="tmix de">${ls.map((c,i)=>`<button type="button" data-i="${i}">${esc(c)}</button>`).join("")}<button type="button" class="tback" aria-label="مسح">⌫</button></div>`;
-      help.querySelectorAll(".tmix button[data-i]").forEach(x=>x.onclick=()=>{if(GM.answered)return;inp.value+=x.textContent;x.disabled=true;x.dataset.u="1"});
-      help.querySelector(".tback").onclick=()=>{if(GM.answered)return;const last=[...help.querySelectorAll(".tmix button[data-u]")].pop();if(!last)return;inp.value=inp.value.slice(0,-last.textContent.length);last.disabled=false;delete last.dataset.u};
+      help.querySelectorAll(".tmix button[data-i]").forEach(x=>x.onclick=()=>{if(GM.answered)return;inp.value+=x.textContent;x.disabled=true;x.dataset.u="1";upd()});
+      help.querySelector(".tback").onclick=()=>{if(GM.answered)return;const last=[...help.querySelectorAll(".tmix button[data-u]")].pop();if(!last)return;inp.value=inp.value.slice(0,-last.textContent.length);last.disabled=false;delete last.dataset.u;upd()};
       b.disabled=true}
   });
 }
