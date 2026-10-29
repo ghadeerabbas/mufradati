@@ -2010,15 +2010,21 @@ function myLook(rows){
 function leagueHTML(){const t=LG.tier??0;return `<div class="rsec lgsec" id="lgBox"><h3>${TIERS[t][1]} ${tierName(t)}</h3><div class="empty">جارٍ التحميل…</div></div>`}
 async function fillLeague(){
   const box=$("lgBox");if(!box)return;
-  // يُعرض آخر جدول محفوظ فورًا، ثم يُحدَّث في الخلفية دون مسح ولا «جارٍ التحميل»
+  // يُعرض آخر جدول محفوظ فورًا، ثم يُقرأ الجدول دون انتظار الحفظ، ثم يُحدَّث بعد الحفظ
   const wk=weekId(Date.now());if(!LGC.rows){const c=jget(K("lgc"),null);if(c&&c.rows)LGC={...c,at:0}}
-  const had=!!(LGC.rows&&LGC.w===wk);if(had)drawLeague(myLook(LGC.rows.map(r=>({...r}))));
-  let rows;
-  try{if(EVQ.length||LG.w!==weekId(Date.now()))await syncNow();rows=myLook(await leagueRows());
-    // كسب خبرة ولم يظهر بعد في الدوري: نحفظ الآن ثم نقرأ من جديد
-    if(!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0){await syncNow();LGC.at=0;rows=myLook(await leagueRows())}}
-  catch(e){if(had)return;box.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div>`;return}
-  drawLeague(rows);
+  let shown=!!(LGC.rows&&LGC.w===wk);if(shown)drawLeague(myLook(LGC.rows.map(r=>({...r}))));
+  const TO={code:"timeout"},read=async()=>{const r=await tmo(leagueRows(),20000,TO);if(r===TO)throw TO;return myLook(r)};
+  const fail=e=>{if(shown||!$("lgBox"))return;const b=$("lgBox");b.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e&&e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div><button class="btn next" id="lgRetry" style="margin-top:8px">إعادة المحاولة</button>`;
+    $("lgRetry").onclick=()=>{b.innerHTML=`<h3>🏆 الدوري</h3><div class="empty">جارٍ التحميل…</div>`;fillLeague()}};
+  const missing=rows=>!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0;   // كسب خبرة ولم يظهر بعد في الدوري
+  let needSync=EVQ.length||LG.w!==weekId(Date.now());
+  try{const rows=await read();drawLeague(rows);shown=true;if(missing(rows))needSync=true}catch(e){if(!needSync){fail(e);return}}
+  if(!needSync)return;
+  // بعد الحفظ: يُقرأ الجدول من جديد (ومنه حالة من كسب خبرة ولم يظهر بعد)
+  try{await tmo(syncNow(),35000);LGC.at=0;let rows=await read();
+    if(missing(rows)){await tmo(syncNow(),35000);LGC.at=0;rows=await read()}
+    drawLeague(rows);shown=true}
+  catch(e){fail(e)}
 }
 function drawLeague(rows){
   const box=$("lgBox");if(!box)return;
@@ -2304,6 +2310,8 @@ function saveShell(){clearTimeout(SHT);SHT=setTimeout(()=>{try{
   if(!UID||isAdmin()||STS||DRL||RES||GM||document.body.classList.contains("shell"))return;const on=document.querySelector(".panel.on");if(!on||on.id!=="review")return;
   localStorage.setItem("muf_shell",JSON.stringify({v:1,uid:UID,h:document.querySelector("header .hrow").innerHTML,f:$("mainFilters").innerHTML,r:$("review").innerHTML,th:document.documentElement.dataset.theme||""}))}catch(e){}},800)}
 const signOutAll=()=>{try{localStorage.removeItem("muf_shell")}catch(e){}return auth.signOut()};
+// مهلة لأي انتظار: تُرجع البديل إن طال، ولا تُلغي العملية نفسها
+const tmo=(p,ms,v)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(v),ms))]);
 async function syncNow(manual){
   if(!UID||isAdmin())return !!UID;
   if(syncing){await new Promise(r=>{const w=()=>syncing?setTimeout(w,200):r();w()});return !syncErr}
@@ -2311,9 +2319,10 @@ async function syncNow(manual){
   try{
     // الملخّص والاسم والتفضيلات يكتبها التطبيق، والتقدّم يكتبه الخادم وحده
     const prefs=JSON.stringify({E,S:{dir:S.dir,ts:S.ts}}),sum=summary(),key=prefs+JSON.stringify({...sum,at:0,ms:0})+UNAME;
-    if(key!==PREFLAST){await uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true});PREFLAST=key}
+    if(key!==PREFLAST){if(await tmo(uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),15000,"slow")!=="slow")PREFLAST=key}   // كتابة بطيئة لا توقف الحفظ: تكمل وحدها، وتُعاد في المرة القادمة
     const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();VSIG=viewSig();
-    const r=await fetch(API+"/sync",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w}})});const stSent={r:FSC.r,w:FSC.w};
+    const ac=new AbortController(),to=setTimeout(()=>ac.abort(),30000);   // في سفاري قد يعلق الطلب بلا جواب بعد مغادرة الصفحة والعودة: يُلغى بعد 30 ث ويُعاد لاحقًا
+    let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w}})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
     FSC.r-=stSent.r;FSC.w-=stSent.w;
