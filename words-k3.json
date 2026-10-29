@@ -213,7 +213,7 @@
 "de": "der Spielplatz",
 "ar": "ساحة اللعب",
 "ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسألُ هي."
+"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
 },
 {
 "day": 1,
@@ -350,7 +350,7 @@
 "de": "kommen (kommst)",
 "ar": "يأتي",
 "ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسألُ هي."
+"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
 },
 {
 "day": 1,
@@ -361,7 +361,7 @@
 "de": "fragen (fragt)",
 "ar": "يسأل",
 "ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسألُ هي."
+"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
 },
 {
 "day": 1,
@@ -720,7 +720,7 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "verlängern (verlängere)",
-"ar": "يُطيل",
+"ar": "يُطيل (يمدّ الكلمة إلى صيغةٍ أطول ليتبيّن إملاؤها)",
 "ex": "Verlängere die Wörter und schreibe sie richtig auf!",
 "exar": "أطِلِ الكلماتِ واكتبها بشكلٍ صحيح!"
 },
@@ -1501,7 +1501,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Eiszapfen, die Eiszapfen",
-"ar": "قطعة الجليد المتدلّية",
+"ar": "الدلّاة الجليدية (قطعة جليد متدلّية)",
 "ex": "ein Eiszapfen am Dach",
 "exar": "قطعةُ جليدٍ متدلّية من السطح"
 },
