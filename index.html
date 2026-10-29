@@ -1675,6 +1675,9 @@ function startChal(){
   HOMEY=LASTHOME;GM.q=makeQ(chalKind(GM.list[0]),GM.list[0]);goTab("games");renderGames();scrollTo(0,0);
 }
 // العودة من التحدي إلى المسار: تُرسم صفحة المسار من جديد (فتظهر محطة التحدي ذهبية فورًا) وتعود إلى موضعها
+// إعادة رسم صفحة المسار في مكانها، إن كانت هي المعروضة (لا محطة ولا مراجعة جارية، ولا نافذة مفتوحة)
+function refreshHome(){const on=document.querySelector(".panel.on");if(!UID||isAdmin()||!on||on.id!=="review"||GM||!document.querySelector("#review .zz")||document.querySelector("#fbModal .lbox"))return;
+  const y=scrollY;reviewHome();requestAnimationFrame(()=>scrollTo(0,y))}
 function chalHome(){GM=null;renderGames();goTab("review");reviewHome();toCur()}
 function gamePool(id){
   const all=learnedList();
@@ -2281,7 +2284,7 @@ async function syncNow(manual){
     const on=document.querySelector(".panel.on");
     if(on&&on.id!=="review"&&!GM&&viewSig()!==VSIG){const y=scrollY;renderPanel(on.id);requestAnimationFrame(()=>scrollTo(0,y))}
     // صفحة المسار نفسها (لا محطة ولا مراجعة جارية): تُرسم من جديد إن غيّر الخادم شيئًا، فلا تبقى حالة التحدي أو المحطات قديمة
-    else if(on&&on.id==="review"&&!GM&&viewSig()!==VSIG&&document.querySelector("#review .zz")&&!document.querySelector("#fbModal .lbox")){const y=scrollY;reviewHome();requestAnimationFrame(()=>scrollTo(0,y))}
+    else if(on&&on.id==="review"&&!GM&&viewSig()!==VSIG)refreshHome();
     if(EVQ.length)schedSync(1000);
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
     // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
@@ -2583,6 +2586,7 @@ function watchCfg(){
     let c=null;try{c=v?JSON.parse(v):null}catch(e){}
     applyCfg(c);cfgCss();econ();renderHeader();applyOffMode();
     const on=document.querySelector(".panel.on");if(on&&on.id!=="review"&&on.id!=="cfgP"&&on.id!=="shopEd")renderPanel(on.id);
+    else refreshHome();   // صفحة المسار: تظهر المحطات التي زادها المشرف فورًا
   },()=>{});
 }
 // ألوان الأغراض التي أضافها المشرف (إطارات وألوان أسماء)
