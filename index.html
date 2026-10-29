@@ -390,7 +390,7 @@ body.fbon main{padding-bottom:210px}
 .ghint{font-size:.85rem;color:var(--muted);text-align:center;margin-bottom:6px}
 .gopt{display:block;width:100%;text-align:right;background:var(--card);color:var(--ink);border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
 .gopt.ok{background:#22c55e22;border-color:var(--green)}.gopt.no{background:#ef444422;border-color:var(--red)}
-.cloze{font-size:1.15rem;line-height:1.9;text-align:left;margin:6px 0}.cloze-ar{font-size:.9rem;color:var(--muted);margin-bottom:12px}.cloze-ar .arb{text-decoration:underline;text-decoration-color:var(--green);text-decoration-thickness:2px;text-underline-offset:6px;color:var(--ink);font-weight:700}
+.cloze{font-size:1.15rem;line-height:1.9;text-align:left;margin:6px 0}.arwrap{margin-bottom:12px}.arwrap .cloze-ar{margin-bottom:0}.arshow{background:none;border:1px dashed var(--line);border-radius:999px;padding:4px 12px;font:inherit;font-size:.82rem;color:var(--muted);cursor:pointer}.cloze-ar{font-size:.9rem;color:var(--muted);margin-bottom:12px}.cloze-ar .arb{text-decoration:underline;text-decoration-color:var(--green);text-decoration-thickness:2px;text-underline-offset:6px;color:var(--ink);font-weight:700}
 .blank{display:inline-block;min-width:70px;border-bottom:2px solid var(--gold);text-align:center;font-weight:700;color:var(--hd)}.blank.good{color:var(--green);border-color:var(--green)}.blank.bad{color:var(--rd);border-color:var(--red)}
 .arts{display:flex;gap:8px;margin-top:10px}.artb{flex:1;font-size:1.2rem;font-weight:800;background:var(--card);border:2px solid var(--line)}
 .artb.art-der{color:#2563eb}.artb.art-die{color:#dc2626}.artb.art-das{color:#16a34a}.artb.ok{background:#22c55e33;border-color:var(--green)}.artb.no{background:#ef444433;border-color:var(--red)}
@@ -1060,7 +1060,7 @@ function stationView(){
   const wordLine=`<div class="word de">${bigDe(w.de,1)}</div>`;
   // أجب عن سؤال: يُسجَّل الخطأ من المحاولة الأولى، وتعود الكلمة في آخر المحطة
   const judge=(ok,b,sub,after)=>{
-    if(S_.ans)return;S_.ans=1;
+    if(S_.ans)return;S_.ans=1;revealAr();
     if(!ok&&!st.retry){S_.miss.add(w.k);S_.steps.push({t:"mc",w,retry:1})}
     comboHit(ok);if(after)after(ok);
     showFb(ok,sub,()=>{S_.ans=0;next()},w);
@@ -1079,7 +1079,7 @@ function stationView(){
   else if(st.t==="cloze"){
     if(!st.q)st.q=makeQ("cloze",w);const q=st.q,full=q.c.pre+q.c.word+q.c.post;
     el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} أكمل الجملة</span><p class="ghint">اختر الكلمة التي تملأ الفراغ:</p>
-     <div class="cloze de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?`<div class="cloze-ar">${arMark(q.c.ar,w.ar)}</div>`:""}
+     <div class="cloze de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
      ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}</div>`;
     el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{if(S_.ans)return;const ok=b.dataset.k===w.k;
       el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
@@ -1598,6 +1598,10 @@ function arSpan(s,mean){
   return null;
 }
 const arMark=(s,mean)=>{const r=arSpan(s,mean);return r?esc(s.slice(0,r[0]))+'<u class="arb">'+esc(s.slice(r[0],r[1]))+"</u>"+esc(s.slice(r[1])):esc(s)};
+// ترجمة جملة «أكمل الجملة» مخفية خلف زرّ، لئلّا يعتمد المتعلّم على الكلمة المسطَّرة فيها؛ وتظهر وحدها بعد الإجابة
+const arHide=h=>`<div class="arwrap"><button type="button" class="arshow">عرض الترجمة ▾</button><div class="cloze-ar" hidden>${h}</div></div>`;
+function revealAr(){document.querySelectorAll(".arwrap").forEach(x=>{const b=x.querySelector(".arshow"),a=x.querySelector(".cloze-ar");if(a)a.hidden=false;if(b)b.remove()})}
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".arshow");if(!b)return;const a=b.parentNode.querySelector(".cloze-ar");if(a){a.hidden=false;b.remove()}});
 function clozeOf(w){
   if(!w.ex)return null;
   const L=lemmaOf(w).replace(ART,"").replace(/^sich\s+/i,"");
@@ -1766,7 +1770,7 @@ function gameView(){
   if(GM.id==="match"){matchView();return}
   const q=GM.q,w=q.w;let body="";
   if(q.kind==="mc")body=`<div class="qword de">${bigDe(w.de)}</div>${q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}`;
-  else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?`<div class="cloze-ar">${arMark(q.c.ar,w.ar)}</div>`:""}
+  else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}`;
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
     <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
@@ -1847,7 +1851,7 @@ function bindTypeHints(q,w,inp){
 }
 // بعد كل جواب: يُسجَّل للكلمات الصعبة، ثم يظهر التصحيح وزر التالي
 function answered(ok,el,auto){
-  const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){if(q.hint)GM.helped=(GM.helped||0)+1;else GM.ok++}else{const b=$("gBox");if(b)b.classList.add("flash-no")}   // بمساعدة: صحيحة بلا خبرة
+  revealAr();const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){if(q.hint)GM.helped=(GM.helped||0)+1;else GM.ok++}else{const b=$("gBox");if(b)b.classList.add("flash-no")}   // بمساعدة: صحيحة بلا خبرة
   comboHit(ok);
   (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);markStudied();
   let fb="";
