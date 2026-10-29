@@ -3170,8 +3170,10 @@ function renderUser(){
 async function wipeUser(u){
   const nm=uName(u);
   if(!await uiConfirm("⚠️ ستُحذف كل بيانات «"+nm+"»: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري.\nلا يمكن التراجع. هل تريد المتابعة؟"))return;
-  const v=((await uiPrompt("للتأكيد، اكتب اسمه كما هو: "+nm))||"").trim();
-  if(v!==nm.trim()){if(v)await uiAlert("الاسم غير مطابق. لم يُحذف شيء.");return}
+  // التأكيد باسم المستخدم (اسم الدخول)، وإن لم يُعرف بعد فبالاسم الظاهر
+  const login=((u.sum||{}).login||"").trim(),want=login||nm.trim();
+  const v=((await uiPrompt(login?"للتأكيد، اكتب اسم المستخدم: "+login:"للتأكيد، اكتب اسمه كما هو: "+nm))||"").trim();
+  if((login?v.toLowerCase():v)!==(login?want.toLowerCase():want)){if(v)await uiAlert((login?"اسم المستخدم":"الاسم")+" غير مطابق. لم يُحذف شيء.");return}
   const m=$("uWipeMsg");m.textContent="جارٍ الحذف…";m.className="stmsg";
   try{const r=await fetch(API+"/wipe",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},body:JSON.stringify({uid:u.id})});
     if(!r.ok)throw 0;m.textContent="✓ حُذفت كل بياناته، ويبدأ من الصفر";m.className="stmsg ok";u.sum=null;
