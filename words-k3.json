@@ -12,518 +12,6 @@
 "t": "n",
 "subj": "Deutsch",
 "core": 0,
-"de": "die Sonne",
-"ar": "الشمس",
-"ex": "Die Sonne scheint heute warm vom Himmel.",
-"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Blatt, die Blätter",
-"ar": "ورقة الشجر، أوراق الشجر",
-"ex": "Bunte Blätter fallen von den hohen Bäumen.",
-"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Herbst",
-"ar": "الخريف",
-"ex": "Endlich ist der Herbst da.",
-"exar": "أخيرًا حلَّ الخريف."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Baum, die Bäume",
-"ar": "الشجرة، الأشجار",
-"ex": "Bunte Blätter fallen von den hohen Bäumen.",
-"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Garten",
-"ar": "الحديقة",
-"ex": "Leo läuft in den Garten.",
-"exar": "يركضُ ليو إلى الحديقة."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Drachen",
-"ar": "الطائرة الورقية",
-"ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Land, die Länder",
-"ar": "البلد، البلدان"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Berg, die Berge",
-"ar": "الجبل، الجبال"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Wecker",
-"ar": "المنبِّه"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Freund, die Freunde",
-"ar": "الصديق، الأصدقاء"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Raum, die Räume",
-"ar": "الغرفة، الغرف"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Feuer",
-"ar": "النار"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Haus, die Häuser",
-"ar": "البيت، البيوت"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Traum, die Träume",
-"ar": "الحُلم، الأحلام"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Pferd",
-"ar": "الحصان"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der König",
-"ar": "المَلِك"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Saft",
-"ar": "العصير"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Himmel",
-"ar": "السماء",
-"ex": "Die Sonne scheint heute warm vom Himmel.",
-"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Fahrrad",
-"ar": "الدراجة الهوائية",
-"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "die Freundin",
-"ar": "الصديقة",
-"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "der Spielplatz",
-"ar": "ساحة اللعب",
-"ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
-"de": "das Mädchen",
-"ar": "البنت",
-"ex": "Die Mädchen spielen den ganzen Tag draußen.",
-"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "sagen (sagt)",
-"ar": "يقول"
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "fahren (fährt)",
-"ar": "يذهب راكبًا / يركب",
-"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "fallen (fällt)",
-"ar": "يسقط",
-"ex": "Bunte Blätter fallen von den hohen Bäumen.",
-"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "laufen (läuft)",
-"ar": "يركض",
-"ex": "Leo läuft in den Garten.",
-"exar": "يركضُ ليو إلى الحديقة."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "lassen (lässt)",
-"ar": "يَدَع / يجعل",
-"ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "steigen",
-"ar": "يرتفع / يصعد",
-"ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
-},
-{
-"day": 1,
-"s": [],
-"t": "e",
-"subj": "Deutsch",
-"core": 0,
-"de": "einen Drachen steigen lassen",
-"ar": "يُطيِّر طائرةً ورقية",
-"ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "fliegen (fliegt)",
-"ar": "يطير"
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "bleiben (bleibt)",
-"ar": "يبقى"
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "scheinen (scheint)",
-"ar": "يسطع / يُشرق",
-"ex": "Die Sonne scheint heute warm vom Himmel.",
-"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "holen (holt)",
-"ar": "يُحضِر / يجلب",
-"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "kommen (kommst)",
-"ar": "يأتي",
-"ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "fragen (fragt)",
-"ar": "يسأل",
-"ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
-},
-{
-"day": 1,
-"s": [],
-"t": "v",
-"subj": "Deutsch",
-"core": 0,
-"de": "spielen",
-"ar": "يلعب",
-"ex": "Die Mädchen spielen den ganzen Tag draußen.",
-"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "klein",
-"ar": "صغير"
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "bunt",
-"ar": "ملوَّن",
-"ex": "Bunte Blätter fallen von den hohen Bäumen.",
-"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "hoch (hohen)",
-"ar": "عالٍ",
-"ex": "Bunte Blätter fallen von den hohen Bäumen.",
-"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "neu",
-"ar": "جديد",
-"ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "kalt, kälter",
-"ar": "بارد، أبرد"
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "stark",
-"ar": "قوي"
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "gesund",
-"ar": "سليم / بصحة جيدة"
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "warm",
-"ar": "دافئ",
-"ex": "Die Sonne scheint heute warm vom Himmel.",
-"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "endlich",
-"ar": "أخيرًا",
-"ex": "Endlich ist der Herbst da.",
-"exar": "أخيرًا حلَّ الخريف."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "dort",
-"ar": "هناك",
-"ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "heute",
-"ar": "اليوم",
-"ex": "Die Sonne scheint heute warm vom Himmel.",
-"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "draußen",
-"ar": "في الخارج",
-"ex": "Die Mädchen spielen den ganzen Tag draußen.",
-"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
-},
-{
-"day": 1,
-"s": [],
-"t": "e",
-"subj": "Deutsch",
-"core": 0,
-"de": "den ganzen Tag",
-"ar": "طوال اليوم",
-"ex": "Die Mädchen spielen den ganzen Tag draußen.",
-"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
-},
-{
-"day": 1,
-"s": [],
-"t": "a",
-"subj": "Deutsch",
-"core": 0,
-"de": "also",
-"ar": "إذن"
-},
-{
-"day": 1,
-"s": [],
-"t": "n",
-"subj": "Deutsch",
-"core": 0,
 "de": "der Name",
 "ar": "الاسم"
 },
@@ -557,22 +45,22 @@
 {
 "day": 1,
 "s": [],
-"t": "n",
+"t": "v",
 "subj": "Deutsch",
 "core": 0,
-"de": "das Wort, die Wörter",
-"ar": "الكلمة، الكلمات",
+"de": "aufschreiben (schreibe … auf)",
+"ar": "يكتب / يدوّن",
 "ex": "Schreibe die Wörter geordnet und richtig auf!",
 "exar": "اكتبِ الكلماتِ مرتَّبةً وبشكلٍ صحيح!"
 },
 {
 "day": 1,
 "s": [],
-"t": "v",
+"t": "n",
 "subj": "Deutsch",
 "core": 0,
-"de": "aufschreiben (schreibe … auf)",
-"ar": "يكتب / يدوّن",
+"de": "das Wort, die Wörter",
+"ar": "الكلمة، الكلمات",
 "ex": "Schreibe die Wörter geordnet und richtig auf!",
 "exar": "اكتبِ الكلماتِ مرتَّبةً وبشكلٍ صحيح!"
 },
@@ -597,6 +85,68 @@
 "ar": "صحيح",
 "ex": "Schreibe die Wörter geordnet und richtig auf!",
 "exar": "اكتبِ الكلماتِ مرتَّبةً وبشكلٍ صحيح!"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "die Sonne",
+"ar": "الشمس",
+"ex": "Die Sonne scheint heute warm vom Himmel.",
+"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "sagen (sagt)",
+"ar": "يقول"
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "klein",
+"ar": "صغير"
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "fahren (fährt)",
+"ar": "يذهب راكبًا / يركب",
+"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
+"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "bunt",
+"ar": "ملوَّن",
+"ex": "Bunte Blätter fallen von den hohen Bäumen.",
+"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Blatt, die Blätter",
+"ar": "ورقة الشجر، أوراق الشجر",
+"ex": "Bunte Blätter fallen von den hohen Bäumen.",
+"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
 },
 {
 "day": 1,
@@ -694,6 +244,149 @@
 {
 "day": 1,
 "s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "endlich",
+"ar": "أخيرًا",
+"ex": "Endlich ist der Herbst da.",
+"exar": "أخيرًا حلَّ الخريف."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Herbst",
+"ar": "الخريف",
+"ex": "Endlich ist der Herbst da.",
+"exar": "أخيرًا حلَّ الخريف."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "fallen (fällt)",
+"ar": "يسقط",
+"ex": "Bunte Blätter fallen von den hohen Bäumen.",
+"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "hoch (hohen)",
+"ar": "عالٍ",
+"ex": "Bunte Blätter fallen von den hohen Bäumen.",
+"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Baum, die Bäume",
+"ar": "الشجرة، الأشجار",
+"ex": "Bunte Blätter fallen von den hohen Bäumen.",
+"exar": "تتساقطُ أوراقٌ ملوّنةٌ من الأشجار العالية."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "laufen (läuft)",
+"ar": "يركض",
+"ex": "Leo läuft in den Garten.",
+"exar": "يركضُ ليو إلى الحديقة."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Garten",
+"ar": "الحديقة",
+"ex": "Leo läuft in den Garten.",
+"exar": "يركضُ ليو إلى الحديقة."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "dort",
+"ar": "هناك",
+"ex": "Dort lässt er seinen neuen Drachen steigen.",
+"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "lassen (lässt)",
+"ar": "يَدَع / يجعل",
+"ex": "Dort lässt er seinen neuen Drachen steigen.",
+"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "neu",
+"ar": "جديد",
+"ex": "Dort lässt er seinen neuen Drachen steigen.",
+"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Drachen",
+"ar": "الطائرة الورقية",
+"ex": "Dort lässt er seinen neuen Drachen steigen.",
+"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "steigen",
+"ar": "يرتفع / يصعد",
+"ex": "Dort lässt er seinen neuen Drachen steigen.",
+"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+},
+{
+"day": 1,
+"s": [],
+"t": "e",
+"subj": "Deutsch",
+"core": 0,
+"de": "einen Drachen steigen lassen",
+"ar": "يُطيِّر طائرةً ورقية",
+"ex": "Dort lässt er seinen neuen Drachen steigen.",
+"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+},
+{
+"day": 1,
+"s": [],
 "t": "v",
 "subj": "Deutsch",
 "core": 0,
@@ -716,6 +409,87 @@
 {
 "day": 1,
 "s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Land, die Länder",
+"ar": "البلد، البلدان"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Berg, die Berge",
+"ar": "الجبل، الجبال"
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "kalt, kälter",
+"ar": "بارد، أبرد"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Wecker",
+"ar": "المنبِّه"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Freund, die Freunde",
+"ar": "الصديق، الأصدقاء"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Raum, die Räume",
+"ar": "الغرفة، الغرف"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Feuer",
+"ar": "النار"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Haus, die Häuser",
+"ar": "البيت، البيوت"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Traum, die Träume",
+"ar": "الحُلم، الأحلام"
+},
+{
+"day": 1,
+"s": [],
 "t": "v",
 "subj": "Deutsch",
 "core": 0,
@@ -723,6 +497,78 @@
 "ar": "يُطيل (يمدّ الكلمة إلى صيغةٍ أطول ليتبيّن إملاؤها)",
 "ex": "Verlängere die Wörter und schreibe sie richtig auf!",
 "exar": "أطِلِ الكلماتِ واكتبها بشكلٍ صحيح!"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Pferd",
+"ar": "الحصان"
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "also",
+"ar": "إذن"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der König",
+"ar": "المَلِك"
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Saft",
+"ar": "العصير"
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "fliegen (fliegt)",
+"ar": "يطير"
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "bleiben (bleibt)",
+"ar": "يبقى"
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "stark",
+"ar": "قوي"
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "gesund",
+"ar": "سليم / بصحة جيدة"
 },
 {
 "day": 1,
@@ -745,6 +591,160 @@
 "ar": "مناسب",
 "ex": "Setze die Verben passend ein!",
 "exar": "ضعِ الأفعالَ في أماكنها المناسبة!"
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "scheinen (scheint)",
+"ar": "يسطع / يُشرق",
+"ex": "Die Sonne scheint heute warm vom Himmel.",
+"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "heute",
+"ar": "اليوم",
+"ex": "Die Sonne scheint heute warm vom Himmel.",
+"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "warm",
+"ar": "دافئ",
+"ex": "Die Sonne scheint heute warm vom Himmel.",
+"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Himmel",
+"ar": "السماء",
+"ex": "Die Sonne scheint heute warm vom Himmel.",
+"exar": "تسطعُ الشمسُ اليومَ دافئةً من السماء."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "holen (holt)",
+"ar": "يُحضِر / يجلب",
+"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
+"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Fahrrad",
+"ar": "الدراجة الهوائية",
+"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
+"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "die Freundin",
+"ar": "الصديقة",
+"ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
+"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "kommen (kommst)",
+"ar": "يأتي",
+"ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
+"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "der Spielplatz",
+"ar": "ساحة اللعب",
+"ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
+"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "fragen (fragt)",
+"ar": "يسأل",
+"ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
+"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
+},
+{
+"day": 1,
+"s": [],
+"t": "n",
+"subj": "Deutsch",
+"core": 0,
+"de": "das Mädchen",
+"ar": "البنت",
+"ex": "Die Mädchen spielen den ganzen Tag draußen.",
+"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
+},
+{
+"day": 1,
+"s": [],
+"t": "v",
+"subj": "Deutsch",
+"core": 0,
+"de": "spielen",
+"ar": "يلعب",
+"ex": "Die Mädchen spielen den ganzen Tag draußen.",
+"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
+},
+{
+"day": 1,
+"s": [],
+"t": "e",
+"subj": "Deutsch",
+"core": 0,
+"de": "den ganzen Tag",
+"ar": "طوال اليوم",
+"ex": "Die Mädchen spielen den ganzen Tag draußen.",
+"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
+},
+{
+"day": 1,
+"s": [],
+"t": "a",
+"subj": "Deutsch",
+"core": 0,
+"de": "draußen",
+"ar": "في الخارج",
+"ex": "Die Mädchen spielen den ganzen Tag draußen.",
+"exar": "تلعبُ البناتُ طوالَ اليوم في الخارج."
 },
 {
 "day": 1,
