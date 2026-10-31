@@ -210,7 +210,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .count{font-size:.85rem;color:var(--muted);margin-bottom:8px}
 .pager{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:12px 0 4px}.pager span{font-size:.85rem;color:var(--muted)}.pager .btn{background:var(--navy);color:#fff;padding:9px 14px}.pager .btn:disabled{opacity:.35}
 /* ===== الاختبار ===== */
-.hear{font-size:2.6rem;width:92px;height:92px;border-radius:50%;border:none;background:var(--navy);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer;margin:6px 0 16px}
+.hear{display:inline-flex;align-items:center;gap:8px;font-family:inherit;font-weight:800;font-size:18px;height:58px;padding:0 24px;border-radius:999px;border:none;background:var(--navy);color:#fff;box-shadow:0 6px 18px rgba(0,0,0,.18);cursor:pointer;margin:6px 0 16px}.hear svg{width:26px;height:26px;flex:none}
 .hear:active{transform:scale(.94)}
 .qword{font-size:1.5rem;font-weight:700;color:var(--hd);text-align:center;margin:8px 0 14px}
 .opt{display:block;width:100%;text-align:right;background:var(--card);color:var(--ink);border:1px solid var(--line);margin-bottom:8px;font-weight:500;font-size:1rem}
@@ -311,9 +311,8 @@ body.fbon main{padding-bottom:210px}
 .rep{background:none;border:0;font-size:1rem;padding:0 4px;cursor:pointer;opacity:.55;vertical-align:middle}.rep:hover{opacity:1}
 .stlearn .rep{display:block;margin:8px auto 0;font-size:.85rem}
 .fbflag{width:52px;height:52px;flex:none;border-radius:16px;border:2.5px solid rgba(0,0,0,.12);background:rgba(255,255,255,.5);font-size:1.3rem;opacity:.85}
-.say.slow{font-size:1.15rem;margin-inline-start:2px}
 .sttag{display:inline-flex;align-items:center;gap:4px;background:var(--soft);color:var(--hd);border-radius:10px;padding:2px 10px;font-weight:800;font-size:.8rem;margin-bottom:6px}.sttag .i3{width:18px;height:18px}
-.hears{display:flex;justify-content:center;align-items:center;gap:14px}.hear.slow{width:64px;height:64px;font-size:1.7rem;background:var(--soft);color:var(--ink);box-shadow:0 4px 0 var(--line)}
+.hears{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 16px}.hears .hear{margin:0}.hear.slow{background:var(--soft);color:var(--ink);box-shadow:0 4px 0 var(--line)}.hear .tt{font-size:22px}
 .nolisten{display:block;margin:10px auto 0;color:var(--muted);font-weight:700}
 .repbox textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:8px;font:inherit;background:var(--card);color:var(--ink);margin:10px 0}
 .repbox .numpicks{justify-content:center}
@@ -381,8 +380,12 @@ body.fbon main{padding-bottom:210px}
 .strow{display:flex;gap:8px;margin-top:6px}.stin{display:block;width:100%;font:inherit;font-size:.95rem;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);margin-top:6px}
 .strow .stin{margin-top:0;flex:1}.stbtn{background:var(--navy);color:#fff}.stmsg{font-size:.85rem;margin-top:6px;text-align:center}.stmsg.ok{color:var(--green)}.stmsg.bad{color:var(--rd)}
 #settings .numpicks{margin-top:4px}
-.say{background:none;border:0;font-size:1.05rem;padding:0 4px;cursor:pointer;vertical-align:middle;line-height:1;opacity:.85}
-.exd .say{font-size:.9rem}
+/* زرّا النطق: «🔊 استمع» و«🐢 ببطء» بكلمة واضحة */
+.say{display:inline-flex;align-items:center;gap:5px;border:0;border-radius:999px;height:34px;padding:0 12px;margin:0 3px;background:var(--soft);color:var(--ink);box-shadow:0 2px 0 var(--line);font-family:inherit;font-weight:800;font-size:14px;line-height:1;cursor:pointer;vertical-align:middle;white-space:nowrap;direction:rtl;letter-spacing:0}
+.say svg{width:18px;height:18px;flex:none}.say .tt{font-size:16px;line-height:1}
+.say:active{transform:translateY(2px);box-shadow:none}
+.sayrow{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:10px;direction:rtl}
+.exd .say,.item .say,.gword .say{height:26px;padding:0 9px;font-size:12px;gap:4px;margin:0 4px}.exd .say svg,.item .say svg,.gword .say svg{width:14px;height:14px}.exd .say .tt{font-size:13px}
 .gcards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
 .gcard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;color:var(--ink)}
 .gcard:disabled{opacity:.45}.gcard .gic{font-size:2rem}.gcard b{font-size:.98rem;color:var(--hd)}.gcard small{font-size:.75rem;color:var(--muted)}.gcard em{font-style:normal;font-size:.72rem;color:var(--green);margin-top:2px}
@@ -607,7 +610,7 @@ body.lesson .box>.sttag{align-self:center;font-size:.9rem;padding:4px 14px}
 body.lesson .box>.typedot{position:static;align-self:center;margin-bottom:4px}
 body.lesson .stlearn .word{font-size:2.2rem}
 /* الكلمة في التعليم بسطر واحد: يصغر الخط ليتّسع لها السطر (الجمل تبقى تلتفّ) */
-.stlearn .word,.scene .word{white-space:nowrap}.altsep{opacity:.5}.stlearn .word .sayrow{display:block;font-size:1.5rem;line-height:1.2;margin-top:2px}.stlearn .word .denote.blk,.scene .word .denote.blk{white-space:normal}body.lesson .stlearn .ar{font-size:1.5rem}
+.stlearn .word,.scene .word{white-space:nowrap}.altsep{opacity:.5}.stlearn .word .sayrow{margin-top:8px}.stlearn .word .denote.blk,.scene .word .denote.blk{white-space:normal}body.lesson .stlearn .ar{font-size:1.5rem}
 body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + env(safe-area-inset-bottom));width:min(calc(100% - 32px),688px);z-index:60;margin:0}
 .cf{position:fixed;top:-30px;z-index:70;pointer-events:none;animation:fall linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
@@ -1549,8 +1552,9 @@ function ttsSpeak(t,slow){
 // «لا أستطيع الاستماع الآن»: تتوقف تمارين الاستماع ساعة على هذا الجهاز
 const listenMuted=()=>{try{return +(localStorage.getItem("muf_nolisten")||0)>Date.now()}catch(e){return false}};
 const canSlow=()=>!!(AUD&&AUD.size)||(hasNative()?!!(window.MufApp&&MufApp.speakRate):("speechSynthesis" in window));
-const slowBtn=t=>canSpeak()&&canSlow()?`<button type="button" class="say slow" data-say="${esc(t)}" data-slow="1" aria-label="استمع ببطء">🐢</button>`:"";
-const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">${I3("speaker")}</button>`:"";
+const SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
+const slowBtn=t=>canSpeak()&&canSlow()?`<button type="button" class="say slow" data-say="${esc(t)}" data-slow="1" aria-label="استمع ببطء"><span class="tt">🐢</span>ببطء</button>`:"";
+const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">${SPK}استمع</button>`:"";
 // يعمل قبل أي ضغطة أخرى، فلا يقلب البطاقة ولا يختار جوابًا
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".say");if(!b)return;e.stopPropagation();e.preventDefault();speak(b.dataset.say,b.dataset.slow==="1")},true);
 
@@ -1775,7 +1779,7 @@ function gameView(){
   else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
     <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
   else if(q.kind==="lmc"||q.kind==="ltype")body=`<p class="ghint">${q.kind==="lmc"?"استمع، ثم اختر المعنى:":"استمع، ثم اكتب ما سمعته بالألمانية:"}</p>
-    <div class="hears"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${I3("speaker")}</button>${canSlow()?'<button type="button" class="hear slow" id="gSlow" aria-label="استمع ببطء">🐢</button>':""}</div>
+    <div class="hears"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${SPK}استمع</button>${canSlow()?'<button type="button" class="hear slow" id="gSlow" aria-label="استمع ببطء"><span class="tt">🐢</span>ببطء</button>':""}</div>
     ${q.kind==="lmc"?q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join(""):
     `<input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
