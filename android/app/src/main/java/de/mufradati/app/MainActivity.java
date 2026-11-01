@@ -26,6 +26,8 @@ public class MainActivity extends Activity {
     private static final String HOME = "https://ghadeerabbas.github.io/mufradati/";
     private static final String HOST = "ghadeerabbas.github.io";
     private WebView web;
+    private static final int PICK = 7;
+    private android.webkit.ValueCallback<Uri[]> pick;
     private TextToSpeech tts;
     private boolean ttsReady = false;
     // غطاء شاشة البداية فوق الصفحة: الصفحة تُرسم تحته، ويُزال حين تقول إنها جاهزة (MufApp.ready) أو بعد 8 ثوانٍ
@@ -71,7 +73,17 @@ public class MainActivity extends Activity {
         web.addJavascriptInterface(new Bridge(), "MufApp");
 
         // نوافذ التأكيد والإدخال (تصفير التقدّم، الشراء...) تعمل عبر هذا
-        web.setWebChromeClient(new WebChromeClient());
+        // واختيار صورة من الهاتف (صورة الوظيفة لمساعد الوظيفة)
+        web.setWebChromeClient(new WebChromeClient() {
+            @Override
+            public boolean onShowFileChooser(WebView v, android.webkit.ValueCallback<Uri[]> cb, FileChooserParams p) {
+                if (pick != null) pick.onReceiveValue(null);
+                pick = cb;
+                try { startActivityForResult(p.createIntent(), PICK); }
+                catch (Exception e) { pick = null; return false; }
+                return true;
+            }
+        });
         web.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
@@ -126,6 +138,12 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         try { ((android.app.NotificationManager) getSystemService(NOTIFICATION_SERVICE)).cancel(1); } catch (Exception ignored) {}
+    }
+
+    @Override
+    protected void onActivityResult(int req, int res, Intent data) {
+        super.onActivityResult(req, res, data);
+        if (req == PICK && pick != null) { pick.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data)); pick = null; }
     }
 
     @Override

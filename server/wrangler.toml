@@ -4,3 +4,7 @@ main = "worker.js"
 compatibility_date = "2025-01-01"
 workers_dev = true
 keep_vars = true
+
+# الذكاء الصناعي المجاني من Cloudflare (لمساعد الوظيفة)
+[ai]
+binding = "AI"

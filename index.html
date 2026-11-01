@@ -548,6 +548,13 @@ body.fbon main{padding-bottom:210px}
 .mbadge{position:absolute;top:-4px;left:-6px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:800;border-radius:9px;min-width:16px;padding:0 4px;line-height:16px;display:none}
 .mbadge.on{display:block}
 .mhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+/* مساعد الوظيفة */
+#aiBtn .i3{width:26px;height:26px}
+.aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
+.bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
+.aiPrev{position:relative;display:inline-block;margin-bottom:6px}.aiPrev button{position:absolute;top:4px;left:4px;border:0;border-radius:50%;width:28px;height:28px;background:rgba(0,0,0,.6);color:#fff;font-size:1rem}
+.compose .aiPh{background:var(--soft);color:var(--hd);padding:8px 14px;cursor:pointer}
+.aiLogC{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.aiLogC>small{display:block;color:var(--muted);font-size:.75rem;margin-bottom:6px}
 .mhead h2{font-size:1.1rem;color:var(--hd);flex:1}
 .mhead .btn{background:var(--soft);color:var(--hd);padding:6px 12px;font-size:.85rem}
 .chat{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
@@ -633,6 +640,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
       <span class="chip" id="hGem">💎 0</span>
       <span class="chip bat" id="hEn" title="الطاقة">🔋 30</span>
       <button class="iconbtn mbtn" id="usersBtn" title="المستخدمون" style="display:none"><img class="i3" src="img/3d/people.png" alt=""><span class="mbadge" id="uBadge"></span></button>
+      <button class="iconbtn" id="aiBtn" title="مساعد الوظيفة" style="display:none"><img class="i3" src="img/3d/owl.png" alt=""></button>
       <button class="iconbtn mbtn" id="msgBtn" title="الرسائل"><img class="i3" src="img/3d/mail.png" alt=""><span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="setBtn" title="الإعدادات"><img class="i3" src="img/3d/gear.png" alt=""></button>
     </div>
@@ -684,6 +692,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
   <section id="settings" class="panel"></section>
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
+  <section id="helper" class="panel"></section>
   <section id="users" class="panel"></section>
   <section id="cfgP" class="panel"></section>
   <section id="shopEd" class="panel"></section>
@@ -2701,7 +2710,7 @@ function renderCfg(){
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
   };
   $("cfgDef").onclick=async()=>{if(!await uiConfirm("إرجاع كل الأرقام إلى الافتراضي؟ (تبقى تعديلات المتجر)"))return;
-    const c={shop:CFG.shop,items:CFG.items,free:CFG.free,stn:CFG.stn};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
+    const c={shop:CFG.shop,items:CFG.items,free:CFG.free,stn:CFG.stn,ai:CFG.ai};if(await saveCfg(c,"رجعت الأرقام إلى الافتراضي")){applyCfg(c);renderCfg()}};
 }
 
 /* ================= لوحة الإشراف: محرّر المتجر ================= */
@@ -2846,7 +2855,7 @@ async function onLogin(user){
   syncNow(true);
   loadNameReqs();watchGifts();
   startMessages();
-  $("usersBtn").style.display=isAdmin()?"":"none";
+  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();
   await syncNow(true);
   setTimeout(freezeReminder,2500);
   setTimeout(maybeAskFeedback,4000);
@@ -3193,11 +3202,14 @@ function renderUser(){
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
   <div class="rsec"><h3>${I3("trash")} حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
+  <div class="rsec"><label class="hidepub"><input type="checkbox" id="uAi" ${(CFG.ai||[]).includes(u.id)?"checked":""}><span><b>🦉 مساعد الوظيفة</b><small>مساعد بالذكاء الصناعي يشرح له وظيفته خطوة خطوة بالعربية والألمانية حتى يصل إلى الحل. حتى 60 سؤالًا في اليوم. ترى محادثاته من الزر تحت.</small></span></label>
+   <button class="btn" id="uAiLog" style="width:100%;margin-top:6px">${I3("owl")} محادثاته مع المساعد</button><div id="aiLogBox"></div></div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   $("uMsg").onclick=()=>{goTab("messages");openThread(u.id)};
   renderAssign(u.id);bindGiftBox(u.id);
+  {const cb=$("uAi");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setAi(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false};$("uAiLog").onclick=()=>aiLogShow(u.id)}
   {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
     const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
     sp.querySelectorAll(".numpick").forEach(x=>x.disabled=true);
@@ -3260,6 +3272,76 @@ async function renderAssign(uid){
   };
 }
 
+/* ================= مساعد الوظيفة (ذكاء صناعي لحسابات يختارها المشرف) ================= */
+const aiOn=()=>!!(UID&&!isAdmin()&&CFG&&(CFG.ai||[]).includes(UID));
+function aiUI(){const b=$("aiBtn");if(b)b.style.display=aiOn()?"":"none"}
+let AIC=null,AIBUSY=false,AIPEND="";
+const aiNew=()=>({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),m:[],img:""});
+function aiLoad(){if(!AIC||AIC.uid!==UID){AIC=jget(K("aichat"),null);if(!AIC||!Array.isArray(AIC.m))AIC=aiNew();AIC.uid=UID}return AIC}
+function aiSave(){let j=JSON.stringify(AIC);if(j.length>2e6){AIC.img="";AIC.m.forEach(m=>m.i=false);j=JSON.stringify(AIC)}st(K("aichat"),j)}
+// نصّ الجواب: كل سطر وحده باتجاهه (العربي من اليمين والألماني من اليسار)، و**…** خطّ عريض
+const aiFmt=t=>String(t||"").split("\n").map(l=>`<div class="ln" dir="auto">${esc(l).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/^\s*[-*]\s+/,"• ")}</div>`).join("");
+function aiBub(m,img){
+  if(m.r==="a")return `<div class="bub them aib">${aiFmt(m.t)}${m.ts?`<small>${fmt(m.ts)}</small>`:""}</div>`;
+  return `<div class="bub me aib">${m.i&&img?`<img src="${img}" alt="">`:m.i?"📷 صورة<br>":""}${esc(m.t||"")}${m.ts?`<small>${fmt(m.ts)}</small>`:""}</div>`;
+}
+const AI_HI="مرحبًا! أنا البومة 🦉، أساعدك في وظيفتك خطوة خطوة.\nHallo! Ich bin die Eule 🦉 und helfe dir Schritt für Schritt.\nصوّر ورقة الوظيفة 📷 أو اكتب سؤالك.\nMach ein Foto von der Aufgabe oder schreib deine Frage.";
+function renderHelper(){
+  const el=$("helper");if(!aiOn()){el.innerHTML='<div class="empty">المساعد غير مفعّل لهذا الحساب.</div>';return}
+  const c=aiLoad(),lastImg=c.m.map(m=>!!m.i).lastIndexOf(true);
+  el.innerHTML=`<div class="mhead"><h2>${I3("owl")} مساعد الوظيفة</h2>${c.m.length?'<button class="btn" id="aiNewB">سؤال جديد</button>':""}</div>
+   <div class="chat" id="aiChat">${aiBub({r:"a",t:AI_HI})}${c.m.map((m,k)=>aiBub(m,k===lastImg?c.img:"")).join("")}${AIBUSY?'<div class="bub them wait">🦉 …</div>':""}</div>
+   <div class="compose">${AIPEND?`<div class="aiPrev"><img src="${AIPEND}" alt=""><button id="aiRm" title="إزالة الصورة">×</button></div>`:""}
+    <textarea id="aiText" maxlength="1500" placeholder="اكتب سؤالك أو جوابك هنا…" ${AIBUSY?"disabled":""}></textarea>
+    <div class="row2"><label class="btn aiPh">📷 صورة<input type="file" accept="image/*" id="aiFile" hidden></label><span id="aiLeft"></span><button class="btn" id="aiSend" ${AIBUSY?"disabled":""}>إرسال</button></div></div>`;
+  const ch=$("aiChat");ch.onclick=e=>{const im=e.target.closest(".aib img");if(im)im.classList.toggle("big")};
+  if(c.m.length)setTimeout(()=>{const b=ch.lastElementChild;if(b)b.scrollIntoView({block:"start"})},30);
+  const nb=$("aiNewB");if(nb)nb.onclick=async()=>{if(AIBUSY)return;if(!await uiConfirm("تبدأ سؤالًا جديدًا؟ تختفي هذه المحادثة من هنا."))return;AIC=aiNew();AIC.uid=UID;AIPEND="";aiSave();renderHelper()};
+  const rm=$("aiRm");if(rm)rm.onclick=()=>{AIPEND="";renderHelper()};
+  $("aiFile").onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const keep=$("aiText").value;
+    try{AIPEND=await aiShrink(f)}catch(err){toast(I3("warning"),"تعذّر فتح الصورة","");return}renderHelper();$("aiText").value=keep};
+  $("aiSend").onclick=()=>aiSend($("aiText").value.trim());
+}
+function aiShrink(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();
+  im.onload=()=>{const k=Math.min(1,1280/Math.max(im.width,im.height)),c=document.createElement("canvas");c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(im,0,0,c.width,c.height);URL.revokeObjectURL(u);
+    let q=.8,d=c.toDataURL("image/jpeg",q);while(d.length>600000&&q>.35){q-=.1;d=c.toDataURL("image/jpeg",q)}ok(d)};
+  im.onerror=()=>{URL.revokeObjectURL(u);no()};im.src=u})}
+async function aiSend(text){
+  if(AIBUSY||(!text&&!AIPEND))return;const c=aiLoad(),img=AIPEND;
+  const m={r:"u",t:text,ts:Date.now()};if(img){m.i=true;c.img=img}
+  c.m.push(m);AIPEND="";AIBUSY=true;aiSave();renderHelper();
+  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),90000);let err="",out=null;
+  try{const r=await fetch(API+"/ai",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},
+      body:JSON.stringify({cid:c.id,msgs:c.m.slice(-16).map(x=>({r:x.r,t:x.t,i:!!x.i})),img:c.img||""})});
+    const j=await r.json().catch(()=>({}));if(r.ok&&j.a)out=j;else err=j.error||"server"}
+  catch(e){err="net"}finally{clearTimeout(to)}
+  AIBUSY=false;
+  if(out){c.m.push({r:"a",t:out.a,ts:Date.now()});aiSave();renderHelper();const l=$("aiLeft");if(l&&out.left<=10)l.textContent="بقي لك اليوم "+out.left+" سؤالًا";return}
+  // لم يصل الجواب: يرجع السؤال إلى خانة الكتابة ليرسله مرة أخرى
+  c.m.pop();if(img){AIPEND=img;c.img=(c.m.filter(x=>x.i).length?c.img:"")}aiSave();renderHelper();$("aiText").value=text;
+  if(err==="noai"){aiUI();return}
+  await uiAlert(err==="limit"?"انتهت أسئلة اليوم 🌙 نكمل غدًا.":err==="quota"?"المساعد متعب اليوم 😴 جرّب غدًا، أو اسأل بابا.":"لم يصل الجواب. تأكّد من الإنترنت ثم اضغط «إرسال» مرة أخرى.");
+}
+// المشرف: تفعيل المساعد لمتعلّم، وقراءة محادثاته
+async function setAi(uid,on){
+  const f=new Set(CFG.ai||[]);on?f.add(uid):f.delete(uid);const c={...CFG,ai:[...f]};
+  if(await saveCfg(c,on?"فُعّل مساعد الوظيفة":"أُلغي مساعد الوظيفة")){applyCfg(c);return true}return false;
+}
+async function aiLogShow(uid,more){
+  const box=$("aiLogBox");if(!box)return;const btn=$("uAiLog");
+  if(!more){box.innerHTML='<div class="empty">جارٍ التحميل…</div>';box._items=[];box._tok=""}
+  if(btn)btn.disabled=true;
+  try{const j=await apiPost("/ailog",{uid,tok:more?box._tok:""});box._items=box._items.concat(j.items||[]);box._tok=j.tok||""}
+  catch(e){box.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';if(btn)btn.disabled=false;return}
+  if(btn)btn.disabled=false;
+  const G=[],ix={};for(const x of box._items){if(ix[x.c]===undefined){ix[x.c]=G.length;G.push([])}G[ix[x.c]].push(x)}
+  box.innerHTML=G.length?G.map(g=>{g=g.slice().reverse();return `<div class="aiLogC"><small>محادثة ${fmt(g[0].ts)}</small><div class="chat">${g.map(x=>`<div class="bub me aib">${x.img?`<img src="${x.img}" alt="">`:""}${esc(x.q||"")}<small>${fmt(x.ts)}</small></div><div class="bub them aib">${aiFmt(x.a)}</div>`).join("")}</div></div>`}).join("")
+    +(box._tok?'<button class="btn" id="aiMore" style="width:100%">المزيد</button>':""):'<div class="empty">لم يسأل المساعد شيئًا بعد.</div>';
+  box.onclick=e=>{const im=e.target.closest(".aib img");if(im)im.classList.toggle("big")};
+  const mo=$("aiMore");if(mo)mo.onclick=()=>aiLogShow(uid,true);
+}
+
 /* ================= سؤال التقييم ================= */
 async function maybeAskFeedback(){
   if(!UID||isAdmin()||st(K("fbDone")))return;
@@ -3281,7 +3363,7 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage")?"none":"";
   if(p==="usage"){renderUsage();return}
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
@@ -3289,6 +3371,7 @@ function renderPanel(p){
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
+  if(p==="helper"){renderHelper();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
   // الاختبار: يبدأ من جديد عند فتحه إلا إذا كان المستخدم في منتصفه، فيأخذ الكلمات التي تعلّمها للتوّ
@@ -3309,6 +3392,7 @@ function init(){
   $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
   setInterval(()=>{if(UID)renderEnergy()},30000);
   $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
+  $("aiBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("helper").classList.add("on");renderPanel("helper");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};

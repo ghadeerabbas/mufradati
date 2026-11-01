@@ -55,13 +55,14 @@ function applyCfg(c){
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
     free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف
+    ai:Array.isArray(c.ai)?c.ai.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات «مساعد الوظيفة» يختارها المشرف
     off:{all:c.off&&c.off.all?1:0,u:c.off&&Array.isArray(c.off.u)?c.off.u.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]},   // «العمل بلا إنترنت»: للجميع أو لمتعلّمين بأعيانهم
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
   GROUP_MAX=TARGET=CFG.league.group;EN_MAX=CFG.energy.max;EN_STEP=CFG.energy.minutes*60000;ST_COST=CFG.energy.stCost;
   ST_WORDS=CFG.station.words;ST_MAX=CFG.station.perDay;FZ_MAX=CFG.freeze.max;FZ_START=CFG.freeze.start;
-  if(typeof buildShop==="function")buildShop();EC=null;
+  if(typeof buildShop==="function")buildShop();if(typeof aiUI==="function")aiUI();EC=null;
 }
 /* --- الوقت بتوقيت برلين، في الهاتف والخادم على السواء --- */
 // قاعدة التوقيت الصيفي الأوروبية: من آخر أحد في مارس إلى آخر أحد في أكتوبر (الساعة 01:00 بتوقيت غرينتش)
@@ -561,6 +562,11 @@ function makeFS(env) {
       } while (tok);
       return out;
     },
+    async page(coll, orderBy, n, tok) {
+      const r = await fetch(FS_BASE + "/" + coll + "?pageSize=" + n + "&orderBy=" + encodeURIComponent(orderBy) + (tok ? "&pageToken=" + encodeURIComponent(tok) : ""), { headers: await H() });
+      if (!r.ok) throw new Error("fs page " + r.status);
+      const j = await r.json(); return { items: (j.documents || []).map(d => ({ id: d.name.split("/").pop(), ...docData(d) })), tok: j.nextPageToken || "" };
+    },
     // writes: [{path, data, ifUpdateTime?, ifMissing?}] أو [{path, del: true}] للحذف
     async commit(writes) {
       if (!writes.length) return;
@@ -842,6 +848,72 @@ async function handlePass(fs, user, body, env) {
   return { status: 200, json: { ok: true } };
 }
 
+/* ---------- مساعد الوظيفة: ذكاء صناعي مجاني من Cloudflare لحسابات يختارها المشرف ---------- */
+const AI_MODEL = "@cf/google/gemma-4-26b-a4b-it", AI_DAY = 60;   // الحدّ اليومي للأسئلة لكل حساب
+function aiPrompt(name, grade) {
+  return `Du bist „Eule“, eine geduldige, freundliche Hausaufgabenhilfe für ${name ? "das Kind " + name : "ein Kind"} in der ${grade ? grade + ". Klasse" : "3. oder 4. Klasse"} einer Grundschule in Sachsen (Deutschland). Das Kind spricht Arabisch (Familie aus Syrien) und lernt Deutsch. Die Eltern sind gerade nicht zu Hause.
+
+SPRACHE – sehr wichtig:
+- Schreibe jeden Gedanken ZWEIMAL: zuerst eine Zeile in einfachem Deutsch, darunter dieselbe Zeile auf einfachem Arabisch (Hocharabisch mit einfachen, in Syrien üblichen Wörtern).
+- Kurze Sätze, Wörter für ein Kind von 8–10 Jahren. Wörter aus der Aufgabe bleiben auf Deutsch.
+- Höchstens 8 Zeilen pro Antwort. Kein Markdown außer **fett** für wichtige Wörter. Zahlen immer als 1, 2, 3.
+
+WIE DU HILFST – Schritt für Schritt bis zur Lösung:
+1. Erkläre zuerst kurz, was die Aufgabe will.
+2. Teile die Aufgabe in kleine Schritte. Gib immer nur EINEN Schritt und stelle eine kleine Frage, damit das Kind selbst denkt und antwortet.
+3. Antwortet das Kind richtig: kurz loben und zum nächsten Schritt. Ist es falsch: freundlich sagen, einen Tipp geben und noch einmal fragen.
+4. Wenn das Kind zweimal falsch liegt oder „ich weiß nicht“ sagt, zeige diesen Schritt vor und erkläre ihn, dann geht es weiter.
+5. Am Ende fasse die ganze Lösung zusammen, damit das Kind sie ins Heft schreiben kann.
+- Rechne sehr sorgfältig und prüfe jedes Ergebnis zweimal, bevor du etwas sagst. Bei Rechtschreibung: richtige Schreibweise zeigen und die Regel kindgerecht erklären.
+- Ist ein Foto unscharf oder unvollständig, bitte freundlich um ein neues Foto, statt zu raten.
+
+REGELN:
+- Nur Schule und Lernen. Bei anderen Themen freundlich zurück zu den Hausaufgaben führen.
+- Frage nie nach Adresse, Telefonnummer, Passwörtern oder Fotos von Personen.
+- Wenn das Kind traurig ist, Angst hat, sich verletzt hat oder in Gefahr ist: sag liebevoll, dass es sofort Papa oder Mama anrufen oder einem Erwachsenen Bescheid sagen soll; bei Gefahr 112.
+- Keine Inhalte, die nicht für Kinder geeignet sind.`;
+}
+const aiText = r => {
+  let t = r && r.choices && r.choices[0] && r.choices[0].message ? r.choices[0].message.content : r && r.response;
+  if (Array.isArray(t)) t = t.map(x => x && x.text || "").join("");
+  return String(t || "").replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\|?channel\|?>thought[\s\S]*?<\|?channel\|?>/g, "").trim();
+};
+async function handleAi(fs, user, body, env) {
+  await loadCfg(fs);
+  if (!(CFG.ai || []).includes(user.uid)) return { status: 403, json: { error: "noai" } };
+  const msgs = (Array.isArray(body.msgs) ? body.msgs : []).slice(-16).map(m => ({ r: m && m.r === "a" ? "a" : "u", t: String(m && m.t || "").slice(0, 2000), i: !!(m && m.i) }));
+  if (!msgs.length || msgs[msgs.length - 1].r !== "u") return { status: 400, json: { error: "bad" } };
+  const img = typeof body.img === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(body.img) && body.img.length < 700000 ? body.img : "";
+  const cid = String(body.cid || "").replace(/[^A-Za-z0-9_-]/g, "").slice(0, 40) || "c";
+  const now = Date.now(), day = dkey(now);
+  const [q, as, nm] = await Promise.all([fs.get(`aiq/${user.uid}`), fs.get(`assign/${user.uid}`), fs.get(`names/${user.uid}`)]);
+  const used = q && q.data.d === day ? +q.data.n || 0 : 0;
+  if (used >= AI_DAY) return { status: 429, json: { error: "limit", max: AI_DAY } };
+  const cs = as && Array.isArray(as.data.courses) ? as.data.courses : [], grade = cs.includes("k4") ? 4 : cs.includes("k3") ? 3 : 0;
+  const name = String(nm && nm.data.name || "").split(/\s+/)[0].slice(0, 30);
+  const lastImg = img ? msgs.map(m => m.i).lastIndexOf(true) : -1;
+  const messages = [{ role: "system", content: aiPrompt(name, grade) }, ...msgs.map((m, k) => ({ role: m.r === "a" ? "assistant" : "user",
+    content: k === lastImg ? [{ type: "text", text: m.t || "Hilf mir bei dieser Aufgabe." }, { type: "image_url", image_url: { url: img } }] : (m.t || "…") }))];
+  let a = "";
+  try { a = aiText(await env.AI.run(AI_MODEL, { messages, max_completion_tokens: 900, temperature: 0.3 })) }
+  catch (e) { const m = String(e && e.message || e); return { status: /4006|daily|neuron|quota|limit/i.test(m) ? 429 : 502, json: { error: /4006|daily|neuron|quota|limit/i.test(m) ? "quota" : "ai", detail: m.slice(0, 200) } } }
+  if (!a) return { status: 502, json: { error: "ai", detail: "empty" } };
+  const last = msgs[msgs.length - 1], id = now.toString(36) + Math.random().toString(36).slice(2, 6);
+  await fs.commit([
+    { path: `aichat/${user.uid}/m/${id}`, data: { c: cid, q: last.t, img: last.i && img ? img : "", a, ts: { __ts: now } } },
+    { path: `aichat/${user.uid}`, data: { last: { __ts: now }, name }, merge: true },
+    { path: `aiq/${user.uid}`, data: { d: day, n: used + 1 } }]);
+  return { status: 200, json: { a, left: AI_DAY - used - 1 } };
+}
+// المشرف يقرأ محادثات المساعد لحساب معيّن، الأحدث أولًا
+async function handleAiLog(fs, user, body, env) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  const uid = String(body.uid || "");
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
+  const r = await fs.page(`aichat/${uid}/m`, "ts desc", 30, String(body.tok || ""));
+  return { status: 200, json: { items: r.items.map(x => ({ c: x.c, q: x.q, img: x.img, a: x.a, ts: x.ts && x.ts.ms || 0 })), tok: r.tok } };
+}
+
 /* ---------- نقطة الدخول ---------- */
 function cors(req) {
   const o = req.headers.get("Origin") || "";
@@ -852,7 +924,14 @@ export default {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    // فحص مؤقّت لمساعد الوظيفة: هل يعمل النموذج ويقرأ الصور؟ (بلا بيانات مستخدمين)
+    if (url.pathname === "/aiping" && req.method === "GET") {
+      try {
+        const r = await env.AI.run(AI_MODEL, { messages: [{ role: "user", content: [{ type: "text", text: "Was steht auf dem Bild? Antworte in einem kurzen Satz." }, { type: "image_url", image_url: { url: "data:image/jpeg;base64,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" } }] }], max_completion_tokens: 60 });
+        return new Response(JSON.stringify({ ok: true, a: aiText(r), usage: r && r.usage }), { headers: { ...H, "Content-Type": "application/json" } });
+      } catch (e) { return new Response(JSON.stringify({ ok: false, e: String(e && e.message || e).slice(0, 300) }), { status: 500, headers: { ...H, "Content-Type": "application/json" } }) }
+    }
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -862,7 +941,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;
