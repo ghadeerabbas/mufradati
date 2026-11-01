@@ -6,4 +6,6 @@ jobs:
   p:
     runs-on: ubuntu-latest
     steps:
-      - run: curl -sS -m 90 https://mufradati-api.afunogrv.workers.dev/aiping; echo; curl -sS -m 30 -X POST https://mufradati-api.afunogrv.workers.dev/ai -H "Content-Type: application/json" -d '{}'
+      - run: |
+          curl -sS -m 90 https://mufradati-api.afunogrv.workers.dev/aiping; echo
+          curl -sS -m 30 -X POST https://mufradati-api.afunogrv.workers.dev/ai -H "Content-Type: application/json" -d '{}'
