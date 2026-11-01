@@ -940,11 +940,11 @@ async function aiTest(env, url) {
     const msgs = [{ role: "system", content: aiPrompt("Mohamad", 3) }, { role: "user", content: "Arbeitsblatt (vom Foto abgeschrieben):\n" + ws + "\n\nKind: ساعدني بالسؤال 4" }];
     const msgs2 = msgs.concat([{ role: "assistant", content: "" }]);
     await Promise.all([
-      run("gemma", AI_MODEL, { messages: msgs, max_completion_tokens: 500, temperature: 0.3, ...NT }),
-      run("scout", "@cf/meta/llama-4-scout-17b-16e-instruct", { messages: msgs, max_tokens: 500, temperature: 0.3 }),
-      run("gptoss", "@cf/openai/gpt-oss-120b", { input: msgs, reasoning: { effort: "low" }, max_output_tokens: 700 }),
-      run("gptoss_m", "@cf/openai/gpt-oss-120b", { messages: msgs, reasoning_effort: "low", max_tokens: 700 }),
-      run("mistral", "@cf/mistralai/mistral-small-3.1-24b-instruct", { messages: msgs, max_tokens: 500, temperature: 0.3 })]);
+      run("gemma_think", AI_MODEL, { messages: msgs, max_completion_tokens: 2500, temperature: 0.3 }),
+      run("qwen", "@cf/qwen/qwen3.8-27b", { messages: msgs, max_completion_tokens: 600, temperature: 0.3, ...NT }),
+      run("qwen_think", "@cf/qwen/qwen3.8-27b", { messages: msgs, max_completion_tokens: 3000, temperature: 0.3 }),
+      run("scout", "@cf/meta/llama-4-scout-17b-16e-instruct", { messages: msgs, max_tokens: 500, temperature: 0.3 })]);
+
   }
   return new Response(JSON.stringify(out), { headers: { "Content-Type": "application/json; charset=utf-8" } });
 }
