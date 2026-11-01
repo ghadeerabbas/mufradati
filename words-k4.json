@@ -200,7 +200,7 @@
  {"day": 1, "s": [], "t": "e", "subj": "Deutsch", "core": 0, "de": "in Not geraten", "ar": "يقع في محنة", "ex": "Dann gerieten Menschen in Not.", "exar": "عندئذٍ كان الناس يقعون في محنة."},
  {"day": 1, "s": [], "t": "n", "subj": "Deutsch", "core": 0, "de": "die Lawine, die Lawinen", "ar": "الانهيار الثلجي، الانهيارات الثلجية", "ex": "Lawinen stürzten herunter und begruben die Reisenden unter sich.", "exar": "كانت الانهيارات الثلجية تهوي وتدفن المسافرين تحتها."},
  {"day": 1, "s": [], "t": "v", "subj": "Deutsch", "core": 0, "de": "begraben", "ar": "يدفن", "ex": "Lawinen konnten Menschen unter Schnee begraben.", "exar": "كان بإمكان الانهيارات الثلجية أن تدفن الناس تحت الثلج."},
- {"day": 1, "s": [], "t": "a", "subj": "Deutsch", "core": 0, "de": "verschüttet", "ar": "مدفون (تحت الثلج أو الرّكام)", "ex": "denn die Hunde fanden die verschütteten Menschen", "exar": "لأنّ الكلاب كانت تجد الناسَ المدفونين تحت الثلج"},
+ {"day": 1, "s": [], "t": "a", "subj": "Deutsch", "core": 0, "de": "verschüttet", "ar": "مدفون", "ex": "denn die Hunde fanden die verschütteten Menschen", "exar": "لأنّ الكلاب كانت تجد الناسَ المدفونين"},
  {"day": 1, "s": [], "t": "n", "subj": "Deutsch", "core": 0, "de": "der Erfolg, die Erfolge", "ar": "النجاح، النجاحات", "ex": "Ohne die Hunde hätten sie kaum Erfolg gehabt.", "exar": "لولا الكلاب لما أحرزوا نجاحًا يُذكَر."},
  {"day": 1, "s": [], "t": "n", "subj": "Deutsch", "core": 0, "de": "die Gefahr, die Gefahren", "ar": "الخطر، الأخطار", "ex": "Welche Gefahr gab es am St.-Bernhard-Pass?", "exar": "ما الخطر الذي كان في ممرّ سانت برنارد؟"},
  {"day": 1, "s": [], "t": "v", "subj": "Deutsch", "core": 0, "de": "retten", "ar": "يُنقذ", "ex": "Barry rettete 40 Menschen.", "exar": "أنقذ باري 40 شخصًا."},
