@@ -202,7 +202,7 @@
 "de": "bedeuten",
 "ar": "يعني",
 "ex": "Was bedeutet Mindesthaltbarkeitsdatum (MHD)?",
-"exar": "ماذا يعني تاريخُ الحدِّ الأدنى للصلاحية؟"
+"exar": "ماذا يعني تاريخُ «يُفضَّلُ استهلاكُه قبل»؟"
 },
 {
 "day": 1,
@@ -211,9 +211,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "das Mindesthaltbarkeitsdatum (MHD)",
-"ar": "تاريخ الحدّ الأدنى للصلاحية (يُفضَّل الاستهلاك قبله)",
+"ar": "تاريخ «يُفضَّل استهلاكه قبل» (الحدّ الأدنى للصلاحية)",
 "ex": "Was bedeutet Mindesthaltbarkeitsdatum (MHD)?",
-"exar": "ماذا يعني تاريخُ الحدِّ الأدنى للصلاحية؟"
+"exar": "ماذا يعني تاريخُ «يُفضَّلُ استهلاكُه قبل»؟"
 },
 {
 "day": 1,
@@ -419,7 +419,7 @@
 "de": "wodurch",
 "ar": "بِمَ",
 "ex": "Wodurch unterscheiden sie sich?",
-"exar": "بِمَ تختلفُ بعضُها عن بعض؟"
+"exar": "بِمَ يختلفُ بعضُها عن بعض؟"
 },
 {
 "day": 1,
@@ -430,7 +430,7 @@
 "de": "sich unterscheiden (unterscheiden sich)",
 "ar": "يختلف (عن غيره)",
 "ex": "Wodurch unterscheiden sie sich?",
-"exar": "بِمَ تختلفُ بعضُها عن بعض؟"
+"exar": "بِمَ يختلفُ بعضُها عن بعض؟"
 },
 {
 "day": 1,
@@ -472,9 +472,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "zuordnen (ordne … zu)",
-"ar": "ينسب (كلَّ شيء إلى ما يناسبه)",
+"ar": "يربط (كلَّ شيء بما يناسبه)",
 "ex": "Ordne die Begriffe der Roggenpflanze richtig zu.",
-"exar": "انسبِ المصطلحاتِ إلى أجزاءِ نبتةِ الجاودار نسبةً صحيحة."
+"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الجاودار ربطًا صحيحًا."
 },
 {
 "day": 1,
@@ -485,7 +485,7 @@
 "de": "der Begriff, die Begriffe",
 "ar": "المصطلح، المصطلحات",
 "ex": "Ordne die Begriffe der Roggenpflanze richtig zu.",
-"exar": "انسبِ المصطلحاتِ إلى أجزاءِ نبتةِ الجاودار نسبةً صحيحة."
+"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الجاودار ربطًا صحيحًا."
 },
 {
 "day": 1,
@@ -496,7 +496,7 @@
 "de": "die Roggenpflanze, die Roggenpflanzen",
 "ar": "نبتة الجاودار، نباتات الجاودار",
 "ex": "Ordne die Begriffe der Roggenpflanze richtig zu.",
-"exar": "انسبِ المصطلحاتِ إلى أجزاءِ نبتةِ الجاودار نسبةً صحيحة."
+"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الجاودار ربطًا صحيحًا."
 },
 {
 "day": 1,
@@ -734,7 +734,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Mineralstoff, die Mineralstoffe",
-"ar": "المعدن (عنصر معدنيّ غذائي)، المعادن",
+"ar": "المعدن الغذائي (الأملاح المعدنية)، المعادن",
 "ex": "die wichtigen Vitamine und Mineralstoffe",
 "exar": "الفيتاميناتُ والمعادنُ المهمّة"
 },
@@ -888,9 +888,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "leistungsfähig",
-"ar": "قادر على العطاء / نشيط",
+"ar": "نشيط / في كامل طاقته",
 "ex": "und halten ihn leistungsfähig",
-"exar": "وتُبقيه قادرًا على العطاء"
+"exar": "وتُبقيه في كامل نشاطه"
 },
 {
 "day": 1,
@@ -1196,9 +1196,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "aufstellen (stellten … auf)",
-"ar": "يُوقِف (ينصب واقفًا)",
+"ar": "يُوقِف (ينصب منتصبًا)",
 "ex": "und stellten sie zum Trocknen auf",
-"exar": "وتُوقِفُها لتجفّ"
+"exar": "وتُوقِفُها منتصبةً لتجفّ"
 },
 {
 "day": 1,
@@ -1209,7 +1209,7 @@
 "de": "trocknen",
 "ar": "يجفّ",
 "ex": "und stellten sie zum Trocknen auf",
-"exar": "وتُوقِفُها لتجفّ"
+"exar": "وتُوقِفُها منتصبةً لتجفّ"
 },
 {
 "day": 1,
@@ -1295,9 +1295,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Dreschflegel, die Dreschflegel",
-"ar": "المِدْرَس (عصا لدرس الحبوب باليد)، المَدارس",
+"ar": "مِخباط الدِّراس (عصا لدرس الحبوب باليد)، مخابيط الدِّراس",
 "ex": "Die Körner mussten mit einem Dreschflegel geschlagen werden.",
-"exar": "كان لا بدّ من ضربِ الحبّاتِ بالمِدْرَس."
+"exar": "كان لا بدّ من ضربِ الحبّاتِ بمِخباطِ الدِّراس."
 },
 {
 "day": 1,
@@ -1308,7 +1308,7 @@
 "de": "schlagen (geschlagen)",
 "ar": "يضرب",
 "ex": "Die Körner mussten mit einem Dreschflegel geschlagen werden.",
-"exar": "كان لا بدّ من ضربِ الحبّاتِ بالمِدْرَس."
+"exar": "كان لا بدّ من ضربِ الحبّاتِ بمِخباطِ الدِّراس."
 },
 {
 "day": 1,
@@ -1715,7 +1715,7 @@
 "de": "unterstreichen (unterstreiche)",
 "ar": "يضع خطًّا تحت",
 "ex": "Unterstreiche im Text mit den entsprechenden Farben.",
-"exar": "ضعْ خطًّا في النصِّ بالألوانِ المناسبة."
+"exar": "ضعْ خطوطًا في النصِّ بالألوانِ المناسبة."
 },
 {
 "day": 1,
@@ -1845,7 +1845,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "das Bio-Siegel, die Bio-Siegel",
-"ar": "شعار المنتجات العضوية",
+"ar": "علامة المنتج العضوي، علامات المنتجات العضوية",
 "ex": "Für Lebensmittel mit einem Bio-Siegel dürfen solche schädlichen Mittel nicht verwendet werden.",
 "exar": "لا يجوزُ استخدامُ مثلِ هذه الموادِّ الضارّةِ للموادِّ الغذائيةِ التي تحملُ شعارَ المنتجاتِ العضوية."
 },
@@ -1988,7 +1988,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Kartoffel, die Kartoffeln",
-"ar": "البطاطا",
+"ar": "حبّة البطاطا، البطاطا",
 "ex": "Die Kartoffel",
 "exar": "البطاطا"
 },
@@ -2441,7 +2441,7 @@
 "de": "der Stängel, die Stängel",
 "ar": "الساق (ساق النبتة)، السيقان",
 "ex": "Über der Erde bildet sich ein Stängel mit Blättern, Blüten und grünen Beeren.",
-"exar": "فوق الترابِ تتكوّنُ ساقٌ عليها أوراقٌ وأزهارٌ وتوتٌ أخضر."
+"exar": "فوق الترابِ تتكوّنُ ساقٌ عليها أوراقٌ وأزهارٌ وثمارٌ خضراءُ صغيرة."
 },
 {
 "day": 1,
@@ -2452,7 +2452,7 @@
 "de": "grün",
 "ar": "أخضر",
 "ex": "mit Blättern, Blüten und grünen Beeren",
-"exar": "عليها أوراقٌ وأزهارٌ وتوتٌ أخضر"
+"exar": "عليها أوراقٌ وأزهارٌ وثمارٌ خضراءُ صغيرة"
 },
 {
 "day": 1,
@@ -2461,9 +2461,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Beere, die Beeren",
-"ar": "التوتة (ثمرة صغيرة طريّة)، التوت",
+"ar": "الثمرة العِنَبيّة (ثمرة صغيرة طريّة)، الثمار العِنَبيّة",
 "ex": "mit Blättern, Blüten und grünen Beeren",
-"exar": "عليها أوراقٌ وأزهارٌ وتوتٌ أخضر"
+"exar": "عليها أوراقٌ وأزهارٌ وثمارٌ خضراءُ صغيرة"
 },
 {
 "day": 1,
@@ -2699,7 +2699,7 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "die Deutscharbeit",
-"ar": "اختبار اللغة الألمانية"
+"ar": "الاختبار الصفّي في مادة اللغة الألمانية"
 },
 {
 "day": 1,
@@ -3621,7 +3621,7 @@
 "de": "die Windmühle, die Windmühlen",
 "ar": "طاحونة الهواء، طواحين الهواء",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، فوج الإطفاء، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، فرقة الإطفاء، سياج الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3630,9 +3630,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "die Feuerwehr, die Feuerwehren",
-"ar": "فوج الإطفاء، أفواج الإطفاء",
+"ar": "فرقة الإطفاء، فرق الإطفاء",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، فوج الإطفاء، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، فرقة الإطفاء، سياج الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3643,7 +3643,7 @@
 "de": "der Gartenzaun, die Gartenzäune",
 "ar": "سياج الحديقة، أسيجة الحدائق",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، فوج الإطفاء، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، فرقة الإطفاء، سياج الحديقة، رجل الثلج"
 },
 {
 "day": 1,
