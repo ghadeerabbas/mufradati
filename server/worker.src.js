@@ -480,13 +480,20 @@ async function aiTest(env, url) {
       run("qwen", "@cf/qwen/qwen3.8-27b", { messages: msg, max_completion_tokens: 700, temperature: 0, ...NT })]);
   } else {
     const ws = url.searchParams.get("ws") || "";
-    const msgs = [{ role: "system", content: aiPrompt("Mohamad", 3) }, { role: "user", content: "Arbeitsblatt (vom Foto abgeschrieben):\n" + ws + "\n\nKind: ساعدني بالسؤال 4" }];
-    const msgs2 = msgs.concat([{ role: "assistant", content: "" }]);
-    await Promise.all([
-      run("gemma_think", AI_MODEL, { messages: msgs, max_completion_tokens: 2500, temperature: 0.3 }),
-      run("qwen", "@cf/qwen/qwen3.8-27b", { messages: msgs, max_completion_tokens: 600, temperature: 0.3, ...NT }),
-      run("qwen_think", "@cf/qwen/qwen3.8-27b", { messages: msgs, max_completion_tokens: 3000, temperature: 0.3 }),
-      run("scout", "@cf/meta/llama-4-scout-17b-16e-instruct", { messages: msgs, max_tokens: 500, temperature: 0.3 })]);
+    const sys = { role: "system", content: aiPrompt("Mohamad", 3) }, W0 = "Arbeitsblatt (vom Foto abgeschrieben):\n" + ws + "\n\nKind: ";
+    const SC = {
+      a: [sys, { role: "user", content: W0 + "ساعدني" }],
+      b: [sys, { role: "user", content: W0 + "Aufgabe 4" }, { role: "assistant", content: "Bei Aufgabe 4 suchst du die Grundform. Die Grundform endet meistens auf -en.\nفي المهمة 4 تبحث عن المصدر. المصدر ينتهي غالبًا بـ -en.\nWie heißt die Grundform von „steht“?\nما هو مصدر „steht“؟" }, { role: "user", content: "stehen" }],
+      c: [sys, { role: "user", content: W0 + "السؤال 4" }, { role: "assistant", content: "Wie heißt die Grundform von „hat“?\nما هو مصدر „hat“؟" }, { role: "user", content: "hat" }, { role: "assistant", content: "Fast! „hat“ ist nicht die Grundform. Sie endet auf -en.\nقريب! „hat“ ليس المصدر. المصدر ينتهي بـ -en.\nVersuch es noch einmal.\nحاول مرة أخرى." }, { role: "user", content: "ما بعرف" }],
+      d: [sys, { role: "user", content: W0 + "ساعدني بالسؤال 1" }]
+    };
+    const jobs = [];
+    for (const k in SC) {
+      jobs.push(run("gemma_" + k, AI_MODEL, { messages: SC[k], max_completion_tokens: 500, temperature: 0.3, ...NT }));
+      jobs.push(run("qwen_" + k, "@cf/qwen/qwen3.8-27b", { messages: SC[k], max_completion_tokens: 500, temperature: 0.3, ...NT }));
+    }
+    await Promise.all(jobs);
+
 
   }
   return new Response(JSON.stringify(out), { headers: { "Content-Type": "application/json; charset=utf-8" } });
