@@ -21,6 +21,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <provider android:name=".PhotoProvider" android:authorities="${applicationId}.photo"
+            android:exported="false" android:grantUriPermissions="true" />
         <receiver android:name=".Reminder" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />

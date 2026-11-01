@@ -553,7 +553,8 @@ body.fbon main{padding-bottom:210px}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
 .bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
 .aiPrev{position:relative;display:inline-block;margin-bottom:6px}.aiPrev button{position:absolute;top:4px;left:4px;border:0;border-radius:50%;width:28px;height:28px;background:rgba(0,0,0,.6);color:#fff;font-size:1rem}
-.compose .aiPh{background:var(--soft);color:var(--hd);padding:8px 14px;cursor:pointer}
+.compose .btn.aiPh{background:var(--soft);color:var(--hd);padding:8px 10px;cursor:pointer;font-size:.85rem}.aiRow{gap:6px}.aiRow #aiSend{margin-inline-start:auto}
+.aiLeft{text-align:center;font-size:.8rem;color:var(--muted);margin-top:8px;min-height:1em}
 .aiLogC{border-top:1px dashed var(--line);padding-top:8px;margin-top:8px}.aiLogC>small{display:block;color:var(--muted);font-size:.75rem;margin-bottom:6px}
 .mhead h2{font-size:1.1rem;color:var(--hd);flex:1}
 .mhead .btn{background:var(--soft);color:var(--hd);padding:6px 12px;font-size:.85rem}
@@ -3276,7 +3277,11 @@ async function renderAssign(uid){
 /* ================= مساعد الوظيفة (ذكاء صناعي لحسابات يختارها المشرف) ================= */
 const aiOn=()=>!!(UID&&!isAdmin()&&CFG&&(CFG.ai||[]).includes(UID));
 function aiUI(){const b=$("aiBtn");if(b)b.style.display=aiOn()?"":"none"}
-let AIC=null,AIBUSY=false,AIPEND="";
+let AIC=null,AIBUSY=false,AIPEND="",AILEFT=null,AIMAX=60,AIPEEK=0;
+const aiLeftTxt=()=>AILEFT==null?"":AILEFT>0?`بقي لك اليوم ${AILEFT} من ${AIMAX} سؤالًا`:"انتهت أسئلة اليوم 🌙";
+function aiShowLeft(){const l=$("aiLeft");if(l){l.textContent=aiLeftTxt();l.style.color=AILEFT!=null&&AILEFT<=5?"var(--red)":""}}
+// عدد الأسئلة الباقية من الخادم (عند فتح المساعد، مرة كل دقيقة على الأكثر)
+async function aiPeek(){if(Date.now()-AIPEEK<60e3)return;AIPEEK=Date.now();try{const j=await apiPost("/ai",{peek:1});AILEFT=j.left;AIMAX=j.max||AIMAX;aiShowLeft()}catch(e){AIPEEK=0}}
 const aiNew=()=>({id:Date.now().toString(36)+Math.random().toString(36).slice(2,5),m:[],img:""});
 function aiLoad(){if(!AIC||AIC.uid!==UID){AIC=jget(K("aichat"),null);if(!AIC||!Array.isArray(AIC.m))AIC=aiNew();AIC.uid=UID}return AIC}
 function aiSave(){let j=JSON.stringify(AIC);if(j.length>2e6){AIC.img="";AIC.m.forEach(m=>m.i=false);j=JSON.stringify(AIC)}st(K("aichat"),j)}
@@ -3294,13 +3299,15 @@ function renderHelper(){
    <div class="chat" id="aiChat">${aiBub({r:"a",t:AI_HI})}${c.m.map((m,k)=>aiBub(m,k===lastImg?c.img:"")).join("")}${AIBUSY?'<div class="bub them wait">🦉 …</div>':""}</div>
    <div class="compose">${AIPEND?`<div class="aiPrev"><img src="${AIPEND}" alt=""><button id="aiRm" title="إزالة الصورة">×</button></div>`:""}
     <textarea id="aiText" maxlength="1500" placeholder="اكتب سؤالك أو جوابك هنا…" ${AIBUSY?"disabled":""}></textarea>
-    <div class="row2"><label class="btn aiPh">📷 صورة<input type="file" accept="image/*" id="aiFile" hidden></label><span id="aiLeft"></span><button class="btn" id="aiSend" ${AIBUSY?"disabled":""}>إرسال</button></div></div>`;
+    <div class="row2 aiRow"><label class="btn aiPh">📷 الكاميرا<input type="file" accept="image/*" capture="environment" class="aiFile" hidden></label><label class="btn aiPh">🖼️ الاستوديو<input type="file" accept="image/*" class="aiFile" hidden></label><button class="btn" id="aiSend" ${AIBUSY?"disabled":""}>إرسال</button></div>
+    <div class="aiLeft" id="aiLeft"></div></div>`;
+  aiShowLeft();aiPeek();
   const ch=$("aiChat");ch.onclick=e=>{const im=e.target.closest(".aib img");if(im)im.classList.toggle("big")};
   if(c.m.length)setTimeout(()=>{const b=ch.lastElementChild;if(b)b.scrollIntoView({block:"start"})},30);
   const nb=$("aiNewB");if(nb)nb.onclick=async()=>{if(AIBUSY)return;if(!await uiConfirm("تبدأ سؤالًا جديدًا؟ تختفي هذه المحادثة من هنا."))return;AIC=aiNew();AIC.uid=UID;AIPEND="";aiSave();renderHelper()};
   const rm=$("aiRm");if(rm)rm.onclick=()=>{AIPEND="";renderHelper()};
-  $("aiFile").onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const keep=$("aiText").value;
-    try{AIPEND=await aiShrink(f)}catch(err){toast(I3("warning"),"تعذّر فتح الصورة","");return}renderHelper();$("aiText").value=keep};
+  el.querySelectorAll(".aiFile").forEach(x=>x.onchange=async e=>{const f=e.target.files&&e.target.files[0];if(!f)return;const keep=$("aiText").value;
+    try{AIPEND=await aiShrink(f)}catch(err){toast(I3("warning"),"تعذّر فتح الصورة","");return}renderHelper();$("aiText").value=keep});
   $("aiSend").onclick=()=>aiSend($("aiText").value.trim());
 }
 function aiShrink(file){return new Promise((ok,no)=>{const u=URL.createObjectURL(file),im=new Image();
@@ -3315,10 +3322,10 @@ async function aiSend(text){
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),90000);let err="",out=null;
   try{const r=await fetch(API+"/ai",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},
       body:JSON.stringify({cid:c.id,msgs:c.m.slice(-16).map(x=>({r:x.r,t:x.t,i:!!x.i})),img:c.img||""})});
-    const j=await r.json().catch(()=>({}));if(r.ok&&j.a)out=j;else err=j.error||"server"}
+    const j=await r.json().catch(()=>({}));if(j.left!=null){AILEFT=j.left;AIMAX=j.max||AIMAX}if(r.ok&&j.a)out=j;else err=j.error||"server"}
   catch(e){err="net"}finally{clearTimeout(to)}
   AIBUSY=false;
-  if(out){c.m.push({r:"a",t:out.a,ts:Date.now()});aiSave();renderHelper();const l=$("aiLeft");if(l&&out.left<=10)l.textContent="بقي لك اليوم "+out.left+" سؤالًا";return}
+  if(out){c.m.push({r:"a",t:out.a,ts:Date.now()});aiSave();renderHelper();return}
   // لم يصل الجواب: يرجع السؤال إلى خانة الكتابة ليرسله مرة أخرى
   c.m.pop();if(img){AIPEND=img;c.img=(c.m.filter(x=>x.i).length?c.img:"")}aiSave();renderHelper();$("aiText").value=text;
   if(err==="noai"){aiUI();return}

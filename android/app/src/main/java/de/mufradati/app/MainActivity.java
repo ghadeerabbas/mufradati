@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
     private WebView web;
     private static final int PICK = 7;
     private android.webkit.ValueCallback<Uri[]> pick;
+    private Uri shot;   // مكان صورة الكاميرا الجارية
     private TextToSpeech tts;
     private boolean ttsReady = false;
     // غطاء شاشة البداية فوق الصفحة: الصفحة تُرسم تحته، ويُزال حين تقول إنها جاهزة (MufApp.ready) أو بعد 8 ثوانٍ
@@ -78,9 +79,25 @@ public class MainActivity extends Activity {
             @Override
             public boolean onShowFileChooser(WebView v, android.webkit.ValueCallback<Uri[]> cb, FileChooserParams p) {
                 if (pick != null) pick.onReceiveValue(null);
-                pick = cb;
-                try { startActivityForResult(p.createIntent(), PICK); }
-                catch (Exception e) { pick = null; return false; }
+                pick = cb; shot = null;
+                // زر «الكاميرا» يفتح الكاميرا مباشرة، وزر «الاستوديو» يفتح الصور المحفوظة
+                if (p.isCaptureEnabled()) {
+                    try {
+                        Uri u = Uri.parse("content://" + getPackageName() + ".photo/" + System.currentTimeMillis() + ".jpg");
+                        Intent i = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        i.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, u);
+                        i.setClipData(android.content.ClipData.newRawUri("", u));
+                        i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                        startActivityForResult(i, PICK);
+                        shot = u;
+                        return true;
+                    } catch (Exception e) { shot = null; }
+                }
+                try { startActivityForResult(new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI), PICK); }
+                catch (Exception e) {
+                    try { startActivityForResult(p.createIntent(), PICK); }
+                    catch (Exception e2) { pick = null; return false; }
+                }
                 return true;
             }
         });
@@ -143,7 +160,12 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int req, int res, Intent data) {
         super.onActivityResult(req, res, data);
-        if (req == PICK && pick != null) { pick.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(res, data)); pick = null; }
+        if (req != PICK || pick == null) return;
+        Uri[] r = null;
+        if (shot != null) { if (res == RESULT_OK && PhotoProvider.fileFor(this, shot).length() > 0) r = new Uri[]{shot}; }
+        else if (res == RESULT_OK && data != null && data.getData() != null) r = new Uri[]{data.getData()};
+        else r = WebChromeClient.FileChooserParams.parseResult(res, data);
+        pick.onReceiveValue(r); pick = null; shot = null;
     }
 
     @Override

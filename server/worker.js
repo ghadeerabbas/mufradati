@@ -882,6 +882,7 @@ const aiText = r => {
 async function handleAi(fs, user, body, env) {
   await loadCfg(fs);
   if (!(CFG.ai || []).includes(user.uid)) return { status: 403, json: { error: "noai" } };
+  if (body.peek) { const q0 = await fs.get(`aiq/${user.uid}`), u0 = q0 && q0.data.d === dkey(Date.now()) ? +q0.data.n || 0 : 0; return { status: 200, json: { left: Math.max(0, AI_DAY - u0), max: AI_DAY } } }
   const msgs = (Array.isArray(body.msgs) ? body.msgs : []).slice(-16).map(m => ({ r: m && m.r === "a" ? "a" : "u", t: String(m && m.t || "").slice(0, 2000), i: !!(m && m.i) }));
   if (!msgs.length || msgs[msgs.length - 1].r !== "u") return { status: 400, json: { error: "bad" } };
   const img = typeof body.img === "string" && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(body.img) && body.img.length < 700000 ? body.img : "";
@@ -889,7 +890,7 @@ async function handleAi(fs, user, body, env) {
   const now = Date.now(), day = dkey(now);
   const [q, as, nm] = await Promise.all([fs.get(`aiq/${user.uid}`), fs.get(`assign/${user.uid}`), fs.get(`names/${user.uid}`)]);
   const used = q && q.data.d === day ? +q.data.n || 0 : 0;
-  if (used >= AI_DAY) return { status: 429, json: { error: "limit", max: AI_DAY } };
+  if (used >= AI_DAY) return { status: 429, json: { error: "limit", left: 0, max: AI_DAY } };
   const cs = as && Array.isArray(as.data.courses) ? as.data.courses : [], grade = cs.includes("k4") ? 4 : cs.includes("k3") ? 3 : 0;
   const name = String(nm && nm.data.name || "").split(/\s+/)[0].slice(0, 30);
   const lastImg = img ? msgs.map(m => m.i).lastIndexOf(true) : -1;
@@ -904,7 +905,7 @@ async function handleAi(fs, user, body, env) {
     { path: `aichat/${user.uid}/m/${id}`, data: { c: cid, q: last.t, img: last.i && img ? img : "", a, ts: { __ts: now } } },
     { path: `aichat/${user.uid}`, data: { last: { __ts: now }, name }, merge: true },
     { path: `aiq/${user.uid}`, data: { d: day, n: used + 1 } }]);
-  return { status: 200, json: { a, left: AI_DAY - used - 1 } };
+  return { status: 200, json: { a, left: AI_DAY - used - 1, max: AI_DAY } };
 }
 // المشرف يقرأ محادثات المساعد لحساب معيّن، الأحدث أولًا
 async function handleAiLog(fs, user, body, env) {
