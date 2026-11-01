@@ -165,5 +165,59 @@
    "8",
    "9"
   ]
+ },
+ "med": {
+  "folder": "chat",
+  "book": "Akademie HKL · Modul 5",
+  "files": [
+   {
+    "file": "chat: Modul 5 Seite 1",
+    "sha": "9a4f8ecfe48e4d6a"
+   },
+   {
+    "file": "chat: Modul 5 Seite 2",
+    "sha": "1318863553f59a3a"
+   },
+   {
+    "file": "chat: Modul 5 Seite 3",
+    "sha": "561965a0c7f65ade"
+   },
+   {
+    "file": "chat: Modul 5 Seite 4",
+    "sha": "4c65a36cd19aaa55"
+   },
+   {
+    "file": "chat: Modul 5 Seite 5",
+    "sha": "cec31dd9e1caeb8e"
+   },
+   {
+    "file": "chat: Modul 5 Seite 6",
+    "sha": "47c8af390bec04df"
+   },
+   {
+    "file": "chat: Modul 5 Seite 7",
+    "sha": "880e33bce1f8e74b"
+   },
+   {
+    "file": "chat: Modul 5 Seite 8",
+    "sha": "72d90afdd7e414bd"
+   },
+   {
+    "file": "chat: Modul 5 Seite 9",
+    "sha": "f4b5117dd2f9babd"
+   },
+   {
+    "file": "chat: Modul 5 Seite 10",
+    "sha": "da7b56ea54f2785c"
+   },
+   {
+    "file": "chat: Modul 5 Seite 11",
+    "sha": "29d3305ac413fb8e"
+   },
+   {
+    "file": "chat: Modul 5 Seite 12",
+    "sha": "f85f0d8dc745fdb6"
+   }
+  ]
  }
 }
