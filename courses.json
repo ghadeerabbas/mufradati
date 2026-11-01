@@ -7,6 +7,7 @@
  {"id": "b2p", "name": "B2 · المنهج المهني", "file": "words.json"},
  {"id": "k3", "name": "Klasse 3", "file": "words-k3.json", "subjects": true},
  {"id": "c1", "name": "C1 · منهج غدير", "file": "words-c1.json", "days": true},
- {"id": "k4", "name": "Klasse 4", "file": "words-k4.json", "subjects": true}
+ {"id": "k4", "name": "Klasse 4", "file": "words-k4.json", "subjects": true},
+ {"id": "med", "name": "Medizin", "file": "words-med.json", "days": true}
 ]
 }
