@@ -386,7 +386,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Kolben, die Kolben",
-"ar": "الكوز، الأكواز"
+"ar": "العرنوس (عرنوس الذرة)، العرانيس"
 },
 {
 "day": 1,
@@ -474,7 +474,7 @@
 "de": "zuordnen (ordne … zu)",
 "ar": "يربط (كلَّ شيء بما يناسبه)",
 "ex": "Ordne die Begriffe der Roggenpflanze richtig zu.",
-"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الجاودار ربطًا صحيحًا."
+"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الشيلم ربطًا صحيحًا."
 },
 {
 "day": 1,
@@ -485,7 +485,7 @@
 "de": "der Begriff, die Begriffe",
 "ar": "المصطلح، المصطلحات",
 "ex": "Ordne die Begriffe der Roggenpflanze richtig zu.",
-"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الجاودار ربطًا صحيحًا."
+"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الشيلم ربطًا صحيحًا."
 },
 {
 "day": 1,
@@ -494,9 +494,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Roggenpflanze, die Roggenpflanzen",
-"ar": "نبتة الجاودار، نباتات الجاودار",
+"ar": "نبتة الشيلم، نباتات الشيلم",
 "ex": "Ordne die Begriffe der Roggenpflanze richtig zu.",
-"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الجاودار ربطًا صحيحًا."
+"exar": "اربطِ المصطلحاتِ بأجزاءِ نبتةِ الشيلم ربطًا صحيحًا."
 },
 {
 "day": 1,
@@ -507,7 +507,7 @@
 "de": "der Halm, die Halme",
 "ar": "الساق (ساق نبتة الحبوب)، السيقان",
 "ex": "Korn, Halm, Knoten, Granne, Wurzel, Ähre, Blatt",
-"exar": "حبّة، ساق، عقدة، سَفاة، جذر، سنبلة، ورقة"
+"exar": "حبّة، ساق، عقدة، شوكة السنبلة، جذر، سنبلة، ورقة"
 },
 {
 "day": 1,
@@ -518,7 +518,7 @@
 "de": "der Knoten, die Knoten",
 "ar": "العُقدة، العُقَد",
 "ex": "Korn, Halm, Knoten, Granne, Wurzel, Ähre, Blatt",
-"exar": "حبّة، ساق، عقدة، سَفاة، جذر، سنبلة، ورقة"
+"exar": "حبّة، ساق، عقدة، شوكة السنبلة، جذر، سنبلة، ورقة"
 },
 {
 "day": 1,
@@ -527,9 +527,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Granne, die Grannen",
-"ar": "السَّفاة (شعرة السنبلة)، السَّفا",
+"ar": "شوكة السنبلة (السَّفا)، أشواك السنابل",
 "ex": "Korn, Halm, Knoten, Granne, Wurzel, Ähre, Blatt",
-"exar": "حبّة، ساق، عقدة، سَفاة، جذر، سنبلة، ورقة"
+"exar": "حبّة، ساق، عقدة، شوكة السنبلة، جذر، سنبلة، ورقة"
 },
 {
 "day": 1,
@@ -540,7 +540,7 @@
 "de": "die Wurzel, die Wurzeln",
 "ar": "الجذر، الجذور",
 "ex": "Korn, Halm, Knoten, Granne, Wurzel, Ähre, Blatt",
-"exar": "حبّة، ساق، عقدة، سَفاة، جذر، سنبلة، ورقة"
+"exar": "حبّة، ساق، عقدة، شوكة السنبلة، جذر، سنبلة، ورقة"
 },
 {
 "day": 1,
@@ -549,7 +549,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Roggen",
-"ar": "الجاودار (الشَّيلم)"
+"ar": "الشيلم (حبوب تشبه القمح)"
 },
 {
 "day": 1,
@@ -668,9 +668,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Keimling, die Keimlinge",
-"ar": "الرُّشَيم (جنين الحبّة)، الرُّشَيمات",
+"ar": "جنين الحبّة (الرُّشَيم)، أجنّة الحبوب",
 "ex": "Unten am dickeren Ende des Korns liegt der Keimling.",
-"exar": "يقعُ الرُّشَيمُ في الأسفل، عند الطرفِ الأسمكِ من الحبّة."
+"exar": "يقعُ جنينُ الحبّةِ في الأسفل، عند الطرفِ الأسمكِ من الحبّة."
 },
 {
 "day": 1,
@@ -791,7 +791,7 @@
 "de": "dick",
 "ar": "سميك",
 "ex": "Unten am dickeren Ende des Korns liegt der Keimling.",
-"exar": "يقعُ الرُّشَيمُ في الأسفل، عند الطرفِ الأسمكِ من الحبّة."
+"exar": "يقعُ جنينُ الحبّةِ في الأسفل، عند الطرفِ الأسمكِ من الحبّة."
 },
 {
 "day": 1,
@@ -1011,7 +1011,7 @@
 "de": "breit, breiter",
 "ar": "عريض، أعرض",
 "ex": "Der Pflug ist breiter und wird von einem Traktor gezogen.",
-"exar": "المحراثُ أعرضُ ويجرُّه جرّار."
+"exar": "المحراثُ أعرضُ ويجرُّه تراكتور."
 },
 {
 "day": 1,
@@ -1020,9 +1020,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Traktor, die Traktoren",
-"ar": "الجرّار، الجرّارات",
+"ar": "التراكتور (الجرّار)، التراكتورات",
 "ex": "Der Pflug ist breiter und wird von einem Traktor gezogen.",
-"exar": "المحراثُ أعرضُ ويجرُّه جرّار."
+"exar": "المحراثُ أعرضُ ويجرُّه تراكتور."
 },
 {
 "day": 1,
@@ -1077,7 +1077,7 @@
 "de": "die Sämaschine, die Sämaschinen",
 "ar": "آلة البَذْر، آلات البَذْر",
 "ex": "Die Sämaschine legt automatisch in bestimmtem Abstand Samen in die Furche.",
-"exar": "تضعُ آلةُ البَذْرِ البذورَ في الأخدودِ آليًّا على مسافاتٍ محدّدة."
+"exar": "تضعُ آلةُ البَذْرِ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
 },
 {
 "day": 1,
@@ -1088,7 +1088,7 @@
 "de": "automatisch",
 "ar": "آليًّا",
 "ex": "Die Sämaschine legt automatisch in bestimmtem Abstand Samen in die Furche.",
-"exar": "تضعُ آلةُ البَذْرِ البذورَ في الأخدودِ آليًّا على مسافاتٍ محدّدة."
+"exar": "تضعُ آلةُ البَذْرِ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
 },
 {
 "day": 1,
@@ -1121,7 +1121,7 @@
 "de": "der Samen, die Samen",
 "ar": "البذرة، البذور",
 "ex": "Die Sämaschine legt automatisch in bestimmtem Abstand Samen in die Furche.",
-"exar": "تضعُ آلةُ البَذْرِ البذورَ في الأخدودِ آليًّا على مسافاتٍ محدّدة."
+"exar": "تضعُ آلةُ البَذْرِ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
 },
 {
 "day": 1,
@@ -1130,9 +1130,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Furche, die Furchen",
-"ar": "الأخدود (التَّلم)، الأخاديد",
+"ar": "التَّلم (خطّ محفور في الأرض)، الأتلام",
 "ex": "Samen in die Furche",
-"exar": "البذورَ في الأخدود"
+"exar": "البذورَ في التَّلم"
 },
 {
 "day": 1,
@@ -1141,9 +1141,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Sense, die Sensen",
-"ar": "المِحَشّ (منجل كبير بمقبض طويل)، المَحاشّ",
+"ar": "المنجل الكبير (بعصا طويلة)، المناجل الكبيرة",
 "ex": "Mit einer Sense wurden die Halme abgeschnitten.",
-"exar": "كانت السيقانُ تُقطَعُ بالمِحَشّ."
+"exar": "كانت السيقانُ تُقطَعُ بالمنجلِ الكبير."
 },
 {
 "day": 1,
@@ -1154,7 +1154,7 @@
 "de": "abschneiden (abgeschnitten)",
 "ar": "يقطع",
 "ex": "Mit einer Sense wurden die Halme abgeschnitten.",
-"exar": "كانت السيقانُ تُقطَعُ بالمِحَشّ."
+"exar": "كانت السيقانُ تُقطَعُ بالمنجلِ الكبير."
 },
 {
 "day": 1,
@@ -1251,9 +1251,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Schädling, die Schädlinge",
-"ar": "الآفة، الآفات",
+"ar": "الحشرة الضارّة / الآفة، الحشرات الضارّة / الآفات",
 "ex": "Um Schädlinge zu vernichten, werden Pflanzenschutzmittel gesprüht.",
-"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الآفات."
+"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الحشراتِ والآفاتِ الضارّة."
 },
 {
 "day": 1,
@@ -1264,7 +1264,7 @@
 "de": "vernichten",
 "ar": "يقضي على",
 "ex": "Um Schädlinge zu vernichten, werden Pflanzenschutzmittel gesprüht.",
-"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الآفات."
+"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الحشراتِ والآفاتِ الضارّة."
 },
 {
 "day": 1,
@@ -1275,7 +1275,7 @@
 "de": "das Pflanzenschutzmittel, die Pflanzenschutzmittel",
 "ar": "المبيد الزراعي (مادّة لوقاية النبات)، المبيدات الزراعية",
 "ex": "Um Schädlinge zu vernichten, werden Pflanzenschutzmittel gesprüht.",
-"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الآفات."
+"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الحشراتِ والآفاتِ الضارّة."
 },
 {
 "day": 1,
@@ -1286,7 +1286,7 @@
 "de": "sprühen (gesprüht)",
 "ar": "يرشّ",
 "ex": "Um Schädlinge zu vernichten, werden Pflanzenschutzmittel gesprüht.",
-"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الآفات."
+"exar": "تُرَشُّ المبيداتُ الزراعيةُ للقضاءِ على الحشراتِ والآفاتِ الضارّة."
 },
 {
 "day": 1,
@@ -1394,9 +1394,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Mähdrescher, die Mähdrescher",
-"ar": "الحصّادة الدرّاسة، الحصّادات الدرّاسة",
+"ar": "الحصّادة، الحصّادات",
 "ex": "Ein Mähdrescher übernimmt mehrere Schritte.",
-"exar": "تتولّى الحصّادةُ الدرّاسةُ عدّةَ خطوات."
+"exar": "تتولّى الحصّادةُ عدّةَ خطوات."
 },
 {
 "day": 1,
@@ -1407,7 +1407,7 @@
 "de": "übernehmen (übernimmt)",
 "ar": "يتولّى",
 "ex": "Ein Mähdrescher übernimmt mehrere Schritte.",
-"exar": "تتولّى الحصّادةُ الدرّاسةُ عدّةَ خطوات."
+"exar": "تتولّى الحصّادةُ عدّةَ خطوات."
 },
 {
 "day": 1,
@@ -1418,7 +1418,7 @@
 "de": "der Schritt, die Schritte",
 "ar": "الخطوة، الخطوات",
 "ex": "Ein Mähdrescher übernimmt mehrere Schritte.",
-"exar": "تتولّى الحصّادةُ الدرّاسةُ عدّةَ خطوات."
+"exar": "تتولّى الحصّادةُ عدّةَ خطوات."
 },
 {
 "day": 1,
@@ -1449,9 +1449,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Ballenpresse, die Ballenpressen",
-"ar": "مكبس البالات، مكابس البالات",
+"ar": "مكبس التبن (يكبسه بالات)، مكابس التبن",
 "ex": "Eine Ballenpresse bündelt dann das Stroh automatisch.",
-"exar": "ثمّ يحزمُ مكبسُ البالاتِ القشَّ آليًّا."
+"exar": "ثمّ يكبسُ مكبسُ التبنِ التبنَ في بالاتٍ آليًّا."
 },
 {
 "day": 1,
@@ -1460,9 +1460,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "das Stroh",
-"ar": "القشّ",
+"ar": "التبن (القشّ)",
 "ex": "Eine Ballenpresse bündelt dann das Stroh automatisch.",
-"exar": "ثمّ يحزمُ مكبسُ البالاتِ القشَّ آليًّا."
+"exar": "ثمّ يكبسُ مكبسُ التبنِ التبنَ في بالاتٍ آليًّا."
 },
 {
 "day": 1,
@@ -1484,7 +1484,7 @@
 "de": "dreschen (gedroschen)",
 "ar": "يدرس (يفصل الحبّ عن السنابل)",
 "ex": "Aussaat, Mähdrescher, Pflug, Sense, Traktor, gedroschen",
-"exar": "البَذْر، الحصّادة الدرّاسة، المحراث، المِحَشّ، الجرّار، مدروس"
+"exar": "البَذْر، الحصّادة، المحراث، المنجل الكبير، التراكتور، مدروس"
 },
 {
 "day": 1,
@@ -2417,9 +2417,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "einpflanzen (eingepflanzt)",
-"ar": "يغرس",
+"ar": "يزرع / يغرس",
 "ex": "Die eingepflanzte Kartoffel nennt man Pflanzkartoffel.",
-"exar": "تُسمّى البطاطا المغروسةُ بطاطا البذار."
+"exar": "تُسمّى البطاطا المزروعةُ بذارَ البطاطا."
 },
 {
 "day": 1,
@@ -2428,9 +2428,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Pflanzkartoffel, die Pflanzkartoffeln",
-"ar": "بطاطا البذار (حبّة البطاطا المغروسة)",
+"ar": "بذار البطاطا (حبّة البطاطا التي تُزرع)",
 "ex": "Die eingepflanzte Kartoffel nennt man Pflanzkartoffel.",
-"exar": "تُسمّى البطاطا المغروسةُ بطاطا البذار."
+"exar": "تُسمّى البطاطا المزروعةُ بذارَ البطاطا."
 },
 {
 "day": 1,
@@ -2441,7 +2441,7 @@
 "de": "der Stängel, die Stängel",
 "ar": "الساق (ساق النبتة)، السيقان",
 "ex": "Über der Erde bildet sich ein Stängel mit Blättern, Blüten und grünen Beeren.",
-"exar": "فوق الترابِ تتكوّنُ ساقٌ عليها أوراقٌ وأزهارٌ وثمارٌ خضراءُ صغيرة."
+"exar": "فوق الترابِ تتكوّنُ ساقٌ عليها أوراقٌ وأزهارٌ وحبّاتٌ خضراءُ صغيرة."
 },
 {
 "day": 1,
@@ -2452,7 +2452,7 @@
 "de": "grün",
 "ar": "أخضر",
 "ex": "mit Blättern, Blüten und grünen Beeren",
-"exar": "عليها أوراقٌ وأزهارٌ وثمارٌ خضراءُ صغيرة"
+"exar": "عليها أوراقٌ وأزهارٌ وحبّاتٌ خضراءُ صغيرة"
 },
 {
 "day": 1,
@@ -2461,9 +2461,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Beere, die Beeren",
-"ar": "الثمرة العِنَبيّة (ثمرة صغيرة طريّة)، الثمار العِنَبيّة",
+"ar": "الحبّة (ثمرة صغيرة طريّة)، الحبّات",
 "ex": "mit Blättern, Blüten und grünen Beeren",
-"exar": "عليها أوراقٌ وأزهارٌ وثمارٌ خضراءُ صغيرة"
+"exar": "عليها أوراقٌ وأزهارٌ وحبّاتٌ خضراءُ صغيرة"
 },
 {
 "day": 1,
@@ -2474,7 +2474,7 @@
 "de": "sich ausbilden (bilden sich … aus)",
 "ar": "يتكوّن / ينمو",
 "ex": "Unter der Erde bilden sich an der Pflanzkartoffel Wurzeln und Tragfäden aus.",
-"exar": "تحت الترابِ تتكوّنُ على بطاطا البذارِ جذورٌ وخيوطٌ حاملة."
+"exar": "تحت الترابِ تتكوّنُ على بذارِ البطاطا جذورٌ وخيوطٌ حاملة."
 },
 {
 "day": 1,
@@ -2485,7 +2485,7 @@
 "de": "der Tragfaden, die Tragfäden",
 "ar": "الخيط الحامل (ساق تحت التراب تحمل البطاطا)، الخيوط الحاملة",
 "ex": "Unter der Erde bilden sich an der Pflanzkartoffel Wurzeln und Tragfäden aus.",
-"exar": "تحت الترابِ تتكوّنُ على بطاطا البذارِ جذورٌ وخيوطٌ حاملة."
+"exar": "تحت الترابِ تتكوّنُ على بذارِ البطاطا جذورٌ وخيوطٌ حاملة."
 },
 {
 "day": 1,
@@ -2792,7 +2792,7 @@
 "de": "fahren (fährt)",
 "ar": "يذهب راكبًا / يركب",
 "ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+"exar": "تُحضِرُ سارةُ بسكليتَها وتذهبُ بها إلى أعزِّ صديقاتها."
 },
 {
 "day": 1,
@@ -2995,7 +2995,7 @@
 "de": "dort",
 "ar": "هناك",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+"exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
 {
 "day": 1,
@@ -3006,7 +3006,7 @@
 "de": "lassen (lässt)",
 "ar": "يَدَع / يجعل",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+"exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
 {
 "day": 1,
@@ -3017,7 +3017,7 @@
 "de": "neu",
 "ar": "جديد",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+"exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
 {
 "day": 1,
@@ -3026,9 +3026,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "der Drachen",
-"ar": "الطائرة الورقية",
+"ar": "الطيّارة الورقية",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+"exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
 {
 "day": 1,
@@ -3039,7 +3039,7 @@
 "de": "steigen",
 "ar": "يرتفع / يصعد",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+"exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
 {
 "day": 1,
@@ -3048,9 +3048,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "einen Drachen steigen lassen",
-"ar": "يُطيِّر طائرةً ورقية",
+"ar": "يُطيِّر طيّارةً ورقية",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
-"exar": "هناك يُطيِّرُ طائرتَه الورقيّةَ الجديدة."
+"exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
 {
 "day": 1,
@@ -3313,7 +3313,7 @@
 "de": "holen (holt)",
 "ar": "يُحضِر / يجلب",
 "ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+"exar": "تُحضِرُ سارةُ بسكليتَها وتذهبُ بها إلى أعزِّ صديقاتها."
 },
 {
 "day": 1,
@@ -3322,9 +3322,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "das Fahrrad",
-"ar": "الدراجة الهوائية",
+"ar": "البسكليت (الدرّاجة الهوائية)",
 "ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+"exar": "تُحضِرُ سارةُ بسكليتَها وتذهبُ بها إلى أعزِّ صديقاتها."
 },
 {
 "day": 1,
@@ -3335,7 +3335,7 @@
 "de": "die Freundin",
 "ar": "الصديقة",
 "ex": "Sarah holt ihr Fahrrad und fährt zu ihrer besten Freundin.",
-"exar": "تُحضِرُ سارةُ دراجتَها وتذهبُ بها إلى أعزِّ صديقاتها."
+"exar": "تُحضِرُ سارةُ بسكليتَها وتذهبُ بها إلى أعزِّ صديقاتها."
 },
 {
 "day": 1,
@@ -3346,7 +3346,7 @@
 "de": "kommen (kommst)",
 "ar": "يأتي",
 "ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
+"exar": "«هل تأتين معي إلى حديقة الألعاب؟» تسأل."
 },
 {
 "day": 1,
@@ -3355,9 +3355,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "der Spielplatz",
-"ar": "ساحة اللعب",
+"ar": "حديقة الألعاب (المراجيح والزحليطة)",
 "ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
+"exar": "«هل تأتين معي إلى حديقة الألعاب؟» تسأل."
 },
 {
 "day": 1,
@@ -3368,7 +3368,7 @@
 "de": "fragen (fragt)",
 "ar": "يسأل",
 "ex": "„Kommst du mit mir zum Spielplatz?“, fragt sie.",
-"exar": "«هل تأتين معي إلى ساحة اللعب؟» تسأل."
+"exar": "«هل تأتين معي إلى حديقة الألعاب؟» تسأل."
 },
 {
 "day": 1,
@@ -3621,7 +3621,7 @@
 "de": "die Windmühle, die Windmühlen",
 "ar": "طاحونة الهواء، طواحين الهواء",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، فرقة الإطفاء، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، الإطفائية، سياج الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3630,9 +3630,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "die Feuerwehr, die Feuerwehren",
-"ar": "فرقة الإطفاء، فرق الإطفاء",
+"ar": "الإطفائية (رجال الإطفاء)",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، فرقة الإطفاء، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، الإطفائية، سياج الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3643,7 +3643,7 @@
 "de": "der Gartenzaun, die Gartenzäune",
 "ar": "سياج الحديقة، أسيجة الحدائق",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، فرقة الإطفاء، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، الإطفائية، سياج الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3698,7 +3698,7 @@
 "de": "der Winterschlaf",
 "ar": "السُّبات الشتوي",
 "ex": "z. B. der Winterschlaf, die Winterjacke",
-"exar": "مثلًا: السُّبات الشتوي، السترة الشتوية"
+"exar": "مثلًا: السُّبات الشتوي، الجاكيت الشتوي"
 },
 {
 "day": 1,
@@ -3707,9 +3707,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "die Winterjacke, die Winterjacken",
-"ar": "السترة الشتوية، السترات الشتوية",
+"ar": "الجاكيت الشتوي، الجاكيتات الشتوية",
 "ex": "z. B. der Winterschlaf, die Winterjacke",
-"exar": "مثلًا: السُّبات الشتوي، السترة الشتوية"
+"exar": "مثلًا: السُّبات الشتوي، الجاكيت الشتوي"
 },
 {
 "day": 1,
@@ -3830,7 +3830,7 @@
 "de": "zuckersüß",
 "ar": "حلوٌ كالسكّر",
 "ex": "zuckersüß, tomatenrot, spiegelglatt, eiskalt, butterweich",
-"exar": "حلوٌ كالسكّر، أحمرُ كالطماطم، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
+"exar": "حلوٌ كالسكّر، أحمرُ كالبندورة، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
 },
 {
 "day": 1,
@@ -3839,9 +3839,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "tomatenrot",
-"ar": "أحمرُ كالطماطم",
+"ar": "أحمرُ كالبندورة",
 "ex": "zuckersüß, tomatenrot, spiegelglatt, eiskalt, butterweich",
-"exar": "حلوٌ كالسكّر، أحمرُ كالطماطم، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
+"exar": "حلوٌ كالسكّر، أحمرُ كالبندورة، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
 },
 {
 "day": 1,
@@ -3852,7 +3852,7 @@
 "de": "spiegelglatt",
 "ar": "أملسُ كالمرآة",
 "ex": "zuckersüß, tomatenrot, spiegelglatt, eiskalt, butterweich",
-"exar": "حلوٌ كالسكّر، أحمرُ كالطماطم، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
+"exar": "حلوٌ كالسكّر، أحمرُ كالبندورة، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
 },
 {
 "day": 1,
@@ -3863,7 +3863,7 @@
 "de": "eiskalt",
 "ar": "باردٌ كالجليد",
 "ex": "zuckersüß, tomatenrot, spiegelglatt, eiskalt, butterweich",
-"exar": "حلوٌ كالسكّر، أحمرُ كالطماطم، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
+"exar": "حلوٌ كالسكّر، أحمرُ كالبندورة، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
 },
 {
 "day": 1,
@@ -3874,7 +3874,7 @@
 "de": "butterweich",
 "ar": "طريٌّ كالزبدة",
 "ex": "zuckersüß, tomatenrot, spiegelglatt, eiskalt, butterweich",
-"exar": "حلوٌ كالسكّر، أحمرُ كالطماطم، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
+"exar": "حلوٌ كالسكّر، أحمرُ كالبندورة، أملسُ كالمرآة، باردٌ كالجليد، طريٌّ كالزبدة"
 },
 {
 "day": 1,
@@ -4169,7 +4169,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Eiszapfen, die Eiszapfen",
-"ar": "الدلّاة الجليدية (قطعة جليد متدلّية)",
+"ar": "قضيب الجليد المتدلّي (من السقف أو الشجر)",
 "ex": "ein Eiszapfen am Dach",
 "exar": "قطعةُ جليدٍ متدلّية من السطح"
 },
@@ -4259,7 +4259,7 @@
 "de": "gefrieren",
 "ar": "يتجمّد",
 "ex": "Im Winter wird die Pfütze hart und glatt.",
-"exar": "في الشتاء تصير البِركةُ الصغيرة صلبةً وملساء."
+"exar": "في الشتاء تصير بركةُ الماءِ الصغيرة صلبةً وملساء."
 },
 {
 "day": 1,
@@ -4268,9 +4268,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Pfütze, die Pfützen",
-"ar": "البِركة الصغيرة (من ماء المطر)",
+"ar": "بركة ماء صغيرة (من المطر)",
 "ex": "Im Winter wird die Pfütze hart und glatt.",
-"exar": "في الشتاء تصير البِركةُ الصغيرة صلبةً وملساء."
+"exar": "في الشتاء تصير بركةُ الماءِ الصغيرة صلبةً وملساء."
 },
 {
 "day": 1,
