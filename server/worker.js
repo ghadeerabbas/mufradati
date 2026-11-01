@@ -924,12 +924,36 @@ async function handleAi(fs, user, body, env) {
   return { status: 200, json: { a, ocr, ocrAt: ocrAt >= 0 ? msgs.length - 1 - ocrAt : -1, left: AI_DAY - used - 1, max: AI_DAY } };
 }
 // المشرف يقرأ محادثات المساعد لحساب معيّن، الأحدث أولًا
+// حذف محادثات المساعد: كلها، أو محادثة واحدة (c)، أو الأقدم من تاريخ (before)
+const AI_KEEP = 30 * DAY;   // تُحذف المحادثات تلقائيًّا بعد شهر
+async function aiPurge(fs, uid, f) {
+  let tok = "", n = 0;
+  do {
+    const r = await fs.page(`aichat/${uid}/m`, "ts", 200, tok); tok = r.tok;
+    const del = r.items.filter(x => (f.c ? x.c === f.c : true) && (f.before ? (x.ts && x.ts.ms || 0) < f.before : true)).map(x => ({ path: `aichat/${uid}/m/${x.id}`, del: true }));
+    for (let k = 0; k < del.length; k += 400) await fs.commit(del.slice(k, k + 400));
+    n += del.length;
+    if (f.before && r.items.length && (r.items[r.items.length - 1].ts || {}).ms >= f.before) break;   // مرتّبة من الأقدم: ما بعدها أحدث
+  } while (tok);
+  return n;
+}
+async function handleAiDel(fs, user, body, env) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  const uid = String(body.uid || ""), c = String(body.c || "");
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid) || c && !/^[A-Za-z0-9_-]{1,40}$/.test(c)) return { status: 400, json: { error: "bad" } };
+  return { status: 200, json: { ok: true, n: await aiPurge(fs, uid, c ? { c } : {}) } };
+}
+// يعمل كل ليلة: يحذف من كل الحسابات ما مضى عليه أكثر من شهر
+async function aiCleanup(env) {
+  const fs = env.__fs || makeFS(env), before = Date.now() - AI_KEEP;
+  for (const d of await fs.list("aichat")) { try { await aiPurge(fs, d.id, { before }) } catch (e) { } }
+}
 async function handleAiLog(fs, user, body, env) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
   const uid = String(body.uid || "");
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
   const r = await fs.page(`aichat/${uid}/m`, "ts desc", 30, String(body.tok || ""));
-  return { status: 200, json: { items: r.items.map(x => ({ c: x.c, q: x.q, img: x.img, a: x.a, ts: x.ts && x.ts.ms || 0 })), tok: r.tok } };
+  return { status: 200, json: { items: r.items.map(x => ({ c: x.c, q: x.q, img: x.img, a: x.a, ts: x.ts && x.ts.ms || 0 })), tok: r.tok, keep: AI_KEEP / DAY } };
 }
 
 
@@ -939,11 +963,12 @@ function cors(req) {
   return { "Access-Control-Allow-Origin": ORIGINS.includes(o) ? o : ORIGINS[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
 }
 export default {
+  async scheduled(ev, env, ctx) { ctx.waitUntil(aiCleanup(env)) },
   async fetch(req, env, ctx) {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -953,7 +978,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

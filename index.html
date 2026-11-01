@@ -3342,13 +3342,18 @@ async function aiLogShow(uid,more){
   const box=$("aiLogBox");if(!box)return;const btn=$("uAiLog");
   if(!more){box.innerHTML='<div class="empty">جارٍ التحميل…</div>';box._items=[];box._tok=""}
   if(btn)btn.disabled=true;
-  try{const j=await apiPost("/ailog",{uid,tok:more?box._tok:""});box._items=box._items.concat(j.items||[]);box._tok=j.tok||""}
+  try{const j=await apiPost("/ailog",{uid,tok:more?box._tok:""});box._items=box._items.concat(j.items||[]);box._tok=j.tok||"";box._keep=j.keep}
   catch(e){box.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';if(btn)btn.disabled=false;return}
   if(btn)btn.disabled=false;
   const G=[],ix={};for(const x of box._items){if(ix[x.c]===undefined){ix[x.c]=G.length;G.push([])}G[ix[x.c]].push(x)}
-  box.innerHTML=G.length?G.map(g=>{g=g.slice().reverse();return `<div class="aiLogC"><small>محادثة ${fmt(g[0].ts)}</small><div class="chat">${g.map(x=>`<div class="bub me aib">${x.img?`<img src="${x.img}" alt="">`:""}${esc(x.q||"")}<small>${fmt(x.ts)}</small></div><div class="bub them aib">${aiFmt(x.a)}</div>`).join("")}</div></div>`}).join("")
-    +(box._tok?'<button class="btn" id="aiMore" style="width:100%">المزيد</button>':""):'<div class="empty">لم يسأل المساعد شيئًا بعد.</div>';
-  box.onclick=e=>{const im=e.target.closest(".aib img");if(im)im.classList.toggle("big")};
+  box.innerHTML=(G.length?`<p class="rnote">تُحذف المحادثات وحدها بعد ${box._keep||30} يومًا.</p><button class="btn aiDelAll" style="width:100%;margin:6px 0;background:var(--red);color:#fff">${I3("trash")} حذف كل محادثاته</button>`:"")+(G.length?G.map(g=>{g=g.slice().reverse();return `<div class="aiLogC"><small>محادثة ${fmt(g[0].ts)} <button class="btn aiDel" data-c="${esc(g[0].c||"")}" style="float:left;padding:2px 10px;font-size:.75rem;background:var(--soft);color:var(--red)">${I3("trash")} حذف</button></small><div class="chat">${g.map(x=>`<div class="bub me aib">${x.img?`<img src="${x.img}" alt="">`:""}${esc(x.q||"")}<small>${fmt(x.ts)}</small></div><div class="bub them aib">${aiFmt(x.a)}</div>`).join("")}</div></div>`}).join("")
+    +(box._tok?'<button class="btn" id="aiMore" style="width:100%">المزيد</button>':""):'<div class="empty">لم يسأل المساعد شيئًا بعد.</div>');
+  box.onclick=async e=>{const im=e.target.closest(".aib img");if(im){im.classList.toggle("big");return}
+    const one=e.target.closest(".aiDel"),all=e.target.closest(".aiDelAll");if(!one&&!all)return;
+    if(!await uiConfirm(one?"حذف هذه المحادثة نهائيًا؟":"حذف كل محادثاته مع المساعد نهائيًا؟"))return;
+    (one||all).disabled=true;
+    try{await apiPost("/aidel",one?{uid,c:one.dataset.c}:{uid});toast(I3("trash"),"حُذفت",one?"المحادثة":"كل محادثاته");aiLogShow(uid)}
+    catch(err){(one||all).disabled=false;toast(I3("warning"),"تعذّر الحذف","تحقّق من الاتصال")}};
   const mo=$("aiMore");if(mo)mo.onclick=()=>aiLogShow(uid,true);
 }
 
