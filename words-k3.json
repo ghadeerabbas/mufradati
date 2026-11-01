@@ -1141,7 +1141,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Sense, die Sensen",
-"ar": "المنجل الكبير (بعصا طويلة)، المناجل الكبيرة",
+"ar": "المنجل، المناجل",
 "ex": "Mit einer Sense wurden die Halme abgeschnitten.",
 "exar": "كانت السيقانُ تُقطَعُ بالمنجلِ الكبير."
 },
@@ -1484,7 +1484,7 @@
 "de": "dreschen (gedroschen)",
 "ar": "يدرس (يفصل الحبّ عن السنابل)",
 "ex": "Aussaat, Mähdrescher, Pflug, Sense, Traktor, gedroschen",
-"exar": "البَذْر، الحصّادة، المحراث، المنجل الكبير، التراكتور، مدروس"
+"exar": "البَذْر، الحصّادة، المحراث، المنجل، التراكتور، مدروس"
 },
 {
 "day": 1,
