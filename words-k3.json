@@ -145,9 +145,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Nachteil, die Nachteile",
-"ar": "العيب، العيوب (الجانب السلبي)",
+"ar": "السلبية، السلبيات (العيوب)",
 "ex": "Das hat auch Nachteile.",
-"exar": "ولهذا عيوبٌ أيضًا."
+"exar": "ولهذا سلبياتٌ أيضًا."
 },
 {
 "day": 1,
@@ -167,7 +167,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Müll",
-"ar": "القمامة",
+"ar": "القمامة (الزبالة)",
 "ex": "Sie kommen oft in den Müll.",
 "exar": "وكثيرًا ما تُرمى في القمامة."
 },
@@ -1075,9 +1075,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Sämaschine, die Sämaschinen",
-"ar": "آلة البَذْر، آلات البَذْر",
+"ar": "البذّارة (آلة البذر)، البذّارات",
 "ex": "Die Sämaschine legt automatisch in bestimmtem Abstand Samen in die Furche.",
-"exar": "تضعُ آلةُ البَذْرِ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
+"exar": "تضعُ البذّارةُ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
 },
 {
 "day": 1,
@@ -1088,7 +1088,7 @@
 "de": "automatisch",
 "ar": "آليًّا",
 "ex": "Die Sämaschine legt automatisch in bestimmtem Abstand Samen in die Furche.",
-"exar": "تضعُ آلةُ البَذْرِ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
+"exar": "تضعُ البذّارةُ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
 },
 {
 "day": 1,
@@ -1121,7 +1121,7 @@
 "de": "der Samen, die Samen",
 "ar": "البذرة، البذور",
 "ex": "Die Sämaschine legt automatisch in bestimmtem Abstand Samen in die Furche.",
-"exar": "تضعُ آلةُ البَذْرِ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
+"exar": "تضعُ البذّارةُ البذورَ في التَّلمِ آليًّا على مسافاتٍ محدّدة."
 },
 {
 "day": 1,
@@ -1196,9 +1196,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "aufstellen (stellten … auf)",
-"ar": "يُوقِف (ينصب منتصبًا)",
+"ar": "يُوقِف (يجعله واقفًا)",
 "ex": "und stellten sie zum Trocknen auf",
-"exar": "وتُوقِفُها منتصبةً لتجفّ"
+"exar": "وتُوقِفُها لتنشف"
 },
 {
 "day": 1,
@@ -1207,9 +1207,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "trocknen",
-"ar": "يجفّ",
+"ar": "يجفّ (ينشف)",
 "ex": "und stellten sie zum Trocknen auf",
-"exar": "وتُوقِفُها منتصبةً لتجفّ"
+"exar": "وتُوقِفُها لتنشف"
 },
 {
 "day": 1,
@@ -1317,7 +1317,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "geübt",
-"ar": "متمرّس",
+"ar": "متمرّس (صاحب خبرة)",
 "ex": "Ein geübter Bauer schaffte das 30 Mal pro Minute.",
 "exar": "كان الفلّاحُ المتمرّسُ يفعلُ ذلك ثلاثين مرّةً في الدقيقة."
 },
@@ -1339,7 +1339,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "schaffen (schaffte)",
-"ar": "يتمكّن من إنجاز",
+"ar": "يستطيع إنجاز / يقدر على",
 "ex": "Ein geübter Bauer schaffte das 30 Mal pro Minute.",
 "exar": "كان الفلّاحُ المتمرّسُ يفعلُ ذلك ثلاثين مرّةً في الدقيقة."
 },
@@ -1361,9 +1361,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "auflesen (aufgelesen)",
-"ar": "يلتقط (من الأرض)",
+"ar": "يلتقط (يلمّ عن الأرض)",
 "ex": "Die Körner wurden aufgelesen und die Halme von Hand gebündelt.",
-"exar": "كانت الحبّاتُ تُلتقَطُ، والسيقانُ تُحزَمُ باليد."
+"exar": "كانت الحبّاتُ تُلَمُّ، والسيقانُ تُحزَمُ باليد."
 },
 {
 "day": 1,
@@ -1396,7 +1396,7 @@
 "de": "der Mähdrescher, die Mähdrescher",
 "ar": "الحصّادة، الحصّادات",
 "ex": "Ein Mähdrescher übernimmt mehrere Schritte.",
-"exar": "تتولّى الحصّادةُ عدّةَ خطوات."
+"exar": "تقومُ الحصّادةُ بعدّةِ خطوات."
 },
 {
 "day": 1,
@@ -1405,9 +1405,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "übernehmen (übernimmt)",
-"ar": "يتولّى",
+"ar": "يتولّى / يقوم بـ",
 "ex": "Ein Mähdrescher übernimmt mehrere Schritte.",
-"exar": "تتولّى الحصّادةُ عدّةَ خطوات."
+"exar": "تقومُ الحصّادةُ بعدّةِ خطوات."
 },
 {
 "day": 1,
@@ -1418,7 +1418,7 @@
 "de": "der Schritt, die Schritte",
 "ar": "الخطوة، الخطوات",
 "ex": "Ein Mähdrescher übernimmt mehrere Schritte.",
-"exar": "تتولّى الحصّادةُ عدّةَ خطوات."
+"exar": "تقومُ الحصّادةُ بعدّةِ خطوات."
 },
 {
 "day": 1,
@@ -1515,9 +1515,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Boden, die Böden",
-"ar": "التربة",
+"ar": "الأرض (التربة)",
 "ex": "wird der Boden umgegraben",
-"exar": "تُحرَثُ التربة"
+"exar": "تُحرَثُ الأرض"
 },
 {
 "day": 1,
@@ -1528,7 +1528,7 @@
 "de": "danach",
 "ar": "بعد ذلك",
 "ex": "Danach werden die Samen in den Boden gelegt.",
-"exar": "بعد ذلك توضَعُ البذورُ في التربة."
+"exar": "بعد ذلك توضَعُ البذورُ في الأرض."
 },
 {
 "day": 1,
@@ -1539,7 +1539,7 @@
 "de": "legen (gelegt)",
 "ar": "يضع",
 "ex": "Danach werden die Samen in den Boden gelegt.",
-"exar": "بعد ذلك توضَعُ البذورُ في التربة."
+"exar": "بعد ذلك توضَعُ البذورُ في الأرض."
 },
 {
 "day": 1,
@@ -1671,7 +1671,7 @@
 "de": "einzig",
 "ar": "واحد فقط",
 "ex": "Heute übernimmt das alles eine einzige Maschine.",
-"exar": "اليومَ تتولّى ذلك كلَّه آلةٌ واحدةٌ فقط."
+"exar": "اليومَ تقومُ بذلك كلِّه آلةٌ واحدةٌ فقط."
 },
 {
 "day": 1,
@@ -1682,7 +1682,7 @@
 "de": "die Maschine, die Maschinen",
 "ar": "الآلة، الآلات",
 "ex": "Heute übernimmt das alles eine einzige Maschine.",
-"exar": "اليومَ تتولّى ذلك كلَّه آلةٌ واحدةٌ فقط."
+"exar": "اليومَ تقومُ بذلك كلِّه آلةٌ واحدةٌ فقط."
 },
 {
 "day": 1,
@@ -1691,9 +1691,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "der Vorteil, die Vorteile",
-"ar": "الميزة، المزايا",
+"ar": "الإيجابية، الإيجابيات (المزايا)",
 "ex": "Was sind die Vorteile und die Nachteile beim Einsatz von Pflanzenschutzmitteln?",
-"exar": "ما مزايا استخدامِ المبيداتِ الزراعيةِ وما عيوبُه؟"
+"exar": "ما إيجابياتُ استخدامِ المبيداتِ الزراعيةِ وما سلبياتُه؟"
 },
 {
 "day": 1,
@@ -1823,7 +1823,7 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "nützlich",
-"ar": "نافع",
+"ar": "نافع / مفيد",
 "ex": "vielen nützlichen Pflanzen und Tieren",
 "exar": "كثيرًا من النباتاتِ والحيواناتِ النافعة"
 },
@@ -1946,7 +1946,7 @@
 "de": "die Bio-Produktion",
 "ar": "الإنتاج العضوي",
 "ex": "Was sind die Vorteile und Nachteile bei der Bio-Produktion?",
-"exar": "ما مزايا الإنتاجِ العضويِّ وما عيوبُه؟"
+"exar": "ما إيجابياتُ الإنتاجِ العضويِّ وما سلبياتُه؟"
 },
 {
 "day": 1,
@@ -2518,7 +2518,7 @@
 "de": "Achtung!",
 "ar": "انتبه!",
 "ex": "Achtung! Alle Teile der Kartoffelstaude, die über der Erde wachsen, sind giftig.",
-"exar": "انتبه! كلُّ أجزاءِ شجيرةِ البطاطا التي تنمو فوق الترابِ سامّة."
+"exar": "انتبه! كلُّ أجزاءِ نبتةِ البطاطا التي تنمو فوق الترابِ سامّة."
 },
 {
 "day": 1,
@@ -2527,9 +2527,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Kartoffelstaude, die Kartoffelstauden",
-"ar": "شجيرة البطاطا",
+"ar": "نبتة البطاطا (شجيرتها)",
 "ex": "Alle Teile der Kartoffelstaude, die über der Erde wachsen, sind giftig.",
-"exar": "كلُّ أجزاءِ شجيرةِ البطاطا التي تنمو فوق الترابِ سامّة."
+"exar": "كلُّ أجزاءِ نبتةِ البطاطا التي تنمو فوق الترابِ سامّة."
 },
 {
 "day": 1,
@@ -2540,7 +2540,7 @@
 "de": "giftig",
 "ar": "سامّ",
 "ex": "Alle Teile der Kartoffelstaude, die über der Erde wachsen, sind giftig.",
-"exar": "كلُّ أجزاءِ شجيرةِ البطاطا التي تنمو فوق الترابِ سامّة."
+"exar": "كلُّ أجزاءِ نبتةِ البطاطا التي تنمو فوق الترابِ سامّة."
 },
 {
 "day": 1,
@@ -2551,7 +2551,7 @@
 "de": "betrachten (betrachtet)",
 "ar": "يتأمّل / يفحص بالنظر",
 "ex": "Betrachtet Kartoffelaugen unter der Lupe.",
-"exar": "تأمّلوا عيونَ البطاطا تحت العدسةِ المكبِّرة."
+"exar": "تأمّلوا عيونَ البطاطا تحت المكبّرة."
 },
 {
 "day": 1,
@@ -2562,7 +2562,7 @@
 "de": "das Kartoffelauge, die Kartoffelaugen",
 "ar": "عين البطاطا، عيون البطاطا",
 "ex": "Betrachtet Kartoffelaugen unter der Lupe.",
-"exar": "تأمّلوا عيونَ البطاطا تحت العدسةِ المكبِّرة."
+"exar": "تأمّلوا عيونَ البطاطا تحت المكبّرة."
 },
 {
 "day": 1,
@@ -2571,9 +2571,9 @@
 "subj": "Sachunterricht",
 "core": 0,
 "de": "die Lupe, die Lupen",
-"ar": "العدسة المكبِّرة، العدسات المكبِّرة",
+"ar": "المكبّرة (العدسة المكبّرة)، المكبّرات",
 "ex": "Betrachtet Kartoffelaugen unter der Lupe.",
-"exar": "تأمّلوا عيونَ البطاطا تحت العدسةِ المكبِّرة."
+"exar": "تأمّلوا عيونَ البطاطا تحت المكبّرة."
 },
 {
 "day": 1,
@@ -3004,7 +3004,7 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "lassen (lässt)",
-"ar": "يَدَع / يجعل",
+"ar": "يترك / يجعل",
 "ex": "Dort lässt er seinen neuen Drachen steigen.",
 "exar": "هناك يُطيِّرُ طيّارتَه الورقيّةَ الجديدة."
 },
@@ -3467,7 +3467,7 @@
 "de": "der Donner",
 "ar": "الرعد",
 "ex": "Nomen: Donner, Oktober, Wärme, Wolke, Laub",
-"exar": "الأسماء: الرعد، أكتوبر، الدفء، الغيمة، أوراق الشجر"
+"exar": "الأسماء: الرعد، تشرين الأول، الدفء، الغيمة، أوراق الشجر"
 },
 {
 "day": 1,
@@ -3476,9 +3476,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "der Oktober",
-"ar": "أكتوبر / تشرين الأول",
+"ar": "تشرين الأول (أكتوبر)",
 "ex": "Nomen: Donner, Oktober, Wärme, Wolke, Laub",
-"exar": "الأسماء: الرعد، أكتوبر، الدفء، الغيمة، أوراق الشجر"
+"exar": "الأسماء: الرعد، تشرين الأول، الدفء، الغيمة، أوراق الشجر"
 },
 {
 "day": 1,
@@ -3489,7 +3489,7 @@
 "de": "die Wärme",
 "ar": "الدفء",
 "ex": "Nomen: Donner, Oktober, Wärme, Wolke, Laub",
-"exar": "الأسماء: الرعد، أكتوبر، الدفء، الغيمة، أوراق الشجر"
+"exar": "الأسماء: الرعد، تشرين الأول، الدفء، الغيمة، أوراق الشجر"
 },
 {
 "day": 1,
@@ -3500,7 +3500,7 @@
 "de": "die Wolke, die Wolken",
 "ar": "الغيمة، الغيوم",
 "ex": "Nomen: Donner, Oktober, Wärme, Wolke, Laub",
-"exar": "الأسماء: الرعد، أكتوبر، الدفء، الغيمة، أوراق الشجر"
+"exar": "الأسماء: الرعد، تشرين الأول، الدفء، الغيمة، أوراق الشجر"
 },
 {
 "day": 1,
@@ -3511,7 +3511,7 @@
 "de": "das Laub",
 "ar": "أوراق الشجر",
 "ex": "Nomen: Donner, Oktober, Wärme, Wolke, Laub",
-"exar": "الأسماء: الرعد، أكتوبر، الدفء، الغيمة، أوراق الشجر"
+"exar": "الأسماء: الرعد، تشرين الأول، الدفء، الغيمة، أوراق الشجر"
 },
 {
 "day": 1,
@@ -3621,7 +3621,7 @@
 "de": "die Windmühle, die Windmühlen",
 "ar": "طاحونة الهواء، طواحين الهواء",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، الإطفائية، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، الإطفائية، سور الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3632,7 +3632,7 @@
 "de": "die Feuerwehr, die Feuerwehren",
 "ar": "الإطفائية (رجال الإطفاء)",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، الإطفائية، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، الإطفائية، سور الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -3641,9 +3641,9 @@
 "subj": "Deutsch",
 "core": 0,
 "de": "der Gartenzaun, die Gartenzäune",
-"ar": "سياج الحديقة، أسيجة الحدائق",
+"ar": "سور الحديقة (السياج)، أسوار الحدائق",
 "ex": "die Windmühle, die Feuerwehr, der Gartenzaun, der Schneemann",
-"exar": "طاحونة الهواء، الإطفائية، سياج الحديقة، رجل الثلج"
+"exar": "طاحونة الهواء، الإطفائية، سور الحديقة، رجل الثلج"
 },
 {
 "day": 1,
@@ -4081,9 +4081,9 @@
 "subj": "Mathematik",
 "core": 0,
 "de": "die Zeile, die Zeilen",
-"ar": "الصفّ الأفقي، الصفوف الأفقية",
+"ar": "السطر (الصفّ الأفقي)، الأسطر",
 "ex": "die Zahlen in jeder Zeile, jeder Spalte und in den beiden Diagonalen",
-"exar": "الأعداد في كلّ صفٍّ أفقي وكلّ عمود وفي القطرين"
+"exar": "الأعداد في كلّ سطرٍ وكلّ عمود وفي القطرين"
 },
 {
 "day": 1,
@@ -4094,7 +4094,7 @@
 "de": "die Spalte, die Spalten",
 "ar": "العمود، الأعمدة",
 "ex": "die Zahlen in jeder Zeile, jeder Spalte und in den beiden Diagonalen",
-"exar": "الأعداد في كلّ صفٍّ أفقي وكلّ عمود وفي القطرين"
+"exar": "الأعداد في كلّ سطرٍ وكلّ عمود وفي القطرين"
 },
 {
 "day": 1,
@@ -4105,7 +4105,7 @@
 "de": "die Diagonale, die Diagonalen",
 "ar": "القطر، الأقطار",
 "ex": "die Zahlen in jeder Zeile, jeder Spalte und in den beiden Diagonalen",
-"exar": "الأعداد في كلّ صفٍّ أفقي وكلّ عمود وفي القطرين"
+"exar": "الأعداد في كلّ سطرٍ وكلّ عمود وفي القطرين"
 },
 {
 "day": 1,
