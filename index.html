@@ -3321,10 +3321,12 @@ async function aiSend(text){
   c.m.push(m);AIPEND="";AIBUSY=true;aiSave();renderHelper();
   const ac=new AbortController(),to=setTimeout(()=>ac.abort(),90000);let err="",out=null;
   try{const r=await fetch(API+"/ai",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},
-      body:JSON.stringify({cid:c.id,msgs:c.m.slice(-16).map(x=>({r:x.r,t:x.t,i:!!x.i})),img:c.img||""})});
+      body:JSON.stringify({cid:c.id,msgs:c.m.slice(-16).map(x=>({r:x.r,t:x.t,i:!!x.i,o:x.o||""})),img:c.m.slice(-16).some(x=>x.i&&!x.o)?c.img||"":""})});
     const j=await r.json().catch(()=>({}));if(j.left!=null){AILEFT=j.left;AIMAX=j.max||AIMAX}if(r.ok&&j.a)out=j;else err=j.error||"server"}
   catch(e){err="net"}finally{clearTimeout(to)}
   AIBUSY=false;
+  // نصّ الورقة كما قرأه الخادم يُحفظ مع رسالتها، فلا تُرسل الصورة مرة أخرى
+  if(out&&out.ocr&&out.ocrAt>=0){const mm=c.m[c.m.length-1-out.ocrAt];if(mm)mm.o=out.ocr}
   if(out){c.m.push({r:"a",t:out.a,ts:Date.now()});aiSave();renderHelper();return}
   // لم يصل الجواب: يرجع السؤال إلى خانة الكتابة ليرسله مرة أخرى
   c.m.pop();if(img){AIPEND=img;c.img=(c.m.filter(x=>x.i).length?c.img:"")}aiSave();renderHelper();$("aiText").value=text;
