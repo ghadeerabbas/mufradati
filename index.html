@@ -1738,7 +1738,8 @@ function startGame(id){
   else{if(id==="listen")GM.kinds=shuffle(["lmc","lmc","lmc","lmc","lmc","ltype","ltype","ltype","ltype","ltype"]);GM.list=pickWords(pool,10);GM.q=makeQ(id,GM.list[0])}
   gameView();scrollTo(0,0);
 }
-const clock=ms=>{const s=Math.max(0,Math.ceil(ms/1000));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")};
+// أقل من ساعة: د:ث، وساعة فأكثر: س:د:ث (مثلًا 9:59:12 بدل 599:12)
+const clock=ms=>{const s=Math.max(0,Math.ceil(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),p=n=>String(n).padStart(2,"0");return h?h+":"+p(m)+":"+p(s%60):m+":"+p(s%60)};
 const hearOf=w=>answersOf(w)[0];
 function makeQ(kind,w){
   if(kind==="listen")kind=GM&&GM.kinds?GM.kinds[GM.i]||"lmc":"lmc";
