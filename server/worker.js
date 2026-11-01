@@ -1067,7 +1067,6 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
-    if (url.pathname === "/bakping" && req.method === "GET") { try { const m = await backupNow(env, "manual"); const b = await loadBak(env, m.key); return new Response(JSON.stringify({ ok: true, meta: m, restored_docs: b.docs.length }), { headers: H }) } catch (e) { return new Response(JSON.stringify({ ok: false, e: String(e && e.message || e).slice(0, 300) }), { status: 500, headers: H }) } }
     if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
