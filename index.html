@@ -2,6 +2,12 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>/* تتبّع الأخطاء: كل خطأ جديد في التطبيق يُرسل إلى الخادم ليراه المشرف (8 على الأكثر في الجلسة، بلا تكرار) */
+(function(){var seen={},n=0;window.repErr=function(msg,stack,where){try{msg=String(msg||"").slice(0,300);if(!msg||/^Script error|ResizeObserver loop/.test(msg)||seen[msg]||n>=8)return;seen[msg]=1;n++;
+  var send=function(tok){var h={"Content-Type":"application/json"};if(tok)h.Authorization="Bearer "+tok;fetch("https://mufradati-api.afunogrv.workers.dev/err",{method:"POST",headers:h,body:JSON.stringify({msg:msg,stack:String(stack||"").slice(0,1500),where:String(where||location.hash||"").slice(0,200),ua:navigator.userAgent.slice(0,200),ver:(window.MufApp?"apk":"web")})}).catch(function(){})};
+  var u=typeof auth!=="undefined"&&auth&&auth.currentUser;if(u)u.getIdToken().then(send,function(){send()});else send()}catch(e){}};
+ addEventListener("error",function(e){repErr(e.message,e.error&&e.error.stack,(e.filename||"").split("/").pop()+":"+e.lineno)});
+ addEventListener("unhandledrejection",function(e){var r=e.reason;if(r&&(r.error||r.code))return;repErr(r&&r.message||String(r),r&&r.stack,"promise")})})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#1f2a5a">
 <script>/* في تطبيق أندرويد: الصفحة شفافة لحظة الفتح، فتبقى شاشة البداية (الشعار والاسم) ظاهرة حتى تُرسم الواجهة */
@@ -548,6 +554,12 @@ body.fbon main{padding-bottom:210px}
 .mbadge{position:absolute;top:-4px;left:-6px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:800;border-radius:9px;min-width:16px;padding:0 4px;line-height:16px;display:none}
 .mbadge.on{display:block}
 .mhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+/* الحماية */
+.bkrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.bkrow small{display:block;color:var(--muted);font-size:.75rem}
+.bkbtns{display:flex;gap:4px;flex-shrink:0}.bkbtns .btn{padding:6px 10px;font-size:.8rem;background:var(--soft);color:var(--hd)}.bkbtns .bkR{color:var(--red)}
+.errrow{border-top:1px solid var(--line);padding:8px 0}.errrow summary{cursor:pointer;list-style:none}.errrow summary b{display:block;font-size:.88rem;direction:ltr;text-align:left;overflow-wrap:anywhere}.errrow small{color:var(--muted);font-size:.75rem}
+.errrow pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.7rem;background:var(--soft);padding:8px;border-radius:8px;margin:6px 0;max-height:240px;overflow:auto}.errrow .btn{padding:4px 10px;font-size:.78rem;background:var(--soft);color:var(--red)}
+#admNav button{position:relative}#eBadge{top:0;left:auto;right:50%;margin-right:-22px}
 /* مساعد الوظيفة */
 #aiBtn .i3{width:26px;height:26px}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
@@ -652,6 +664,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
     <button data-p="cfgP"><i>🎛️</i>الإعدادات</button>
     <button data-p="shopEd"><i>🛍️</i>المتجر</button>
     <button data-p="usage"><i>📈</i>الاستهلاك</button>
+    <button data-p="safe"><i>🛡️</i>الحماية<span class="mbadge" id="eBadge"></span></button>
     <button data-p="settings"><i>⚙️</i>حسابي</button>
   </nav>
   <nav id="mainNav">
@@ -698,6 +711,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
   <section id="cfgP" class="panel"></section>
   <section id="shopEd" class="panel"></section>
   <section id="usage" class="panel"></section>
+  <section id="safe" class="panel"></section>
 </main>
 
 <script>
@@ -2843,7 +2857,7 @@ async function onLogin(user){
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
     document.body.classList.add("adm");appReady();$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
-    $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");return;
+    $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");setTimeout(errCheck,3000);return;
   }
   const saved=st(K("course"));let first=MY_COURSES.includes(saved)?saved:MY_COURSES[0];
   // منهج البداية الذي حدّده المشرف: يُطبَّق من أول دخول، مرة واحدة
@@ -3274,6 +3288,41 @@ async function renderAssign(uid){
   };
 }
 
+/* ================= الحماية (للمشرف): النسخ الاحتياطية وتتبّع الأخطاء ================= */
+const kb=n=>n>1048576?(n/1048576).toFixed(1)+" م.ب":Math.max(1,Math.round(n/1024))+" ك.ب";
+const BAKWHY={auto:"تلقائية",manual:"يدوية","before-restore":"قبل الاسترجاع"};
+let ERRS=[];
+async function errCheck(){
+  try{ERRS=(await apiPost("/errs",{})).items||[]}catch(e){return}
+  const seen=+st("muf_errSeen")||0,nw=ERRS.filter(x=>x.last>seen).length,b=$("eBadge");
+  if(b){b.textContent=nw||"";b.classList.toggle("on",nw>0)}
+  if(nw)toast("⚠️","أخطاء جديدة: "+nw,"افتح «الحماية» لتراها");
+}
+async function renderSafe(){
+  const el=$("safe");el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
+  let B=[],ok=true;try{B=(await apiPost("/backup",{op:"list"})).items||[]}catch(e){ok=false}
+  try{ERRS=(await apiPost("/errs",{})).items||[]}catch(e){}
+  st("muf_errSeen",String(Date.now()));const b=$("eBadge");if(b){b.textContent="";b.classList.remove("on")}
+  el.innerHTML=`<div class="rsec"><h3>🗄️ النسخ الاحتياطية</h3><p class="rnote">كل ليلة تُحفظ نسخة كاملة من بيانات المستخدمين في تخزين منفصل عن قاعدة البيانات، وتبقى آخر 14 نسخة. «تجربة» تفكّ النسخة وتفحصها دون أن تغيّر شيئًا.</p>
+    <button class="btn" id="bkNow" style="width:100%;margin:6px 0;background:var(--navy);color:#fff">نسخة الآن</button><div class="stmsg" id="bkMsg"></div>
+    ${!ok?'<div class="err">تعذّر تحميل النسخ.</div>':B.length?B.map(x=>`<div class="bkrow"><div><b>${fmt(x.at)}</b><small>${BAKWHY[x.why]||x.why||""} · ${x.n||0} وثيقة · ${x.users||0} مستخدم · ${kb(x.size||0)}</small></div><div class="bkbtns"><button class="btn bkT" data-k="${esc(x.key)}">تجربة</button><button class="btn bkR" data-k="${esc(x.key)}">استرجاع</button></div></div>`).join(""):'<div class="empty">لا نسخ بعد. أول نسخة تلقائية الليلة، أو اضغط «نسخة الآن».</div>'}</div>
+   <div class="rsec"><h3>⚠️ الأخطاء</h3><p class="rnote">كل خطأ يحدث في التطبيق عند أي مستخدم، أو في الخادم، يظهر هنا مع عدد مرّاته وآخر وقت. اضغط على الخطأ لترى تفاصيله.</p>
+    ${ERRS.length?`<button class="btn" id="erAll" style="width:100%;margin:6px 0;background:var(--soft);color:var(--red)">${I3("trash")} حذف كل الأخطاء</button>`+ERRS.map(x=>`<details class="errrow"><summary><b>${esc(x.msg)}</b><small>${x.src==="server"?"الخادم":"التطبيق"} · ${x.n} مرّة · آخرها ${fmt(x.last)} · ${x.users.length} مستخدم</small></summary>
+      <pre>${esc((x.where?"المكان: "+x.where+"\n":"")+(x.ua?"الجهاز: "+x.ua+"\n":"")+(x.ver?"النسخة: "+x.ver+"\n":"")+"أول مرّة: "+fmt(x.first)+"\n\n"+(x.stack||""))}</pre><button class="btn erDel" data-id="${x.id}">${I3("trash")} حذف</button></details>`).join(""):'<div class="empty">لا أخطاء 👍</div>'}</div>`;
+  const msg=(t,c)=>{const m=$("bkMsg");m.textContent=t;m.className="stmsg "+(c||"")};
+  $("bkNow").onclick=async e=>{e.target.disabled=true;msg("جارٍ النسخ…");try{const r=await apiPost("/backup",{op:"now"});toast("🗄️","حُفظت نسخة",r.n+" وثيقة");renderSafe()}catch(err){e.target.disabled=false;msg("تعذّر النسخ: "+(err.detail||err.error||"تحقّق من الاتصال"),"bad")}};
+  el.onclick=async e=>{
+    const t=e.target.closest(".bkT"),r=e.target.closest(".bkR"),d=e.target.closest(".erDel"),all=e.target.closest("#erAll");
+    if(t){t.disabled=true;msg("جارٍ فحص النسخة…");try{const j=await apiPost("/backup",{op:"test",key:t.dataset.k});
+      msg(j.ok?`✓ النسخة سليمة وقابلة للاسترجاع: ${j.n} وثيقة — `+Object.entries(j.per).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+" "+v).join("، "):"✗ في النسخة "+j.bad+" وثيقة تالفة",j.ok?"ok":"bad")}catch(err){msg("تعذّر فحص النسخة: "+(err.detail||err.error||""),"bad")}t.disabled=false;return}
+    if(r){if(!await uiConfirm("استرجاع هذه النسخة؟ تعود بيانات كل المستخدمين كما كانت وقتها، ويضيع ما تغيّر بعدها."))return;
+      if(!await uiConfirm("متأكد؟ قبل الاسترجاع تُحفظ نسخة من الوضع الحالي، فتستطيع التراجع بها."))return;
+      r.disabled=true;msg("جارٍ الاسترجاع…");try{const j=await apiPost("/backup",{op:"restore",key:r.dataset.k,confirm:r.dataset.k});msg("✓ استُرجعت "+j.n+" وثيقة. نسخة ما قبل الاسترجاع محفوظة في القائمة.","ok");setTimeout(renderSafe,1500)}
+      catch(err){r.disabled=false;msg("تعذّر الاسترجاع: "+(err.detail||err.error||""),"bad")}return}
+    if(d||all){if(all&&!await uiConfirm("حذف كل الأخطاء من القائمة؟"))return;try{await apiPost("/errs",{del:all?"all":d.dataset.id});renderSafe()}catch(err){toast(I3("warning"),"تعذّر الحذف","")}}
+  };
+}
+
 /* ================= مساعد الوظيفة (ذكاء صناعي لحسابات يختارها المشرف) ================= */
 const aiOn=()=>!!(UID&&!isAdmin()&&CFG&&(CFG.ai||[]).includes(UID));
 function aiUI(){const b=$("aiBtn");if(b)b.style.display=aiOn()?"":"none"}
@@ -3378,11 +3427,12 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
   if(p==="usage"){renderUsage();return}
+  if(p==="safe"){renderSafe();return}
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
-  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
+  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}

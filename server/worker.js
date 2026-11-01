@@ -917,8 +917,11 @@ async function handleAi(fs, user, body, env) {
   if (!a) { try { a = aiText(await env.AI.run(AI_MODEL, { messages, max_completion_tokens: 700, temperature: 0.3, chat_template_kwargs: { enable_thinking: false } })) } catch (e) { return fail(e) } }
   if (!a) return { status: 502, json: { error: "ai", detail: "empty" } };
   const last = msgs[msgs.length - 1], id = now.toString(36) + Math.random().toString(36).slice(2, 6);
+  // صورة الورقة تُحفظ في تخزين Cloudflare 31 يومًا ثم تُحذف وحدها؛ يراها المشرف مع المحادثة
+  let ik = "";
+  if (ocrAt === msgs.length - 1 && img && env.BAK) { ik = "img-" + user.uid + "-" + id; try { await env.BAK.put(ik, img, { expirationTtl: 31 * 86400 }) } catch (e) { ik = "" } }
   await fs.commit([
-    { path: `aichat/${user.uid}/m/${id}`, data: { c: cid, q: last.t, img: ocrAt === msgs.length - 1 ? img : "", o: ocr, a, ts: { __ts: now } } },
+    { path: `aichat/${user.uid}/m/${id}`, data: { c: cid, q: last.t, img: "", ik: ik, o: ocr, a, ts: { __ts: now } } },
     { path: `aichat/${user.uid}`, data: { last: { __ts: now }, name }, merge: true },
     { path: `aiq/${user.uid}`, data: { d: day, n: used + 1 } }]);
   return { status: 200, json: { a, ocr, ocrAt: ocrAt >= 0 ? msgs.length - 1 - ocrAt : -1, left: AI_DAY - used - 1, max: AI_DAY } };
@@ -930,7 +933,8 @@ async function aiPurge(fs, uid, f) {
   let tok = "", n = 0;
   do {
     const r = await fs.page(`aichat/${uid}/m`, "ts", 200, tok); tok = r.tok;
-    const del = r.items.filter(x => (f.c ? x.c === f.c : true) && (f.before ? (x.ts && x.ts.ms || 0) < f.before : true)).map(x => ({ path: `aichat/${uid}/m/${x.id}`, del: true }));
+    const hit = r.items.filter(x => (f.c ? x.c === f.c : true) && (f.before ? (x.ts && x.ts.ms || 0) < f.before : true)), del = hit.map(x => ({ path: `aichat/${uid}/m/${x.id}`, del: true }));
+    if (f.env && f.env.BAK) for (const x of hit) if (x.ik) { try { await f.env.BAK.delete(x.ik) } catch (e) { } }
     for (let k = 0; k < del.length; k += 400) await fs.commit(del.slice(k, k + 400));
     n += del.length;
     if (f.before && r.items.length && (r.items[r.items.length - 1].ts || {}).ms >= f.before) break;   // مرتّبة من الأقدم: ما بعدها أحدث
@@ -941,7 +945,7 @@ async function handleAiDel(fs, user, body, env) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
   const uid = String(body.uid || ""), c = String(body.c || "");
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid) || c && !/^[A-Za-z0-9_-]{1,40}$/.test(c)) return { status: 400, json: { error: "bad" } };
-  return { status: 200, json: { ok: true, n: await aiPurge(fs, uid, c ? { c } : {}) } };
+  return { status: 200, json: { ok: true, n: await aiPurge(fs, uid, c ? { c, env } : { env }) } };
 }
 // يعمل كل ليلة: يحذف من كل الحسابات ما مضى عليه أكثر من شهر
 async function aiCleanup(env) {
@@ -953,9 +957,103 @@ async function handleAiLog(fs, user, body, env) {
   const uid = String(body.uid || "");
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
   const r = await fs.page(`aichat/${uid}/m`, "ts desc", 30, String(body.tok || ""));
-  return { status: 200, json: { items: r.items.map(x => ({ c: x.c, q: x.q, img: x.img, a: x.a, ts: x.ts && x.ts.ms || 0 })), tok: r.tok, keep: AI_KEEP / DAY } };
+  const imgs = await Promise.all(r.items.map(x => x.img ? x.img : x.ik && env.BAK ? env.BAK.get(x.ik).catch(() => "") : ""));
+  return { status: 200, json: { items: r.items.map((x, k) => ({ c: x.c, q: x.q, img: imgs[k] || "", a: x.a, ts: x.ts && x.ts.ms || 0 })), tok: r.tok, keep: AI_KEEP / DAY } };
 }
 
+
+
+/* ---------- النسخ الاحتياطي: كل ليلة تُحفظ نسخة كاملة من قاعدة البيانات في تخزين Cloudflare (منفصل عن Firebase) ---------- */
+const BAK_KEEP = 14;   // تبقى آخر 14 نسخة
+const DOCROOT = `projects/${PROJECT}/databases/(default)/documents`;
+async function gauth(env) { return { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" } }
+// كل وثائق قاعدة البيانات بصيغتها الأصلية (الأنواع محفوظة كما هي). تُحفظ الردود كما وصلت بلا تحليل، توفيرًا لوقت المعالج
+// صور مساعد الوظيفة محفوظة في تخزين Cloudflare لا في قاعدة البيانات، فلا تدخل النسخة (وتُحذف وحدها بعد شهر)
+async function exportAll(env) {
+  const H = await gauth(env);
+  const r0 = await fetch(FS_BASE + ":listCollectionIds", { method: "POST", headers: H, body: JSON.stringify({ pageSize: 300 }) });
+  if (!r0.ok) throw new Error("ids " + r0.status);
+  const top = (await r0.json()).collectionIds || [];
+  const Q = top.map(id => ({ parent: "", q: { from: [{ collectionId: id }] } }));
+  for (const id of ["data", "g", "msgs", "m"]) Q.push({ parent: "", q: { from: [{ collectionId: id, allDescendants: true }] } });
+  const parts = [];
+  for (const x of Q) {
+    const r = await fetch(FS_BASE + x.parent + ":runQuery", { method: "POST", headers: H, body: JSON.stringify({ structuredQuery: x.q }) });
+    if (!r.ok) throw new Error("query " + r.status + " " + (await r.text()).slice(0, 120));
+    parts.push(await r.text());
+  }
+  const all = parts.join(","), cnt = re => (all.match(re) || []).length;
+  return { parts, n: cnt(/"document"\s*:/g), users: cnt(new RegExp('"name"\\s*:\\s*"' + DOCROOT.replace(/[()]/g, "\\$&") + '/users/[^/"]+"', "g")) };
+}
+const gz = async s => new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
+const gunz = async b => await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
+async function backupNow(env, why) {
+  const ex = await exportAll(env), now = Date.now(), key = "bak-" + new Date(now).toISOString().replace(/[:.]/g, "-");
+  const body = await gz('{"v":2,"at":' + now + ',"parts":[' + ex.parts.join(",") + "]}");
+  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto" };
+  await env.BAK.put(key, body, { metadata: meta });
+  const all = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1);
+  for (const k of all.slice(BAK_KEEP)) await env.BAK.delete(k.name);
+  return { key, ...meta };
+}
+// تفكّ النسخة وتعيد وثائقها: [{name, fields}]
+async function loadBak(env, key) {
+  if (!/^bak-[0-9TZ-]+$/.test(key)) throw new Error("key");
+  const b = await env.BAK.get(key, "arrayBuffer"); if (!b) throw new Error("nobak");
+  const j = JSON.parse(await gunz(b)), docs = new Map();
+  for (const part of j.parts || []) for (const x of part) if (x && x.document) docs.set(x.document.name, x.document.fields || {});
+  return { at: j.at, docs: [...docs].map(([name, fields]) => ({ name, fields })) };
+}
+// المشرف: قائمة النسخ، نسخة الآن، تجربة الاسترجاع (فكّ النسخة وفحصها بلا كتابة)، الاسترجاع الفعلي
+async function handleBackup(fs, user, body, env) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  if (!env.BAK) return { status: 500, json: { error: "nokv" } };
+  const op = String(body.op || "list"), key = String(body.key || "");
+  if (op === "list") { const l = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1); return { status: 200, json: { items: l.map(k => ({ key: k.name, ...(k.metadata || {}) })) } } }
+  if (op === "now") return { status: 200, json: await backupNow(env, "manual") };
+  const b = await loadBak(env, key);
+  if (op === "test") {
+    const per = {}; for (const d of b.docs) { const p = d.name.slice(DOCROOT.length + 1).split("/"), c = p.length > 2 ? p[0] + "/…/" + p[p.length - 2] : p[0]; per[c] = (per[c] || 0) + 1 }
+    const bad = b.docs.filter(d => !d.name.startsWith(DOCROOT + "/") || typeof d.fields !== "object").length;
+    return { status: 200, json: { ok: !bad, at: b.at, n: b.docs.length, bad, per } };
+  }
+  if (op === "restore") {
+    if (body.confirm !== key) return { status: 400, json: { error: "confirm" } };
+    const before = await backupNow(env, "before-restore");   // نسخة من الوضع الحالي أولًا، للتراجع إن لزم
+    const H = await gauth(env), W = b.docs.filter(d => d.name.startsWith(DOCROOT + "/")).map(d => ({ update: { name: d.name, fields: d.fields }, ...(/\/aichat\/[^/]+\/m\//.test(d.name) ? { updateMask: { fieldPaths: Object.keys(d.fields) } } : {}) }));
+    for (let k = 0; k < W.length; k += 400) { const r = await fetch(FS_BASE + ":commit", { method: "POST", headers: H, body: JSON.stringify({ writes: W.slice(k, k + 400) }) }); if (!r.ok) throw new Error("restore " + r.status + " " + (await r.text()).slice(0, 150)) }
+    return { status: 200, json: { ok: true, n: W.length, before: before.key } };
+  }
+  return { status: 400, json: { error: "op" } };
+}
+
+/* ---------- تتبّع الأخطاء: أخطاء التطبيق والخادم تُجمع هنا ويراها المشرف ---------- */
+async function errHash(s) { return [...new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s)))].slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("") }
+async function logErr(fs, e) {
+  const msg = String(e.msg || "").slice(0, 300), stack = String(e.stack || "").slice(0, 1500), src = e.src === "server" ? "server" : "app";
+  if (!msg) return;
+  const top = stack.split("\n").find(l => /:\d+:\d+/.test(l)) || "", id = await errHash(src + "|" + msg.replace(/\d+/g, "#") + "|" + top.replace(/\?[^:]*/, ""));
+  const now = Date.now(), old = await fs.get(`errs/${id}`), d = old ? old.data : null;
+  const users = [...new Set([...(d && d.users || []), e.uid || ""].filter(Boolean))].slice(-20);
+  await fs.commit([{ path: `errs/${id}`, data: { msg, stack: d && d.stack || stack, src, where: String(e.where || d && d.where || "").slice(0, 200), ua: String(e.ua || d && d.ua || "").slice(0, 200),
+    ver: String(e.ver || "").slice(0, 40), n: (d && d.n || 0) + 1, first: d && d.first ? { __ts: d.first.ms } : { __ts: now }, last: { __ts: now }, users } }]);
+}
+let ERRN = { t: 0, n: 0 };   // حماية من الإغراق: 30 خطأ في الدقيقة على الأكثر لكل نسخة من الخادم
+async function handleErr(req, env, H) {
+  if (Date.now() - ERRN.t > 60e3) ERRN = { t: Date.now(), n: 0 };
+  if (++ERRN.n > 30) return new Response("{}", { status: 429, headers: H });
+  const txt = await req.text(); if (txt.length > 6000) return new Response("{}", { status: 413, headers: H });
+  let b = {}; try { b = JSON.parse(txt) } catch (e) { }
+  let uid = ""; try { uid = (await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""))).uid } catch (e) { }
+  try { await logErr(env.__fs || makeFS(env), { ...b, uid, src: "app" }) } catch (e) { }
+  return new Response("{}", { headers: { ...H, "Content-Type": "application/json" } });
+}
+async function handleErrs(fs, user, body, env) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  if (body.del) { const all = body.del === "all" ? (await fs.list("errs")).map(x => x.id) : [String(body.del)].filter(x => /^[0-9a-f]{16}$/.test(x)); for (let k = 0; k < all.length; k += 400) await fs.commit(all.slice(k, k + 400).map(id => ({ path: `errs/${id}`, del: true }))); return { status: 200, json: { ok: true } } }
+  const l = (await fs.list("errs")).map(x => ({ id: x.id, msg: x.msg, stack: x.stack, src: x.src, where: x.where, ua: x.ua, ver: x.ver, n: x.n, first: x.first && x.first.ms || 0, last: x.last && x.last.ms || 0, users: x.users || [] })).sort((a, b) => b.last - a.last).slice(0, 100);
+  return { status: 200, json: { items: l } };
+}
 
 /* ---------- نقطة الدخول ---------- */
 function cors(req) {
@@ -963,12 +1061,13 @@ function cors(req) {
   return { "Access-Control-Allow-Origin": ORIGINS.includes(o) ? o : ORIGINS[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
 }
 export default {
-  async scheduled(ev, env, ctx) { ctx.waitUntil(aiCleanup(env)) },
+  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupNow(env, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
   async fetch(req, env, ctx) {
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -978,13 +1077,14 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;
       return new Response(JSON.stringify(out.json), { status: out.status, headers: { ...H, "Content-Type": "application/json" } });
     } catch (e) {
       const auth = /token|key/.test(e.message);
+      if (!auth) { const p = (async () => { try { await logErr(env.__fs || makeFS(env), { src: "server", msg: String(e && e.message || e), stack: String(e && e.stack || ""), where: url.pathname }) } catch (_) { } })(); if (ctx && ctx.waitUntil) ctx.waitUntil(p) }
       return new Response(JSON.stringify({ error: auth ? "auth" : "server", detail: String(e.message).slice(0, 200) }), { status: auth ? 401 : 500, headers: { ...H, "Content-Type": "application/json" } });
     }
   }
