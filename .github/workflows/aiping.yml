@@ -7,4 +7,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          curl -sS -m 280 "https://mufradati-api.afunogrv.workers.dev/aitest?p=ocr" > ocr.json; echo; echo "OCRJSON $(base64 -w0 ocr.json)"
+          curl -sS -m 280 "https://mufradati-api.afunogrv.workers.dev/aitest?p=tut&ws=Fu%C3%9Fball-Sterne%0AAuf%20dem%20Trikot%20der%20Nationalspieler%20gibt%20es%20auch%20Sterne.%0AJeder%20Stern%20steht%20f%C3%BCr%20einen%20Weltmeistertitel.%0ADeutschland%20hat%20schon%20viermal%20gewonnen.%0ADarum%20tr%C3%A4gt%20die%20Mannschaft%20vier%20Sterne.%0ADie%20Kinder%20malen%20die%20Sterne%20auf%20ihre%20Hefte.%0A%0A1%20Wie%20viele%20Sterne%20hat%20das%20Trikot%3F%20Kreuze%20an.%0A%E2%98%90%20zwei%20%E2%98%90%20drei%20%E2%98%90%20vier%0A2%20Unterstreiche%20im%20Text%20alle%20Nomen.%0A3%20Schreibe%20die%20Nomen%20mit%20Artikel%20auf.%0Ader%20Stern%2C%20____%0A4%20Suche%20die%20Verben%20im%20Text%20und%20schreibe%20sie%0Ain%20der%20Grundform%20auf.%0Agibt%20%E2%86%92%20geben%2C%20steht%20%E2%86%92%20____%2C%20hat%20%E2%86%92%20____%2C%0Atr%C3%A4gt%20%E2%86%92%20____%2C%20malen%20%E2%86%92%20____" > o.json; echo; echo "OJSON $(base64 -w0 o.json)"
