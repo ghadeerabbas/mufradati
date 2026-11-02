@@ -1058,7 +1058,7 @@ function stationSteps1(words){
   // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
   // الترتيب عشوائي في كل مرة: ترتيب الكلمات، ونوع التمرين الثالث، وأيّ تمرين جاهز يأتي أولًا
   const out=[],pend=[];words=shuffle([...words]);
-  const second=w=>({t:clozeOf(w)?"cloze":w.ex?"ex":"rev",w}),third=w=>({t:Math.random()<.5?"rev":"mc",w});
+  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>({t:Math.random()<.5?"rev":"mc",w});
   const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:-1;
   const take=force=>{
     const last=out.length?out[out.length-1].w:null;
@@ -1634,6 +1634,11 @@ const arMark=(s,mean)=>{const r=arSpan(s,mean);return r?esc(s.slice(0,r[0]))+'<u
 const arHide=h=>`<div class="arwrap"><button type="button" class="arshow">عرض الترجمة ▾</button><div class="cloze-ar" hidden>${h}</div></div>`;
 function revealAr(){document.querySelectorAll(".arwrap").forEach(x=>{const b=x.querySelector(".arshow"),a=x.querySelector(".cloze-ar");if(a)a.hidden=false;if(b)b.remove()})}
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".arshow");if(!b)return;const a=b.parentNode.querySelector(".cloze-ar");if(a){a.hidden=false;b.remove()}});
+// المثال يستحق خطوة «في جملة» فقط إن كان فيه كلمة واحدة على الأقل غير الكلمة نفسها (لا عنوانًا من كلمة واحدة)
+function exOk(w){
+  if(!w.ex)return false;const own=new Set(String(w.de).toLowerCase().match(/[a-zäöüß]+/g)||[]);
+  return (String(w.ex).toLowerCase().match(/[a-zäöüß]{2,}/g)||[]).filter(t=>!own.has(t)).length>=1;
+}
 function clozeOf(w){
   if(!w.ex)return null;
   const L=lemmaOf(w).replace(ART,"").replace(/^sich\s+/i,"");
