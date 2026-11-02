@@ -1651,7 +1651,8 @@ function clozeOf(w){
   for(const test of [exact,near])for(let i=0;i<ex.length;i++){
     const re=/[A-Za-zÄÖÜäöüß]+/g;let m;
     while((m=re.exec(ex[i]))){
-      if(test(m[0].toLowerCase()))return {pre:ex[i].slice(0,m.index),post:ex[i].slice(m.index+m[0].length),word:m[0],full:ex[i],ar:ex.length===ar.length?ar[i]:(ex.length===1?w.exar:"")};
+      // لا تمرين إن لم يبقَ حول الفراغ كلمتان على الأقل تدلّان على الكلمة (مثل عنوان من كلمة واحدة)
+      if(test(m[0].toLowerCase())&&((ex[i].slice(0,m.index)+" "+ex[i].slice(m.index+m[0].length)).match(/[A-Za-zÄÖÜäöüß]{2,}/g)||[]).length>=2)return {pre:ex[i].slice(0,m.index),post:ex[i].slice(m.index+m[0].length),word:m[0],full:ex[i],ar:ex.length===ar.length?ar[i]:(ex.length===1?w.exar:"")};
     }
   }
   return null;
