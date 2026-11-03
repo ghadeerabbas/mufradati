@@ -244,15 +244,15 @@ function carryDays(){const o=new Set,k=R.sk;if(!k||!(k.n>0)||!/^\d{4}-\d\d-\d\d$
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
-  let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={};
+  let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={},bon=[];   // bon: مكافآت الحفظ والرسوخ بوقتها، لتدخل خبرة الدوري أيضًا
   let L=LOG;for(let i=1;i<L.length;i++)if(L[i][0]<L[i-1][0]){L=[...LOG].sort((a,b)=>a[0]-b[0]);break}
   for(const [t,k,r,nw] of L){
     if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
     s.reviews++;xp+=xpOf(r,nw);
     const fr=nw>=3;   // الدراسة الحرّة: تُحفظ الكلمة وتُحسب، بلا خبرة
     let b=nw===1||nw===4?1:boxStep(box[k]||0,r,false);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);if(!fr)xp+=CFG.xp.mem}
-    if(b>=7&&!r7.has(k)){r7.add(k);if(!fr)xp+=CFG.xp.solid}
+    if(b>=4&&!r4.has(k)){r4.add(k);if(!fr){xp+=CFG.xp.mem;bon.push([t,CFG.xp.mem])}}
+    if(b>=7&&!r7.has(k)){r7.add(k);if(!fr){xp+=CFG.xp.solid;bon.push([t,CFG.xp.solid])}}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0,f:0});x.n++;if(fr)x.f++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
     const h=hourOf(t);if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
   }
@@ -292,7 +292,7 @@ function econ(){
   // الملصقات أُلغيت: ما اشتُري منها لا يُحسب من الجواهر، فيعود ثمنه إلى الرصيد (ويبقى في السجلّ لإنجاز «جامع التحف»)
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");if(GONE_CATS.includes(c))return a;const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
-  EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got),alv,todayN:td.n,per};
+  EC={s,xp,lv,rest,need:lvlNeed(lv),gems:Math.max(0,gems-spent),earned:gems,got:new Set(got),alv,todayN:td.n,per,bon};
   return EC;
 }
 
@@ -335,6 +335,8 @@ function weekXP(ws){
   for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[0]<ws-DAY)break;if(x[0]>=ws&&x[0]<we&&x[3]<2){xp+=xpOf(x[2],x[3]);const d=dkey(x[0]);per[d]=(per[d]||0)+1}}
   for(const d in per)if(per[d]>=CFG.xp.dayN)xp+=CFG.xp.dayXp;
   for(const q of QLOG)if(q[0]>=ws&&q[0]<we)xp+=qXp(q);
+  // مكافآت الكلمات التي حُفظت أو رسخت هذا الأسبوع: هي جزء من خبرة الدرس، فتُحسب في الدوري كما تُحسب في النتيجة
+  for(const [t,v] of (EC||econ()).bon||[])if(t>=ws&&t<we)xp+=v;
   return xp;
 }
 // عدد المتقدّمين والمتراجعين في كل دوري (من الأول إلى العاشر)
