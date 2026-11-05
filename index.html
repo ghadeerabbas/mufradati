@@ -3329,7 +3329,7 @@ async function renderFriends(){
   const el=$("games");if(!FRL)el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
   try{const j=await apiPost("/fr",{op:"list"});FRL=j.items||[];FRC=j.code||FRC}catch(e){if(!FRL){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';return}}
   if(!FRV||!$("games").classList.contains("on"))return;
-  const F=FRL.filter(x=>x.s==="f").sort((a,b)=>b.on-a.on||b.seen-a.seen),IN=FRL.filter(x=>x.s==="in"),OUT=FRL.filter(x=>x.s==="out"),enough=learnedList().length>=DUEL_N;
+  const F=FRL.filter(x=>x.s==="f").sort((a,b)=>b.on-a.on||b.seen-a.seen),IN=FRL.filter(x=>x.s==="in"),OUT=FRL.filter(x=>x.s==="out"),enough=duelPool().length>=DUEL_N;
   const nm=x=>`<b>${esc(x.name||x.login)}</b>`;
   el.innerHTML=`<div class="mhead"><button class="btn" id="frBack">→ رجوع</button><h2 style="margin:0">👫 الأصدقاء</h2></div>
    <div class="rsec"><h3>إضافة صديق</h3>${FRC?`<div class="frcode"><small>رقم حسابك</small><b dir="ltr">${FRC}</b><button class="btn" id="frCopy">نسخ</button></div>`:""}
@@ -3353,8 +3353,11 @@ async function renderFriends(){
   clearTimeout(FRLT);FRLT=setTimeout(()=>{if(FRV&&$("games").classList.contains("on")&&!DL)renderFriends()},15e3);
 }
 /* ---------- التحدي ---------- */
+// كلمات التحدي: فقط ما تعلّمه المستخدم فعلًا (مرحلة 1 أو أكثر) من كل مناهجه، بغضّ النظر عن فلتر الصفحة الرئيسية.
+// والخيارات الخاطئة أيضًا من كلماته المتعلَّمة، فلا تظهر له كلمة لم يرها
+const duelPool=()=>uniq([...W,...Object.values(OTHERC).flat(),...ORPH]).filter(w=>P[w.k]&&(P[w.k].box||0)>=1);
 function duelQs(){
-  const pool=shuffle([...learnedList()]).slice(0,DUEL_N),all=uniq(W);
+  const L=duelPool(),pool=shuffle([...L]).slice(0,DUEL_N),all=L.length>=8?L:uniq(W);
   return pool.map(w=>{const others=all.filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(others.filter(x=>x.t===w.t));
     return {w,opts:shuffle([w,...(same.length>=3?same:shuffle(others)).slice(0,3)])}});
 }
@@ -3362,7 +3365,7 @@ const dlOv=h=>{const o=$("duelOv");o.className="on";o.innerHTML=`<div class="dl"
 function duelClose(){if(DL){clearTimeout(DL.pt);DL=null}const o=$("duelOv");o.className="";o.innerHTML="";if(FRV&&$("games").classList.contains("on"))renderFriends()}
 async function duelPoll(op,extra){try{const j=await apiPost("/duel",{op,id:DL.id,...extra});if(!DL||j.id!==DL.id)return j;DL.off=j.now-Date.now();DL.d=j;return j}catch(e){return null}}
 async function duelStart(to){
-  if(learnedList().length<DUEL_N){uiAlert("للتحدي تحتاج "+DUEL_N+" كلمات تعلّمتها على الأقل.");return}
+  if(duelPool().length<DUEL_N){uiAlert("للتحدي تحتاج "+DUEL_N+" كلمات تعلّمتها على الأقل.");return}
   dlOv('<h2>جارٍ إرسال التحدي…</h2>');
   let j;try{j=await apiPost("/duel",{op:"inv",to})}catch(e){duelClose();uiAlert(e.error==="offline"?"صديقك غير متصل الآن.":e.error==="busy"?"صديقك عنده دعوة تحدٍّ أخرى الآن، جرّب بعد دقيقة.":"تعذّر إرسال التحدي.");return}
   DL={id:j.id,me:j.me,d:j,off:j.now-Date.now()};duelWait();
@@ -3377,7 +3380,7 @@ function duelWait(){
     DL.pt=setTimeout(tick,1500)};DL.pt=setTimeout(tick,1500);
 }
 async function duelInvited(inv){
-  if(learnedList().length<DUEL_N){toast("⚔️",inv.name+" يتحدّاك","تحتاج "+DUEL_N+" كلمات تعلّمتها لتقبل");return}
+  if(duelPool().length<DUEL_N){toast("⚔️",inv.name+" يتحدّاك","تحتاج "+DUEL_N+" كلمات تعلّمتها لتقبل");return}
   DL={id:inv.id,me:UID,d:null,off:0,inv:true};
   try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
   dlOv(`<h2>⚔️ ${esc(inv.name)} يتحدّاك!</h2><div class="dlbig">🏁</div><p class="rnote">${DUEL_N} أسئلة بالسرعة، كلٌّ من كلماته. الأكثر إجابات صحيحة يفوز، وعند التعادل الأسرع.</p>
