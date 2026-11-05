@@ -555,6 +555,12 @@ function makeFS(env) {
       if (!r.ok) throw new Error("fs get " + r.status);
       const d = await r.json(); return { data: docData(d), updateTime: d.updateTime };
     },
+    async many(paths) {   // قراءة عدة وثائق بطلب واحد
+      if (!paths.length) return {};
+      const r = await fetch(FS_BASE + ":batchGet", { method: "POST", headers: await H(), body: JSON.stringify({ documents: paths.map(p => `projects/${PROJECT}/databases/(default)/documents/${p}`) }) });
+      if (!r.ok) throw new Error("fs many " + r.status);
+      const out = {}; for (const x of await r.json()) if (x.found) out[x.found.name.split("/documents/")[1]] = docData(x.found); return out;
+    },
     async list(coll) {
       const out = []; let tok = "";
       do {
@@ -1057,6 +1063,120 @@ async function handleErrs(fs, user, body, env) {
   return { status: 200, json: { items: l } };
 }
 
+
+/* ---------- الأصدقاء والتحدي المباشر ---------- */
+// fr/{uid}: { list: { uid: { s: "f" صديق | "out" طلب أرسلته | "in" طلب وصلني, n: اسم الدخول, t, w: فوز, l: خسارة } }, inv: دعوة تحدٍّ واردة }
+// on/{uid}: آخر ظهور (يُكتب مرة في الدقيقة على الأكثر). duel/{id}: التحدي نفسه
+const ONLINE = 90e3, INV_TTL = 60e3, DUEL_LEN = 180e3, DUEL_N = 10;
+const ONW = new Map();   // آخر كتابة للظهور في هذه النسخة من الخادم (توفير الكتابات)
+const loginOf = u => String(u.email || "").split("@")[0];
+async function frGet(fs, uid) { const d = await fs.get(`fr/${uid}`); return Object.assign({ list: {}, inv: null }, d ? d.data : {}) }
+async function uidOfLogin(env, login) {
+  if (env.__fs) return (await env.__fs.get(`members/u_${login}`)) ? "u_" + login : "";
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: "POST", headers: { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" }, body: JSON.stringify({ email: [login + "@mufradati.app"] }) });
+  const j = await r.json().catch(() => ({})); return j.users && j.users[0] ? j.users[0].localId : "";
+}
+async function handleFriends(fs, user, body, env) {
+  const me = user.uid, op = String(body.op || "tick"), now = Date.now();
+  if (user.email === ADMIN) return { status: 403, json: { error: "admin" } };
+  if (op === "tick") {
+    // نبضة كل بضع ثوانٍ: «أنا متصل»، وهل وصلتني دعوة تحدٍّ؟
+    const w = [];
+    if (now - (ONW.get(me) || 0) > 50e3) { ONW.set(me, now); w.push({ path: `on/${me}`, data: { t: { __ts: now } } }) }
+    const f = await frGet(fs, me); if (w.length) await fs.commit(w);
+    const inv = f.inv && now - (f.inv.t && f.inv.t.ms || f.inv.t || 0) < INV_TTL ? { id: f.inv.id, from: f.inv.from, name: f.inv.name } : null;
+    const L = Object.values(f.list || {});
+    return { status: 200, json: { inv, nf: L.filter(x => x.s === "f").length, nin: L.filter(x => x.s === "in").length } };
+  }
+  if (op === "list") {
+    const f = await frGet(fs, me), ids = Object.keys(f.list || {});
+    const got = await fs.many(ids.flatMap(id => [`names/${id}`, `on/${id}`]));
+    return { status: 200, json: { items: ids.map(id => { const x = f.list[id], nm = got[`names/${id}`], on = got[`on/${id}`], t = on && on.t ? on.t.ms || 0 : 0;
+      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: t, w: x.w || 0, l: x.l || 0 } }) } };
+  }
+  const other = String(body.uid || "");
+  if (op === "add") {
+    const login = String(body.login || "").trim().toLowerCase();
+    if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(login)) return { status: 400, json: { error: "login" } };
+    if (login === loginOf(user) || login === "admin") return { status: 400, json: { error: "self" } };
+    const o = await uidOfLogin(env, login); if (!o) return { status: 404, json: { error: "nouser" } };
+    const [a, b] = await Promise.all([frGet(fs, me), frGet(fs, o)]);
+    if (Object.keys(a.list).length >= 100) return { status: 400, json: { error: "many" } };
+    const cur = a.list[o];
+    if (cur && cur.s === "f") return { status: 200, json: { ok: true, s: "f" } };
+    const both = cur && cur.s === "in";   // كان قد أرسل لي طلبًا: نصبح أصدقاء مباشرة
+    a.list[o] = { ...(cur || {}), s: both ? "f" : "out", n: login, t: { __ts: now } };
+    b.list[me] = { ...(b.list[me] || {}), s: both ? "f" : "in", n: loginOf(user), t: { __ts: now } };
+    await fs.commit([{ path: `fr/${me}`, data: { list: a.list }, merge: true }, { path: `fr/${o}`, data: { list: b.list }, merge: true }]);
+    return { status: 200, json: { ok: true, s: a.list[o].s } };
+  }
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(other)) return { status: 400, json: { error: "uid" } };
+  const [a, b] = await Promise.all([frGet(fs, me), frGet(fs, other)]);
+  if (op === "acc") {
+    if (!a.list[other] || a.list[other].s !== "in") return { status: 400, json: { error: "noreq" } };
+    a.list[other].s = "f"; b.list[me] = { ...(b.list[me] || { n: loginOf(user) }), s: "f" };
+  } else if (op === "del") { delete a.list[other]; delete b.list[me] }   // رفض طلب، أو إلغاء طلبي، أو حذف صديق
+  else return { status: 400, json: { error: "op" } };
+  await fs.commit([{ path: `fr/${me}`, data: { list: a.list }, merge: true }, { path: `fr/${other}`, data: { list: b.list }, merge: true }]);
+  return { status: 200, json: { ok: true } };
+}
+const duelView = (d, id, me) => { const x = d; return { id, a: x.a, b: x.b, an: x.an, bn: x.bn, st: x.st, s: x.s || 0, pa: x.pa || {}, pb: x.pb || {}, win: x.win || "", me, now: Date.now() } };
+// الفائز: الأكثر إجابات صحيحة، وعند التعادل الأسرع (من لم يُنهِ يُعدّ أبطأ). تُعيد كتابات الإنهاء
+async function duelFinishW(fs, id, d, now) {
+  const A = d.pa || {}, B = d.pb || {}, ca = A.c || 0, cb = B.c || 0, ma = A.d ? A.ms : Infinity, mb = B.d ? B.ms : Infinity;
+  d.win = ca !== cb ? (ca > cb ? d.a : d.b) : ma !== mb ? (ma < mb ? d.a : d.b) : "tie"; d.st = "done";
+  const w = [];
+  if (d.win !== "tie") {
+    const [fa, fb] = await Promise.all([frGet(fs, d.a), frGet(fs, d.b)]);
+    if (fa.list[d.b] && fb.list[d.a]) {
+      const lose = d.win === d.a ? d.b : d.a, fw = d.win === d.a ? fa : fb, fl = d.win === d.a ? fb : fa;
+      fw.list[lose].w = (fw.list[lose].w || 0) + 1; fl.list[d.win].l = (fl.list[d.win].l || 0) + 1;
+      w.push({ path: `fr/${d.a}`, data: { list: fa.list }, merge: true }, { path: `fr/${d.b}`, data: { list: fb.list }, merge: true });
+    }
+  }
+  return w;
+}
+async function handleDuel(fs, user, body, env) {
+  const me = user.uid, op = String(body.op || "st"), now = Date.now();
+  if (op === "inv") {
+    const to = String(body.to || ""); if (!/^[A-Za-z0-9_-]{1,128}$/.test(to)) return { status: 400, json: { error: "uid" } };
+    const [f, on, nm, nt, ft] = await Promise.all([frGet(fs, me), fs.get(`on/${to}`), fs.get(`names/${me}`), fs.get(`names/${to}`), frGet(fs, to)]);
+    if (!f.list[to] || f.list[to].s !== "f") return { status: 403, json: { error: "notfriend" } };
+    if (!on || now - (on.data.t && on.data.t.ms || 0) > ONLINE) return { status: 409, json: { error: "offline" } };
+    if (ft.inv && now - (ft.inv.t && ft.inv.t.ms || 0) < INV_TTL && ft.inv.from !== me) return { status: 409, json: { error: "busy" } };
+    const id = now.toString(36) + Math.random().toString(36).slice(2, 7), an = nm && nm.data.name || loginOf(user), bn = nt && nt.data.name || f.list[to].n || "";
+    const d = { a: me, b: to, an, bn, st: "inv", t: { __ts: now }, s: 0, pa: { i: 0, c: 0, ms: 0, d: false }, pb: { i: 0, c: 0, ms: 0, d: false }, win: "" };
+    await fs.commit([{ path: `duel/${id}`, data: d }, { path: `fr/${to}`, data: { inv: { id, from: me, name: an, t: { __ts: now } } }, merge: true }]);
+    return { status: 200, json: duelView(d, id, me) };
+  }
+  const id = String(body.id || ""); if (!/^[a-z0-9]{6,20}$/.test(id)) return { status: 400, json: { error: "id" } };
+  const doc = await fs.get(`duel/${id}`); if (!doc) return { status: 404, json: { error: "nodule" } };
+  const d = doc.data; if (d.a !== me && d.b !== me) return { status: 403, json: { error: "notyours" } };
+  const t0 = d.t && d.t.ms || 0;
+  if (d.st === "inv" && now - t0 > INV_TTL) d.st = "x";   // انتهت مهلة الدعوة
+  if (op === "acc" || op === "no") {
+    if (d.st !== "inv") return { status: 409, json: duelView(d, id, me) };
+    if (op === "acc" && d.b !== me) return { status: 403, json: { error: "notyours" } };
+    d.st = op === "acc" ? "on" : d.b === me ? "no" : "x"; if (op === "acc") d.s = now + 4000;   // عدّ تنازلي 3·2·1
+    await fs.commit([{ path: `duel/${id}`, data: { st: d.st, s: d.s }, merge: true }, { path: `fr/${d.b}`, data: { inv: null }, merge: true }]);
+    return { status: 200, json: duelView(d, id, me) };
+  }
+  if (d.st !== "on") return { status: 200, json: duelView(d, id, me) };
+  const upd = {};
+  if (op === "ans") {
+    const k = d.a === me ? "pa" : "pb", p = Object.assign({ i: 0, c: 0, ms: 0, d: false }, d[k]), i = +body.i;
+    if (now >= d.s && i === (p.i || 0) + 1 && i <= DUEL_N && now - d.s <= DUEL_LEN) { p.i = i; p.c += body.ok ? 1 : 0; p.ms = now - d.s; p.d = i === DUEL_N; d[k] = p; upd[k] = p }
+  }
+  // ينتهي التحدي حين يُنهي الاثنان، أو تنقضي الدقائق الثلاث
+  let w = [];
+  if ((d.pa || {}).d && (d.pb || {}).d || now - d.s > DUEL_LEN + 5e3) { w = await duelFinishW(fs, id, d, now); Object.assign(upd, { st: "done", win: d.win, end: { __ts: now } }) }
+  if (Object.keys(upd).length) {
+    try { await fs.commit([{ path: `duel/${id}`, data: upd, merge: true, ifUpdateTime: doc.updateTime }, ...w]) }
+    catch (e) { if (!e.conflict) throw e; const again = await fs.get(`duel/${id}`); return { status: 200, json: { ...duelView(again.data, id, me), retry: 1 } } }   // سبقه اللاعب الآخر: يعيد الإرسال
+  }
+  return { status: 200, json: duelView(d, id, me) };
+}
+
 /* ---------- نقطة الدخول ---------- */
 function cors(req) {
   const o = req.headers.get("Origin") || "";
@@ -1069,7 +1189,7 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -1079,7 +1199,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

@@ -554,6 +554,19 @@ body.fbon main{padding-bottom:210px}
 .mbadge{position:absolute;top:-4px;left:-6px;background:#ef4444;color:#fff;font-size:.6rem;font-weight:800;border-radius:9px;min-width:16px;padding:0 4px;line-height:16px;display:none}
 .mbadge.on{display:block}
 .mhead{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+
+/* الأصدقاء والتحدي */
+.frcard{width:100%;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,var(--navy),#3b4fa0);color:#fff;border:0;border-radius:14px;padding:14px;margin-bottom:12px;text-align:start;position:relative}
+.frcard .gic{font-size:1.8rem}.frcard b{display:block;font-size:1rem}.frcard small{opacity:.85;font-size:.78rem}.frcard .mbadge{top:8px;left:10px;right:auto}
+.frrow{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}.frrow>div{flex:1;min-width:0}.frrow b{display:block}.frrow small{color:var(--muted);font-size:.75rem}
+.frrow .btn{padding:6px 12px;font-size:.82rem}.frrow .x{background:var(--soft);color:var(--red)}.frdot{width:10px;height:10px;border-radius:50%;background:#bbb;flex-shrink:0}.frdot.on{background:#2fbf71;box-shadow:0 0 0 3px #2fbf7133}
+.fradd{display:flex;gap:6px;margin:8px 0}.fradd input{flex:1;direction:ltr;text-align:left}
+#duelOv{display:none;position:fixed;inset:0;z-index:300;background:var(--paper);overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}#duelOv.on{display:block}
+.dl{max-width:480px;margin:0 auto;text-align:center}.dl h2{margin:6px 0 14px}.dlbig{font-size:4rem;font-weight:900;color:var(--navy);margin:40px 0}
+.dlbars{display:grid;gap:8px;margin-bottom:18px;text-align:start}.dlbar small{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}.dlbar i{display:block;height:10px;border-radius:6px;background:var(--soft);overflow:hidden}.dlbar i b{display:block;height:100%;background:var(--navy);transition:width .3s}.dlbar.op i b{background:#e08a1e}
+.dlq{font-size:1.7rem;font-weight:800;margin:18px 0 20px;direction:ltr}.dlopts{display:grid;gap:10px}.dlopts button{padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:1.05rem;color:var(--ink)}
+.dlopts button.ok{background:#2fbf71;color:#fff;border-color:#2fbf71}.dlopts button.no{background:var(--red);color:#fff;border-color:var(--red)}
+.dlres{font-size:3.5rem;margin:20px 0 6px}.dlx{position:absolute;top:12px;left:14px;background:none;border:0;color:var(--red);font-size:.9rem}
 /* الحماية */
 .bkrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.bkrow small{display:block;color:var(--muted);font-size:.75rem}
 .bkbtns{display:flex;gap:4px;flex-shrink:0}.bkbtns .btn{padding:6px 10px;font-size:.8rem;background:var(--soft);color:var(--hd)}.bkbtns .bkR{color:var(--red)}
@@ -707,6 +720,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
   <section id="helper" class="panel"></section>
+  <div id="duelOv"></div>
   <section id="users" class="panel"></section>
   <section id="cfgP" class="panel"></section>
   <section id="shopEd" class="panel"></section>
@@ -1753,12 +1767,15 @@ const secs=ms=>(ms/1000).toFixed(1).replace(".",",")+" ث";
 function renderGames(){
   const el=$("games");
   if(GM){gameView();return}
+  if(FRV){renderFriends();return}
   const bm=bestMatch();
-  el.innerHTML=`<div class="gcards">${GAMES.filter(g=>!g.hidden).map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
+  el.innerHTML=`<button class="frcard" id="frOpen"><span class="gic">👫</span><span><b>الأصدقاء والتحدي</b><small>تحدَّ صديقًا متصلًا: 10 أسئلة، كلٌّ من كلماته</small></span>${FRN.nin?`<em class="mbadge on">${FRN.nin}</em>`:""}</button>
+   <div class="gcards">${GAMES.filter(g=>!g.hidden).map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
     return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
      <em>${g.id==="listen"&&listenMuted()?"متوقف مؤقتًا: يعود بعد "+Math.ceil((+(localStorage.getItem("muf_nolisten")||0)-Date.now())/60000)+" دقيقة":g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
+  $("frOpen").onclick=()=>{FRV=true;renderFriends()};
 }
 function startGame(id){
   const pool=gamePool(id);stopTick();
@@ -2877,7 +2894,7 @@ async function onLogin(user){
   syncNow(true);
   loadNameReqs();watchGifts();
   startMessages();
-  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();
+  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();setTimeout(frTick,2500);
   await syncNow(true);
   setTimeout(freezeReminder,2500);
   setTimeout(maybeAskFeedback,4000);
@@ -3292,6 +3309,123 @@ async function renderAssign(uid){
     try{await aref(uid).set({courses:pick,start,ts:firebase.firestore.FieldValue.serverTimestamp()});toast("📘","حُفظت مناهجه",pick.map(id=>COURSES[id].name).join("، "))}
     catch(e){await uiAlert(e.code==="permission-denied"?"لا صلاحية: حدّث قواعد الأمان في Firebase.":"تعذّر الحفظ، تحقّق من الاتصال.")}
   };
+}
+
+/* ================= الأصدقاء والتحدي المباشر ================= */
+var FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
+const DUEL_N=10;
+const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
+const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
+// نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 12 ثانية والتطبيق ظاهر (دقيقة إن لم يكن له أصدقاء)
+async function frTick(){
+  clearTimeout(FRT);if(!UID||isAdmin())return;
+  if(!document.hidden){try{const j=await apiPost("/fr",{op:"tick"});const ch=j.nin!==FRN.nin;FRN={nf:j.nf,nin:j.nin};
+    if(ch&&$("games").classList.contains("on")&&!GM&&!FRV)renderGames();
+    if(j.inv&&!DL&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);duelInvited(j.inv)}}catch(e){}}
+  FRT=setTimeout(frTick,FRN.nf||FRN.nin||FRV?12e3:60e3);
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&UID)frTick()});
+async function renderFriends(){
+  const el=$("games");if(!FRL)el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
+  try{FRL=(await apiPost("/fr",{op:"list"})).items||[]}catch(e){if(!FRL){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';return}}
+  if(!FRV||!$("games").classList.contains("on"))return;
+  const F=FRL.filter(x=>x.s==="f").sort((a,b)=>b.on-a.on||b.seen-a.seen),IN=FRL.filter(x=>x.s==="in"),OUT=FRL.filter(x=>x.s==="out"),enough=learnedList().length>=DUEL_N;
+  const nm=x=>`<b>${esc(x.name||x.login)}</b>`;
+  el.innerHTML=`<div class="mhead"><button class="btn" id="frBack">→ رجوع</button><h2 style="margin:0">👫 الأصدقاء</h2></div>
+   <div class="rsec"><h3>إضافة صديق</h3><p class="rnote">اكتب اسم الدخول لصديقك. اسمك أنت: <b dir="ltr">${esc(myLogin())}</b></p>
+    <div class="fradd"><input id="frIn" placeholder="اسم الدخول" autocapitalize="off" autocomplete="off" maxlength="30"><button class="btn" id="frAdd">إرسال طلب</button></div><div class="stmsg" id="frMsg"></div></div>
+   ${IN.length?`<div class="rsec"><h3>طلبات صداقة</h3>${IN.map(x=>`<div class="frrow"><div>${nm(x)}<small dir="ltr">${esc(x.login)}</small></div><button class="btn frAcc" data-u="${x.uid}">قبول</button><button class="btn x frDel" data-u="${x.uid}">رفض</button></div>`).join("")}</div>`:""}
+   <div class="rsec"><h3>أصدقائي</h3>${!enough?`<p class="rnote">للتحدي تحتاج ${DUEL_N} كلمات تعلّمتها على الأقل في الاختيار الحالي.</p>`:""}
+    ${F.length?F.map(x=>`<div class="frrow"><span class="frdot${x.on?" on":""}"></span><div>${nm(x)}<small>${x.on?"متصل الآن":seenAgo(x.seen)}${x.w||x.l?` · فزت ${x.w} · خسرت ${x.l}`:""}</small></div>
+      <button class="btn frDuel" data-u="${x.uid}" ${x.on&&enough?"":"disabled"}>تحدَّ</button><button class="btn x frDel" data-u="${x.uid}" data-f="1" title="حذف">×</button></div>`).join(""):'<div class="empty">لا أصدقاء بعد. أضف صديقًا باسم دخوله.</div>'}</div>
+   ${OUT.length?`<div class="rsec"><h3>طلبات أرسلتها</h3>${OUT.map(x=>`<div class="frrow"><div>${nm(x)}<small>بانتظار الموافقة</small></div><button class="btn x frDel" data-u="${x.uid}">إلغاء</button></div>`).join("")}</div>`:""}`;
+  $("frBack").onclick=()=>{FRV=false;clearTimeout(FRLT);renderGames()};
+  const msg=(t,c)=>{const m=$("frMsg");if(m){m.textContent=t;m.className="stmsg "+(c||"")}};
+  $("frAdd").onclick=async()=>{const v=$("frIn").value.trim().toLowerCase();if(!v)return;$("frAdd").disabled=true;
+    try{const j=await apiPost("/fr",{op:"add",login:v});msg(j.s==="f"?"✓ صرتما صديقين":"✓ أُرسل الطلب، ينتظر موافقته","ok");$("frIn").value="";setTimeout(renderFriends,800)}
+    catch(e){msg(e.error==="nouser"?"لا يوجد مستخدم بهذا الاسم":e.error==="self"?"هذا اسمك أنت 🙂":e.error==="login"?"اكتب اسم الدخول كما هو (حروف لاتينية)":"تعذّر الإرسال، حاول مرة أخرى","bad")}
+    $("frAdd").disabled=false};
+  el.querySelectorAll(".frAcc").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await apiPost("/fr",{op:"acc",uid:b.dataset.u});toast("👫","صرتما صديقين","");renderFriends()}catch(e){b.disabled=false}});
+  el.querySelectorAll(".frDel").forEach(b=>b.onclick=async()=>{if(b.dataset.f&&!await uiConfirm("حذف هذا الصديق؟"))return;b.disabled=true;try{await apiPost("/fr",{op:"del",uid:b.dataset.u});renderFriends()}catch(e){b.disabled=false}});
+  el.querySelectorAll(".frDuel").forEach(b=>b.onclick=()=>duelStart(b.dataset.u));
+  clearTimeout(FRLT);FRLT=setTimeout(()=>{if(FRV&&$("games").classList.contains("on")&&!DL)renderFriends()},15e3);
+}
+/* ---------- التحدي ---------- */
+function duelQs(){
+  const pool=shuffle([...learnedList()]).slice(0,DUEL_N),all=uniq(W);
+  return pool.map(w=>{const others=all.filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(others.filter(x=>x.t===w.t));
+    return {w,opts:shuffle([w,...(same.length>=3?same:shuffle(others)).slice(0,3)])}});
+}
+const dlOv=h=>{const o=$("duelOv");o.className="on";o.innerHTML=`<div class="dl">${h}</div>`;return o};
+function duelClose(){if(DL){clearTimeout(DL.pt);DL=null}const o=$("duelOv");o.className="";o.innerHTML="";if(FRV&&$("games").classList.contains("on"))renderFriends()}
+async function duelPoll(op,extra){try{const j=await apiPost("/duel",{op,id:DL.id,...extra});if(!DL||j.id!==DL.id)return j;DL.off=j.now-Date.now();DL.d=j;return j}catch(e){return null}}
+async function duelStart(to){
+  if(learnedList().length<DUEL_N){uiAlert("للتحدي تحتاج "+DUEL_N+" كلمات تعلّمتها على الأقل.");return}
+  dlOv('<h2>جارٍ إرسال التحدي…</h2>');
+  let j;try{j=await apiPost("/duel",{op:"inv",to})}catch(e){duelClose();uiAlert(e.error==="offline"?"صديقك غير متصل الآن.":e.error==="busy"?"صديقك عنده دعوة تحدٍّ أخرى الآن، جرّب بعد دقيقة.":"تعذّر إرسال التحدي.");return}
+  DL={id:j.id,me:j.me,d:j,off:j.now-Date.now()};duelWait();
+}
+function duelWait(){
+  if(!DL)return;const d=DL.d,op=d.a===DL.me?d.bn:d.an;
+  dlOv(`<h2>⚔️ تحدٍّ مع ${esc(op)}</h2><div class="dlbig">⏳</div><p class="rnote">بانتظار أن يقبل ${esc(op)}… (دقيقة على الأكثر)</p><button class="btn" id="dlCancel" style="background:var(--soft);color:var(--red)">إلغاء</button>`);
+  $("dlCancel").onclick=async()=>{await duelPoll("no");duelClose()};
+  const tick=async()=>{if(!DL)return;const j=await duelPoll("st");if(!DL)return;
+    if(j&&j.st==="on"){duelPlay();return}
+    if(j&&(j.st==="no"||j.st==="x")){duelClose();uiAlert(j.st==="no"?esc(op)+" رفض التحدي هذه المرة.":"انتهت مهلة الدعوة دون رد.");return}
+    DL.pt=setTimeout(tick,1500)};DL.pt=setTimeout(tick,1500);
+}
+async function duelInvited(inv){
+  if(learnedList().length<DUEL_N){toast("⚔️",inv.name+" يتحدّاك","تحتاج "+DUEL_N+" كلمات تعلّمتها لتقبل");return}
+  DL={id:inv.id,me:UID,d:null,off:0,inv:true};
+  try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
+  dlOv(`<h2>⚔️ ${esc(inv.name)} يتحدّاك!</h2><div class="dlbig">🏁</div><p class="rnote">${DUEL_N} أسئلة بالسرعة، كلٌّ من كلماته. الأكثر إجابات صحيحة يفوز، وعند التعادل الأسرع.</p>
+   <button class="btn next" id="dlAcc" style="width:100%">قبول التحدي</button><button class="link" id="dlNo">ليس الآن</button>`);
+  $("dlNo").onclick=async()=>{await duelPoll("no");duelClose()};
+  $("dlAcc").onclick=async()=>{$("dlAcc").disabled=true;const j=await duelPoll("acc");if(!DL)return;
+    if(j&&j.st==="on")duelPlay();else{duelClose();uiAlert("انتهت الدعوة أو ألغاها صديقك.")}};
+  setTimeout(()=>{if(DL&&DL.id===inv.id&&!DL.q){duelClose()}},60e3);
+}
+function duelBars(){
+  const d=DL.d,mine=d.a===DL.me?d.pa:d.pb,his=d.a===DL.me?d.pb:d.pa,hn=d.a===DL.me?d.bn:d.an,mi=Math.max(DL.i||0,mine.i||0);
+  return `<div class="dlbars"><div class="dlbar"><small><b>أنت</b><span>${mi}/${DUEL_N}</span></small><i><b style="width:${mi*100/DUEL_N}%"></b></i></div>
+   <div class="dlbar op"><small><b>${esc(hn)}</b><span>${his.i||0}/${DUEL_N}</span></small><i><b style="width:${(his.i||0)*100/DUEL_N}%"></b></i></div></div>`;
+}
+function duelPlay(){
+  if(!DL)return;DL.q=duelQs();DL.i=0;DL.c=0;DL.sendQ=Promise.resolve();
+  const wait=()=>{if(!DL)return;const left=Math.ceil((DL.d.s-(Date.now()+DL.off))/1000);
+    if(left>0){dlOv(`<h2>استعد!</h2><div class="dlbig">${left}</div>`);DL.pt=setTimeout(wait,250);return}
+    duelQ();DL.pt=setTimeout(poll,1500)};
+  const poll=async()=>{if(!DL||DL.end)return;await duelPoll("st");if(!DL)return;const b=$("dlBars");if(b)b.innerHTML=duelBars();
+    if(DL.d.st==="done"){duelEnd();return}if(DL.i>=DUEL_N)duelWaitEnd();DL.pt=setTimeout(poll,1500)};
+  wait();
+}
+function duelQ(){
+  if(!DL)return;if(DL.i>=DUEL_N){duelWaitEnd();return}
+  const q=DL.q[DL.i];
+  const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button><h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
+   <div class="dlq">${esc(q.w.de)}</div><div class="dlopts">${q.opts.map((x,k)=>`<button data-k="${k}">${esc(x.ar)}</button>`).join("")}</div>`);
+  $("dlQuit").onclick=async()=>{if(await uiConfirm("تنسحب من التحدي؟ يفوز صديقك."))duelClose()};
+  o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
+    if(DL.lock)return;DL.lock=true;const ok=q.opts[+b.dataset.k].k===q.w.k;b.classList.add(ok?"ok":"no");
+    if(!ok)o.querySelectorAll(".dlopts button").forEach(x=>{if(q.opts[+x.dataset.k].k===q.w.k)x.classList.add("ok")});
+    DL.i++;if(ok)DL.c++;const i=DL.i;
+    // الإجابات تُرسل بالترتيب، وتُعاد إن سبقها اللاعب الآخر في الحفظ
+    DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0});const me=j&&(j.a===DL.me?j.pa:j.pb);if(me&&me.i>=i||j&&j.st!=="on")break}});
+    setTimeout(()=>{if(!DL)return;DL.lock=false;duelQ()},ok?350:900);
+  });
+}
+function duelWaitEnd(){
+  if(!DL||DL.end)return;const d=DL.d,hn=d.a===DL.me?d.bn:d.an;
+  if(!$("dlFin"))dlOv(`<h2 id="dlFin">أنهيت! ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote">بانتظار ${esc(hn)}…</p>`);
+}
+async function duelEnd(){
+  if(!DL||DL.end)return;DL.end=true;await DL.sendQ;const d=DL.d,me=d.a===DL.me?d.pa:d.pb,his=d.a===DL.me?d.pb:d.pa,hn=d.a===DL.me?d.bn:d.an;
+  const r=d.win==="tie"?["🤝","تعادل!"]:d.win===DL.me?["🏆","فزت!"]:["💪","خسرت هذه المرة"],sec=x=>x&&x.d?(x.ms/1000).toFixed(1)+" ث":"لم يُنهِ";
+  dlOv(`<div class="dlres">${r[0]}</div><h2>${r[1]}</h2>
+   <div class="rsec" style="text-align:start"><div class="frrow"><div><b>أنت</b></div><b>${me.c||0}/${DUEL_N} ✓</b><small>${sec(me)}</small></div>
+    <div class="frrow"><div><b>${esc(hn)}</b></div><b>${his.c||0}/${DUEL_N} ✓</b><small>${sec(his)}</small></div></div>
+   <button class="btn next" id="dlOk" style="width:100%">رجوع</button>`);
+  $("dlOk").onclick=duelClose;
 }
 
 /* ================= الحماية (للمشرف): النسخ الاحتياطية وتتبّع الأخطاء ================= */
