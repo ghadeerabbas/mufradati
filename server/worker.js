@@ -1090,16 +1090,26 @@ async function handleFriends(fs, user, body, env) {
   }
   if (op === "list") {
     const f = await frGet(fs, me), ids = Object.keys(f.list || {});
+    // رقم صداقة قصير (7 أرقام) يُنشأ أول مرة، ليضيف به الآخرون بدل اسم الدخول
+    if (!f.code) for (let k = 0; k < 5 && !f.code; k++) {
+      const c = String(1000000 + Math.floor(Math.random() * 9000000));
+      try { await fs.commit([{ path: `code/${c}`, data: { uid: me, n: loginOf(user) }, ifMissing: true }, { path: `fr/${me}`, data: { code: c }, merge: true }]); f.code = c } catch (e) { if (!e.conflict) throw e }
+    }
     const got = await fs.many(ids.flatMap(id => [`names/${id}`, `on/${id}`]));
     return { status: 200, json: { items: ids.map(id => { const x = f.list[id], nm = got[`names/${id}`], on = got[`on/${id}`], t = on && on.t ? on.t.ms || 0 : 0;
-      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: t, w: x.w || 0, l: x.l || 0 } }) } };
+      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: t, w: x.w || 0, l: x.l || 0 } }), code: f.code || "" } };
   }
   const other = String(body.uid || "");
   if (op === "add") {
-    const login = String(body.login || "").trim().toLowerCase();
-    if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(login)) return { status: 400, json: { error: "login" } };
-    if (login === loginOf(user) || login === "admin") return { status: 400, json: { error: "self" } };
-    const o = await uidOfLogin(env, login); if (!o) return { status: 404, json: { error: "nouser" } };
+    let login = String(body.login || "").trim().toLowerCase().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\s/g, ""), o = "";
+    if (/^\d{7}$/.test(login)) {   // إضافة برقم الصداقة
+      const c = await fs.get(`code/${login}`); if (!c) return { status: 404, json: { error: "nouser" } };
+      o = c.data.uid; login = c.data.n || ""; if (o === me) return { status: 400, json: { error: "self" } };
+    } else {
+      if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(login)) return { status: 400, json: { error: "login" } };
+      if (login === loginOf(user) || login === "admin") return { status: 400, json: { error: "self" } };
+      o = await uidOfLogin(env, login); if (!o) return { status: 404, json: { error: "nouser" } };
+    }
     const [a, b] = await Promise.all([frGet(fs, me), frGet(fs, o)]);
     if (Object.keys(a.list).length >= 100) return { status: 400, json: { error: "many" } };
     const cur = a.list[o];

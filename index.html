@@ -560,7 +560,7 @@ body.fbon main{padding-bottom:210px}
 .frcard .gic{font-size:1.8rem}.frcard b{display:block;font-size:1rem}.frcard small{opacity:.85;font-size:.78rem}.frcard .mbadge{top:8px;left:10px;right:auto}
 .frrow{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}.frrow>div{flex:1;min-width:0}.frrow b{display:block}.frrow small{color:var(--muted);font-size:.75rem}
 .frrow .btn{padding:6px 12px;font-size:.82rem}.frrow .x{background:var(--soft);color:var(--red)}.frdot{width:10px;height:10px;border-radius:50%;background:#bbb;flex-shrink:0}.frdot.on{background:#2fbf71;box-shadow:0 0 0 3px #2fbf7133}
-.fradd{display:flex;gap:6px;margin:8px 0}.fradd input{flex:1;direction:ltr;text-align:left}
+.fradd{display:flex;gap:6px;margin:8px 0}.frcode{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px}.frcode small{color:var(--muted)}.frcode b{flex:1;font-size:1.5rem;letter-spacing:3px;text-align:center}.frcode .btn{padding:6px 12px;font-size:.82rem}.fradd input{flex:1;direction:ltr;text-align:left}
 #duelOv{display:none;position:fixed;inset:0;z-index:300;background:var(--paper);overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}#duelOv.on{display:block}
 .dl{max-width:480px;margin:0 auto;text-align:center}.dl h2{margin:6px 0 14px}.dlbig{font-size:4rem;font-weight:900;color:var(--navy);margin:40px 0}
 .dlbars{display:grid;gap:8px;margin-bottom:18px;text-align:start}.dlbar small{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}.dlbar i{display:block;height:10px;border-radius:6px;background:var(--soft);overflow:hidden}.dlbar i b{display:block;height:100%;background:var(--navy);transition:width .3s}.dlbar.op i b{background:#e08a1e}
@@ -3312,7 +3312,7 @@ async function renderAssign(uid){
 }
 
 /* ================= الأصدقاء والتحدي المباشر ================= */
-var FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
+var FRC="",FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
 const DUEL_N=10;
 const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
 const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
@@ -3327,23 +3327,25 @@ async function frTick(){
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&UID)frTick()});
 async function renderFriends(){
   const el=$("games");if(!FRL)el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
-  try{FRL=(await apiPost("/fr",{op:"list"})).items||[]}catch(e){if(!FRL){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';return}}
+  try{const j=await apiPost("/fr",{op:"list"});FRL=j.items||[];FRC=j.code||FRC}catch(e){if(!FRL){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';return}}
   if(!FRV||!$("games").classList.contains("on"))return;
   const F=FRL.filter(x=>x.s==="f").sort((a,b)=>b.on-a.on||b.seen-a.seen),IN=FRL.filter(x=>x.s==="in"),OUT=FRL.filter(x=>x.s==="out"),enough=learnedList().length>=DUEL_N;
   const nm=x=>`<b>${esc(x.name||x.login)}</b>`;
   el.innerHTML=`<div class="mhead"><button class="btn" id="frBack">→ رجوع</button><h2 style="margin:0">👫 الأصدقاء</h2></div>
-   <div class="rsec"><h3>إضافة صديق</h3><p class="rnote">اكتب اسم الدخول لصديقك. اسمك أنت: <b dir="ltr">${esc(myLogin())}</b></p>
-    <div class="fradd"><input id="frIn" placeholder="اسم الدخول" autocapitalize="off" autocomplete="off" maxlength="30"><button class="btn" id="frAdd">إرسال طلب</button></div><div class="stmsg" id="frMsg"></div></div>
+   <div class="rsec"><h3>إضافة صديق</h3>${FRC?`<div class="frcode"><small>رقمك للأصدقاء</small><b dir="ltr">${FRC}</b><button class="btn" id="frCopy">نسخ</button></div>`:""}
+    <p class="rnote">اكتب رقم صديقك أو اسم دخوله. اسم دخولك أنت: <b dir="ltr">${esc(myLogin())}</b></p>
+    <div class="fradd"><input id="frIn" placeholder="الرقم أو اسم الدخول" autocapitalize="off" autocomplete="off" maxlength="30"><button class="btn" id="frAdd">إرسال طلب</button></div><div class="stmsg" id="frMsg"></div></div>
    ${IN.length?`<div class="rsec"><h3>طلبات صداقة</h3>${IN.map(x=>`<div class="frrow"><div>${nm(x)}<small dir="ltr">${esc(x.login)}</small></div><button class="btn frAcc" data-u="${x.uid}">قبول</button><button class="btn x frDel" data-u="${x.uid}">رفض</button></div>`).join("")}</div>`:""}
    <div class="rsec"><h3>أصدقائي</h3>${!enough?`<p class="rnote">للتحدي تحتاج ${DUEL_N} كلمات تعلّمتها على الأقل في الاختيار الحالي.</p>`:""}
     ${F.length?F.map(x=>`<div class="frrow"><span class="frdot${x.on?" on":""}"></span><div>${nm(x)}<small>${x.on?"متصل الآن":seenAgo(x.seen)}${x.w||x.l?` · فزت ${x.w} · خسرت ${x.l}`:""}</small></div>
-      <button class="btn frDuel" data-u="${x.uid}" ${x.on&&enough?"":"disabled"}>تحدَّ</button><button class="btn x frDel" data-u="${x.uid}" data-f="1" title="حذف">×</button></div>`).join(""):'<div class="empty">لا أصدقاء بعد. أضف صديقًا باسم دخوله.</div>'}</div>
+      <button class="btn frDuel" data-u="${x.uid}" ${x.on&&enough?"":"disabled"}>تحدَّ</button><button class="btn x frDel" data-u="${x.uid}" data-f="1" title="حذف">×</button></div>`).join(""):'<div class="empty">لا أصدقاء بعد. أضف صديقًا برقمه أو باسم دخوله.</div>'}</div>
    ${OUT.length?`<div class="rsec"><h3>طلبات أرسلتها</h3>${OUT.map(x=>`<div class="frrow"><div>${nm(x)}<small>بانتظار الموافقة</small></div><button class="btn x frDel" data-u="${x.uid}">إلغاء</button></div>`).join("")}</div>`:""}`;
   $("frBack").onclick=()=>{FRV=false;clearTimeout(FRLT);renderGames()};
+  const cp=$("frCopy");if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(FRC);toast("📋","نُسخ رقمك",FRC)}catch(e){toast("📋","رقمك",FRC)}};
   const msg=(t,c)=>{const m=$("frMsg");if(m){m.textContent=t;m.className="stmsg "+(c||"")}};
   $("frAdd").onclick=async()=>{const v=$("frIn").value.trim().toLowerCase();if(!v)return;$("frAdd").disabled=true;
     try{const j=await apiPost("/fr",{op:"add",login:v});msg(j.s==="f"?"✓ صرتما صديقين":"✓ أُرسل الطلب، ينتظر موافقته","ok");$("frIn").value="";setTimeout(renderFriends,800)}
-    catch(e){msg(e.error==="nouser"?"لا يوجد مستخدم بهذا الاسم":e.error==="self"?"هذا اسمك أنت 🙂":e.error==="login"?"اكتب اسم الدخول كما هو (حروف لاتينية)":"تعذّر الإرسال، حاول مرة أخرى","bad")}
+    catch(e){msg(e.error==="nouser"?"لا يوجد مستخدم بهذا الرقم أو الاسم":e.error==="self"?"هذا اسمك أنت 🙂":e.error==="login"?"اكتب اسم الدخول كما هو (حروف لاتينية)":"تعذّر الإرسال، حاول مرة أخرى","bad")}
     $("frAdd").disabled=false};
   el.querySelectorAll(".frAcc").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await apiPost("/fr",{op:"acc",uid:b.dataset.u});toast("👫","صرتما صديقين","");renderFriends()}catch(e){b.disabled=false}});
   el.querySelectorAll(".frDel").forEach(b=>b.onclick=async()=>{if(b.dataset.f&&!await uiConfirm("حذف هذا الصديق؟"))return;b.disabled=true;try{await apiPost("/fr",{op:"del",uid:b.dataset.u});renderFriends()}catch(e){b.disabled=false}});
