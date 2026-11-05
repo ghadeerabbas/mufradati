@@ -555,6 +555,11 @@ function makeFS(env) {
       if (!r.ok) throw new Error("fs get " + r.status);
       const d = await r.json(); return { data: docData(d), updateTime: d.updateTime };
     },
+    async where(coll, field, val) {   // أول وثيقة قيمة حقلها تساوي val (يعيد معرّفها)
+      const r = await fetch(FS_BASE + ":runQuery", { method: "POST", headers: await H(), body: JSON.stringify({ structuredQuery: { from: [{ collectionId: coll }], where: { fieldFilter: { field: { fieldPath: field }, op: "EQUAL", value: enc(val) } }, limit: 1 } }) });
+      if (!r.ok) throw new Error("fs where " + r.status);
+      const x = (await r.json()).find(y => y.document); return x ? x.document.name.split("/").pop() : "";
+    },
     async many(paths) {   // قراءة عدة وثائق بطلب واحد
       if (!paths.length) return {};
       const r = await fetch(FS_BASE + ":batchGet", { method: "POST", headers: await H(), body: JSON.stringify({ documents: paths.map(p => `projects/${PROJECT}/databases/(default)/documents/${p}`) }) });
@@ -1076,6 +1081,11 @@ async function uidOfLogin(env, login) {
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: "POST", headers: { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" }, body: JSON.stringify({ email: [login + "@mufradati.app"] }) });
   const j = await r.json().catch(() => ({})); return j.users && j.users[0] ? j.users[0].localId : "";
 }
+async function loginOfUid(env, uid) {
+  if (env.__fs) return uid.replace(/^u_/, "");
+  const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: "POST", headers: { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" }, body: JSON.stringify({ localId: [uid] }) });
+  const j = await r.json().catch(() => ({})); return j.users && j.users[0] ? String(j.users[0].email || "").split("@")[0] : "";
+}
 async function handleFriends(fs, user, body, env) {
   const me = user.uid, op = String(body.op || "tick"), now = Date.now();
   if (user.email === ADMIN) return { status: 403, json: { error: "admin" } };
@@ -1090,21 +1100,19 @@ async function handleFriends(fs, user, body, env) {
   }
   if (op === "list") {
     const f = await frGet(fs, me), ids = Object.keys(f.list || {});
-    // رقم صداقة قصير (7 أرقام) يُنشأ أول مرة، ليضيف به الآخرون بدل اسم الدخول
-    if (!f.code) for (let k = 0; k < 5 && !f.code; k++) {
-      const c = String(1000000 + Math.floor(Math.random() * 9000000));
-      try { await fs.commit([{ path: `code/${c}`, data: { uid: me, n: loginOf(user) }, ifMissing: true }, { path: `fr/${me}`, data: { code: c }, merge: true }]); f.code = c } catch (e) { if (!e.conflict) throw e }
-    }
+    const mm = await fs.get(`members/${me}`), myNo = mm && mm.data.no != null ? String(mm.data.no).padStart(6, "0") : "";   // رقم الحساب نفسه (يظهر في الإعدادات)
     const got = await fs.many(ids.flatMap(id => [`names/${id}`, `on/${id}`]));
     return { status: 200, json: { items: ids.map(id => { const x = f.list[id], nm = got[`names/${id}`], on = got[`on/${id}`], t = on && on.t ? on.t.ms || 0 : 0;
-      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: t, w: x.w || 0, l: x.l || 0 } }), code: f.code || "" } };
+      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: t, w: x.w || 0, l: x.l || 0 } }), code: myNo } };
   }
   const other = String(body.uid || "");
   if (op === "add") {
     let login = String(body.login || "").trim().toLowerCase().replace(/[٠-٩]/g, d => "٠١٢٣٤٥٦٧٨٩".indexOf(d)).replace(/\s/g, ""), o = "";
-    if (/^\d{7}$/.test(login)) {   // إضافة برقم الصداقة
-      const c = await fs.get(`code/${login}`); if (!c) return { status: 404, json: { error: "nouser" } };
-      o = c.data.uid; login = c.data.n || ""; if (o === me) return { status: 400, json: { error: "self" } };
+    if (/^\d{1,9}$/.test(login)) {   // إضافة برقم الحساب (الظاهر في الإعدادات)
+      const n = +login; if (n === 0) return { status: 404, json: { error: "nouser" } };
+      const hit = await fs.where("members", "no", n); if (!hit) return { status: 404, json: { error: "nouser" } };
+      o = hit; if (o === me) return { status: 400, json: { error: "self" } };
+      login = await loginOfUid(env, o);
     } else {
       if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(login)) return { status: 400, json: { error: "login" } };
       if (login === loginOf(user) || login === "admin") return { status: 400, json: { error: "self" } };

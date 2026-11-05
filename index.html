@@ -3332,7 +3332,7 @@ async function renderFriends(){
   const F=FRL.filter(x=>x.s==="f").sort((a,b)=>b.on-a.on||b.seen-a.seen),IN=FRL.filter(x=>x.s==="in"),OUT=FRL.filter(x=>x.s==="out"),enough=learnedList().length>=DUEL_N;
   const nm=x=>`<b>${esc(x.name||x.login)}</b>`;
   el.innerHTML=`<div class="mhead"><button class="btn" id="frBack">→ رجوع</button><h2 style="margin:0">👫 الأصدقاء</h2></div>
-   <div class="rsec"><h3>إضافة صديق</h3>${FRC?`<div class="frcode"><small>رقمك للأصدقاء</small><b dir="ltr">${FRC}</b><button class="btn" id="frCopy">نسخ</button></div>`:""}
+   <div class="rsec"><h3>إضافة صديق</h3>${FRC?`<div class="frcode"><small>رقم حسابك</small><b dir="ltr">${FRC}</b><button class="btn" id="frCopy">نسخ</button></div>`:""}
     <p class="rnote">اكتب رقم صديقك أو اسم دخوله. اسم دخولك أنت: <b dir="ltr">${esc(myLogin())}</b></p>
     <div class="fradd"><input id="frIn" placeholder="الرقم أو اسم الدخول" autocapitalize="off" autocomplete="off" maxlength="30"><button class="btn" id="frAdd">إرسال طلب</button></div><div class="stmsg" id="frMsg"></div></div>
    ${IN.length?`<div class="rsec"><h3>طلبات صداقة</h3>${IN.map(x=>`<div class="frrow"><div>${nm(x)}<small dir="ltr">${esc(x.login)}</small></div><button class="btn frAcc" data-u="${x.uid}">قبول</button><button class="btn x frDel" data-u="${x.uid}">رفض</button></div>`).join("")}</div>`:""}
