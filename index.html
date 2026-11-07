@@ -571,6 +571,7 @@ body.fbon main{padding-bottom:210px}
 .dlq{font-size:1.7rem;font-weight:800;margin:18px 0 20px;direction:ltr}.dlopts{display:grid;gap:10px}.dlopts button{padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:1.05rem;color:var(--ink)}
 .dlopts button.ok{background:#2fbf71;color:#fff;border-color:#2fbf71}.dlopts button.no{background:var(--red);color:#fff;border-color:var(--red)}
 .dlres{font-size:3.5rem;margin:20px 0 6px}.dlx{position:absolute;top:12px;left:14px;background:none;border:0;color:var(--red);font-size:.9rem}
+.dltime{position:absolute;top:12px;right:14px;font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums}.dltime.low{color:var(--red)}
 /* الحماية */
 .bkrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.bkrow small{display:block;color:var(--muted);font-size:.75rem}
 .bkbtns{display:flex;gap:4px;flex-shrink:0}.bkbtns .btn{padding:6px 10px;font-size:.8rem;background:var(--soft);color:var(--hd)}.bkbtns .bkR{color:var(--red)}
@@ -3319,7 +3320,7 @@ async function renderAssign(uid){
 
 /* ================= الأصدقاء والتحدي المباشر ================= */
 var FRC="",FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
-const DUEL_N=10;
+const DUEL_N=10,DUEL_LEN=180e3;   // مدة التحدي (نفسها في الخادم)
 const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
 const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
 // نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 3 ثوانٍ والتطبيق ظاهر إن كان له أصدقاء (لتصل الدعوة فورًا)، وإلا كل 12 ثانية أو دقيقة
@@ -3393,7 +3394,7 @@ function duelQs(){
     return {w,opts:shuffle([w,...(same.length>=3?same:shuffle(others)).slice(0,3)])}});
 }
 const dlOv=h=>{const o=$("duelOv");o.className="on";o.innerHTML=`<div class="dl">${h}</div>`;return o};
-function duelClose(){if(DL){clearTimeout(DL.pt);DL=null}
+function duelClose(){if(DL){clearTimeout(DL.pt);clearInterval(DL.ti);DL=null}
   document.querySelectorAll('.uidlg[data-msg="تنسحب من التحدي؟"]').forEach(x=>x.remove());   // سؤال انسحاب بقي مفتوحًا بعد انتهاء التحدي
   const o=$("duelOv");o.className="";o.innerHTML="";if(FRV&&$("games").classList.contains("on"))renderFriends()}
 async function duelPoll(op,extra){try{const j=await apiPost("/duel",{op,id:DL.id,...extra});if(!DL||j.id!==DL.id)return j;DL.off=j.now-Date.now();DL.d=j;return j}catch(e){return null}}
@@ -3444,20 +3445,28 @@ function duelBars(){
   return `<div class="dlbars">${ps.map(u=>{const h=u===DL.me?(DL.h||""):((d.p[u]||{}).h||""),c=[...h].filter(x=>x==="1").length;
     return `<div class="dlbar"><small><b>${esc(dlName(d,u))}</b><span>${h.length}/${DUEL_N} · ✓${c}</span></small><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div></div>`}).join("")}</div>`;
 }
+// عدّاد الوقت الباقي: يراه كل لاعب، محسوبًا من ساعة الخادم
+const dlLeft=()=>DL&&DL.d?Math.max(0,DL.d.s+DUEL_LEN-(Date.now()+(DL.off||0))):0;
+const dlTimeH=()=>`<span class="dltime" id="dlTime"></span>`;
+function dlTick(){
+  if(!DL)return;const ms=dlLeft(),t=Math.ceil(ms/1000),e=$("dlTime");
+  if(e){e.textContent="⏱ "+Math.floor(t/60)+":"+String(t%60).padStart(2,"0");e.classList.toggle("low",t<=30)}
+  if(ms<=0&&DL.i<DUEL_N&&!DL.to){DL.to=true;DL.lock=true;duelWaitEnd()}   // انتهى الوقت قبل أن يُنهي
+}
 function duelPlay(){
   if(!DL)return;clearTimeout(DL.pt);DL.q=duelQs();DL.i=0;DL.c=0;DL.h="";DL.x=[];DL.sendQ=Promise.resolve();
   const wait=()=>{if(!DL)return;const left=Math.ceil((DL.d.s-(Date.now()+DL.off))/1000);
     if(left>0){dlOv(`<h2>استعد!</h2><div class="dlbig">${left}</div>`);DL.pt=setTimeout(wait,250);return}
-    duelQ();DL.pt=setTimeout(poll,1500)};
+    duelQ();clearInterval(DL.ti);DL.ti=setInterval(dlTick,500);DL.pt=setTimeout(poll,1500)};
   const poll=async()=>{if(!DL||DL.end)return;await duelPoll("st");if(!DL)return;const b=$("dlBars");if(b)b.innerHTML=duelBars();
     if(DL.d.st==="done"){duelEnd(true);return}
-    if(DL.i>=DUEL_N){if(dlMyFixed(DL.d))duelEnd(false);else duelWaitEnd()}DL.pt=setTimeout(poll,1500)};
+    if(DL.i>=DUEL_N||DL.to){if(!DL.to&&dlMyFixed(DL.d))duelEnd(false);else duelWaitEnd()}DL.pt=setTimeout(poll,1500)};
   wait();
 }
 function duelQ(){
   if(!DL)return;if(DL.i>=DUEL_N){duelWaitEnd();return}
   const q=DL.q[DL.i];
-  const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button><h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
+  const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button>${dlTimeH()}<h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
    <div class="dlq">${esc(q.w.de)}</div><div class="dlopts">${q.opts.map((x,k)=>`<button data-k="${k}">${esc(x.ar)}</button>`).join("")}</div>`);
   $("dlQuit").onclick=async()=>{const id=DL&&DL.id;if(!await uiConfirm("تنسحب من التحدي؟")||!DL||DL.id!==id)return;if(DL){clearTimeout(DL.pt);DL.end=true;await duelPoll("quit")}duelClose()};
   o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
@@ -3468,7 +3477,7 @@ function duelQ(){
     // الإجابات تُرسل بالترتيب، وتُعاد إن لم تُحفظ
     DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0,...(ok?{}:{de:q.w.de,ar:q.w.ar,pk:pk.ar})});const me=j&&j.p&&j.p[DL.me];if(me&&me.i>=i||j&&j.st!=="on")break}});
     if(i===DUEL_N){const id=DL.id;DL.sendQ.then(()=>duelStreak(id))}
-    setTimeout(()=>{if(!DL)return;DL.lock=false;duelQ()},ok?350:900);
+    setTimeout(()=>{if(!DL||DL.to)return;DL.lock=false;duelQ();dlTick()},ok?350:900);
   });
 }
 // إنهاء التحدي ينشّط سلسلة اليوم إن لم تكن نشطة (بلا خبرة ولا جواهر)
@@ -3478,8 +3487,8 @@ function duelStreak(id){
 }
 function duelWaitEnd(){
   if(!DL||DL.end)return;const d=DL.d,rest=dlPlayers(d).filter(u=>u!==DL.me&&!(d.p[u]||{}).d).map(u=>d.nm[u]||"صديق");
-  if(!$("dlFin"))dlOv(`<h2 id="dlFin">أنهيت! ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote" id="dlRest"></p>`);
-  const r=$("dlRest");if(r)r.textContent=rest.length?"بانتظار "+rest.join("، ")+"…":"جارٍ حساب النتيجة…";
+  if(!$("dlFin"))dlOv(`${dlTimeH()}<h2 id="dlFin">${DL.to?"⏰ انتهى الوقت!":"أنهيت!"} ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote" id="dlRest"></p>`);
+  dlTick();const r=$("dlRest");if(r)r.textContent=rest.length?"بانتظار "+rest.join("، ")+"…":"جارٍ حساب النتيجة…";
 }
 // ترتيبي ثابت إن لم يعد أحد ممّن يلعبون يستطيع أن يتخطّاني أو أن أتخطّاه:
 // من يلعب ويملك صحيحًا أكثر مني فهو أمامي حتمًا، ومن لا يستطيع بما بقي له أن يزيد عن صحيحي فهو خلفي حتمًا (حتى في التعادل، لأنه سيُنهي بعدي فيكون أبطأ)
@@ -3491,7 +3500,7 @@ function dlMyFixed(d){
 const dlRankNow=d=>dlPlayers(d).slice().sort((a,b)=>{const x=d.p[a]||{},y=d.p[b]||{};return (x.q?1:0)-(y.q?1:0)||(y.c||0)-(x.c||0)||(x.d?x.ms:Infinity)-(y.d?y.ms:Infinity)});
 // النتيجة: نهائية حين ينتهي التحدي، أو مبكرة حين يثبت ترتيبي ويظلّ الباقون يلعبون (تتحدّث وحدها حتى ينهوا)
 async function duelEnd(final){
-  if(!DL||DL.end)return;if(final){DL.end=true;await DL.sendQ}
+  if(!DL||DL.end)return;if(final){DL.end=true;clearInterval(DL.ti);await DL.sendQ}
   const sig=JSON.stringify([final,DL.d.p]);if(DL.sig===sig)return;DL.sig=sig;   // لا يُعاد الرسم إلا إن تغيّر شيء (حتى لا يقفز التمرير)
   const ov=$("duelOv"),y=ov.scrollTop;
   const d=DL.d,tie=final&&d.rank[0]==="tie",R=final?d.rank.filter(u=>u!=="tie"):dlRankNow(d),pos=R.indexOf(DL.me),playing=R.filter(u=>!(d.p[u]||{}).d);
