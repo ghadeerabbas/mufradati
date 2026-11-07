@@ -3325,7 +3325,7 @@ async function frTick(){
   clearTimeout(FRT);if(!UID||isAdmin())return;
   if(!document.hidden){try{const j=await apiPost("/fr",{op:"tick"});const ch=j.nin!==FRN.nin;FRN={nf:j.nf,nin:j.nin};
     if(ch&&$("games").classList.contains("on")&&!GM&&!FRV)renderGames();
-    if(j.inv&&!DL&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);duelInvited(j.inv)}}catch(e){}}
+    if(j.inv&&(!DL||DL.end)&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);if(DL)duelClose();duelInvited(j.inv)}}catch(e){}}
   FRT=setTimeout(frTick,FRN.nf||FRN.nin||FRV?12e3:60e3);
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&UID)frTick()});
@@ -3474,8 +3474,15 @@ async function duelEnd(final){
      return `<div class="dlrep"><b>${esc(dlName(d,u))}</b><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div>
       ${!final&&!p.d&&u!==DL.me?'<small>ما زال يلعب…</small>':""}${x.length?x.map(e=>`<div class="dlerr"><span dir="ltr">${esc(e.de)}</span><span>✓ ${esc(e.ar)}</span>${e.pk?`<small>اختار: ${esc(e.pk)}</small>`:""}</div>`).join(""):!final&&!p.d&&u!==DL.me?"":h.length?'<small class="ok">بلا أخطاء 👏</small>':'<small>لم يُجِب</small>'}
       ${final&&h.length&&h.length<DUEL_N?`<small>لم يُكمل: أجاب عن ${h.length} من ${DUEL_N}</small>`:""}</div>`}).join("")}</div>
-   <button class="btn next" id="dlOk" style="width:100%">رجوع</button>`);
+   ${final?'<button class="btn next" id="dlAgain" style="width:100%">🔁 إعادة التحدي</button>':""}
+   <button class="btn${final?"":" next"}" id="dlOk" style="width:100%;margin-top:8px">رجوع</button>`);
   $("dlOk").onclick=duelClose;ov.scrollTop=y;
+  // إعادة التحدي مع نفس اللاعبين بضغطة؛ وإن سبقك أحدهم بالدعوة تظهر لك دعوته مباشرة
+  const ag=$("dlAgain");if(ag){const others=dlPlayers(d).filter(u=>u!==DL.me);
+    ag.onclick=async()=>{ag.disabled=true;
+      try{const j=await apiPost("/fr",{op:"tick"});if(j.inv&&others.includes(j.inv.from)&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);duelClose();duelInvited(j.inv);return}}catch(e){}
+      duelClose();duelStart(others)};
+    const rp=()=>{if(!DL||!DL.end)return;frTick();DL.pt=setTimeout(rp,3000)};DL.pt=setTimeout(rp,3000)}
 }
 
 /* ================= الحماية (للمشرف): النسخ الاحتياطية وتتبّع الأخطاء ================= */
