@@ -2441,7 +2441,7 @@ function renderSettings(){
   <div class="rsec"><h3>${I3("speaker")} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div><p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p></div>
   ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
-  <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">تصل التذكيرات إن سمحت بإشعارات التطبيق في هاتفك. ويُعدّ اليوم مكتملًا بمحطة أو بعشر مراجعات.</p>'
+  <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">تصل التذكيرات إن سمحت بإشعارات التطبيق في هاتفك. ويُعدّ اليوم مكتملًا بمحطة أو بعشر مراجعات أو بإنهاء تحدٍّ مع صديق.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
   ${isAdmin()?"":`<div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>`}
   <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
@@ -3510,8 +3510,9 @@ function duelQ(){
 }
 // إنهاء التحدي ينشّط سلسلة اليوم إن لم تكن نشطة (بلا خبرة ولا جواهر)
 function duelStreak(id){
-  try{if(duelDays().includes(dkey(Date.now())))return;const was=econ().s.today;
-    if(ev({type:"duel",id})===true&&!was&&econ().s.today){toast("🔥","نشّطت سلسلتك اليوم","بإنهاء التحدي");renderHeader()}}catch(e){}
+  try{if(duelDays().includes(dkey(Date.now()))){markStudied();return}const was=econ().s.today;
+    if(ev({type:"duel",id})===true){markStudied();   // يوقف تذكير اليوم في الهاتف
+      if(!was&&econ().s.today){toast("🔥","نشّطت سلسلتك اليوم","بإنهاء التحدي");renderHeader()}}}catch(e){}
 }
 function duelWaitEnd(){
   if(!DL||DL.end)return;const d=DL.d,rest=dlPlayers(d).filter(u=>u!==DL.me&&!(d.p[u]||{}).d).map(u=>d.nm[u]||"صديق");
