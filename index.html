@@ -580,23 +580,6 @@ body.fbon main{padding-bottom:210px}
 #admNav button{position:relative}#eBadge{top:0;left:auto;right:50%;margin-right:-22px}
 /* مساعد الوظيفة */
 #aiBtn .i3{width:26px;height:26px}
-/* القراءة */
-#rdBtn .i3{width:26px;height:26px}
-.rdl{display:flex;flex-direction:column;gap:8px}
-.rdc{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:2px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);font:inherit;text-align:right}
-.rdc .rdi{font-size:1.6rem}.rdc div{flex:1;min-width:0}.rdc b{display:block;direction:ltr;text-align:left;font-size:1.05rem}.rdc small{display:block;color:var(--muted)}
-.rdc.done{border-color:#58cc02}.rdc .ok{color:#58cc02;font-weight:900;font-size:1.2rem}
-.rdbar{position:sticky;top:var(--hdrH,70px);z-index:5;background:var(--paper);display:flex;flex-wrap:wrap;gap:6px;padding:8px 0}
-.rdbar{flex-wrap:nowrap}.rdbar .btn{background:var(--soft);color:var(--hd);padding:7px 9px;font-size:.82rem;white-space:nowrap}.rdbar #rdPlay{flex:1}.rdbar .btn.on{background:#1cb0f6;color:#fff}.rdbar #rdPlay{background:#58cc02;color:#fff;box-shadow:0 4px 0 #46a302}
-.rdtx{direction:ltr;text-align:left;font-size:1.35rem;line-height:2.1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:6px}
-.rdtx h3{font-size:1.45rem;margin-bottom:6px;color:var(--hd)}.rdtx p{margin-bottom:12px}
-.rdtx .rs{border-radius:8px;transition:background .2s}.rdtx .rs.cur{background:rgba(28,176,246,.14)}
-.rdtx .rw{cursor:pointer;border-radius:6px;padding:0 1px}.rdtx .rw.cur{background:#ffd43b;color:#222}.rdtx .rw.sel{outline:2px solid #1cb0f6}
-.rdtx .rsb{display:block;margin-bottom:10px}.rdtx .rsv{display:block;width:fit-content}.rdtx p:has(.rsv){margin-bottom:18px;font-size:1.2rem;line-height:1.9}.rdtx .rar{display:block;direction:rtl;text-align:right;font-size:1rem;color:var(--muted);line-height:1.7;margin-top:2px}
-.rdpop{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);border-top:3px solid #1cb0f6;border-radius:18px 18px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(0,0,0,.15);max-width:720px;margin:0 auto}
-.rdpop .w{direction:ltr;text-align:left;padding-left:4px;font-size:1.5rem;font-weight:800}.rdpop .m{font-size:1.15rem;margin:2px 0 8px}.rdpop .row2{display:flex;gap:6px;flex-wrap:wrap}
-.rdpop .btn{background:var(--soft);color:var(--hd);padding:8px 12px}.rdpop .x{position:absolute;top:8px;right:12px;background:none;border:0;font-size:1.4rem;color:var(--muted)}
-.rdfin{width:100%;margin:14px 0 30px}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
 .bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
 .aiPrev{position:relative;display:inline-block;margin-bottom:6px}.aiPrev button{position:absolute;top:4px;left:4px;border:0;border-radius:50%;width:28px;height:28px;background:rgba(0,0,0,.6);color:#fff;font-size:1rem}
@@ -688,7 +671,6 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
       <span class="chip" id="hGem">💎 0</span>
       <span class="chip bat" id="hEn" title="الطاقة">🔋 30</span>
       <button class="iconbtn mbtn" id="usersBtn" title="المستخدمون" style="display:none"><img class="i3" src="img/3d/people.png" alt=""><span class="mbadge" id="uBadge"></span></button>
-      <button class="iconbtn" id="rdBtn" title="القراءة" style="display:none"><img class="i3" src="img/3d/book.png" alt=""></button>
       <button class="iconbtn" id="aiBtn" title="مساعد الوظيفة" style="display:none"><img class="i3" src="img/3d/owl.png" alt=""></button>
       <button class="iconbtn mbtn" id="msgBtn" title="الرسائل"><img class="i3" src="img/3d/mail.png" alt=""><span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="setBtn" title="الإعدادات"><img class="i3" src="img/3d/gear.png" alt=""></button>
@@ -743,7 +725,6 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
   <section id="helper" class="panel"></section>
-  <section id="read" class="panel"></section>
   <div id="duelOv"></div>
   <section id="users" class="panel"></section>
   <section id="cfgP" class="panel"></section>
@@ -755,7 +736,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
 <script>
 // فتح فوري: آخر شاشة رئيسية محفوظة على الجهاز تظهر مباشرة، ريثما يتحقّق التطبيق من الحساب ويحمّل الجديد
 try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
-  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="aiBtn"')&&SHL.h.includes('id="rdBtn"')){   // نسخة محفوظة من شكل أقدم (بلا زر المساعد أو القراءة) لا تُستعمل
+  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="aiBtn"')){   // نسخة محفوظة من شكل أقدم (بلا زر المساعد) لا تُستعمل
     
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
     document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
@@ -881,7 +862,7 @@ async function loadOtherWords(){
 const noFilter=()=>["fDay","fLvl","fCore","fSubj"].every(id=>!$(id)||$(id).value==="all");
 // مجموعة المراجعة والتمارين والاختبار: كل مناهجه (إلا إذا اختار تصفية معيّنة)
 const studyPool=()=>noFilter()?uniq([...W,...Object.values(OTHERC).flat(),...ORPH]):filtered();
-function renderCourseSel(){rdUI();const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
+function renderCourseSel(){const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
 async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
   await loadWords(c);loadOtherWords();renderCourseSel();econ();renderHeader();refresh();if(!silent)toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
@@ -2907,7 +2888,7 @@ async function onLogin(user){
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
     document.body.classList.add("adm");appReady();$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
-    $("usersBtn").style.display="";loadNameReqs();startMessages();loadTexts();goTab("users");setTimeout(errCheck,3000);return;
+    $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");setTimeout(errCheck,3000);return;
   }
   const saved=st(K("course"));let first=MY_COURSES.includes(saved)?saved:MY_COURSES[0];
   // منهج البداية الذي حدّده المشرف: يُطبَّق من أول دخول، مرة واحدة
@@ -2921,7 +2902,7 @@ async function onLogin(user){
   syncNow(true);
   loadNameReqs();watchGifts();
   startMessages();
-  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();loadTexts();setTimeout(frTick,2500);
+  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();setTimeout(frTick,2500);
   await syncNow(true);
   setTimeout(freezeReminder,2500);
   setTimeout(maybeAskFeedback,4000);
@@ -3674,109 +3655,6 @@ async function aiLogShow(uid,more){
   const mo=$("aiMore");if(mo)mo.onclick=()=>aiLogShow(uid,true);
 }
 
-/* ================= القراءة: نصوص ألمانية يقرؤها الولد ويسمعها، ويضغط على أي كلمة فيرى معناها ================= */
-// النصوص في texts.json، ولكل نص منهج (c) فيظهر لمن عنده هذا المنهج؛ والمشرف يرى كل النصوص ليراجعها
-// صوت كل جملة وكل كلمة يُصنع مرة واحدة بصوت Azure (tts.py)، وإن غاب ملف يُستعمل صوت الجهاز
-let TEXTS=[],RDO=null,RPT=0,RPLAY=false,RFROM=0,RS=[],RSLOW=false;
-function setTexts(t){try{const d=JSON.parse(t);TEXTS=Array.isArray(d.texts)?d.texts:[]}catch(e){TEXTS=[]}}
-function loadTexts(){
-  const c=st("muf_texts");if(c)setTexts(c);rdUI();
-  fetch("texts.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_texts"))return;st("muf_texts",t);setTexts(t);rdUI();
-    const on=document.querySelector(".panel.on");if(on&&on.id==="read"&&!RDO)renderRead()}).catch(()=>{});
-}
-const myTexts=()=>isAdmin()?TEXTS:TEXTS.filter(t=>MY_COURSES.includes(t.c));
-const rdOn=()=>!!(UID&&myTexts().length);
-function rdUI(){const b=$("rdBtn");if(b)b.style.display=rdOn()?"":"none"}
-const rdDone=()=>jget(K("rdDone"),[]);
-const rdNorm=s=>String(s||"").replace(/\s+/g," ").trim();
-const rdCore=x=>x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"");
-// الجملة كلمات: لكل كلمة وزن (طولها، وزيادة عند علامات الوقف) لتقدير موضعها في الصوت
-function rdToks(s){const out=[];for(const x of rdNorm(s).split(" ")){const c=rdCore(x);if(!c){out.push({x,c:""});continue}const i=x.indexOf(c);out.push({x,c,a:x.slice(0,i),b:x.slice(i+c.length)})}return out}
-function rdWeights(s){const tk=rdToks(s).filter(t=>t.c),w=tk.map(t=>t.c.length+1+(/[.,;:!?]/.test(t.b||"")?3:0)),sum=w.reduce((a,b)=>a+b,0)||1;let acc=0;return w.map(v=>{const st0=acc/sum;acc+=v;return st0})}
-function rdSentHTML(s,si,tr,v){
-  let k=0;const h=rdToks(s.de).map(t=>t.c?`${esc(t.a)}<span class="rw" data-s="${si}" data-k="${k++}">${esc(t.c)}</span>${esc(t.b)}`:esc(t.x)).join(" ");
-  return tr?`<span class="rs rsb" data-s="${si}">${h}<span class="rar">${esc(s.ar||"")}</span></span>`:v?`<span class="rs rsv" data-s="${si}">${h}</span>`:`<span class="rs" data-s="${si}">${h}</span> `;   // v: قصيدة، كل سطر وحده
-}
-function renderRead(){
-  const el=$("read");rdStop();rdPopClose();
-  if(!rdOn()){el.innerHTML='<div class="empty">لا توجد نصوص قراءة بعد.</div>';return}
-  const L=myTexts(),t=RDO&&L.find(x=>x.id===RDO);
-  if(!t){RDO=null;const dn=new Set(rdDone()),cs=[...new Set(L.map(x=>x.c))];
-    el.innerHTML=`<div class="mhead"><h2>${I3("book")} القراءة</h2></div><p class="rnote">اختر نصًّا: تسمعه، وتضغط على أي كلمة لترى معناها.</p>`+
-      cs.map(c=>(cs.length>1?`<h3 style="margin:12px 0 6px">${esc((COURSES[c]||{}).name||c)}</h3>`:"")+`<div class="rdl">${L.filter(x=>x.c===c).map(x=>`<button class="rdc${dn.has(x.id)?" done":""}" data-id="${esc(x.id)}"><span class="rdi">📖</span><div><b>${esc(x.t||"")}</b><small>${esc(x.tar||"")}${x.subj?` · ${esc(x.subj)}`:""}</small></div>${dn.has(x.id)?'<span class="ok">✓</span>':""}</button>`).join("")}</div>`).join("");
-    el.querySelectorAll(".rdc").forEach(b=>b.onclick=()=>{RDO=b.dataset.id;RFROM=0;renderRead();scrollTo(0,0)});return}
-  // العنوان جملة أولى تُقرأ مثل غيرها
-  const tr=st(K("rdTr"))==="1";RS=[{de:t.t,ar:t.tar,h:1}];const P=(t.p||[]).map(p=>p.map(s=>{RS.push(s);return RS.length-1}));
-  el.innerHTML=`<div class="rdbar"><button class="btn" id="rdBk">‹ النصوص</button><button class="btn" id="rdPlay"></button><button class="btn${RSLOW?" on":""}" id="rdSlow">🐢 ببطء</button><button class="btn${tr?" on":""}" id="rdTrB">الترجمة</button></div>
-   <div class="rdtx" id="rdTx"><h3>${rdSentHTML(RS[0],0,false)}</h3>${tr&&t.tar?`<span class="rar" style="margin:-4px 0 10px">${esc(t.tar)}</span>`:""}${P.map(p=>`<p>${p.map(i=>rdSentHTML(RS[i],i,tr,t.v)).join("")}</p>`).join("")}</div>
-   <button class="btn next rdfin" id="rdFin">${rdDone().includes(t.id)?"✓ قرأتُ هذا النص":"✓ انتهيتُ من القراءة"}</button>`;
-  rdBar();
-  $("rdBk").onclick=()=>rdBack();
-  $("rdPlay").onclick=()=>{if(RPLAY)rdStop(true);else rdPlayAll(RFROM)};
-  $("rdSlow").onclick=()=>{RSLOW=!RSLOW;$("rdSlow").classList.toggle("on",RSLOW);if(RPLAY){const f=RFROM;rdStop(true);rdPlayAll(f)}};
-  $("rdTrB").onclick=()=>{st(K("rdTr"),tr?"0":"1");const f=RFROM;renderRead();RFROM=f};
-  $("rdTx").onclick=e=>{const w=e.target.closest(".rw");if(w)rdWordTap(w)};
-  $("rdFin").onclick=()=>{rdStop();const d=rdDone();if(!d.includes(t.id)){d.push(t.id);st(K("rdDone"),JSON.stringify(d));fx("done");try{confetti(60)}catch(e){}toast("📖","أحسنت!","انتهيت من قراءة النص")}RDO=null;renderRead();scrollTo(0,0)};
-}
-function rdBar(){const b=$("rdPlay");if(b)b.textContent=RPLAY?"⏸ إيقاف":RFROM>0?"▶ أكمل القراءة":"▶ اقرأ لي"}
-function rdMark(si,f){
-  const tx=$("rdTx");if(!tx)return;
-  tx.querySelectorAll(".rs.cur,.rw.cur").forEach(x=>x.classList.remove("cur"));if(si<0)return;
-  const s=tx.querySelector(`.rs[data-s="${si}"]`);if(s)s.classList.add("cur");
-  if(f==null)return;const st0=rdWeights(RS[si].de);let k=0;for(let i=0;i<st0.length;i++)if(st0[i]<=f)k=i;
-  const w=tx.querySelector(`.rw[data-s="${si}"][data-k="${k}"]`);if(w){w.classList.add("cur");const r=w.getBoundingClientRect(),top=(document.querySelector(".rdbar")||{}).offsetHeight||0;
-    if(r.top<((document.querySelector("header")||{}).offsetHeight||70)+top+10||r.bottom>innerHeight-20)w.scrollIntoView({block:"center",behavior:"smooth"})}
-}
-// يشغّل نصًّا ويخبر بنسبة التقدّم (0…1)، وينتهي حين يتوقف الصوت
-function rdAudio(t,slow,prog){return new Promise(res=>{
-  t=rdNorm(t);let done=false,raf=0;const fin=()=>{if(done)return;done=true;cancelAnimationFrame(raf);res()};
-  const h=fnvH(t);
-  if(AUD&&AUD.has(h)){
-    try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
-    try{if(AUDEL)AUDEL.pause()}catch(e){}
-    const a=new Audio("audio/"+h+".mp3");AUDEL=a;a.playbackRate=slow?.75:1;a.preservesPitch=true;
-    const tick=()=>{if(done)return;if(prog&&a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
-    a.onended=fin;a.onerror=fin;a.onpause=()=>{if(!a.ended)fin()};
-    a.play().then(()=>{raf=requestAnimationFrame(tick)}).catch(()=>{if(AUDEL===a)AUDEL=null;rdDevice(t,slow,prog).then(fin)});return}
-  rdDevice(t,slow,prog).then(fin);
-})}
-// صوت الجهاز: في المتصفح نعرف موضع الكلمة ونهاية الجملة، وفي تطبيق أندرويد نقدّر المدة
-let RDTM=0;
-function rdDevice(t,slow,prog){return new Promise(res=>{
-  const est=Math.max(.8,t.length*.075*(slow?1.7:1.1))*1000,t0=Date.now();clearInterval(RDTM);
-  const timer=()=>{RDTM=setInterval(()=>{const f=(Date.now()-t0)/est;if(prog)prog(Math.min(1,f));if(f>=1){clearInterval(RDTM);res()}},80)};
-  if(!hasNative()&&"speechSynthesis" in window){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang="de-DE";if(DE_VOICE)u.voice=DE_VOICE;u.rate=slow?.55:.9;
-      u.onboundary=e=>{if(prog&&e.name!=="sentence")prog(e.charIndex/Math.max(1,t.length)+.001)};u.onend=()=>res();u.onerror=()=>res();speechSynthesis.speak(u);setTimeout(res,est*2.5+3000);return}catch(e){}}
-  ttsSpeak(t,slow);timer();
-})}
-async function rdPlayAll(from){
-  const tok=++RPT;RPLAY=true;rdBar();rdPopClose();
-  for(let i=from;i<RS.length;i++){if(tok!==RPT)return;RFROM=i;rdMark(i,0);
-    await rdAudio(RS[i].de,RSLOW,f=>{if(tok===RPT)rdMark(i,f)});
-    if(tok!==RPT)return;await new Promise(r=>setTimeout(r,RSLOW?450:280))}
-  if(tok!==RPT)return;RPLAY=false;RFROM=0;rdMark(-1);rdBar();
-}
-// إيقاف الصوت؛ keep: يبقى موضع القراءة ليكمل منه
-function rdStop(keep){RPT++;RPLAY=false;clearInterval(RDTM);
-  try{if(AUDEL){AUDEL.pause();AUDEL=null}}catch(e){}try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
-  if(keep){const tx=$("rdTx");if(tx)tx.querySelectorAll(".rw.cur").forEach(x=>x.classList.remove("cur"))}else rdMark(-1);rdBar()}
-function rdWordTap(w){
-  const t=TEXTS.find(x=>x.id===RDO);if(!t)return;rdStop(true);
-  const si=+w.dataset.s,c=w.textContent,g=t.g||{},m=g[c]||g[c.toLowerCase()]||"",s=RS[si];
-  document.querySelectorAll(".rdtx .rw.sel").forEach(x=>x.classList.remove("sel"));w.classList.add("sel");
-  rdAudio(c,false);
-  let p=$("rdPop");if(!p){p=document.createElement("div");p.id="rdPop";p.className="rdpop";document.body.appendChild(p)}
-  p.innerHTML=`<button class="x" id="rdPx">×</button><div class="w">${esc(c)}</div><div class="m">${m?esc(m):'<span style="color:var(--muted)">—</span>'}</div>
-   <div class="row2"><button class="btn" id="rdPw">🔊 الكلمة</button><button class="btn" id="rdPws">🐢 ببطء</button><button class="btn" id="rdPs">🔊 الجملة</button><button class="btn" id="rdPf">▶ اقرأ من هنا</button></div>
-   ${s&&s.ar&&!s.h?`<div class="rar" style="margin-top:8px;color:var(--muted)">${esc(s.ar)}</div>`:""}`;
-  $("rdPx").onclick=rdPopClose;$("rdPw").onclick=()=>rdAudio(c,false);$("rdPws").onclick=()=>rdAudio(c,true);
-  $("rdPs").onclick=async()=>{const tok=++RPT;await rdAudio(s.de,RSLOW,f=>{if(tok===RPT)rdMark(si,f)});if(tok===RPT)rdMark(-1)};
-  $("rdPf").onclick=()=>{rdPopClose();rdPlayAll(si)};
-}
-function rdPopClose(){const p=$("rdPop");if(p)p.remove();document.querySelectorAll(".rdtx .rw.sel").forEach(x=>x.classList.remove("sel"))}
-// زر الرجوع: يغلق نافذة الكلمة، ثم يعود من النص إلى قائمة النصوص
-function rdBack(){if($("rdPop")){rdPopClose();return true}if(RDO){rdStop();RDO=null;RFROM=0;renderRead();scrollTo(0,0);return true}return false}
-
 /* ================= سؤال التقييم ================= */
 async function maybeAskFeedback(){
   if(!UID||isAdmin()||st(K("fbDone")))return;
@@ -3798,18 +3676,16 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  if(p!=="read"){rdStop();rdPopClose()}
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="read"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
   if(p==="usage"){renderUsage();return}
   if(p==="safe"){renderSafe();return}
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
-  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe","read"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
+  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
   if(p==="helper"){renderHelper();return}
-  if(p==="read"){renderRead();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
   // الاختبار: يبدأ من جديد عند فتحه إلا إذا كان المستخدم في منتصفه، فيأخذ الكلمات التي تعلّمها للتوّ
@@ -3830,7 +3706,6 @@ function init(){
   $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
   setInterval(()=>{if(UID)renderEnergy()},30000);
   $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
-  const rdb=$("rdBtn");if(rdb)rdb.onclick=()=>{RDO=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("read").classList.add("on");renderPanel("read");scrollTo(0,0)};
   const aib=$("aiBtn");if(aib)aib.onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("helper").classList.add("on");renderPanel("helper");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
@@ -3853,7 +3728,6 @@ async function handleBack(){
   if(isAdmin()){const a=(document.querySelector(".panel.on")||{}).id;
     if(a==="messages"&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
     if(a==="users"&&uOpen){uOpen=null;renderUserList();return}
-    if(a==="read"&&rdBack())return;
     if(a!=="users"){goTab("users");scrollTo(0,0);return}
     if(await uiConfirm("الخروج من التطبيق؟"))exitApp();return}
   const on=document.querySelector(".panel.on"),id=on?on.id:"review";
@@ -3868,7 +3742,6 @@ async function handleBack(){
   if(id==="games"&&GM&&!GM.done){if(await uiConfirm("الخروج من التمرين؟")){stopTick();GM=null;renderGames()}return}
   if(id==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
   if(id==="users"&&uOpen){uOpen=null;renderUserList();return}
-  if(id==="read"&&rdBack())return;
   goTab("review");scrollTo(0,0);
 }
 window.addEventListener("popstate",()=>{if(EXITING)return;trapBack();handleBack()});
