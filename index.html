@@ -3367,8 +3367,28 @@ async function renderFriends(){
 // كلمات التحدي: فقط ما تعلّمه المستخدم فعلًا (مرحلة 1 أو أكثر) من كل مناهجه، بغضّ النظر عن فلتر الصفحة الرئيسية.
 // والخيارات الخاطئة أيضًا من كلماته المتعلَّمة، فلا تظهر له كلمة لم يرها
 const duelPool=()=>uniq([...W,...Object.values(OTHERC).flat(),...ORPH]).filter(w=>P[w.k]&&(P[w.k].box||0)>=1);
+// اختيار كلمات التحدي (قراءة فقط: التحدي لا يغيّر حالة أي كلمة ولا موعد مراجعتها):
+// ١) المستحقّة الآن  ٢) غير الراسخة بعد، الأحدث مراجعةً أوّلًا  ٣) الباقي
+// وكل تحدٍّ يختلف عن كل واحد من آخر 3 تحدّيات بنسبة 70٪ على الأقل (لا يشترك معه بأكثر من 3 كلمات من 10)
+const DLH_MAX_SAME=Math.floor(DUEL_N*0.3);
+const dlhKey=()=>"dlh_"+(UID||"");
+const dlhGet=()=>{try{const a=JSON.parse(localStorage.getItem(dlhKey())||"[]");return Array.isArray(a)?a.slice(-3):[]}catch(e){return []}};
+const dlhAdd=ks=>{try{localStorage.setItem(dlhKey(),JSON.stringify([...dlhGet(),ks].slice(-3)))}catch(e){}};
+function duelPick(L){
+  const lt=w=>P[w.k].t||0,recent=a=>{a.sort((x,y)=>lt(y)-lt(x));const h=shuffle(a.slice(0,DUEL_N*3));return [...h,...a.slice(DUEL_N*3)]};
+  const due=shuffle(L.filter(w=>isDue(P[w.k]))),rest=L.filter(w=>!isDue(P[w.k]));
+  const order=[...due,...recent(rest.filter(w=>P[w.k].box<7)),...recent(rest.filter(w=>P[w.k].box>=7))];
+  const hist=dlhGet().map(a=>new Set(a)),same=hist.map(()=>0),out=[],skip=[];
+  for(const w of order){if(out.length>=DUEL_N)break;
+    const hit=hist.map(h=>h.has(w.k));
+    if(hit.some((x,i)=>x&&same[i]>=DLH_MAX_SAME)){skip.push(w);continue}
+    hit.forEach((x,i)=>{if(x)same[i]++});out.push(w)}
+  // إن لم تكفِ الكلمات لتحقيق شرط الاختلاف نُكمل من المستبعدة بنفس الأولوية
+  for(const w of skip){if(out.length>=DUEL_N)break;out.push(w)}
+  return shuffle(out);
+}
 function duelQs(){
-  const L=duelPool(),pool=shuffle([...L]).slice(0,DUEL_N),all=L.length>=8?L:uniq(W);
+  const L=duelPool(),pool=duelPick(L),all=L.length>=8?L:uniq(W);dlhAdd(pool.map(w=>w.k));
   return pool.map(w=>{const others=all.filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(others.filter(x=>x.t===w.t));
     return {w,opts:shuffle([w,...(same.length>=3?same:shuffle(others)).slice(0,3)])}});
 }
