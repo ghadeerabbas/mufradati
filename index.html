@@ -3320,13 +3320,13 @@ var FRC="",FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN
 const DUEL_N=10;
 const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
 const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
-// نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 12 ثانية والتطبيق ظاهر (دقيقة إن لم يكن له أصدقاء)
+// نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 3 ثوانٍ والتطبيق ظاهر إن كان له أصدقاء (لتصل الدعوة فورًا)، وإلا كل 12 ثانية أو دقيقة
 async function frTick(){
   clearTimeout(FRT);if(!UID||isAdmin())return;
   if(!document.hidden){try{const j=await apiPost("/fr",{op:"tick"});const ch=j.nin!==FRN.nin;FRN={nf:j.nf,nin:j.nin};
     if(ch&&$("games").classList.contains("on")&&!GM&&!FRV)renderGames();
     if(j.inv&&(!DL||DL.end)&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);if(DL)duelClose();duelInvited(j.inv)}}catch(e){}}
-  FRT=setTimeout(frTick,FRN.nf||FRN.nin||FRV?12e3:60e3);
+  FRT=setTimeout(frTick,FRN.nf?3e3:FRN.nin||FRV?12e3:60e3);
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden&&UID)frTick()});
 async function renderFriends(){
