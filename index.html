@@ -614,7 +614,7 @@ body.fbon main{padding-bottom:210px}
 #fbModal .lbox{gap:12px}
 #fbModal textarea{font:inherit;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);min-height:70px;-webkit-user-select:text;user-select:text}
 /* نوافذ التأكيد */
-.uidlg{position:fixed;inset:0;z-index:95;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .15s}
+.uidlg{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;padding:20px;animation:fade .15s}
 .uibox{background:var(--card);color:var(--ink);border-radius:18px;padding:20px;width:min(380px,100%);box-shadow:0 20px 60px rgba(0,0,0,.4)}
 .uimsg{white-space:pre-line;font-size:.98rem;line-height:1.8}
 .uiin{width:100%;margin-top:12px;font:inherit;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);-webkit-user-select:text;user-select:text}
@@ -3435,7 +3435,7 @@ function duelQ(){
   const q=DL.q[DL.i];
   const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button><h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
    <div class="dlq">${esc(q.w.de)}</div><div class="dlopts">${q.opts.map((x,k)=>`<button data-k="${k}">${esc(x.ar)}</button>`).join("")}</div>`);
-  $("dlQuit").onclick=async()=>{if(await uiConfirm("تنسحب من التحدي؟"))duelClose()};
+  $("dlQuit").onclick=async()=>{if(!await uiConfirm("تنسحب من التحدي؟"))return;if(DL){clearTimeout(DL.pt);DL.end=true;await duelPoll("quit")}duelClose()};
   o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
     if(DL.lock)return;DL.lock=true;const ok=q.opts[+b.dataset.k].k===q.w.k;b.classList.add(ok?"ok":"no");
     if(!ok)o.querySelectorAll(".dlopts button").forEach(x=>{if(q.opts[+x.dataset.k].k===q.w.k)x.classList.add("ok")});
@@ -3464,14 +3464,14 @@ function dlMyFixed(d){
   return dlPlayers(d).every(u=>{if(u===DL.me)return true;const p=d.p[u]||{};if(p.d)return true;const c=p.c||0,left=DUEL_N-(p.i||0);return c>me.c||c+left<=me.c});
 }
 // الترتيب الحالي: الأكثر صحيحًا، ثم الأسرع ممن أنهوا (من لم يُنهِ بعدُ أبطأ)
-const dlRankNow=d=>dlPlayers(d).slice().sort((a,b)=>{const x=d.p[a]||{},y=d.p[b]||{};return (y.c||0)-(x.c||0)||(x.d?x.ms:Infinity)-(y.d?y.ms:Infinity)});
+const dlRankNow=d=>dlPlayers(d).slice().sort((a,b)=>{const x=d.p[a]||{},y=d.p[b]||{};return (x.q?1:0)-(y.q?1:0)||(y.c||0)-(x.c||0)||(x.d?x.ms:Infinity)-(y.d?y.ms:Infinity)});
 // النتيجة: نهائية حين ينتهي التحدي، أو مبكرة حين يثبت ترتيبي ويظلّ الباقون يلعبون (تتحدّث وحدها حتى ينهوا)
 async function duelEnd(final){
   if(!DL||DL.end)return;if(final){DL.end=true;await DL.sendQ}
   const sig=JSON.stringify([final,DL.d.p]);if(DL.sig===sig)return;DL.sig=sig;   // لا يُعاد الرسم إلا إن تغيّر شيء (حتى لا يقفز التمرير)
   const ov=$("duelOv"),y=ov.scrollTop;
   const d=DL.d,tie=final&&d.rank[0]==="tie",R=final?d.rank.filter(u=>u!=="tie"):dlRankNow(d),pos=R.indexOf(DL.me),playing=R.filter(u=>!(d.p[u]||{}).d);
-  const md=["🥇","🥈","🥉","4"],sec=x=>x&&x.d?(x.ms/1000).toFixed(1)+" ث":"لم يُنهِ";
+  const md=["🥇","🥈","🥉","4"],sec=x=>x&&x.q?"انسحب":x&&x.d?(x.ms/1000).toFixed(1)+" ث":"لم يُنهِ";
   const r=tie?["🤝","تعادل!"]:pos===0?["🏆","فزت!"]:R.length>2?[md[pos]||"💪","المركز "+["الأول","الثاني","الثالث","الرابع"][pos]]:["💪","خسرت هذه المرة"];
   dlOv(`<div class="dlres">${r[0]}</div><h2>${r[1]}</h2>
    ${!final&&playing.length?`<p class="rnote">ترتيبك ثابت ✔ — ${esc(playing.map(u=>d.nm[u]||"صديق").join("، "))} ما زال يلعب، والنتيجة تتحدّث وحدها.</p>`:""}

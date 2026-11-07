@@ -221,7 +221,7 @@ async function handleSync(fs, user, body) {
     if (e.type === "stDone" && !words) words = await wordSet();
     let duelOk = false;   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
-      duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d) }
+      duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
     EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk });
     if (r !== true) rej.push([i, r]);
   }
@@ -691,7 +691,7 @@ const duelView = (d, id, me) => ({ id, ps: d.ps || [], nm: d.nm || {}, ac: Objec
   p: Object.fromEntries((d.ps || []).map(u => [u, dProg(d, u)])), st: d.st, s: d.s || 0, rank: d.rank || [], me, now: Date.now() });
 // الترتيب: الأكثر إجابات صحيحة، ثم الأسرع (من لم يُنهِ يُعدّ أبطأ). السجلّ (فوز/خسارة) للتحدي الثنائي فقط
 async function duelFinishW(fs, d, now) {
-  const A = dAct(d), key = u => { const p = dProg(d, u); return [-(p.c || 0), p.d ? p.ms : Infinity] };
+  const A = dAct(d), key = u => { const p = dProg(d, u); return p.q ? [1, Infinity] : [-(p.c || 0), p.d ? p.ms : Infinity] };   // المنسحب آخرًا
   d.rank = A.slice().sort((x, y) => { const a = key(x), b = key(y); return a[0] - b[0] || a[1] - b[1] }); d.st = "done";
   const w = [];
   if ((d.ps || []).length === 2 && A.length === 2) {   // التحدي الجماعي لا يدخل السجلّ
@@ -749,18 +749,23 @@ async function handleDuel(fs, user, body, env) {
   if (d.st !== st0 || upd.st) Object.assign(upd, { st: d.st, s: d.s || 0 });
   if (op === "ans" && d.st === "on") {
     const k = "p_" + me, p = dProg(d, me), i = +body.i;
-    if (dAct(d).includes(me) && now >= d.s && i === p.i + 1 && i <= DUEL_N && now - d.s <= DUEL_LEN) {
+    if (dAct(d).includes(me) && !p.d && now >= d.s && i === p.i + 1 && i <= DUEL_N && now - d.s <= DUEL_LEN) {
       p.i = i; p.c += body.ok ? 1 : 0; p.ms = now - d.s; p.d = i === DUEL_N; p.h = (p.h || "") + (body.ok ? "1" : "0");
       if (!body.ok && p.x.length < DUEL_N) { const t = v => String(v || "").slice(0, 80); p.x.push({ de: t(body.de), ar: t(body.ar), pk: t(body.pk) }) }   // تقرير الأخطاء
       d[k] = p;
       await fs.commit([{ path: `duel/${id}`, data: { [k]: p }, merge: true }]);   // حقل اللاعب وحده: لا يتعارض مع الآخرين
     }
   }
+  // الانسحاب أثناء اللعب: يُعدّ منتهيًا (ويأتي آخرًا) فلا ينتظره الباقون
+  if (op === "quit" && d.st === "on" && dAct(d).includes(me)) {
+    const k = "p_" + me, p = dProg(d, me);
+    if (!p.d) { p.d = true; p.q = 1; p.ms = DUEL_LEN; d[k] = p; await fs.commit([{ path: `duel/${id}`, data: { [k]: p }, merge: true }]) }
+  }
   // ينتهي حين يُنهي كل اللاعبين، أو تنقضي الدقائق الثلاث
   let w = [];
   if (d.st === "on" && (dAct(d).every(u => dProg(d, u).d) || now - d.s > DUEL_LEN + 5e3)) { w = await duelFinishW(fs, d, now); Object.assign(upd, { st: "done", rank: d.rank, end: { __ts: now } }) }
   if (Object.keys(upd).length || extra.length) {
-    const cur = op === "ans" ? await fs.get(`duel/${id}`) : doc;   // بعد كتابة الإجابة تغيّر وقت التحديث
+    const cur = op === "ans" || op === "quit" ? await fs.get(`duel/${id}`) : doc;   // بعد كتابة الإجابة تغيّر وقت التحديث
     try { await fs.commit([...(Object.keys(upd).length ? [{ path: `duel/${id}`, data: upd, merge: true, ifUpdateTime: cur.updateTime }] : []), ...extra, ...(st0 === "inv" && d.st !== "inv" ? (d.ps || []).slice(1).map(u => ({ path: `fr/${u}`, data: { inv: null }, merge: true })) : []), ...w]) }
     catch (e) { if (!e.conflict) throw e; const again = await fs.get(`duel/${id}`); return { status: 200, json: { ...duelView(again.data, id, me), retry: 1 } } }
   }
