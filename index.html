@@ -564,7 +564,10 @@ body.fbon main{padding-bottom:210px}
 .fradd{display:flex;gap:6px;margin:8px 0}.frcode{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px}.frcode small{color:var(--muted)}.frcode b{flex:1;font-size:1.5rem;letter-spacing:3px;text-align:center}.frcode .btn{padding:6px 12px;font-size:.82rem}.fradd input{flex:1;direction:ltr;text-align:left}
 #duelOv{display:none;position:fixed;inset:0;z-index:300;background:var(--paper);overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}#duelOv.on{display:block}
 .dl{max-width:480px;margin:0 auto;text-align:center}.dl h2{margin:6px 0 14px}.dlbig{font-size:4rem;font-weight:900;color:var(--navy);margin:40px 0}
-.dlbars{display:grid;gap:8px;margin-bottom:18px;text-align:start}.dlbar small{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}.dlbar i{display:block;height:10px;border-radius:6px;background:var(--soft);overflow:hidden}.dlbar i b{display:block;height:100%;background:var(--navy);transition:width .3s}.dlbar.op i b{background:#e08a1e}
+.dlbars{display:grid;gap:8px;margin-bottom:18px;text-align:start}
+.dlseg{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}.dlseg i{height:12px;border-radius:4px;background:var(--soft);border:1px solid var(--line)}.dlseg i.ok{background:#2fbf71;border-color:#2fbf71}.dlseg i.no{background:var(--red);border-color:var(--red)}
+.dlrep{padding:10px 0;border-top:1px solid var(--line)}.dlrep>b{display:block;margin-bottom:6px}.dlrep small{display:block;color:var(--muted);font-size:.78rem;margin-top:4px}.dlrep small.ok{color:#2fbf71}
+.dlerr{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:.88rem}.dlerr span[dir=ltr]{font-weight:700;text-align:left}.dlerr span:nth-child(2){color:#2fbf71}.dlerr small{grid-column:1/3;color:var(--red)!important;margin:0}.dlbar small{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}.dlbar i{display:block;height:10px;border-radius:6px;background:var(--soft);overflow:hidden}.dlbar i b{display:block;height:100%;background:var(--navy);transition:width .3s}.dlbar.op i b{background:#e08a1e}
 .dlq{font-size:1.7rem;font-weight:800;margin:18px 0 20px;direction:ltr}.dlopts{display:grid;gap:10px}.dlopts button{padding:16px;border-radius:14px;border:1px solid var(--line);background:var(--card);font-size:1.05rem;color:var(--ink)}
 .dlopts button.ok{background:#2fbf71;color:#fff;border-color:#2fbf71}.dlopts button.no{background:var(--red);color:#fff;border-color:var(--red)}
 .dlres{font-size:3.5rem;margin:20px 0 6px}.dlx{position:absolute;top:12px;left:14px;background:none;border:0;color:var(--red);font-size:.9rem}
@@ -3411,13 +3414,14 @@ async function duelInvited(inv){
     if(j&&j.st==="on")duelPlay();else if(j&&j.st==="inv")duelWait();else{duelClose();uiAlert("انتهت الدعوة أو ألغاها صاحب التحدي.")}};
   setTimeout(()=>{if(DL&&DL.id===inv.id&&!DL.d){duelClose()}},60e3);
 }
+// شريط من 10 خانات لكل لاعب: أخضر للصح، أحمر للخطأ، فارغ لما لم يُجَب بعد
 function duelBars(){
   const d=DL.d,ps=dlPlayers(d).slice().sort((a,b)=>(b===DL.me)-(a===DL.me));
-  return `<div class="dlbars">${ps.map(u=>{const n=u===DL.me?Math.max(DL.i||0,(d.p[u]||{}).i||0):((d.p[u]||{}).i||0);
-    return `<div class="dlbar${u===DL.me?"":" op"}"><small><b>${esc(dlName(d,u))}</b><span>${n}/${DUEL_N}</span></small><i><b style="width:${n*100/DUEL_N}%"></b></i></div>`}).join("")}</div>`;
+  return `<div class="dlbars">${ps.map(u=>{const h=u===DL.me?(DL.h||""):((d.p[u]||{}).h||""),c=[...h].filter(x=>x==="1").length;
+    return `<div class="dlbar"><small><b>${esc(dlName(d,u))}</b><span>${h.length}/${DUEL_N} · ✓${c}</span></small><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div></div>`}).join("")}</div>`;
 }
 function duelPlay(){
-  if(!DL)return;clearTimeout(DL.pt);DL.q=duelQs();DL.i=0;DL.c=0;DL.sendQ=Promise.resolve();
+  if(!DL)return;clearTimeout(DL.pt);DL.q=duelQs();DL.i=0;DL.c=0;DL.h="";DL.x=[];DL.sendQ=Promise.resolve();
   const wait=()=>{if(!DL)return;const left=Math.ceil((DL.d.s-(Date.now()+DL.off))/1000);
     if(left>0){dlOv(`<h2>استعد!</h2><div class="dlbig">${left}</div>`);DL.pt=setTimeout(wait,250);return}
     duelQ();DL.pt=setTimeout(poll,1500)};
@@ -3434,9 +3438,10 @@ function duelQ(){
   o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
     if(DL.lock)return;DL.lock=true;const ok=q.opts[+b.dataset.k].k===q.w.k;b.classList.add(ok?"ok":"no");
     if(!ok)o.querySelectorAll(".dlopts button").forEach(x=>{if(q.opts[+x.dataset.k].k===q.w.k)x.classList.add("ok")});
-    DL.i++;if(ok)DL.c++;const i=DL.i;
+    const pk=q.opts[+b.dataset.k];DL.i++;if(ok)DL.c++;DL.h+=ok?"1":"0";if(!ok)DL.x.push({de:q.w.de,ar:q.w.ar,pk:pk.ar});const i=DL.i;
+    const bb=$("dlBars");if(bb)bb.innerHTML=duelBars();
     // الإجابات تُرسل بالترتيب، وتُعاد إن لم تُحفظ
-    DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0});const me=j&&j.p&&j.p[DL.me];if(me&&me.i>=i||j&&j.st!=="on")break}});
+    DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0,...(ok?{}:{de:q.w.de,ar:q.w.ar,pk:pk.ar})});const me=j&&j.p&&j.p[DL.me];if(me&&me.i>=i||j&&j.st!=="on")break}});
     setTimeout(()=>{if(!DL)return;DL.lock=false;duelQ()},ok?350:900);
   });
 }
@@ -3450,6 +3455,10 @@ async function duelEnd(){
   const r=tie?["🤝","تعادل!"]:pos===0?["🏆","فزت!"]:R.length>2?[md[pos]||"💪","المركز "+["الأول","الثاني","الثالث","الرابع"][pos]]:["💪","خسرت هذه المرة"];
   dlOv(`<div class="dlres">${r[0]}</div><h2>${r[1]}</h2>
    <div class="rsec" style="text-align:start">${R.map((u,k)=>`<div class="frrow"><span>${tie?"🤝":md[k]}</span><div><b>${esc(dlName(d,u))}</b></div><b>${(d.p[u]||{}).c||0}/${DUEL_N} ✓</b><small>${sec(d.p[u])}</small></div>`).join("")}</div>
+   <div class="rsec" style="text-align:start"><h3>تقرير الأخطاء</h3>${R.map(u=>{const p=d.p[u]||{},x=u===DL.me&&DL.x.length>=(p.x||[]).length?DL.x:(p.x||[]),h=u===DL.me?DL.h:(p.h||"");
+     return `<div class="dlrep"><b>${esc(dlName(d,u))}</b><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div>
+      ${x.length?x.map(e=>`<div class="dlerr"><span dir="ltr">${esc(e.de)}</span><span>✓ ${esc(e.ar)}</span>${e.pk?`<small>اختار: ${esc(e.pk)}</small>`:""}</div>`).join(""):h.length?'<small class="ok">بلا أخطاء 👏</small>':'<small>لم يُجِب</small>'}
+      ${h.length&&h.length<DUEL_N?`<small>لم يُكمل: أجاب عن ${h.length} من ${DUEL_N}</small>`:""}</div>`}).join("")}</div>
    <button class="btn next" id="dlOk" style="width:100%">رجوع</button>`);
   $("dlOk").onclick=duelClose;
 }

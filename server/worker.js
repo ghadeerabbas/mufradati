@@ -1142,7 +1142,7 @@ async function handleFriends(fs, user, body, env) {
 // (حقول منفصلة لكل لاعب حتى لا تمحو كتابةُ لاعبٍ كتابةَ آخر)
 const DUEL_MAX = 4;
 const dAct = d => (d.ps || []).filter((u, k) => k === 0 || d["a_" + u] === "acc");   // اللاعبون الفعليون
-const dProg = (d, u) => Object.assign({ i: 0, c: 0, ms: 0, d: false }, d["p_" + u]);
+const dProg = (d, u) => Object.assign({ i: 0, c: 0, ms: 0, d: false, h: "", x: [] }, d["p_" + u]);   // h: صح/خطأ لكل سؤال، x: الأخطاء
 const duelView = (d, id, me) => ({ id, ps: d.ps || [], nm: d.nm || {}, ac: Object.fromEntries((d.ps || []).slice(1).map(u => [u, d["a_" + u] || "inv"])),
   p: Object.fromEntries((d.ps || []).map(u => [u, dProg(d, u)])), st: d.st, s: d.s || 0, rank: d.rank || [], me, now: Date.now() });
 // الترتيب: الأكثر إجابات صحيحة، ثم الأسرع (من لم يُنهِ يُعدّ أبطأ). السجلّ (فوز/خسارة) للتحدي الثنائي فقط
@@ -1206,7 +1206,9 @@ async function handleDuel(fs, user, body, env) {
   if (op === "ans" && d.st === "on") {
     const k = "p_" + me, p = dProg(d, me), i = +body.i;
     if (dAct(d).includes(me) && now >= d.s && i === p.i + 1 && i <= DUEL_N && now - d.s <= DUEL_LEN) {
-      p.i = i; p.c += body.ok ? 1 : 0; p.ms = now - d.s; p.d = i === DUEL_N; d[k] = p;
+      p.i = i; p.c += body.ok ? 1 : 0; p.ms = now - d.s; p.d = i === DUEL_N; p.h = (p.h || "") + (body.ok ? "1" : "0");
+      if (!body.ok && p.x.length < DUEL_N) { const t = v => String(v || "").slice(0, 80); p.x.push({ de: t(body.de), ar: t(body.ar), pk: t(body.pk) }) }   // تقرير الأخطاء
+      d[k] = p;
       await fs.commit([{ path: `duel/${id}`, data: { [k]: p }, merge: true }]);   // حقل اللاعب وحده: لا يتعارض مع الآخرين
     }
   }
