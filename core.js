@@ -7,6 +7,7 @@ const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 /* --- إعدادات التطبيق: يغيّرها المشرف من لوحة التحكّم، ويقرؤها التطبيق والخادم معًا --- */
 const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
+  duel:{qt:15},   // ثواني كل سؤال في التحدي
   gems:{station:1,level:5,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
   league:{group:15,promoMin:60,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
   energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5},
@@ -26,7 +27,7 @@ function applyCfg(c){
   c=c&&typeof c==="object"?c:{};const D=DEF_CFG,g=(k)=>Object.assign({},D[k],c[k]&&typeof c[k]==="object"?c[k]:{});
   const arr=(a,d,lo,hi)=>Array.isArray(a)&&a.length===d.length?a.map((x,i)=>_num(x,d[i],lo,hi)):d;
   const pairs=(a,d)=>Array.isArray(a)?a.filter(x=>Array.isArray(x)&&x.length===2).map(x=>[_num(x[0],1,1,3650),_num(x[1],0,0,100000)]).sort((x,y)=>x[0]-y[0]).slice(0,30):d;
-  const xp=g("xp"),gm=g("gems"),lg=g("league"),en=g("energy"),st=g("station"),fz=g("freeze");
+  const dl=g("duel"),xp=g("xp"),gm=g("gems"),lg=g("league"),en=g("energy"),st=g("station"),fz=g("freeze");
   CFG={
     xp:{review:arr(xp.review,D.xp.review,0,1000),stOk:_num(xp.stOk,3,0,1000),stMiss:_num(xp.stMiss,2,0,1000),mem:_num(xp.mem,15,0,10000),solid:_num(xp.solid,40,0,10000),
       dayN:_num(xp.dayN,20,1,1000),dayXp:_num(xp.dayXp,10,0,10000),quiz:_num(xp.quiz,1,0,1000),level:_num(xp.level,80,1,100000)},
@@ -34,6 +35,7 @@ function applyCfg(c){
     league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
     energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
+    duel:{qt:_num(dl.qt,15,5,120)},
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
     free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف

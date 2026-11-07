@@ -745,7 +745,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=28"></script>
+<script src="core.js?v=29"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2740,6 +2740,7 @@ function renderCfg(){
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
    ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}<label>التدريب بعد كل محطة شرط لفتح التالية<input type="checkbox" id="s_dr" ${C.station.drillReq?"checked":""}></label></div>
+  <div class="rsec"><h3>⚔️ التحدي مع الأصدقاء</h3>${n("d_qt",C.duel.qt,"ثواني كل سؤال (من 5 إلى 120)")}</div>
   <div class="rsec"><h3>${I3("freeze")} تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
   <div class="cfgbar"><button class="btn next" id="cfgSave">حفظ</button><button class="btn" id="cfgDef">الافتراضي</button></div></div>`;
   const sk=$("g_sk"),row=()=>{const l=document.createElement("label");l.innerHTML=`<span><input type="number" class="skd" value="7" min="1"> يومًا</span><span><input type="number" class="skg" value="10" min="0"> 💎 <button type="button" class="link skx">حذف</button></span>`;sk.appendChild(l)};
@@ -2751,7 +2752,7 @@ function renderCfg(){
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
     c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
-    c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};
+    c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};c.duel={qt:v("d_qt")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
   };
@@ -3320,7 +3321,7 @@ async function renderAssign(uid){
 
 /* ================= الأصدقاء والتحدي المباشر ================= */
 var FRC="",FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
-const DUEL_N=10,DUEL_LEN=180e3,DUEL_QT=15e3;   // مدة التحدي القصوى (نفسها في الخادم)، و15 ثانية لكل سؤال
+const DUEL_N=10;
 const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
 const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
 // نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 3 ثوانٍ والتطبيق ظاهر إن كان له أصدقاء (لتصل الدعوة فورًا)، وإلا كل 12 ثانية أو دقيقة
@@ -3446,14 +3447,16 @@ function duelBars(){
     return `<div class="dlbar"><small><b>${esc(dlName(d,u))}</b><span>${h.length}/${DUEL_N} · ✓${c}</span></small><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div></div>`}).join("")}</div>`;
 }
 // عدّاد السؤال: 15 ثانية لكل سؤال؛ إن انتهت دون جواب يُحسب خطأً وينتقل للتالي.
-// (ويبقى حدّ التحدي الكلّي 3 دقائق من ساعة الخادم احتياطًا)
-const dlLeft=()=>DL&&DL.d?Math.max(0,DL.d.s+DUEL_LEN-(Date.now()+(DL.off||0))):0;
+// ثواني السؤال يحدّدها المشرف (CFG.duel.qt) وتُثبَّت في التحدي عند إنشائه (d.qt)؛ ولا عدّاد كلّي،
+// بل حدّ احتياطي فقط مطابق للخادم: الأسئلة × (ثواني السؤال + 2) + 15 ثانية
+const dlQt=()=>1e3*Math.min(120,Math.max(5,+(DL&&DL.d&&DL.d.qt)||CFG.duel.qt||15));
+const dlLeft=()=>DL&&DL.d?Math.max(0,DL.d.s+DUEL_N*(dlQt()+2e3)+15e3-(Date.now()+(DL.off||0))):0;
 const dlTimeH=()=>`<span class="dltime" id="dlTime"></span>`;
 function dlTick(){
   if(!DL)return;
   if(dlLeft()<=0&&DL.i<DUEL_N&&!DL.to){DL.to=true;DL.lock=true;duelWaitEnd();return}
   if(!DL.qs||DL.lock||DL.to||DL.i>=DUEL_N)return;
-  const ms=Math.max(0,DUEL_QT-(Date.now()-DL.qs)),t=Math.ceil(ms/1000),e=$("dlTime");
+  const ms=Math.max(0,dlQt()-(Date.now()-DL.qs)),t=Math.ceil(ms/1000),e=$("dlTime");
   if(e){e.textContent="⏱ "+t;e.classList.toggle("low",t<=5)}
   if(ms<=0&&DL.ans)DL.ans(null);   // لم يُجب في الوقت
 }

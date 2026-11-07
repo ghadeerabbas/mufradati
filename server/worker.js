@@ -25,6 +25,7 @@ const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 /* --- إعدادات التطبيق: يغيّرها المشرف من لوحة التحكّم، ويقرؤها التطبيق والخادم معًا --- */
 const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
+  duel:{qt:15},   // ثواني كل سؤال في التحدي
   gems:{station:1,level:5,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
   league:{group:15,promoMin:60,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
   energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5},
@@ -44,7 +45,7 @@ function applyCfg(c){
   c=c&&typeof c==="object"?c:{};const D=DEF_CFG,g=(k)=>Object.assign({},D[k],c[k]&&typeof c[k]==="object"?c[k]:{});
   const arr=(a,d,lo,hi)=>Array.isArray(a)&&a.length===d.length?a.map((x,i)=>_num(x,d[i],lo,hi)):d;
   const pairs=(a,d)=>Array.isArray(a)?a.filter(x=>Array.isArray(x)&&x.length===2).map(x=>[_num(x[0],1,1,3650),_num(x[1],0,0,100000)]).sort((x,y)=>x[0]-y[0]).slice(0,30):d;
-  const xp=g("xp"),gm=g("gems"),lg=g("league"),en=g("energy"),st=g("station"),fz=g("freeze");
+  const dl=g("duel"),xp=g("xp"),gm=g("gems"),lg=g("league"),en=g("energy"),st=g("station"),fz=g("freeze");
   CFG={
     xp:{review:arr(xp.review,D.xp.review,0,1000),stOk:_num(xp.stOk,3,0,1000),stMiss:_num(xp.stMiss,2,0,1000),mem:_num(xp.mem,15,0,10000),solid:_num(xp.solid,40,0,10000),
       dayN:_num(xp.dayN,20,1,1000),dayXp:_num(xp.dayXp,10,0,10000),quiz:_num(xp.quiz,1,0,1000),level:_num(xp.level,80,1,100000)},
@@ -52,6 +53,7 @@ function applyCfg(c){
     league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
     energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
+    duel:{qt:_num(dl.qt,15,5,120)},
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
     free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف
@@ -1082,7 +1084,11 @@ async function handleErrs(fs, user, body, env) {
 /* ---------- الأصدقاء والتحدي المباشر ---------- */
 // fr/{uid}: { list: { uid: { s: "f" صديق | "out" طلب أرسلته | "in" طلب وصلني, n: اسم الدخول, t, w: فوز, l: خسارة } }, inv: دعوة تحدٍّ واردة }
 // on/{uid}: آخر ظهور (يُكتب مرة في الدقيقة على الأكثر). duel/{id}: التحدي نفسه
-const ONLINE = 90e3, INV_TTL = 60e3, DUEL_LEN = 180e3, DUEL_N = 10;
+const ONLINE = 90e3, INV_TTL = 60e3, DUEL_N = 10;
+// لا حدّ كلّي ظاهر: لكل سؤال d.qt ثانية (يحدّدها المشرف ويُثبَّت في التحدي عند إنشائه)،
+// وحدّ احتياطي فقط لمن أغلق التطبيق = الأسئلة × (ثواني السؤال + 2) + 15 ثانية
+const dQt = d => Math.min(120, Math.max(5, +d.qt || 15));
+const dLen = d => DUEL_N * (dQt(d) * 1e3 + 2e3) + 15e3;
 const ONW = new Map();   // آخر كتابة للظهور في هذه النسخة من الخادم (توفير الكتابات)
 const loginOf = u => String(u.email || "").split("@")[0];
 async function frGet(fs, uid) { const d = await fs.get(`fr/${uid}`); return Object.assign({ list: {}, inv: null }, d ? d.data : {}) }
@@ -1154,7 +1160,7 @@ const DUEL_MAX = 4;
 const dAct = d => (d.ps || []).filter((u, k) => k === 0 || d["a_" + u] === "acc");   // اللاعبون الفعليون
 const dProg = (d, u) => Object.assign({ i: 0, c: 0, ms: 0, d: false, h: "", x: [] }, d["p_" + u]);   // h: صح/خطأ لكل سؤال، x: الأخطاء
 const duelView = (d, id, me) => ({ id, ps: d.ps || [], nm: d.nm || {}, ac: Object.fromEntries((d.ps || []).slice(1).map(u => [u, d["a_" + u] || "inv"])),
-  p: Object.fromEntries((d.ps || []).map(u => [u, dProg(d, u)])), st: d.st, s: d.s || 0, rank: d.rank || [], me, now: Date.now() });
+  p: Object.fromEntries((d.ps || []).map(u => [u, dProg(d, u)])), st: d.st, s: d.s || 0, qt: dQt(d), rank: d.rank || [], me, now: Date.now() });
 // الترتيب: الأكثر إجابات صحيحة، ثم الأسرع (من لم يُنهِ يُعدّ أبطأ). السجلّ (فوز/خسارة) للتحدي الثنائي فقط
 async function duelFinishW(fs, d, now) {
   const A = dAct(d), key = u => { const p = dProg(d, u); return p.q ? [1, Infinity] : [-(p.c || 0), p.d ? p.ms : Infinity] };   // المنسحب آخرًا
@@ -1194,7 +1200,8 @@ async function handleDuel(fs, user, body, env) {
     const e = bad.notfriend.length ? "notfriend" : bad.offline.length ? "offline" : bad.busy.length ? "busy" : "";
     if (e) return { status: e === "notfriend" ? 403 : 409, json: { error: e, who: bad[e].map(u => names[u]) } };
     const id = now.toString(36) + Math.random().toString(36).slice(2, 7), ps = [me, ...to];
-    const d = { ps, nm: names, st: "inv", t: { __ts: now }, s: 0, rank: [] };
+    await loadCfg(fs);
+    const d = { ps, nm: names, st: "inv", t: { __ts: now }, s: 0, rank: [], qt: CFG.duel.qt };
     for (const u of ps) d["p_" + u] = { i: 0, c: 0, ms: 0, d: false };
     for (const u of to) d["a_" + u] = "inv";
     await fs.commit([{ path: `duel/${id}`, data: d }, ...to.map(u => ({ path: `fr/${u}`, data: { inv: { id, from: me, name: names[me], with: to.filter(x => x !== u).map(x => names[x]), t: { __ts: now } } }, merge: true }))]);
@@ -1215,7 +1222,7 @@ async function handleDuel(fs, user, body, env) {
   if (d.st !== st0 || upd.st) Object.assign(upd, { st: d.st, s: d.s || 0 });
   if (op === "ans" && d.st === "on") {
     const k = "p_" + me, p = dProg(d, me), i = +body.i;
-    if (dAct(d).includes(me) && !p.d && now >= d.s && i === p.i + 1 && i <= DUEL_N && now - d.s <= DUEL_LEN) {
+    if (dAct(d).includes(me) && !p.d && now >= d.s && i === p.i + 1 && i <= DUEL_N && now - d.s <= dLen(d)) {
       p.i = i; p.c += body.ok ? 1 : 0; p.ms = now - d.s; p.d = i === DUEL_N; p.h = (p.h || "") + (body.ok ? "1" : "0");
       if (!body.ok && p.x.length < DUEL_N) { const t = v => String(v || "").slice(0, 80); p.x.push({ de: t(body.de), ar: t(body.ar), pk: t(body.pk) }) }   // تقرير الأخطاء
       d[k] = p;
@@ -1225,11 +1232,11 @@ async function handleDuel(fs, user, body, env) {
   // الانسحاب أثناء اللعب: يُعدّ منتهيًا (ويأتي آخرًا) فلا ينتظره الباقون
   if (op === "quit" && d.st === "on" && dAct(d).includes(me)) {
     const k = "p_" + me, p = dProg(d, me);
-    if (!p.d) { p.d = true; p.q = 1; p.ms = DUEL_LEN; d[k] = p; await fs.commit([{ path: `duel/${id}`, data: { [k]: p }, merge: true }]) }
+    if (!p.d) { p.d = true; p.q = 1; p.ms = dLen(d); d[k] = p; await fs.commit([{ path: `duel/${id}`, data: { [k]: p }, merge: true }]) }
   }
   // ينتهي حين يُنهي كل اللاعبين، أو تنقضي الدقائق الثلاث
   let w = [];
-  if (d.st === "on" && (dAct(d).every(u => dProg(d, u).d) || now - d.s > DUEL_LEN + 5e3)) { w = await duelFinishW(fs, d, now); Object.assign(upd, { st: "done", rank: d.rank, end: { __ts: now } }) }
+  if (d.st === "on" && (dAct(d).every(u => dProg(d, u).d) || now - d.s > dLen(d) + 5e3)) { w = await duelFinishW(fs, d, now); Object.assign(upd, { st: "done", rank: d.rank, end: { __ts: now } }) }
   if (Object.keys(upd).length || extra.length) {
     const cur = op === "ans" || op === "quit" ? await fs.get(`duel/${id}`) : doc;   // بعد كتابة الإجابة تغيّر وقت التحديث
     try { await fs.commit([...(Object.keys(upd).length ? [{ path: `duel/${id}`, data: upd, merge: true, ifUpdateTime: cur.updateTime }] : []), ...extra, ...(st0 === "inv" && d.st !== "inv" ? (d.ps || []).slice(1).map(u => ({ path: `fr/${u}`, data: { inv: null }, merge: true })) : []), ...w]) }
