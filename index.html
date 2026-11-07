@@ -3651,7 +3651,18 @@ const RD_SPDS=[1,.9,.8,.7];let RDSPD=(()=>{const v=+st("muf_rdspd");return RD_SP
 const rdSpdTxt=()=>(RDSPD===1?"⏩ ":"🐢 ")+"السرعة "+String(RDSPD).replace(/^0/,"0")+"×";
 const rdWs=s=>String(s||"").split(/\s+/).filter(Boolean);
 // وزن كل كلمة (طولها، وزيادة عند علامات الوقف) لتقدير موضعها في الصوت
-function rdW(s){const w=rdWs(s).map(x=>x.replace(/[^\p{L}\p{N}]/gu,"").length+1+(/[.,;:!?…]["“”»«'’)]*$/.test(x)?3:0)),sum=w.reduce((a,b)=>a+b,0)||1;let acc=0;return w.map(v=>{const a=acc/sum;acc+=v;return a})}
+// الأرقام تُقرأ أطول بكثير من عدد خاناتها (1969 = neunzehnhundertneunundsechzig)، فطولها في التقدير طول لفظها بالألمانية
+const RD_ONES=["null","eins","zwei","drei","vier","fünf","sechs","sieben","acht","neun","zehn","elf","zwölf","dreizehn","vierzehn","fünfzehn","sechzehn","siebzehn","achtzehn","neunzehn"],
+  RD_TENS=["","","zwanzig","dreißig","vierzig","fünfzig","sechzig","siebzig","achtzig","neunzig"];
+function rdNumDe(n){if(n<20)return RD_ONES[n];if(n<100)return (n%10?(n%10===1?"ein":RD_ONES[n%10])+"und":"")+RD_TENS[Math.floor(n/10)];
+  if(n<1000)return (Math.floor(n/100)===1?"ein":RD_ONES[Math.floor(n/100)])+"hundert"+(n%100?rdNumDe(n%100):"");
+  if(n>=1100&&n<2000)return rdNumDe(Math.floor(n/100))+"hundert"+(n%100?rdNumDe(n%100):"");   // سنة: neunzehnhundert…
+  if(n<1e6)return (Math.floor(n/1000)===1?"ein":rdNumDe(Math.floor(n/1000)))+"tausend"+(n%1000?rdNumDe(n%1000):"");return "x".repeat(String(n).length*6)}
+function rdSpokenLen(x){const c=x.replace(/[^\p{L}\p{N}.,]/gu,"");if(!/\d/.test(c))return c.replace(/[^\p{L}\p{N}]/gu,"").length;
+  let L=0;for(const g of c.split(/[.,]/)){if(/^\d+$/.test(g))L+=rdNumDe(+g).length+2;else L+=g.length}
+  if(/^\d+\.$/.test(c))L+=3;   // رقم ترتيبي (16. Juli = sechzehnten)
+  return L}
+function rdW(s){const w=rdWs(s).map(x=>rdSpokenLen(x)+1+(/[.,;:!?…]["“”»«'’)]*$/.test(x)&&!/^\d+\.$/.test(x)?3:0)),sum=w.reduce((a,b)=>a+b,0)||1;let acc=0;return w.map(v=>{const a=acc/sum;acc+=v;return a})}
 function rdMark(f){const tx=$("rdSent");if(!tx)return;tx.querySelectorAll(".rw.cur").forEach(x=>x.classList.remove("cur"));
   if(f==null||!RDV)return;const st0=rdW(RDV.s[RDV.i]);let k=0;for(let j=0;j<st0.length;j++)if(st0[j]<=f)k=j;
   const w=tx.querySelector(`.rw[data-k="${k}"]`);if(w)w.classList.add("cur")}
