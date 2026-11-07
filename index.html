@@ -778,7 +778,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=30"></script>
+<script src="core.js?v=31"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -1044,6 +1044,12 @@ let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
 const I3=k=>`<img class="i3" src="img/3d/${k}.png" alt="">`;   // أيقونة مجسّمة
 let UNLT=null;
+// هدية الطاقة اليومية: عند فتح التطبيق، وعند انقلاب اليوم والتطبيق مفتوح (فحص كل 30 ثانية)
+function enDaily(){
+  try{if(!UID||isAdmin()||FREEU||!CFG.energy.daily||R.eg===today())return;
+    const before=enNow();if(ev({type:"eday"})===true){renderEnergy();const got=enNow()-before;
+      if(got>0)toast("🎁","هدية اليوم: +"+got+" طاقة",got<CFG.energy.daily?"وصلت للحدّ الأقصى":"")}}catch(e){}
+}
 function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){setH(b,I3("battery")+"∞");b.classList.remove("low","mid");return}
   if(unlAt(Date.now())){const left=EN.u-Date.now();const ut=b.querySelector(".unlt");if(ut)ut.textContent=clock(left);else{b.innerHTML=I3("battery")+`∞<small class="unlt">${clock(left)}</small>`;b.dataset.h=""}b.classList.remove("low","mid");b.classList.add("unl");b.title="طاقة بلا حدود: باقٍ "+durAr(left/60000);
     if(!UNLT)UNLT=setInterval(()=>{if(!unlAt(Date.now())){clearInterval(UNLT);UNLT=null;b.classList.remove("unl");renderEnergy();toast(I3("battery"),"انتهت الطاقة بلا حدود","عادت الطاقة إلى وضعها المعتاد");const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES)reviewHome();return}const t=b.querySelector(".unlt");if(t)t.textContent=clock(EN.u-Date.now())},1000);return}
@@ -1089,7 +1095,7 @@ async function noEnergy(cost=ST_COST,what="المحطة"){
   const n=enNow(),need=cost-n,m=Math.ceil(enNext()/60000),per=CFG.energy.perReviews,due=stateList("due").length;
   const wait=Math.ceil(((need-1)*EN_STEP+enNext())/60000),h=Math.floor(wait/60),mm=wait%60;
   const D=x=>arN(x,"دقيقة","دقيقتين","دقائق"),Hh=x=>arN(x,"ساعة","ساعتين","ساعات");
-  const msg="🪫 طاقتك "+n+"، و"+what+(what==="المحطة"?" تحتاج ":" يحتاج ")+cost+".\n\nتحصل على الطاقة:\n• وحدة كل "+D(CFG.energy.minutes)+" (التالية بعد "+D(m)+")"+
+  const msg="🪫 طاقتك "+n+"، و"+what+(what==="المحطة"?" تحتاج ":" يحتاج ")+cost+".\n\nتحصل على الطاقة:\n• وحدة كل "+D(CFG.energy.minutes)+" (التالية بعد "+D(m)+")"+(CFG.energy.daily?"\n• هدية "+CFG.energy.daily+" مع بداية كل يوم جديد":"")+
     (per?"\n• وحدة لكل "+arN(per,"مراجعة","مراجعتين","مراجعات")+" لكلمات حان موعدها":"")+
     (CFG.energy.game&&CFG.energy.gameMax?"\n• "+arN(CFG.energy.game,"وحدة","وحدتان","وحدات")+" لكل تمرين تكمله حتى آخره (بقي لك اليوم "+Math.max(0,CFG.energy.gameMax-gamesEnToday(Date.now()))+" من "+CFG.energy.gameMax+")":"")+
     "\n\nتكفيك "+(what.startsWith("ال")?"لل"+what.slice(2):"ل"+what)+" بالانتظار بعد "+(h?Hh(h)+(mm?" و":""):"")+(mm||!h?D(mm):"")+(per&&due?"، أو أسرع بالمراجعة.\n\nعندك "+arN(due,"كلمة مستحقّة","كلمتان مستحقّتان","كلمات مستحقّة")+" الآن. هل تراجعها؟":".");
@@ -2776,7 +2782,7 @@ function renderCfg(){
    <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
-   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}
+   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}${n("e_dl",C.energy.daily,"هدية طاقة كل يوم جديد (0 = لا شيء)")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}<label>التدريب بعد كل محطة شرط لفتح التالية<input type="checkbox" id="s_dr" ${C.station.drillReq?"checked":""}></label></div>
   <div class="rsec"><h3>⚔️ التحدي مع الأصدقاء</h3>${n("d_qt",C.duel.qt,"ثواني كل سؤال (من 5 إلى 120)")}</div>
   <div class="rsec"><h3>${I3("freeze")} تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
@@ -2789,7 +2795,7 @@ function renderCfg(){
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
-    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr"),daily:v("e_dl")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};c.duel={qt:v("d_qt")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}
@@ -2937,7 +2943,7 @@ async function onLogin(user){
   econ();applyLook();renderHeader();refresh();document.body.classList.remove("shell");openScroll();OPENSC=2;appReady();
   markStudied();   // إن أكمل يومه من جهاز آخر فلا تصله تذكيرات اليوم
   staleStation();
-  syncNow(true);
+  syncNow(true).then(enDaily,enDaily);
   loadNameReqs();watchGifts();
   startMessages();
   $("usersBtn").style.display=isAdmin()?"":"none";aiUI();setTimeout(frTick,2500);
@@ -3894,7 +3900,7 @@ function init(){
   $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
   $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
   $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
-  setInterval(()=>{if(UID)renderEnergy()},30000);
+  setInterval(()=>{if(UID){enDaily();renderEnergy()}},30000);
   $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
   const rdb=$("rdBtn");if(rdb)rdb.onclick=()=>{RDV=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("reading").classList.add("on");renderPanel("reading");scrollTo(0,0)};
   const aib=$("aiBtn");if(aib)aib.onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("helper").classList.add("on");renderPanel("helper");scrollTo(0,0)};
