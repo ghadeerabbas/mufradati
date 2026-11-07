@@ -3320,7 +3320,7 @@ async function renderAssign(uid){
 
 /* ================= الأصدقاء والتحدي المباشر ================= */
 var FRC="",FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
-const DUEL_N=10,DUEL_LEN=180e3;   // مدة التحدي (نفسها في الخادم)
+const DUEL_N=10,DUEL_LEN=180e3,DUEL_QT=15e3;   // مدة التحدي القصوى (نفسها في الخادم)، و15 ثانية لكل سؤال
 const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
 const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
 // نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 3 ثوانٍ والتطبيق ظاهر إن كان له أصدقاء (لتصل الدعوة فورًا)، وإلا كل 12 ثانية أو دقيقة
@@ -3445,19 +3445,23 @@ function duelBars(){
   return `<div class="dlbars">${ps.map(u=>{const h=u===DL.me?(DL.h||""):((d.p[u]||{}).h||""),c=[...h].filter(x=>x==="1").length;
     return `<div class="dlbar"><small><b>${esc(dlName(d,u))}</b><span>${h.length}/${DUEL_N} · ✓${c}</span></small><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div></div>`}).join("")}</div>`;
 }
-// عدّاد الوقت الباقي: يراه كل لاعب، محسوبًا من ساعة الخادم
+// عدّاد السؤال: 15 ثانية لكل سؤال؛ إن انتهت دون جواب يُحسب خطأً وينتقل للتالي.
+// (ويبقى حدّ التحدي الكلّي 3 دقائق من ساعة الخادم احتياطًا)
 const dlLeft=()=>DL&&DL.d?Math.max(0,DL.d.s+DUEL_LEN-(Date.now()+(DL.off||0))):0;
 const dlTimeH=()=>`<span class="dltime" id="dlTime"></span>`;
 function dlTick(){
-  if(!DL)return;const ms=dlLeft(),t=Math.ceil(ms/1000),e=$("dlTime");
-  if(e){e.textContent="⏱ "+Math.floor(t/60)+":"+String(t%60).padStart(2,"0");e.classList.toggle("low",t<=30)}
-  if(ms<=0&&DL.i<DUEL_N&&!DL.to){DL.to=true;DL.lock=true;duelWaitEnd()}   // انتهى الوقت قبل أن يُنهي
+  if(!DL)return;
+  if(dlLeft()<=0&&DL.i<DUEL_N&&!DL.to){DL.to=true;DL.lock=true;duelWaitEnd();return}
+  if(!DL.qs||DL.lock||DL.to||DL.i>=DUEL_N)return;
+  const ms=Math.max(0,DUEL_QT-(Date.now()-DL.qs)),t=Math.ceil(ms/1000),e=$("dlTime");
+  if(e){e.textContent="⏱ "+t;e.classList.toggle("low",t<=5)}
+  if(ms<=0&&DL.ans)DL.ans(null);   // لم يُجب في الوقت
 }
 function duelPlay(){
   if(!DL)return;clearTimeout(DL.pt);DL.q=duelQs();DL.i=0;DL.c=0;DL.h="";DL.x=[];DL.sendQ=Promise.resolve();
   const wait=()=>{if(!DL)return;const left=Math.ceil((DL.d.s-(Date.now()+DL.off))/1000);
     if(left>0){dlOv(`<h2>استعد!</h2><div class="dlbig">${left}</div>`);DL.pt=setTimeout(wait,250);return}
-    duelQ();clearInterval(DL.ti);DL.ti=setInterval(dlTick,500);DL.pt=setTimeout(poll,1500)};
+    duelQ();clearInterval(DL.ti);DL.ti=setInterval(dlTick,250);DL.pt=setTimeout(poll,1500)};
   const poll=async()=>{if(!DL||DL.end)return;await duelPoll("st");if(!DL)return;const b=$("dlBars");if(b)b.innerHTML=duelBars();
     if(DL.d.st==="done"){duelEnd(true);return}
     if(DL.i>=DUEL_N||DL.to){if(!DL.to&&dlMyFixed(DL.d))duelEnd(false);else duelWaitEnd()}DL.pt=setTimeout(poll,1500)};
@@ -3469,16 +3473,22 @@ function duelQ(){
   const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button>${dlTimeH()}<h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
    <div class="dlq">${esc(q.w.de)}</div><div class="dlopts">${q.opts.map((x,k)=>`<button data-k="${k}">${esc(x.ar)}</button>`).join("")}</div>`);
   $("dlQuit").onclick=async()=>{const id=DL&&DL.id;if(!await uiConfirm("تنسحب من التحدي؟")||!DL||DL.id!==id)return;if(DL){clearTimeout(DL.pt);DL.end=true;await duelPoll("quit")}duelClose()};
-  o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
-    if(DL.lock)return;DL.lock=true;const ok=q.opts[+b.dataset.k].k===q.w.k;b.classList.add(ok?"ok":"no");
+  DL.qs=Date.now();
+  // k = رقم الخيار المختار، أو null إن انتهت ثواني السؤال (يُحسب خطأً)
+  DL.ans=k=>{
+    if(!DL||DL.lock)return;DL.lock=true;const b=k==null?null:o.querySelector(`.dlopts button[data-k="${k}"]`);
+    const ok=k!=null&&q.opts[k].k===q.w.k;if(b)b.classList.add(ok?"ok":"no");
     if(!ok)o.querySelectorAll(".dlopts button").forEach(x=>{if(q.opts[+x.dataset.k].k===q.w.k)x.classList.add("ok")});
-    const pk=q.opts[+b.dataset.k];DL.i++;if(ok)DL.c++;DL.h+=ok?"1":"0";if(!ok)DL.x.push({de:q.w.de,ar:q.w.ar,pk:pk.ar});const i=DL.i;
+    if(k==null){const e=$("dlTime");if(e)e.textContent="⏰ انتهى الوقت"}
+    const pk=k==null?{ar:"⏰ لم يُجب"}:q.opts[k];DL.i++;if(ok)DL.c++;DL.h+=ok?"1":"0";if(!ok)DL.x.push({de:q.w.de,ar:q.w.ar,pk:pk.ar});const i=DL.i;
     const bb=$("dlBars");if(bb)bb.innerHTML=duelBars();
     // الإجابات تُرسل بالترتيب، وتُعاد إن لم تُحفظ
     DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0,...(ok?{}:{de:q.w.de,ar:q.w.ar,pk:pk.ar})});const me=j&&j.p&&j.p[DL.me];if(me&&me.i>=i||j&&j.st!=="on")break}});
     if(i===DUEL_N){const id=DL.id;DL.sendQ.then(()=>duelStreak(id))}
-    setTimeout(()=>{if(!DL||DL.to)return;DL.lock=false;duelQ();dlTick()},ok?350:900);
-  });
+    setTimeout(()=>{if(!DL||DL.to)return;DL.lock=false;duelQ();dlTick()},ok?350:k==null?1300:900);
+  };
+  o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>DL.ans(+b.dataset.k));
+  dlTick();
 }
 // إنهاء التحدي ينشّط سلسلة اليوم إن لم تكن نشطة (بلا خبرة ولا جواهر)
 function duelStreak(id){
@@ -3487,7 +3497,7 @@ function duelStreak(id){
 }
 function duelWaitEnd(){
   if(!DL||DL.end)return;const d=DL.d,rest=dlPlayers(d).filter(u=>u!==DL.me&&!(d.p[u]||{}).d).map(u=>d.nm[u]||"صديق");
-  if(!$("dlFin"))dlOv(`${dlTimeH()}<h2 id="dlFin">${DL.to?"⏰ انتهى الوقت!":"أنهيت!"} ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote" id="dlRest"></p>`);
+  if(!$("dlFin"))dlOv(`<h2 id="dlFin">${DL.to?"⏰ انتهى الوقت!":"أنهيت!"} ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote" id="dlRest"></p>`);
   dlTick();const r=$("dlRest");if(r)r.textContent=rest.length?"بانتظار "+rest.join("، ")+"…":"جارٍ حساب النتيجة…";
 }
 // ترتيبي ثابت إن لم يعد أحد ممّن يلعبون يستطيع أن يتخطّاني أو أن أتخطّاه:
@@ -3511,7 +3521,7 @@ async function duelEnd(final){
    <div class="rsec" style="text-align:start">${R.map((u,k)=>`<div class="frrow"><span>${tie?"🤝":(d.p[u]||{}).d||final?md[k]:"⏳"}</span><div><b>${esc(dlName(d,u))}</b></div><b>${(d.p[u]||{}).c||0}/${DUEL_N} ✓</b><small>${(d.p[u]||{}).d||final?sec(d.p[u]):"يلعب… "+((d.p[u]||{}).i||0)+"/"+DUEL_N}</small></div>`).join("")}</div>
    <div class="rsec" style="text-align:start"><h3>تقرير الأخطاء</h3>${R.map(u=>{const p=d.p[u]||{},x=u===DL.me&&DL.x.length>=(p.x||[]).length?DL.x:(p.x||[]),h=u===DL.me?DL.h:(p.h||"");
      return `<div class="dlrep"><b>${esc(dlName(d,u))}</b><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div>
-      ${!final&&!p.d&&u!==DL.me?'<small>ما زال يلعب…</small>':""}${x.length?x.map(e=>`<div class="dlerr"><span dir="ltr">${esc(e.de)}</span><span>✓ ${esc(e.ar)}</span>${e.pk?`<small>اختار: ${esc(e.pk)}</small>`:""}</div>`).join(""):!final&&!p.d&&u!==DL.me?"":h.length?'<small class="ok">بلا أخطاء 👏</small>':'<small>لم يُجِب</small>'}
+      ${!final&&!p.d&&u!==DL.me?'<small>ما زال يلعب…</small>':""}${x.length?x.map(e=>`<div class="dlerr"><span dir="ltr">${esc(e.de)}</span><span>✓ ${esc(e.ar)}</span>${e.pk?`<small>${e.pk==="⏰ لم يُجب"?"⏰ انتهى وقت السؤال دون جواب":"اختار: "+esc(e.pk)}</small>`:""}</div>`).join(""):!final&&!p.d&&u!==DL.me?"":h.length?'<small class="ok">بلا أخطاء 👏</small>':'<small>لم يُجِب</small>'}
       ${final&&h.length&&h.length<DUEL_N?`<small>لم يُكمل: أجاب عن ${h.length} من ${DUEL_N}</small>`:""}</div>`}).join("")}</div>
    ${final?'<button class="btn next" id="dlAgain" style="width:100%">🔁 إعادة التحدي</button>':""}
    <button class="btn${final?"":" next"}" id="dlOk" style="width:100%;margin-top:8px">رجوع</button>`);
