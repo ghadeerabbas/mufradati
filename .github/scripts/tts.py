@@ -43,7 +43,7 @@ def texts():
     if os.path.exists("rdgloss.json"):
         for w in json.load(open("rdgloss.json", encoding="utf-8")).get("w", {}):
             t = speakable(w.strip())
-            if t and re.search(r"[A-Za-zÄÖÜäöüß]", t): out.add(t)
+            if t and re.search(r"[A-Za-zÄÖÜäöüß0-9]", t): out.add(t)   # والأرقام أيضًا (16، 1969)
     return sorted(out)
 
 def synth(text):
