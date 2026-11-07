@@ -744,7 +744,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=27"></script>
+<script src="core.js?v=28"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2031,7 +2031,7 @@ function bigScreen(html,cls,after){
     show()}));
 }
 const WD=["ن","ث","ر","خ","ج","س","ح"];   // الاثنين … الأحد (الأسبوع كأسبوع الدوري)
-function dayDone(e,d){return d<"2026-10-16"?!!e.per[d]:!!((e.per[d]&&e.per[d].n>=10)||STN.some(x=>dkey(x[0])===d))}
+function dayDone(e,d){return d<"2026-10-16"?!!e.per[d]:!!((e.per[d]&&e.per[d].n>=10)||STN.some(x=>dkey(x[0])===d)||duelDays().includes(d))}
 function streakScreen(e){
   const n=e.s.streak,ws=weekStart(Date.now()),td=today();
   const days=[...Array(7)].map((_,i)=>{const d=dkey(ws+i*DAY+12*3600e3);return {d,done:dayDone(e,d),fut:d>td,now:d===td}});
@@ -3443,8 +3443,14 @@ function duelQ(){
     const bb=$("dlBars");if(bb)bb.innerHTML=duelBars();
     // الإجابات تُرسل بالترتيب، وتُعاد إن لم تُحفظ
     DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0,...(ok?{}:{de:q.w.de,ar:q.w.ar,pk:pk.ar})});const me=j&&j.p&&j.p[DL.me];if(me&&me.i>=i||j&&j.st!=="on")break}});
+    if(i===DUEL_N){const id=DL.id;DL.sendQ.then(()=>duelStreak(id))}
     setTimeout(()=>{if(!DL)return;DL.lock=false;duelQ()},ok?350:900);
   });
+}
+// إنهاء التحدي ينشّط سلسلة اليوم إن لم تكن نشطة (بلا خبرة ولا جواهر)
+function duelStreak(id){
+  try{if(duelDays().includes(dkey(Date.now())))return;const was=econ().s.today;
+    if(ev({type:"duel",id})===true&&!was&&econ().s.today){toast("🔥","نشّطت سلسلتك اليوم","بإنهاء التحدي");renderHeader()}}catch(e){}
 }
 function duelWaitEnd(){
   if(!DL||DL.end)return;const d=DL.d,rest=dlPlayers(d).filter(u=>u!==DL.me&&!(d.p[u]||{}).d).map(u=>d.nm[u]||"صديق");

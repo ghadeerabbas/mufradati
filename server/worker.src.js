@@ -219,7 +219,10 @@ async function handleSync(fs, user, body) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); continue }
     if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); continue }      // أحداث من قبل حذف المشرف لا تُقبل
     if (e.type === "stDone" && !words) words = await wordSet();
-    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words });
+    let duelOk = false;   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
+    if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
+      duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d) }
+    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk });
     if (r !== true) rej.push([i, r]);
   }
   // المظهر الذي اختاره المتعلّم (يُتحقّق من ملكيّته)

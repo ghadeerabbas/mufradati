@@ -223,6 +223,8 @@ const lvlNeed=l=>{if(l<8)return CFG.xp.level*l;let n=CFG.xp.level*7;for(let k=8;
 // أيام سلسلة استعادها المشرف (بعد تصفيرٍ قديم كان يمسح السلسلة): R.sk={t:آخر يوم,n:عددها}
 function carryDays(){const o=new Set,k=R.sk;if(!k||!(k.n>0)||!/^\d{4}-\d\d-\d\d$/.test(k.t||""))return o;
   const t=new Date(k.t+"T12:00:00").getTime();for(let i=0;i<Math.min(k.n,3650);i++)o.add(dkey(t-i*DAY));return o}
+// أيام أنهى فيها تحدّيًا مع صديق (R.dd): تُحسب في السلسلة كيوم دراسة، بلا خبرة ولا جواهر
+const duelDays=()=>Array.isArray(R.dd)?R.dd.filter(d=>/^\d{4}-\d\d-\d\d$/.test(d)):[];
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -244,8 +246,8 @@ function econ(){
   for(const q of QLOG){xp+=qXp(q);if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
-  const stDays=new Set(STN.map(x=>dkey(x[0]))),cd=carryDays(),qd=d=>cd.has(d)||(d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d)));
-  const days=[...new Set([...Object.keys(per),...cd])].sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
+  const stDays=new Set([...STN.map(x=>dkey(x[0])),...duelDays()]),cd=carryDays(),qd=d=>cd.has(d)||(d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d)));
+  const days=[...new Set([...Object.keys(per),...cd,...duelDays()])].sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
   if(days.length){
     let t=new Date(days[0]+"T12:00:00").getTime(),gap=0,gapUsed=0;const end=today();
     for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
@@ -429,6 +431,11 @@ function applyAt(ev,T,now,ctx){
     for(const a of (ev.qa||[]).slice(0,300))if(Array.isArray(a))QA.push([now,String(a[0]),a[1]?1:0]);
     if(QA.length>30000)QA=QA.slice(-30000);
     return true;
+  }
+  // تحدٍّ أنهاه مع صديق: ينشّط سلسلة ذلك اليوم (الخادم يتحقّق أنه أنهى أسئلة التحدي فعلًا)
+  if(T==="duel"){
+    if(ctx.server&&!ctx.duelOk)return "duel";
+    const d=dkey(now);R.dd=duelDays().filter(x=>x!==d);R.dd.push(d);if(R.dd.length>400)R.dd=R.dd.slice(-400);return true;
   }
   if(T==="buy"){
     const it=itemOf(ev.cat,ev.id);if(!it||it.hidden||it.streak||!it.price&&it.cat!=="power")return "item";
