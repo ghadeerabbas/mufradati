@@ -44,11 +44,22 @@ def texts():
 # نصوص القراءة (texts.json): كل جملة كما هي، وكل كلمة وحدها، بالتهيئة نفسها التي في التطبيق (rdNorm وrdCore)
 def rd_norm(s): return re.sub(r"\s+", " ", str(s or "")).strip()
 def rd_core(x): return re.sub(r"^[\W_]+|[\W_]+$", "", x)
+# القصيدة (v): الأسطر تُجمع حتى نهاية الجملة أو نهاية المقطع، فتُقرأ الجملة كلها بصوت واحد (يطابق rdUnits في التطبيق)
+def rd_units(t):
+    if not t.get("v"): return []
+    out = []
+    for p in t.get("p", []):
+        cur = []
+        for j, s in enumerate(p):
+            cur.append(rd_norm(s.get("de", "")))
+            if re.search(r'[.!?]["\'»“”)]*$', cur[-1]) or j == len(p) - 1: out.append(" ".join(cur)); cur = []
+    return out
+
 def reading_texts():
     out = set()
     if not os.path.exists("texts.json"): return out
     for t in json.load(open("texts.json", encoding="utf-8")).get("texts", []):
-        sents = [t.get("t", "")] + [s.get("de", "") for p in t.get("p", []) for s in p]
+        sents = [t.get("t", "")] + [s.get("de", "") for p in t.get("p", []) for s in p] + rd_units(t)
         for s in sents:
             s = rd_norm(s)
             if not re.search(r"[A-Za-zÄÖÜäöüß0-9]", s): continue
