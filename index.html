@@ -756,7 +756,9 @@ const isDark=()=>{const d=DEV_DARK();return d!=null?d==="1":!!(typeof E!=="undef
 // نوافذ تأكيد وإدخال داخل الصفحة (بدل نوافذ المتصفح التي تُظهر عنوان الموقع)
 function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={}){
   return new Promise(res=>{
-    const m=document.createElement("div");m.className="uidlg";
+    // نفس الرسالة مفتوحة أصلًا (ضغطة مكرّرة على الزر): لا تُفتح نافذة ثانية فوقها
+    if([...document.querySelectorAll(".uidlg .uimsg")].some(x=>x.textContent===msg)){res(input?null:false);return}
+    const m=document.createElement("div");m.className="uidlg";m.dataset.msg=msg;
     m.innerHTML=`<div class="uibox"><div class="uimsg"></div>${input?'<input class="uiin" dir="auto" autocomplete="off" autocapitalize="none">':""}
       <div class="uibtns">${cancel?`<button class="btn uino">${cancel}</button>`:""}<button class="btn uiok">${ok}</button></div></div>`;
     m.querySelector(".uimsg").textContent=msg;
@@ -3371,7 +3373,9 @@ function duelQs(){
     return {w,opts:shuffle([w,...(same.length>=3?same:shuffle(others)).slice(0,3)])}});
 }
 const dlOv=h=>{const o=$("duelOv");o.className="on";o.innerHTML=`<div class="dl">${h}</div>`;return o};
-function duelClose(){if(DL){clearTimeout(DL.pt);DL=null}const o=$("duelOv");o.className="";o.innerHTML="";if(FRV&&$("games").classList.contains("on"))renderFriends()}
+function duelClose(){if(DL){clearTimeout(DL.pt);DL=null}
+  document.querySelectorAll('.uidlg[data-msg="تنسحب من التحدي؟"]').forEach(x=>x.remove());   // سؤال انسحاب بقي مفتوحًا بعد انتهاء التحدي
+  const o=$("duelOv");o.className="";o.innerHTML="";if(FRV&&$("games").classList.contains("on"))renderFriends()}
 async function duelPoll(op,extra){try{const j=await apiPost("/duel",{op,id:DL.id,...extra});if(!DL||j.id!==DL.id)return j;DL.off=j.now-Date.now();DL.d=j;return j}catch(e){return null}}
 // اللاعبون الفعليون: صاحب الدعوة ومن قبل (أثناء الانتظار يظهر كل المدعوّين)
 const dlPlayers=d=>d.st==="inv"?d.ps:d.ps.filter((u,k)=>k===0||d.ac[u]==="acc");
@@ -3435,7 +3439,7 @@ function duelQ(){
   const q=DL.q[DL.i];
   const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button><h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
    <div class="dlq">${esc(q.w.de)}</div><div class="dlopts">${q.opts.map((x,k)=>`<button data-k="${k}">${esc(x.ar)}</button>`).join("")}</div>`);
-  $("dlQuit").onclick=async()=>{if(!await uiConfirm("تنسحب من التحدي؟"))return;if(DL){clearTimeout(DL.pt);DL.end=true;await duelPoll("quit")}duelClose()};
+  $("dlQuit").onclick=async()=>{const id=DL&&DL.id;if(!await uiConfirm("تنسحب من التحدي؟")||!DL||DL.id!==id)return;if(DL){clearTimeout(DL.pt);DL.end=true;await duelPoll("quit")}duelClose()};
   o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
     if(DL.lock)return;DL.lock=true;const ok=q.opts[+b.dataset.k].k===q.w.k;b.classList.add(ok?"ok":"no");
     if(!ok)o.querySelectorAll(".dlopts button").forEach(x=>{if(q.opts[+x.dataset.k].k===q.w.k)x.classList.add("ok")});
