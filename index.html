@@ -3698,7 +3698,7 @@ function rdSentHTML(s,si,tr,v){
   return tr?`<span class="rs rsb" data-s="${si}">${h}<span class="rar">${esc(s.ar||"")}</span></span>`:v?`<span class="rs rsv" data-s="${si}">${h}</span>`:`<span class="rs" data-s="${si}">${h}</span> `;   // v: قصيدة، كل سطر وحده
 }
 function renderRead(){
-  const el=$("read");rdStop();rdPopClose();RDPRE={};
+  const el=$("read");rdStop();rdPopClose();
   if(!rdOn()){el.innerHTML='<div class="empty">لا توجد نصوص قراءة بعد.</div>';return}
   const L=myTexts(),t=RDO&&L.find(x=>x.id===RDO);
   if(!t){RDO=null;const dn=new Set(rdDone()),cs=[...new Set(L.map(x=>x.c))];
@@ -3734,17 +3734,14 @@ function rdAudio(t,slow,prog){return new Promise(res=>{
   if(AUD&&AUD.has(h)){
     try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
     try{if(AUDEL)AUDEL.pause()}catch(e){}
-    const a=RDPRE[h]||new Audio("audio/"+h+".mp3");delete RDPRE[h];AUDEL=a;a.playbackRate=slow?.75:1;a.preservesPitch=true;
-    // الصمت في آخر ملف Azure لا ننتظره: ننتقل للسطر التالي قبله بقليل
-    const tick=()=>{if(done)return;if(a.duration&&a.currentTime>=a.duration-.12){a.pause();return}if(prog&&a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
+    const a=new Audio("audio/"+h+".mp3");AUDEL=a;a.playbackRate=slow?.75:1;a.preservesPitch=true;
+    const tick=()=>{if(done)return;if(prog&&a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
     a.onended=fin;a.onerror=fin;a.onpause=()=>{if(!a.ended)fin()};
     a.play().then(()=>{raf=requestAnimationFrame(tick)}).catch(()=>{if(AUDEL===a)AUDEL=null;rdDevice(t,slow,prog).then(fin)});return}
   rdDevice(t,slow,prog).then(fin);
 })}
 // صوت الجهاز: في المتصفح نعرف موضع الكلمة ونهاية الجملة، وفي تطبيق أندرويد نقدّر المدة
-let RDTM=0,RDPRE={};
-// تحميل صوت السطر التالي مسبقًا وهو يُقرأ السطر الحالي، فلا ينتظر الولد التحميل بين الأسطر
-function rdPre(t){if(!t||!AUD)return;const h=fnvH(rdNorm(t));if(!AUD.has(h)||RDPRE[h])return;try{const a=new Audio("audio/"+h+".mp3");a.preload="auto";a.load();RDPRE[h]=a}catch(e){}}
+let RDTM=0;
 function rdDevice(t,slow,prog){return new Promise(res=>{
   const est=Math.max(.8,t.length*.075*(slow?1.7:1.1))*1000,t0=Date.now();clearInterval(RDTM);
   const timer=()=>{RDTM=setInterval(()=>{const f=(Date.now()-t0)/est;if(prog)prog(Math.min(1,f));if(f>=1){clearInterval(RDTM);res()}},80)};
@@ -3754,9 +3751,9 @@ function rdDevice(t,slow,prog){return new Promise(res=>{
 })}
 async function rdPlayAll(from){
   const tok=++RPT;RPLAY=true;rdBar();rdPopClose();
-  for(let i=from;i<RS.length;i++){if(tok!==RPT)return;RFROM=i;rdMark(i,0);if(RS[i+1])rdPre(RS[i+1].de);
+  for(let i=from;i<RS.length;i++){if(tok!==RPT)return;RFROM=i;rdMark(i,0);
     await rdAudio(RS[i].de,RSLOW,f=>{if(tok===RPT)rdMark(i,f)});
-    if(tok!==RPT)return;await new Promise(r=>setTimeout(r,RSLOW?220:90))}
+    if(tok!==RPT)return;await new Promise(r=>setTimeout(r,RSLOW?450:280))}
   if(tok!==RPT)return;RPLAY=false;RFROM=0;rdMark(-1);rdBar();
 }
 // إيقاف الصوت؛ keep: يبقى موضع القراءة ليكمل منه
