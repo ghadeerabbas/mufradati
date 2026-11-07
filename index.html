@@ -586,7 +586,7 @@ body.fbon main{padding-bottom:210px}
 .rdItem b{flex:1;font-size:1.02rem}.rdItem small{opacity:.7;white-space:nowrap}
 .rdBar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}.rdBar i{display:block;height:100%;background:var(--green)}
 .rdSent{direction:ltr;text-align:left;font-size:1.35rem;line-height:1.7;padding:22px 18px;margin:14px 0;border-radius:16px;background:var(--card);border:1px solid var(--line);min-height:120px}
-.rdSent .rw{border-radius:6px;padding:0 1px;cursor:pointer}.rdSent .rw.cur{background:#ffd43b;color:#222}.rdSent .rw.sel{outline:2px solid #1cb0f6}.rdSent .rar{direction:rtl;text-align:right;font-size:1.05rem;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);line-height:1.7}.rdCtl .btn.on{background:#1cb0f6;color:#fff}
+.rdSent .rw{border-radius:6px;padding:0 1px;cursor:pointer}.rdSent .rw.cur{background:#ffd43b;color:#222}.rdSent .rw.sel{outline:2px solid #1cb0f6}.rdSent .rar{direction:rtl;text-align:right;font-size:1.05rem;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);line-height:1.7}.rdCtl .btn.on{background:#1cb0f6;color:#fff}.rdCtl .btn.stop{background:var(--red);color:#fff}
 .rdbar{position:sticky;top:var(--hdrH,70px);z-index:5;background:var(--paper);display:flex;gap:6px;padding:8px 0}
 .rdbar .btn{background:var(--soft);color:var(--hd);padding:7px 10px;font-size:.85rem;white-space:nowrap}.rdbar .btn.on{background:#1cb0f6;color:#fff}.rdbar #rdPlay{flex:1;background:#58cc02;color:#fff;box-shadow:0 4px 0 #46a302}
 .rdtx{direction:ltr;text-align:left;font-size:1.3rem;line-height:2.05;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:6px}
@@ -3638,10 +3638,13 @@ function rdMark(f){const tx=$("rdSent");if(!tx)return;tx.querySelectorAll(".rw.c
   if(f==null||!RDV)return;const st0=rdW(RDV.s[RDV.i]);let k=0;for(let j=0;j<st0.length;j++)if(st0[j]<=f)k=j;
   const w=tx.querySelector(`.rw[data-k="${k}"]`);if(w)w.classList.add("cur")}
 // تشغيل الجملة: ملف Azure من الخادم، وإن تعذّر فصوت الجهاز بمدة مقدّرة
+// زر «إعادة» يصير «إيقاف» ما دامت الجملة تُقرأ
+let RDON=false;
+function rdReBtn(on){RDON=on;const b=$("rdRe");if(b){b.innerHTML=on?"⏹ إيقاف":SPK+" إعادة";b.classList.toggle("stop",on)}}
 function rdSay(rate){rate=rate||1;const slow=rate<.85;return new Promise(async res=>{
-  const v=RDV;if(!v){res();return}const i=v.i,tok=++RDTOK;let done=false,raf=0;const fin=()=>{if(done)return;done=true;cancelAnimationFrame(raf);clearInterval(RDTM);if(tok===RDTOK)rdMark(null);res()};
+  const v=RDV;if(!v){res();return}const i=v.i,tok=++RDTOK;let done=false,raf=0;const fin=()=>{if(done)return;done=true;cancelAnimationFrame(raf);clearInterval(RDTM);if(tok===RDTOK){rdMark(null);rdReBtn(false)}res()};
   const prog=f=>{if(tok===RDTOK&&RDV===v&&v.i===i)rdMark(f)};
-  try{if(RDEL)RDEL.pause();if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}clearInterval(RDTM);
+  try{if(RDEL)RDEL.pause();if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}clearInterval(RDTM);rdReBtn(true);
   const src=await rdAud(v.id,i);if(tok!==RDTOK||RDV!==v||v.i!==i){fin();return}
   if(src){try{const a=new Audio(src);RDEL=a;a.playbackRate=rate;a.preservesPitch=true;
       const tick=()=>{if(done)return;if(tok!==RDTOK){a.pause();return}if(a.duration&&a.currentTime>=a.duration-.12){a.pause();return}if(a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
@@ -3649,7 +3652,7 @@ function rdSay(rate){rate=rate||1;const slow=rate<.85;return new Promise(async r
   const t=v.s[i],est=Math.max(.8,t.length*.075*(slow?1.7:1.1))*1000,t0=Date.now();ttsSpeak(t,slow);
   RDTM=setInterval(()=>{if(tok!==RDTOK){fin();return}const f=(Date.now()-t0)/est;prog(Math.min(1,f));if(f>=1)fin()},80);
 })}
-function rdStop(){RDTOK++;clearInterval(RDTM);try{if(RDEL){RDEL.pause();RDEL=null}if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}rdMark(null)}
+function rdStop(){RDTOK++;clearInterval(RDTM);try{if(RDEL){RDEL.pause();RDEL=null}if("speechSynthesis" in window)speechSynthesis.cancel();if(window.MufApp&&MufApp.stop)MufApp.stop()}catch(e){}rdMark(null);rdReBtn(false)}
 // معاني كلمات القراءة: يكتبها Claude يدويًّا في rdgloss.json (كلمات فقط، لا جمل)، ولكل كلمة صوت جاهز (tts.py)
 let RDG=null;
 function rdGloss(){if(RDG)return Promise.resolve(RDG);const c=st("muf_rdgloss");if(c){try{RDG=JSON.parse(c).w||{}}catch(e){}}
@@ -3682,7 +3685,7 @@ function rdShow(play){
      <div class="rdNav"><button class="btn" id="rdPrev" ${v.i?"":"disabled"}>→ السابقة</button><button class="btn next" id="rdNext">${v.i+1<v.s.length?"التالية ←":"إنهاء ✓"}</button></div>`}`;
   $("rdBack").onclick=()=>rdBack();
   if(end){$("rdAgain").onclick=()=>{v.i=0;rdPos();rdShow(true)};$("rdDone").onclick=()=>rdBack();return}
-  $("rdRe").onclick=()=>rdSay(RDSPD);
+  $("rdRe").onclick=()=>{if(RDON)rdStop();else rdSay(RDSPD)};
   // كل ضغطة تنقل إلى الدرجة التالية (1× ← 0.9× ← 0.8× ← 0.7× ← 1×) وتعيد قراءة الجملة بها
   $("rdSl").onclick=()=>{RDSPD=RD_SPDS[(RD_SPDS.indexOf(RDSPD)+1)%RD_SPDS.length];st("muf_rdspd",String(RDSPD));const b=$("rdSl");b.innerHTML=rdSpdTxt();b.classList.toggle("on",RDSPD<1);rdSay(RDSPD)};
   if(ar)$("rdTrB").onclick=()=>{RDTRON=!RDTRON;rdShow()};
