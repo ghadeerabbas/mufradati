@@ -586,7 +586,7 @@ body.fbon main{padding-bottom:210px}
 .rdItem b{flex:1;font-size:1.02rem}.rdItem small{opacity:.7;white-space:nowrap}
 .rdBar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}.rdBar i{display:block;height:100%;background:var(--green)}
 .rdSent{direction:ltr;text-align:left;font-size:1.35rem;line-height:1.7;padding:22px 18px;margin:14px 0;border-radius:16px;background:var(--card);border:1px solid var(--line);min-height:120px}
-.rdSent.on{box-shadow:0 0 0 3px var(--accent,#4c8bf5) inset}
+.rdSent .rw{border-radius:6px;padding:0 1px;cursor:pointer}.rdSent .rw.cur{background:#ffd43b;color:#222}.rdSent .rw.sel{outline:2px solid #1cb0f6}.rdSent .rar{direction:rtl;text-align:right;font-size:1.05rem;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px dashed var(--line);line-height:1.7}.rdCtl .btn.on{background:#1cb0f6;color:#fff}
 .rdbar{position:sticky;top:var(--hdrH,70px);z-index:5;background:var(--paper);display:flex;gap:6px;padding:8px 0}
 .rdbar .btn{background:var(--soft);color:var(--hd);padding:7px 10px;font-size:.85rem;white-space:nowrap}.rdbar .btn.on{background:#1cb0f6;color:#fff}.rdbar #rdPlay{flex:1;background:#58cc02;color:#fff;box-shadow:0 4px 0 #46a302}
 .rdtx{direction:ltr;text-align:left;font-size:1.3rem;line-height:2.05;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:6px}
@@ -3623,39 +3623,30 @@ function rdListShow(){
 }
 async function rdOpen(id){
   const el=$("reading");el.innerHTML=`<div class="empty">جارٍ التحميل…</div>`;
-  try{const j=await apiPost("/rd",{op:"get",id});RDV={id,ti:j.ti,s:j.s,ar:j.ar||[],i:j.p>=j.s.length?0:j.p};rdShow();scrollTo(0,0)}
+  try{const j=await apiPost("/rd",{op:"get",id});RDV={id,ti:j.ti,s:j.s,ar:j.ar||[],i:j.p>=j.s.length?0:j.p};RDTRON=false;rdShow(true);scrollTo(0,0)}
   catch(e){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال</div>'}
 }
-// عرض النص كاملًا: الجملة الحالية ملوّنة، والكلمة التي تُقرأ ملوّنة وتمشي مع الصوت، والضغط على جملة يُظهر ترجمتها
-let RDTOK=0,RDPLAY=false,RDSLOW=false,RDTM=0;const RDTR=new Map();
+// جملة واحدة في كل مرة: تُقرأ تلقائيًّا والكلمة التي تُقرأ تتلوّن، و«التالية» للانتقال؛ الضغط على كلمة يُسمعها ويُظهر معناها؛ و«الترجمة» يُظهر ترجمة الجملة التي كتبها المشرف
+let RDTOK=0,RDSLOW=false,RDTM=0;
 const rdWs=s=>String(s||"").split(/\s+/).filter(Boolean);
 // وزن كل كلمة (طولها، وزيادة عند علامات الوقف) لتقدير موضعها في الصوت
 function rdW(s){const w=rdWs(s).map(x=>x.replace(/[^\p{L}\p{N}]/gu,"").length+1+(/[.,;:!?…]["“”»«'’)]*$/.test(x)?3:0)),sum=w.reduce((a,b)=>a+b,0)||1;let acc=0;return w.map(v=>{const a=acc/sum;acc+=v;return a})}
-function rdMark(i,f){const tx=$("rdTxt");if(!tx)return;tx.querySelectorAll(".rs.cur,.rw.cur").forEach(x=>x.classList.remove("cur"));
-  if(!RDV||i<0||i>=RDV.s.length)return;const s=tx.querySelector(`.rs[data-i="${i}"]`);if(s)s.classList.add("cur");
-  if(f==null)return;const st0=rdW(RDV.s[i]);let k=0;for(let j=0;j<st0.length;j++)if(st0[j]<=f)k=j;
-  const w=tx.querySelector(`.rs[data-i="${i}"] .rw[data-k="${k}"]`);if(w){w.classList.add("cur");const r=w.getBoundingClientRect(),hd=((document.querySelector("header")||{}).offsetHeight||70)+((document.querySelector(".rdbar")||{}).offsetHeight||0);
-    if(r.top<hd+10||r.bottom>innerHeight-20)w.scrollIntoView({block:"center",behavior:"smooth"})}}
-// تشغيل جملة: ملف Azure من الخادم، وإن تعذّر فصوت الجهاز بمدة مقدّرة
-function rdSay(i,slow,prog){return new Promise(async res=>{
-  const v=RDV,tok=RDTOK;let done=false,raf=0;const fin=()=>{if(done)return;done=true;cancelAnimationFrame(raf);clearInterval(RDTM);res()};
-  try{if(RDEL)RDEL.pause();if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
-  const src=await rdAud(v.id,i);if(tok!==RDTOK||RDV!==v){fin();return}
+function rdMark(f){const tx=$("rdSent");if(!tx)return;tx.querySelectorAll(".rw.cur").forEach(x=>x.classList.remove("cur"));
+  if(f==null||!RDV)return;const st0=rdW(RDV.s[RDV.i]);let k=0;for(let j=0;j<st0.length;j++)if(st0[j]<=f)k=j;
+  const w=tx.querySelector(`.rw[data-k="${k}"]`);if(w)w.classList.add("cur")}
+// تشغيل الجملة: ملف Azure من الخادم، وإن تعذّر فصوت الجهاز بمدة مقدّرة
+function rdSay(slow){return new Promise(async res=>{
+  const v=RDV;if(!v){res();return}const i=v.i,tok=++RDTOK;let done=false,raf=0;const fin=()=>{if(done)return;done=true;cancelAnimationFrame(raf);clearInterval(RDTM);if(tok===RDTOK)rdMark(null);res()};
+  const prog=f=>{if(tok===RDTOK&&RDV===v&&v.i===i)rdMark(f)};
+  try{if(RDEL)RDEL.pause();if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}clearInterval(RDTM);
+  const src=await rdAud(v.id,i);if(tok!==RDTOK||RDV!==v||v.i!==i){fin();return}
   if(src){try{const a=new Audio(src);RDEL=a;a.playbackRate=slow?.75:1;a.preservesPitch=true;
-      const tick=()=>{if(done)return;if(a.duration&&a.currentTime>=a.duration-.12){a.pause();return}if(prog&&a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
+      const tick=()=>{if(done)return;if(tok!==RDTOK){a.pause();return}if(a.duration&&a.currentTime>=a.duration-.12){a.pause();return}if(a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
       a.onended=fin;a.onerror=fin;a.onpause=()=>{if(!a.ended)fin()};await a.play();raf=requestAnimationFrame(tick);return}catch(e){}}
   const t=v.s[i],est=Math.max(.8,t.length*.075*(slow?1.7:1.1))*1000,t0=Date.now();ttsSpeak(t,slow);
-  RDTM=setInterval(()=>{const f=(Date.now()-t0)/est;if(prog)prog(Math.min(1,f));if(f>=1)fin()},80);
+  RDTM=setInterval(()=>{if(tok!==RDTOK){fin();return}const f=(Date.now()-t0)/est;prog(Math.min(1,f));if(f>=1)fin()},80);
 })}
-async function rdPlayAll(from){
-  const v=RDV;if(!v)return;const tok=++RDTOK;RDPLAY=true;rdPopClose();rdBarUpd();
-  for(let i=from;i<v.s.length;i++){if(tok!==RDTOK)return;v.i=i;rdPos();rdMark(i,0);if(i+1<v.s.length)rdAud(v.id,i+1);
-    await rdSay(i,RDSLOW,f=>{if(tok===RDTOK)rdMark(i,f)});
-    if(tok!==RDTOK)return;await new Promise(r=>setTimeout(r,RDSLOW?220:120))}
-  if(tok!==RDTOK)return;RDPLAY=false;v.i=v.s.length;rdPos();rdMark(-1);rdBarUpd();fx("done");toast("📖","أحسنت!","انتهت القراءة")}
-function rdStop(){RDTOK++;RDPLAY=false;clearInterval(RDTM);try{if(RDEL){RDEL.pause();RDEL=null}if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
-  const tx=$("rdTxt");if(tx)tx.querySelectorAll(".rw.cur").forEach(x=>x.classList.remove("cur"));rdBarUpd()}
-function rdBarUpd(){const b=$("rdPlay");if(!b||!RDV)return;const v=RDV;b.textContent=RDPLAY?"⏸ إيقاف":v.i>0&&v.i<v.s.length?"▶ أكمل القراءة":"▶ اقرأ لي"}
+function rdStop(){RDTOK++;clearInterval(RDTM);try{if(RDEL){RDEL.pause();RDEL=null}if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}rdMark(null)}
 // معاني كلمات القراءة: يكتبها Claude يدويًّا في rdgloss.json (كلمات فقط، لا جمل)، ولكل كلمة صوت جاهز (tts.py)
 let RDG=null;
 function rdGloss(){if(RDG)return Promise.resolve(RDG);const c=st("muf_rdgloss");if(c){try{RDG=JSON.parse(c).w||{}}catch(e){}}
@@ -3663,34 +3654,40 @@ function rdGloss(){if(RDG)return Promise.resolve(RDG);const c=st("muf_rdgloss");
   return RDG?Promise.resolve(RDG):net}
 const rdCore=x=>x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"");
 const rdMean=(g,w)=>g[w]||g[w.toLowerCase()]||g[w.charAt(0).toUpperCase()+w.slice(1)]||"";
-async function rdWordTap(i,k,el){
-  const v=RDV;if(!v)return;rdStop();v.i=i;rdPos();rdMark(i);
-  const w=rdCore(el.textContent);if(!w)return;
-  document.querySelectorAll("#rdTxt .rw.sel").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");
+async function rdWordTap(el){
+  const v=RDV;if(!v)return;rdStop();const w=rdCore(el.textContent);if(!w)return;
+  document.querySelectorAll("#rdSent .rw.sel").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");
   speak(w);
   let p=$("rdPop");if(!p){p=document.createElement("div");p.id="rdPop";p.className="rdpop";document.body.appendChild(p)}
   const g=await rdGloss(),m=rdMean(g,w);if(RDV!==v)return;
   p.innerHTML=`<button class="x" id="rdPx">×</button><div class="w">${esc(w)}</div><div class="m">${m?esc(m):'<span style="color:var(--muted)">لم يُضف معناها بعد</span>'}</div>
-   <div class="row2"><button class="btn" id="rdPw">🔊 الكلمة</button><button class="btn" id="rdPws">🐢 ببطء</button><button class="btn" id="rdPs">🔊 الجملة</button><button class="btn" id="rdPf">▶ اقرأ من هنا</button></div>${(v.ar||[])[i]?`<div class="rar" style="margin-top:8px;color:var(--muted)">${esc(v.ar[i])}</div>`:""}`;
+   <div class="row2"><button class="btn" id="rdPw">🔊 استمع</button><button class="btn" id="rdPws">🐢 ببطء</button></div>`;
   $("rdPx").onclick=rdPopClose;$("rdPw").onclick=()=>speak(w);$("rdPws").onclick=()=>speak(w,true);
-  $("rdPs").onclick=async()=>{const tok=++RDTOK;await rdSay(i,RDSLOW,f=>{if(tok===RDTOK)rdMark(i,f)});if(tok===RDTOK)rdMark(i)};
-  $("rdPf").onclick=()=>{rdPopClose();rdPlayAll(i)};
 }
-function rdPopClose(){const p=$("rdPop");if(p)p.remove();document.querySelectorAll("#rdTxt .rw.sel").forEach(x=>x.classList.remove("sel"))}
-function rdShow(){
-  const el=$("reading"),v=RDV;if(!v)return rdListShow();rdPopClose();
-  const hasAr=(v.ar||[]).some(Boolean),trOn=hasAr&&st(K("rdTr"))==="1";
-  el.innerHTML=`<div class="rdbar"><button class="btn" id="rdBack">‹ رجوع</button><button class="btn" id="rdPlay"></button><button class="btn${RDSLOW?" on":""}" id="rdSl">🐢 ببطء</button>${hasAr?`<button class="btn${trOn?" on":""}" id="rdTrB">الترجمة</button>`:""}</div>
-   <div class="rdtx${trOn?" tr":""}" id="rdTxt"><h3>${esc(v.ti)}</h3><p>${v.s.map((s,i)=>`<span class="rs" data-i="${i}">${rdWs(s).map((w,k)=>`<span class="rw" data-k="${k}">${esc(w)}</span>`).join(" ")}${trOn&&v.ar[i]?`<span class="rar">${esc(v.ar[i])}</span>`:""}</span>`).join(" ")}</p></div>
-   <p class="rnote" style="text-align:center;margin-top:8px">اضغط على أي كلمة لتسمعها وترى معناها.</p>`;
-  rdBarUpd();if(v.i<v.s.length)rdMark(v.i);
+function rdPopClose(){const p=$("rdPop");if(p)p.remove();document.querySelectorAll("#rdSent .rw.sel").forEach(x=>x.classList.remove("sel"))}
+let RDTRON=false;   // إظهار الترجمة: يبقى ظاهرًا عند الانتقال للجملة التالية حتى يُخفيه
+function rdShow(play){
+  const el=$("reading"),v=RDV;if(!v)return rdListShow();rdPopClose();rdStop();
+  const end=v.i>=v.s.length,ar=(v.ar||[])[v.i]||"";
+  el.innerHTML=`<div class="mhead"><h2>${esc(v.ti)}</h2><button class="btn" id="rdBack">رجوع</button></div>
+   ${end?`<div class="rdSent" style="text-align:center;direction:rtl">🎉 أنهيت كل الجمل!</div>
+     <div class="rdNav"><button class="btn" id="rdAgain">🔁 من الأوّل</button><button class="btn next" id="rdDone">رجوع للقائمة</button></div>`
+   :`<p class="rnote" style="text-align:center">الجملة ${v.i+1} من ${v.s.length}</p>
+     <div class="rdSent" id="rdSent">${rdWs(v.s[v.i]).map((w,k)=>`<span class="rw" data-k="${k}">${esc(w)}</span>`).join(" ")}${RDTRON&&ar?`<div class="rar">${esc(ar)}</div>`:""}</div>
+     <div class="rdCtl"><button class="btn" id="rdRe">${SPK} إعادة</button><button class="btn" id="rdSl">🐢 ببطء</button>${ar?`<button class="btn${RDTRON?" on":""}" id="rdTrB">الترجمة</button>`:""}</div>
+     <p class="rnote" style="text-align:center;margin-top:6px">اضغط على أي كلمة لتسمعها وترى معناها.</p>
+     <div class="rdNav"><button class="btn" id="rdPrev" ${v.i?"":"disabled"}>→ السابقة</button><button class="btn next" id="rdNext">${v.i+1<v.s.length?"التالية ←":"إنهاء ✓"}</button></div>`}`;
   $("rdBack").onclick=()=>rdBack();
-  $("rdPlay").onclick=()=>{if(RDPLAY)rdStop();else rdPlayAll(v.i<v.s.length?v.i:0)};
-  $("rdSl").onclick=()=>{RDSLOW=!RDSLOW;$("rdSl").classList.toggle("on",RDSLOW);if(RDPLAY){rdStop();rdPlayAll(v.i)}};
-  if(hasAr)$("rdTrB").onclick=()=>{st(K("rdTr"),trOn?"0":"1");const was=RDPLAY;rdStop();rdShow();if(was)rdPlayAll(v.i)};
-  $("rdTxt").onclick=e=>{const w=e.target.closest(".rw"),s=e.target.closest(".rs");if(w&&s)rdWordTap(+s.dataset.i,+w.dataset.k,w)};rdGloss();
+  if(end){$("rdAgain").onclick=()=>{v.i=0;rdPos();rdShow(true)};$("rdDone").onclick=()=>rdBack();return}
+  $("rdRe").onclick=()=>rdSay(false);$("rdSl").onclick=()=>rdSay(true);
+  if(ar)$("rdTrB").onclick=()=>{RDTRON=!RDTRON;rdShow()};
+  $("rdPrev").onclick=()=>{if(v.i>0){v.i--;rdPos();rdShow(true)}};
+  $("rdNext").onclick=()=>{v.i++;rdPos();if(v.i>=v.s.length)fx("done");rdShow(true)};
+  $("rdSent").onclick=e=>{const w=e.target.closest(".rw");if(w)rdWordTap(w)};rdGloss();
+  if(play)rdSay(false);
+  if(v.i+1<v.s.length)rdAud(v.id,v.i+1);   // تجهيز صوت الجملة التالية
 }
-// زر الرجوع: يغلق نافذة الترجمة، ثم يعود من النص إلى القائمة (ويحفظ الموضع فورًا)
+// زر الرجوع: يغلق نافذة الكلمة، ثم يعود من الجمل إلى القائمة (ويحفظ الموضع فورًا)
 function rdBack(){if($("rdPop")){rdPopClose();return true}if(!RDV)return false;rdStop();const v0=RDV;RDV=null;
   if(RDPT){clearTimeout(RDPT);RDPT=0;apiPost("/rd",{op:"pos",id:v0.id,i:v0.i}).catch(()=>{})}const g=(RDL||[]).find(x=>x.id===v0.id);if(g)g.p=v0.i;rdListShow();scrollTo(0,0);return true}
 let RDPT=0;
