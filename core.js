@@ -39,6 +39,7 @@ function applyCfg(c){
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
     free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف
+    rd:Array.isArray(c.rd)?c.rd.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات لها «القراءة» (يضيفها المشرف تلقائيًا حين يضع لها مجموعة جمل)
     ai:Array.isArray(c.ai)?c.ai.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات «مساعد الوظيفة» يختارها المشرف
     off:{all:c.off&&c.off.all?1:0,u:c.off&&Array.isArray(c.off.u)?c.off.u.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]},   // «العمل بلا إنترنت»: للجميع أو لمتعلّمين بأعيانهم
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)

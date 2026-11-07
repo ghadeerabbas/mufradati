@@ -579,7 +579,19 @@ body.fbon main{padding-bottom:210px}
 .errrow pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.7rem;background:var(--soft);padding:8px;border-radius:8px;margin:6px 0;max-height:240px;overflow:auto}.errrow .btn{padding:4px 10px;font-size:.78rem;background:var(--soft);color:var(--red)}
 #admNav button{position:relative}#eBadge{top:0;left:auto;right:50%;margin-right:-22px}
 /* مساعد الوظيفة */
-#aiBtn .i3{width:26px;height:26px}
+#aiBtn .i3,#rdBtn .i3{width:26px;height:26px}
+/* القراءة */
+.rdList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.rdItem{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:start;width:100%;font:inherit;color:inherit;cursor:pointer}
+.rdItem b{flex:1;font-size:1.02rem}.rdItem small{opacity:.7;white-space:nowrap}
+.rdBar{height:6px;border-radius:4px;background:var(--line);overflow:hidden;margin-top:6px}.rdBar i{display:block;height:100%;background:var(--green)}
+.rdSent{direction:ltr;text-align:left;font-size:1.35rem;line-height:1.7;padding:22px 18px;margin:14px 0;border-radius:16px;background:var(--card);border:1px solid var(--line);min-height:120px}
+.rdSent.on{box-shadow:0 0 0 3px var(--accent,#4c8bf5) inset}
+.rdCtl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.rdNav{display:flex;gap:10px;margin-top:14px}.rdNav .btn{flex:1}
+.rdAdm textarea{width:100%;min-height:150px;direction:ltr;text-align:left;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit}
+.rdAdm input{width:100%;margin:6px 0}
+.rdRow{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.rdRow b{flex:1}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
 .bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
 .aiPrev{position:relative;display:inline-block;margin-bottom:6px}.aiPrev button{position:absolute;top:4px;left:4px;border:0;border-radius:50%;width:28px;height:28px;background:rgba(0,0,0,.6);color:#fff;font-size:1rem}
@@ -672,6 +684,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
       <span class="chip bat" id="hEn" title="الطاقة">🔋 30</span>
       <button class="iconbtn mbtn" id="usersBtn" title="المستخدمون" style="display:none"><img class="i3" src="img/3d/people.png" alt=""><span class="mbadge" id="uBadge"></span></button>
       <button class="iconbtn" id="aiBtn" title="مساعد الوظيفة" style="display:none"><img class="i3" src="img/3d/owl.png" alt=""></button>
+      <button class="iconbtn" id="rdBtn" title="القراءة" style="display:none"><img class="i3" src="img/3d/book.png" alt=""></button>
       <button class="iconbtn mbtn" id="msgBtn" title="الرسائل"><img class="i3" src="img/3d/mail.png" alt=""><span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="setBtn" title="الإعدادات"><img class="i3" src="img/3d/gear.png" alt=""></button>
     </div>
@@ -725,6 +738,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
   <section id="shop" class="panel"></section>
   <section id="messages" class="panel"></section>
   <section id="helper" class="panel"></section>
+  <section id="reading" class="panel"></section>
   <div id="duelOv"></div>
   <section id="users" class="panel"></section>
   <section id="cfgP" class="panel"></section>
@@ -736,7 +750,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
 <script>
 // فتح فوري: آخر شاشة رئيسية محفوظة على الجهاز تظهر مباشرة، ريثما يتحقّق التطبيق من الحساب ويحمّل الجديد
 try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
-  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="aiBtn"')){   // نسخة محفوظة من شكل أقدم (بلا زر المساعد) لا تُستعمل
+  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="aiBtn"')&&SHL.h.includes('id="rdBtn"')){   // نسخة محفوظة من شكل أقدم (بلا زر المساعد أو القراءة) لا تُستعمل
     
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
     document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
@@ -745,7 +759,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=29"></script>
+<script src="core.js?v=30"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -3251,11 +3265,12 @@ function renderUser(){
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
   <div class="rsec"><label class="hidepub"><input type="checkbox" id="uAi" ${(CFG.ai||[]).includes(u.id)?"checked":""}><span><b>🦉 مساعد الوظيفة</b><small>مساعد بالذكاء الصناعي يشرح له وظيفته خطوة خطوة بالعربية والألمانية حتى يصل إلى الحل. حتى 60 سؤالًا في اليوم. ترى محادثاته من الزر تحت.</small></span></label>
    <button class="btn" id="uAiLog" style="width:100%;margin-top:6px">${I3("owl")} محادثاته مع المساعد</button><div id="aiLogBox"></div></div>
+  <div class="rsec" id="rdAdmBox"><h3>${I3("book")} القراءة</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   $("uMsg").onclick=()=>{goTab("messages");openThread(u.id)};
-  renderAssign(u.id);bindGiftBox(u.id);
+  renderAssign(u.id);bindGiftBox(u.id);rdAdm(u.id);
   {const cb=$("uAi");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setAi(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false};$("uAiLog").onclick=()=>aiLogShow(u.id)}
   {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
     const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
@@ -3572,9 +3587,103 @@ async function renderSafe(){
   };
 }
 
+
+/* ================= القراءة (لحسابات يضع لها المشرف مجموعات جمل) =================
+   المشرف يكتب جمل كل مجموعة؛ المتعلّم يرى عناوين المجموعات، وداخل كل مجموعة جملة واحدة في كل مرة
+   بصوت Azure (يُصنع في الخادم عند أول طلب ويُحفظ)، وإن تعذّر فبصوت الجهاز. البيانات في rd/{uid} عبر /rd */
+const rdOn=()=>!!(UID&&!isAdmin()&&CFG&&(CFG.rd||[]).includes(UID));
+let RDV=null,RDL=null;const RDA=new Map();let RDEL=null;
+async function rdAud(id,i){const k=id+"|"+i;if(RDA.has(k))return RDA.get(k);
+  const p=apiPost("/rd",{op:"aud",id,i}).then(j=>j&&j.a?"data:audio/mpeg;base64,"+j.a:"").catch(()=>"");RDA.set(k,p);const v=await p;if(!v)RDA.delete(k);return v}
+async function rdPlay(slow){
+  if(!RDV)return;const {id,i,s}=RDV,t=s[i];if(t==null)return;
+  try{if(RDEL)RDEL.pause();if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
+  const box=$("rdSent");if(box)box.classList.add("on");
+  const off=()=>{const b=$("rdSent");if(b&&RDV&&RDV.i===i)b.classList.remove("on")};
+  const src=await rdAud(id,i);if(!RDV||RDV.i!==i||RDV.id!==id)return;
+  if(src){try{const a=new Audio(src);RDEL=a;a.playbackRate=slow?.7:1;a.preservesPitch=true;a.onended=off;await a.play();return}catch(e){}}
+  ttsSpeak(t,slow);setTimeout(off,2500);
+}
+async function renderReading(){
+  const el=$("reading");if(!rdOn()){el.innerHTML='<div class="empty">القراءة غير مفعّلة لهذا الحساب.</div>';return}
+  if(RDV)return rdShow();
+  el.innerHTML=`<div class="mhead"><h2>${I3("book")} القراءة</h2></div><div class="empty">جارٍ التحميل…</div>`;
+  try{RDL=(await apiPost("/rd",{op:"list"})).g||[]}catch(e){el.querySelector(".empty").textContent="تعذّر التحميل، تحقّق من الاتصال";return}
+  if(!RDV)rdListShow();
+}
+function rdListShow(){
+  const el=$("reading"),L=RDL||[];
+  el.innerHTML=`<div class="mhead"><h2>${I3("book")} القراءة</h2></div>
+   ${L.length?`<div class="rdList">${L.map(g=>{const p=Math.min(g.p,g.n);return `<button class="rdItem" data-id="${esc(g.id)}"><span style="flex:1"><b>${esc(g.ti)}</b><div class="rdBar"><i style="width:${g.n?Math.round(100*p/g.n):0}%"></i></div></span><small>${p>=g.n?"✓ أنهيتها":p+" / "+g.n}</small></button>`}).join("")}</div>`:'<div class="empty">لا توجد نصوص بعد.</div>'}`;
+  el.querySelectorAll(".rdItem").forEach(b=>b.onclick=()=>rdOpen(b.dataset.id));
+}
+async function rdOpen(id){
+  const el=$("reading");el.innerHTML=`<div class="empty">جارٍ التحميل…</div>`;
+  try{const j=await apiPost("/rd",{op:"get",id});RDV={id,ti:j.ti,s:j.s,i:j.p>=j.s.length?0:j.p};rdShow(true)}
+  catch(e){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال</div>'}
+}
+function rdShow(play){
+  const el=$("reading"),v=RDV;if(!v)return rdListShow();
+  const end=v.i>=v.s.length;
+  el.innerHTML=`<div class="mhead"><h2>${esc(v.ti)}</h2><button class="btn" id="rdBack">رجوع</button></div>
+   ${end?`<div class="rdSent" style="text-align:center;direction:rtl">🎉 أنهيت كل الجمل!</div>
+     <div class="rdNav"><button class="btn" id="rdAgain">🔁 من الأوّل</button><button class="btn next" id="rdDone">رجوع للقائمة</button></div>`
+   :`<p class="rnote" style="text-align:center">الجملة ${v.i+1} من ${v.s.length}</p>
+     <div class="rdSent" id="rdSent">${esc(v.s[v.i])}</div>
+     <div class="rdCtl"><button class="btn" id="rdRe">${SPK} إعادة</button><button class="btn" id="rdSl">🐢 ببطء</button></div>
+     <div class="rdNav"><button class="btn" id="rdPrev" ${v.i?"":"disabled"}>→ السابقة</button><button class="btn next" id="rdNext">${v.i+1<v.s.length?"التالية ←":"إنهاء ✓"}</button></div>`}`;
+  $("rdBack").onclick=async()=>{const v0=RDV;RDV=null;try{if(RDEL)RDEL.pause()}catch(e){}
+    if(RDPT){clearTimeout(RDPT);RDPT=0;$("reading").innerHTML='<div class="empty">جارٍ الحفظ…</div>';try{await apiPost("/rd",{op:"pos",id:v0.id,i:v0.i})}catch(e){}}renderReading()};
+  if(end){$("rdAgain").onclick=()=>{v.i=0;rdPos();rdShow(true)};$("rdDone").onclick=()=>$("rdBack").onclick();return}
+  $("rdRe").onclick=()=>rdPlay(false);$("rdSl").onclick=()=>rdPlay(true);
+  $("rdPrev").onclick=()=>{if(v.i>0){v.i--;rdPos();rdShow(true)}};
+  $("rdNext").onclick=()=>{v.i++;rdPos();rdShow(true)};
+  if(play)rdPlay(false);
+  if(v.i+1<v.s.length)rdAud(v.id,v.i+1);   // تجهيز صوت الجملة التالية
+}
+let RDPT=0;
+function rdPos(){const v=RDV;if(!v)return;const g=(RDL||[]).find(x=>x.id===v.id);if(g)g.p=v.i;
+  clearTimeout(RDPT);RDPT=setTimeout(()=>{RDPT=0;apiPost("/rd",{op:"pos",id:v.id,i:v.i}).catch(()=>{})},1200)}
+
+/* لوحة المشرف: مجموعات القراءة لمتعلّم */
+async function rdAdm(uid,edit){
+  const box=document.getElementById("rdAdmBox");if(!box)return;
+  let L=[];try{L=(await apiPost("/rd",{op:"list",u:uid})).g||[]}catch(e){box.innerHTML=`<h3>${I3("book")} القراءة</h3><div class="empty">تعذّر التحميل</div>`;return}
+  if(!box.isConnected)return;
+  let ed=null;if(edit&&edit!=="new"){try{const j=await apiPost("/rd",{op:"get",u:uid,id:edit});ed={id:edit,ti:j.ti,txt:j.s.join("\n")}}catch(e){}}
+  if(edit==="new")ed={id:"",ti:"",txt:""};
+  if(!box.isConnected)return;const $=id=>box.querySelector("#"+id);
+  box.innerHTML=`<h3>${I3("book")} القراءة</h3>
+   <p class="rnote">مجموعات جمل يقرؤها جملةً جملة بصوت ألماني، ويضغط «التالية». تظهر له وحده، ولا يراها أي حساب آخر.</p>
+   ${L.map(g=>`<div class="rdRow"><b>${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
+   ${ed?`<div class="rdAdm" style="margin-top:10px"><input id="rdTi" maxlength="80" placeholder="العنوان (مثلًا: Der Wunschstern)" value="${esc(ed.ti)}">
+     <textarea id="rdTx" placeholder="اكتب الجمل أو الصقها هنا. تُقسم عند . ! ? وعند كل سطر جديد.">${esc(ed.txt)}</textarea>
+     <p class="rnote" id="rdCnt"></p>
+     <div class="rdNav"><button class="btn" id="rdCancel">إلغاء</button><button class="btn next" id="rdSave">حفظ</button></div><div class="stmsg" id="rdMsg"></div></div>`
+   :`<button class="btn" id="rdNew" style="width:100%;margin-top:8px">＋ مجموعة جديدة</button>`}`;
+  box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>rdAdm(uid,b.dataset.ed));
+  box.querySelectorAll("[data-del]").forEach(b=>b.onclick=async()=>{const g=L.find(x=>x.id===b.dataset.del);
+    if(!await uiConfirm("حذف المجموعة «"+(g?g.ti:"")+"»؟"))return;b.disabled=true;
+    try{const j=await apiPost("/rd",{op:"del",u:uid,id:b.dataset.del});if(!j.left)await rdSetOn(uid,false);rdAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر الحذف")}});
+  if(!ed){$("rdNew").onclick=()=>rdAdm(uid,"new");return}
+  const cnt=async()=>{const t=$("rdTx").value;if(!t.trim()){$("rdCnt").textContent="";return}
+    try{const j=await apiPost("/rd",{op:"split",u:uid,txt:t});$("rdCnt").textContent="عدد الجمل: "+j.s.length+" — أول جملة: «"+(j.s[0]||"")+"»"}catch(e){}};
+  let ct=0;$("rdTx").oninput=()=>{clearTimeout(ct);ct=setTimeout(cnt,700)};cnt();
+  $("rdCancel").onclick=()=>rdAdm(uid);
+  $("rdSave").onclick=async()=>{const ti=$("rdTi").value.trim(),txt=$("rdTx").value,m=$("rdMsg");
+    if(!ti||!txt.trim()){m.textContent="اكتب العنوان والجمل";m.className="stmsg bad";return}
+    $("rdSave").disabled=true;m.textContent="جارٍ الحفظ…";m.className="stmsg";
+    try{await apiPost("/rd",{op:"save",u:uid,id:ed.id,ti,txt});await rdSetOn(uid,true);rdAdm(uid)}
+    catch(e){m.textContent="تعذّر الحفظ";m.className="stmsg bad";$("rdSave").disabled=false}};
+}
+async function rdSetOn(uid,on){
+  const f=new Set(CFG.rd||[]);if(f.has(uid)===on)return true;on?f.add(uid):f.delete(uid);const c={...CFG,rd:[...f]};
+  if(await saveCfg(c,on?"فُعّلت القراءة":"أُلغيت القراءة")){applyCfg(c);return true}return false;
+}
+
 /* ================= مساعد الوظيفة (ذكاء صناعي لحسابات يختارها المشرف) ================= */
 const aiOn=()=>!!(UID&&!isAdmin()&&CFG&&(CFG.ai||[]).includes(UID));
-function aiUI(){const b=$("aiBtn");if(b)b.style.display=aiOn()?"":"none"}
+function aiUI(){const b=$("aiBtn");if(b)b.style.display=aiOn()?"":"none";const r=$("rdBtn");if(r)r.style.display=rdOn()?"":"none"}
 let AIC=null,AIBUSY=false,AIPEND="",AILEFT=null,AIMAX=60,AIPEEK=0;
 const aiLeftTxt=()=>AILEFT==null?"":AILEFT>0?`بقي لك اليوم ${AILEFT} من ${AIMAX} سؤالًا`:"انتهت أسئلة اليوم 🌙";
 function aiShowLeft(){const l=$("aiLeft");if(l){l.textContent=aiLeftTxt();l.style.color=AILEFT!=null&&AILEFT<=5?"var(--red)":""}}
@@ -3676,7 +3785,7 @@ async function maybeAskFeedback(){
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="reading"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
   if(p==="usage"){renderUsage();return}
   if(p==="safe"){renderSafe();return}
   if(p==="cfgP"){renderCfg();return}
@@ -3686,6 +3795,7 @@ function renderPanel(p){
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
   if(p==="helper"){renderHelper();return}
+  if(p==="reading"){renderReading();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
   // الاختبار: يبدأ من جديد عند فتحه إلا إذا كان المستخدم في منتصفه، فيأخذ الكلمات التي تعلّمها للتوّ
@@ -3706,6 +3816,7 @@ function init(){
   $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
   setInterval(()=>{if(UID)renderEnergy()},30000);
   $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
+  const rdb=$("rdBtn");if(rdb)rdb.onclick=()=>{RDV=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("reading").classList.add("on");renderPanel("reading");scrollTo(0,0)};
   const aib=$("aiBtn");if(aib)aib.onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("helper").classList.add("on");renderPanel("helper");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف

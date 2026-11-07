@@ -57,6 +57,7 @@ function applyCfg(c){
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
     free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف
+    rd:Array.isArray(c.rd)?c.rd.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات لها «القراءة» (يضيفها المشرف تلقائيًا حين يضع لها مجموعة جمل)
     ai:Array.isArray(c.ai)?c.ai.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات «مساعد الوظيفة» يختارها المشرف
     off:{all:c.off&&c.off.all?1:0,u:c.off&&Array.isArray(c.off.u)?c.off.u.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]},   // «العمل بلا إنترنت»: للجميع أو لمتعلّمين بأعيانهم
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
@@ -1250,14 +1251,90 @@ function cors(req) {
   const o = req.headers.get("Origin") || "";
   return { "Access-Control-Allow-Origin": ORIGINS.includes(o) ? o : ORIGINS[0], "Access-Control-Allow-Methods": "POST, OPTIONS", "Access-Control-Allow-Headers": "Authorization, Content-Type", "Access-Control-Max-Age": "86400", "Vary": "Origin" };
 }
+
+/* ---------- القراءة: مجموعات جمل يُدخلها المشرف لحسابات ولديه، تُقرأ جملةً جملة بصوت Azure ----------
+   rd/{uid}: g_<id> = {ti, s:[جمل], o, t} ، p_<id> = موضع المتعلّم. الصوت في BAK: rda-<بصمة> (يُصنع عند أول طلب ويُحفظ) */
+const RD_MAX_S = 300, RD_MAX_LEN = 400;
+const RD_ABBR = /(?:^|\s)(?:\d+|[A-Za-zÄÖÜäöü]|z|d|u|ca|Nr|Dr|bzw|usw|vgl|Hr|Fr|St|Str|evtl|ggf|inkl|etc)\.$/;
+function rdSplit(txt) {
+  const out = [];
+  for (const line of String(txt || "").replace(/\r/g, "").split(/\n+/)) {
+    const L = line.replace(/\s+/g, " ").trim(); if (!L) continue;
+    const parts = L.match(/[^.!?…]+(?:[.!?…]+["“”»«'’)]*|$)/g) || [L];
+    let cur = "";
+    for (const raw of parts) {
+      const x = raw.trim(); if (!x) continue;
+      // «z. B.» و«16. Juli» وما يبدأ بحرف صغير: تكملة للجملة نفسها
+      if (cur && (RD_ABBR.test(cur) || /^[a-zäöüß,;:)]/.test(x))) cur += (/^[,;:)]/.test(x) ? "" : " ") + x; else { if (cur) out.push(cur); cur = x }
+    }
+    if (cur) out.push(cur);
+  }
+  return out.map(x => x.slice(0, RD_MAX_LEN)).slice(0, RD_MAX_S);
+}
+const rdGroups = d => Object.entries(d || {}).filter(([k, v]) => k.startsWith("g_") && v && Array.isArray(v.s)).map(([k, v]) => ({ id: k.slice(2), ...v })).sort((a, b) => (a.o || 0) - (b.o || 0));
+async function rdHash(t) { const b = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode("Katja|" + t))); return [...b.slice(0, 12)].map(x => x.toString(16).padStart(2, "0")).join("") }
+function b64(buf) { const u = new Uint8Array(buf); let s = ""; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s) }
+async function rdAudio(env, t) {
+  if (!env.BAK) return null;
+  const k = "rda-" + await rdHash(t), have = await env.BAK.get(k, "arrayBuffer"); if (have) return have;
+  const key = String(env.AZURE_SPEECH_KEY || "").trim(); if (!key) return null;
+  const esc = x => x.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const ssml = `<speak version='1.0' xml:lang='de-DE'><voice name='de-DE-KatjaNeural'><prosody rate='-6%'>${esc(t)}</prosody></voice></speak>`;
+  const r = await fetch(`https://${String(env.AZURE_SPEECH_REGION || "westeurope").trim()}.tts.speech.microsoft.com/cognitiveservices/v1`, { method: "POST", body: ssml,
+    headers: { "Ocp-Apim-Subscription-Key": key, "Content-Type": "application/ssml+xml", "X-Microsoft-OutputFormat": "audio-24khz-48kbitrate-mono-mp3", "User-Agent": "mufradati" } });
+  if (!r.ok) return null;
+  const buf = await r.arrayBuffer(); await env.BAK.put(k, buf); return buf;
+}
+async function handleRd(fs, user, body, env) {
+  const admin = user.email === ADMIN, op = String(body.op || "list");
+  const u = admin ? String(body.u || "") : user.uid;
+  if (!/^[A-Za-z0-9_-]{4,64}$/.test(u)) return { status: 400, json: { error: "u" } };
+  const id = String(body.id || "");
+  if (id && !/^[A-Za-z0-9]{4,20}$/.test(id)) return { status: 400, json: { error: "id" } };
+  const doc = await fs.get(`rd/${u}`), d = doc ? doc.data : {};
+  if (op === "list") return { status: 200, json: { g: rdGroups(d).map(g => ({ id: g.id, ti: g.ti, n: g.s.length, p: +d["p_" + g.id] || 0, t: g.t || 0 })) } };
+  const g = id ? d["g_" + id] : null;
+  if (op === "get") { if (!g) return { status: 404, json: { error: "nog" } }; return { status: 200, json: { ti: g.ti, s: g.s, p: +d["p_" + id] || 0 } } }
+  if (op === "pos") { if (admin || !g) return { status: 400, json: { error: "pos" } };
+    const i = Math.max(0, Math.min(g.s.length, Math.floor(+body.i || 0))); await fs.commit([{ path: `rd/${u}`, data: { ["p_" + id]: i }, merge: true }]); return { status: 200, json: { ok: true } } }
+  if (op === "aud") {
+    if (!g) return { status: 404, json: { error: "nog" } };
+    const i = Math.floor(+body.i || 0), t = g.s[i]; if (t == null) return { status: 400, json: { error: "i" } };
+    const a = await rdAudio(env, t); return { status: 200, json: a ? { a: b64(a) } : { a: "" } };
+  }
+  if (!admin) return { status: 403, json: { error: "admin" } };
+  if (op === "save") {
+    const ti = String(body.ti || "").replace(/\s+/g, " ").trim().slice(0, 80), s = rdSplit(body.txt);
+    if (!ti || !s.length) return { status: 400, json: { error: "empty" } };
+    const nid = id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), old = d["g_" + nid];
+    const o = old ? old.o : Math.max(0, ...rdGroups(d).map(x => x.o || 0)) + 1;
+    const nd = { ...d, ["g_" + nid]: { ti, s, o, t: { __ts: Date.now() } } };
+    // إن تغيّرت الجمل يبدأ المتعلّم المجموعة من أوّلها
+    if (old && JSON.stringify(old.s) !== JSON.stringify(s)) nd["p_" + nid] = 0;
+    await fs.commit([{ path: `rd/${u}`, data: nd }]);
+    // تجهيز صوت أول الجمل مسبقًا (الخطة المجانية ~20 طلبًا في الدقيقة)
+    if (env.__ctx && env.__ctx.waitUntil) env.__ctx.waitUntil((async () => { for (const t of s.slice(0, 6)) { try { await rdAudio(env, t) } catch (e) { break } } })());
+    return { status: 200, json: { ok: true, id: nid, n: s.length } };
+  }
+  if (op === "del") {
+    if (!g) return { status: 404, json: { error: "nog" } };
+    const nd = { ...d }; delete nd["g_" + id]; delete nd["p_" + id];
+    await fs.commit([Object.keys(nd).length ? { path: `rd/${u}`, data: nd } : { path: `rd/${u}`, del: true }]);
+    return { status: 200, json: { ok: true, left: rdGroups(nd).length } };
+  }
+  if (op === "split") return { status: 200, json: { s: rdSplit(body.txt) } };
+  return { status: 400, json: { error: "op" } };
+}
+
 export default {
   async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupNow(env, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
   async fetch(req, env, ctx) {
+    env.__ctx = ctx;
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -1267,7 +1344,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

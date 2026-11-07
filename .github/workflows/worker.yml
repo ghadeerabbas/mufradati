@@ -39,3 +39,18 @@ jobs:
             grep -vE '^\s*$' out.txt | tail -12 | tr '\n' ' ' | sed 's/^/::error::/' ; echo
             exit $code
           fi
+      - name: مفتاح النطق للخادم (صوت جمل القراءة) من أسرار المستودع
+        if: steps.chk.outputs.ok == '1'
+        working-directory: server
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          AK: ${{ secrets.AZURE_SPEECH_KEY }}
+          AR: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: |
+          if printf %s "$T" | grep -q 'Bearer'; then T=$(printf %s "$T" | sed -E 's/.*Bearer[[:space:]]+([A-Za-z0-9_-]+).*/\1/'); fi
+          export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]"')
+          export CLOUDFLARE_ACCOUNT_ID=$(printf %s "$A" | tr -d '[:space:]')
+          if [ -z "$AK" ]; then echo "::warning::لا يوجد AZURE_SPEECH_KEY"; exit 0; fi
+          printf %s "$AK" | tr -d '[:space:]' | npx --yes wrangler@4 secret put AZURE_SPEECH_KEY
+          if [ -n "$AR" ]; then printf %s "$AR" | tr -d '[:space:]' | npx --yes wrangler@4 secret put AZURE_SPEECH_REGION; fi
