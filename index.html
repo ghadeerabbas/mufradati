@@ -3677,13 +3677,7 @@ async function aiLogShow(uid,more){
 /* ================= القراءة: نصوص ألمانية يقرؤها الولد ويسمعها، ويضغط على أي كلمة فيرى معناها ================= */
 // النصوص في texts.json، ولكل نص منهج (c) فيظهر لمن عنده هذا المنهج؛ والمشرف يرى كل النصوص ليراجعها
 // صوت كل جملة وكل كلمة يُصنع مرة واحدة بصوت Azure (tts.py)، وإن غاب ملف يُستعمل صوت الجهاز
-let TEXTS=[],RDO=null,RPT=0,RPLAY=false,RFROM=0,RS=[],RU=[],RSLOW=false;
-// وحدات القراءة (RU): كل وحدة ملف صوت واحد. في النثر الوحدة جملة؛ وفي القصيدة (v) تُجمع الأسطر حتى نهاية الجملة (. ! ?) أو نهاية المقطع
-// (يطابق rd_units في tts.py)
-const RD_END=/[.!?]["'»“”)]*$/;
-function rdUnits(P,v){const U=[{l:[0]}];for(const p of P){let cur=[];p.forEach((i,j)=>{if(!v){U.push({l:[i]});return}cur.push(i);if(RD_END.test(rdNorm(RS[i].de))||j===p.length-1){U.push({l:cur});cur=[]}})}
-  return U.map(u=>({l:u.l,de:u.l.map(i=>rdNorm(RS[i].de)).join(" "),ar:u.l.map(i=>RS[i].ar||"").join(" ")}))}
-const rdUnitOf=si=>Math.max(0,RU.findIndex(u=>u.l.includes(si)));
+let TEXTS=[],RDO=null,RPT=0,RPLAY=false,RFROM=0,RS=[],RSLOW=false;
 function setTexts(t){try{const d=JSON.parse(t);TEXTS=Array.isArray(d.texts)?d.texts:[]}catch(e){TEXTS=[]}}
 function loadTexts(){
   const c=st("muf_texts");if(c)setTexts(c);rdUI();
@@ -3712,7 +3706,7 @@ function renderRead(){
       cs.map(c=>(cs.length>1?`<h3 style="margin:12px 0 6px">${esc((COURSES[c]||{}).name||c)}</h3>`:"")+`<div class="rdl">${L.filter(x=>x.c===c).map(x=>`<button class="rdc${dn.has(x.id)?" done":""}" data-id="${esc(x.id)}"><span class="rdi">📖</span><div><b>${esc(x.t||"")}</b><small>${esc(x.tar||"")}${x.subj?` · ${esc(x.subj)}`:""}</small></div>${dn.has(x.id)?'<span class="ok">✓</span>':""}</button>`).join("")}</div>`).join("");
     el.querySelectorAll(".rdc").forEach(b=>b.onclick=()=>{RDO=b.dataset.id;RFROM=0;renderRead();scrollTo(0,0)});return}
   // العنوان جملة أولى تُقرأ مثل غيرها
-  const tr=st(K("rdTr"))==="1";RS=[{de:t.t,ar:t.tar,h:1}];const P=(t.p||[]).map(p=>p.map(s=>{RS.push(s);return RS.length-1}));RU=rdUnits(P,t.v);
+  const tr=st(K("rdTr"))==="1";RS=[{de:t.t,ar:t.tar,h:1}];const P=(t.p||[]).map(p=>p.map(s=>{RS.push(s);return RS.length-1}));
   el.innerHTML=`<div class="rdbar"><button class="btn" id="rdBk">‹ النصوص</button><button class="btn" id="rdPlay"></button><button class="btn${RSLOW?" on":""}" id="rdSlow">🐢 ببطء</button><button class="btn${tr?" on":""}" id="rdTrB">الترجمة</button></div>
    <div class="rdtx" id="rdTx"><h3>${rdSentHTML(RS[0],0,false)}</h3>${tr&&t.tar?`<span class="rar" style="margin:-4px 0 10px">${esc(t.tar)}</span>`:""}${P.map(p=>`<p>${p.map(i=>rdSentHTML(RS[i],i,tr,t.v)).join("")}</p>`).join("")}</div>
    <button class="btn next rdfin" id="rdFin">${rdDone().includes(t.id)?"✓ قرأتُ هذا النص":"✓ انتهيتُ من القراءة"}</button>`;
@@ -3725,13 +3719,11 @@ function renderRead(){
   $("rdFin").onclick=()=>{rdStop();const d=rdDone();if(!d.includes(t.id)){d.push(t.id);st(K("rdDone"),JSON.stringify(d));fx("done");try{confetti(60)}catch(e){}toast("📖","أحسنت!","انتهيت من قراءة النص")}RDO=null;renderRead();scrollTo(0,0)};
 }
 function rdBar(){const b=$("rdPlay");if(b)b.textContent=RPLAY?"⏸ إيقاف":RFROM>0?"▶ أكمل القراءة":"▶ اقرأ لي"}
-function rdMark(ui,f){
+function rdMark(si,f){
   const tx=$("rdTx");if(!tx)return;
-  tx.querySelectorAll(".rs.cur,.rw.cur").forEach(x=>x.classList.remove("cur"));if(ui<0||!RU[ui])return;const u=RU[ui];
-  u.l.forEach(si=>{const s=tx.querySelector(`.rs[data-s="${si}"]`);if(s)s.classList.add("cur")});
-  if(f==null)return;const st0=rdWeights(u.de);let k=0;for(let i=0;i<st0.length;i++)if(st0[i]<=f)k=i;
-  // رقم الكلمة في الوحدة ← السطر وموضعها فيه
-  let si=u.l[0];for(const x of u.l){const n=rdToks(RS[x].de).filter(t=>t.c).length;if(k<n){si=x;break}k-=n;si=x}
+  tx.querySelectorAll(".rs.cur,.rw.cur").forEach(x=>x.classList.remove("cur"));if(si<0)return;
+  const s=tx.querySelector(`.rs[data-s="${si}"]`);if(s)s.classList.add("cur");
+  if(f==null)return;const st0=rdWeights(RS[si].de);let k=0;for(let i=0;i<st0.length;i++)if(st0[i]<=f)k=i;
   const w=tx.querySelector(`.rw[data-s="${si}"][data-k="${k}"]`);if(w){w.classList.add("cur");const r=w.getBoundingClientRect(),top=(document.querySelector(".rdbar")||{}).offsetHeight||0;
     if(r.top<((document.querySelector("header")||{}).offsetHeight||70)+top+10||r.bottom>innerHeight-20)w.scrollIntoView({block:"center",behavior:"smooth"})}
 }
@@ -3762,8 +3754,8 @@ function rdDevice(t,slow,prog){return new Promise(res=>{
 })}
 async function rdPlayAll(from){
   const tok=++RPT;RPLAY=true;rdBar();rdPopClose();
-  for(let i=from;i<RU.length;i++){if(tok!==RPT)return;RFROM=i;rdMark(i,0);if(RU[i+1])rdPre(RU[i+1].de);
-    await rdAudio(RU[i].de,RSLOW,f=>{if(tok===RPT)rdMark(i,f)});
+  for(let i=from;i<RS.length;i++){if(tok!==RPT)return;RFROM=i;rdMark(i,0);if(RS[i+1])rdPre(RS[i+1].de);
+    await rdAudio(RS[i].de,RSLOW,f=>{if(tok===RPT)rdMark(i,f)});
     if(tok!==RPT)return;await new Promise(r=>setTimeout(r,RSLOW?220:90))}
   if(tok!==RPT)return;RPLAY=false;RFROM=0;rdMark(-1);rdBar();
 }
@@ -3773,16 +3765,16 @@ function rdStop(keep){RPT++;RPLAY=false;clearInterval(RDTM);
   if(keep){const tx=$("rdTx");if(tx)tx.querySelectorAll(".rw.cur").forEach(x=>x.classList.remove("cur"))}else rdMark(-1);rdBar()}
 function rdWordTap(w){
   const t=TEXTS.find(x=>x.id===RDO);if(!t)return;rdStop(true);
-  const si=+w.dataset.s,ui=rdUnitOf(si),c=w.textContent,g=t.g||{},m=g[c]||g[c.toLowerCase()]||"",s=RU[ui];
+  const si=+w.dataset.s,c=w.textContent,g=t.g||{},m=g[c]||g[c.toLowerCase()]||"",s=RS[si];
   document.querySelectorAll(".rdtx .rw.sel").forEach(x=>x.classList.remove("sel"));w.classList.add("sel");
   rdAudio(c,false);
   let p=$("rdPop");if(!p){p=document.createElement("div");p.id="rdPop";p.className="rdpop";document.body.appendChild(p)}
   p.innerHTML=`<button class="x" id="rdPx">×</button><div class="w">${esc(c)}</div><div class="m">${m?esc(m):'<span style="color:var(--muted)">—</span>'}</div>
    <div class="row2"><button class="btn" id="rdPw">🔊 الكلمة</button><button class="btn" id="rdPws">🐢 ببطء</button><button class="btn" id="rdPs">🔊 الجملة</button><button class="btn" id="rdPf">▶ اقرأ من هنا</button></div>
-   ${s&&s.ar&&ui>0?`<div class="rar" style="margin-top:8px;color:var(--muted)">${s.l.map(i=>esc(RS[i].ar||"")).join("<br>")}</div>`:""}`;
+   ${s&&s.ar&&!s.h?`<div class="rar" style="margin-top:8px;color:var(--muted)">${esc(s.ar)}</div>`:""}`;
   $("rdPx").onclick=rdPopClose;$("rdPw").onclick=()=>rdAudio(c,false);$("rdPws").onclick=()=>rdAudio(c,true);
-  $("rdPs").onclick=async()=>{const tok=++RPT;await rdAudio(s.de,RSLOW,f=>{if(tok===RPT)rdMark(ui,f)});if(tok===RPT)rdMark(-1)};
-  $("rdPf").onclick=()=>{rdPopClose();rdPlayAll(ui)};
+  $("rdPs").onclick=async()=>{const tok=++RPT;await rdAudio(s.de,RSLOW,f=>{if(tok===RPT)rdMark(si,f)});if(tok===RPT)rdMark(-1)};
+  $("rdPf").onclick=()=>{rdPopClose();rdPlayAll(si)};
 }
 function rdPopClose(){const p=$("rdPop");if(p)p.remove();document.querySelectorAll(".rdtx .rw.sel").forEach(x=>x.classList.remove("sel"))}
 // زر الرجوع: يغلق نافذة الكلمة، ثم يعود من النص إلى قائمة النصوص
