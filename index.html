@@ -232,7 +232,7 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 [data-dark] .rvbox .numpick.on{background:#0c3a52;color:#7dd3fc}
 .rvbox .numpick small{display:inline-block;background:var(--soft);border-radius:8px;padding:0 6px;font-size:.78em;margin-right:4px;font-weight:800}.rvbox .numpick.on small{background:#1cb0f6;color:#fff}.rvbox .numpick:disabled{opacity:.35}
 .lkh{display:block;font-size:.85rem;margin:10px 0 2px;color:var(--hd)}.lk .lkf{padding:6px;min-width:56px}.lk .lkf .frmini{display:block;width:40px;height:22px;border-radius:6px}.lk .numpick{font-size:1.15rem}
-#hEn.low{color:#ff4b4b}#hEn.unl{color:#ce82ff}#hEn .unlt{font-size:.62rem;font-weight:800;margin-inline-start:3px;opacity:.85}
+#hEn.low{color:#ff4b4b}#hEn.mid{color:#e5a000}#hEn.mid .i3{filter:hue-rotate(-62deg) saturate(1.3) brightness(1.08)}#hEn.unl{color:#ce82ff}#hEn .unlt{font-size:.62rem;font-weight:800;margin-inline-start:3px;opacity:.85}
 .unlnote{text-align:center;margin-top:8px;color:#a855f7;font-weight:700}
 .engift .logo .i3{width:72px;height:72px;filter:drop-shadow(0 0 12px #c084fc)}.engift h1{color:#a855f7}
 /* التحدي اليومي: عقدة بنفسجية أكبر بإطار ذهبي */
@@ -1033,10 +1033,11 @@ let queue=[],cur=null,flipped=false,sessTotal=0,sessDone=0;
 /* --- الطاقة: 30 وحدة كحدّ أقصى، تمتلئ كاملة في يوم (وحدة كل 48 دقيقة) --- */
 const I3=k=>`<img class="i3" src="img/3d/${k}.png" alt="">`;   // أيقونة مجسّمة
 let UNLT=null;
-function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){setH(b,I3("battery")+"∞");b.classList.remove("low");return}
-  if(unlAt(Date.now())){const left=EN.u-Date.now();const ut=b.querySelector(".unlt");if(ut)ut.textContent=clock(left);else{b.innerHTML=I3("battery")+`∞<small class="unlt">${clock(left)}</small>`;b.dataset.h=""}b.classList.remove("low");b.classList.add("unl");b.title="طاقة بلا حدود: باقٍ "+durAr(left/60000);
+function renderEnergy(){const b=$("hEn");if(!b)return;syncFree();if(FREEU){setH(b,I3("battery")+"∞");b.classList.remove("low","mid");return}
+  if(unlAt(Date.now())){const left=EN.u-Date.now();const ut=b.querySelector(".unlt");if(ut)ut.textContent=clock(left);else{b.innerHTML=I3("battery")+`∞<small class="unlt">${clock(left)}</small>`;b.dataset.h=""}b.classList.remove("low","mid");b.classList.add("unl");b.title="طاقة بلا حدود: باقٍ "+durAr(left/60000);
     if(!UNLT)UNLT=setInterval(()=>{if(!unlAt(Date.now())){clearInterval(UNLT);UNLT=null;b.classList.remove("unl");renderEnergy();toast(I3("battery"),"انتهت الطاقة بلا حدود","عادت الطاقة إلى وضعها المعتاد");const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES)reviewHome();return}const t=b.querySelector(".unlt");if(t)t.textContent=clock(EN.u-Date.now())},1000);return}
-  b.classList.remove("unl");b.title="";const n=enNow();setH(b,I3(n<ST_COST?"lowbat":"battery")+n);b.classList.toggle("low",n<ST_COST)}
+  // اللون حسب الامتلاء من الحدّ: أخضر من النصف، وأصفر دونه ما دامت تكفي لمحطة، وأحمر إن لم تكفِ
+  b.classList.remove("unl");b.title="";const n=enNow(),low=n<ST_COST,mid=!low&&n<EN_MAX/2;setH(b,I3(low?"lowbat":"battery")+n);b.classList.toggle("low",low);b.classList.toggle("mid",mid)}
 /* --- المسار: 4 محطات يوميًا، كل محطة 5 كلمات جديدة تتعلّمها ثم تراجعها --- */
 const stToday=()=>stTodayAt(Date.now());
 let RVDONE=null,RVSTATE="due",RVN=10,STS=null,rvRated=0,DRL=null;
