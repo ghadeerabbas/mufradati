@@ -3627,7 +3627,10 @@ async function rdOpen(id){
   catch(e){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال</div>'}
 }
 // جملة واحدة في كل مرة: تُقرأ تلقائيًّا والكلمة التي تُقرأ تتلوّن، و«التالية» للانتقال؛ الضغط على كلمة يُسمعها ويُظهر معناها؛ و«الترجمة» يُظهر ترجمة الجملة التي كتبها المشرف
-let RDTOK=0,RDSLOW=false,RDTM=0;
+let RDTOK=0,RDTM=0;
+// سرعة القراءة: 1× ثم ثلاث درجات أبطأ، تُحفظ في الجهاز
+const RD_SPDS=[1,.9,.8,.7];let RDSPD=(()=>{const v=+st("muf_rdspd");return RD_SPDS.includes(v)?v:1})();
+const rdSpdTxt=()=>(RDSPD===1?"⏩ ":"🐢 ")+"السرعة "+String(RDSPD).replace(/^0/,"0")+"×";
 const rdWs=s=>String(s||"").split(/\s+/).filter(Boolean);
 // وزن كل كلمة (طولها، وزيادة عند علامات الوقف) لتقدير موضعها في الصوت
 function rdW(s){const w=rdWs(s).map(x=>x.replace(/[^\p{L}\p{N}]/gu,"").length+1+(/[.,;:!?…]["“”»«'’)]*$/.test(x)?3:0)),sum=w.reduce((a,b)=>a+b,0)||1;let acc=0;return w.map(v=>{const a=acc/sum;acc+=v;return a})}
@@ -3635,12 +3638,12 @@ function rdMark(f){const tx=$("rdSent");if(!tx)return;tx.querySelectorAll(".rw.c
   if(f==null||!RDV)return;const st0=rdW(RDV.s[RDV.i]);let k=0;for(let j=0;j<st0.length;j++)if(st0[j]<=f)k=j;
   const w=tx.querySelector(`.rw[data-k="${k}"]`);if(w)w.classList.add("cur")}
 // تشغيل الجملة: ملف Azure من الخادم، وإن تعذّر فصوت الجهاز بمدة مقدّرة
-function rdSay(slow){return new Promise(async res=>{
+function rdSay(rate){rate=rate||1;const slow=rate<.85;return new Promise(async res=>{
   const v=RDV;if(!v){res();return}const i=v.i,tok=++RDTOK;let done=false,raf=0;const fin=()=>{if(done)return;done=true;cancelAnimationFrame(raf);clearInterval(RDTM);if(tok===RDTOK)rdMark(null);res()};
   const prog=f=>{if(tok===RDTOK&&RDV===v&&v.i===i)rdMark(f)};
   try{if(RDEL)RDEL.pause();if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}clearInterval(RDTM);
   const src=await rdAud(v.id,i);if(tok!==RDTOK||RDV!==v||v.i!==i){fin();return}
-  if(src){try{const a=new Audio(src);RDEL=a;a.playbackRate=slow?.75:1;a.preservesPitch=true;
+  if(src){try{const a=new Audio(src);RDEL=a;a.playbackRate=rate;a.preservesPitch=true;
       const tick=()=>{if(done)return;if(tok!==RDTOK){a.pause();return}if(a.duration&&a.currentTime>=a.duration-.12){a.pause();return}if(a.duration)prog(Math.min(1,Math.max(0,a.currentTime-.12)/Math.max(.2,a.duration-.3)));raf=requestAnimationFrame(tick)};
       a.onended=fin;a.onerror=fin;a.onpause=()=>{if(!a.ended)fin()};await a.play();raf=requestAnimationFrame(tick);return}catch(e){}}
   const t=v.s[i],est=Math.max(.8,t.length*.075*(slow?1.7:1.1))*1000,t0=Date.now();ttsSpeak(t,slow);
@@ -3674,17 +3677,19 @@ function rdShow(play){
      <div class="rdNav"><button class="btn" id="rdAgain">🔁 من الأوّل</button><button class="btn next" id="rdDone">رجوع للقائمة</button></div>`
    :`<p class="rnote" style="text-align:center">الجملة ${v.i+1} من ${v.s.length}</p>
      <div class="rdSent" id="rdSent">${rdWs(v.s[v.i]).map((w,k)=>`<span class="rw" data-k="${k}">${esc(w)}</span>`).join(" ")}${RDTRON&&ar?`<div class="rar">${esc(ar)}</div>`:""}</div>
-     <div class="rdCtl"><button class="btn" id="rdRe">${SPK} إعادة</button><button class="btn" id="rdSl">🐢 ببطء</button>${ar?`<button class="btn${RDTRON?" on":""}" id="rdTrB">الترجمة</button>`:""}</div>
+     <div class="rdCtl"><button class="btn" id="rdRe">${SPK} إعادة</button><button class="btn${RDSPD<1?" on":""}" id="rdSl">${rdSpdTxt()}</button>${ar?`<button class="btn${RDTRON?" on":""}" id="rdTrB">الترجمة</button>`:""}</div>
      <p class="rnote" style="text-align:center;margin-top:6px">اضغط على أي كلمة لتسمعها وترى معناها.</p>
      <div class="rdNav"><button class="btn" id="rdPrev" ${v.i?"":"disabled"}>→ السابقة</button><button class="btn next" id="rdNext">${v.i+1<v.s.length?"التالية ←":"إنهاء ✓"}</button></div>`}`;
   $("rdBack").onclick=()=>rdBack();
   if(end){$("rdAgain").onclick=()=>{v.i=0;rdPos();rdShow(true)};$("rdDone").onclick=()=>rdBack();return}
-  $("rdRe").onclick=()=>rdSay(false);$("rdSl").onclick=()=>rdSay(true);
+  $("rdRe").onclick=()=>rdSay(RDSPD);
+  // كل ضغطة تنقل إلى الدرجة التالية (1× ← 0.9× ← 0.8× ← 0.7× ← 1×) وتعيد قراءة الجملة بها
+  $("rdSl").onclick=()=>{RDSPD=RD_SPDS[(RD_SPDS.indexOf(RDSPD)+1)%RD_SPDS.length];st("muf_rdspd",String(RDSPD));const b=$("rdSl");b.innerHTML=rdSpdTxt();b.classList.toggle("on",RDSPD<1);rdSay(RDSPD)};
   if(ar)$("rdTrB").onclick=()=>{RDTRON=!RDTRON;rdShow()};
   $("rdPrev").onclick=()=>{if(v.i>0){v.i--;rdPos();rdShow(true)}};
   $("rdNext").onclick=()=>{v.i++;rdPos();if(v.i>=v.s.length)fx("done");rdShow(true)};
   $("rdSent").onclick=e=>{const w=e.target.closest(".rw");if(w)rdWordTap(w)};rdGloss();
-  if(play)rdSay(false);
+  if(play)rdSay(RDSPD);
   if(v.i+1<v.s.length)rdAud(v.id,v.i+1);   // تجهيز صوت الجملة التالية
 }
 // زر الرجوع: يغلق نافذة الكلمة، ثم يعود من الجمل إلى القائمة (ويحفظ الموضع فورًا)
