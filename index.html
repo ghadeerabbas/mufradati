@@ -591,6 +591,7 @@ body.fbon main{padding-bottom:210px}
 .rdbar .btn{background:var(--soft);color:var(--hd);padding:7px 10px;font-size:.85rem;white-space:nowrap}.rdbar .btn.on{background:#1cb0f6;color:#fff}.rdbar #rdPlay{flex:1;background:#58cc02;color:#fff;box-shadow:0 4px 0 #46a302}
 .rdtx{direction:ltr;text-align:left;font-size:1.3rem;line-height:2.05;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin-top:6px}
 .rdtx h3{font-size:1.4rem;margin-bottom:6px;color:var(--hd)}.rdtx .rs{border-radius:8px;transition:background .2s}.rdtx .rs.cur{background:rgba(28,176,246,.16)}
+.rdtx.tr .rs{display:block;margin-bottom:10px}.rdtx .rar{display:block;direction:rtl;text-align:right;font-size:1rem;color:var(--muted);line-height:1.7}.rdpop .rar{direction:rtl;text-align:right;font-size:1.05rem}
 .rdtx .rw{border-radius:6px;padding:0 1px;cursor:pointer}.rdtx .rw.sel{outline:2px solid #1cb0f6}.rdtx .rw.cur{background:#ffd43b;color:#222}
 .rdpop{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--card);border-top:3px solid #1cb0f6;border-radius:18px 18px 0 0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));box-shadow:0 -6px 20px rgba(0,0,0,.15);max-width:720px;margin:0 auto}
 .rdpop .w{direction:ltr;text-align:left;font-size:1.5rem;font-weight:800;padding:0 4px 0 0;margin-top:14px}.rdpop .m{font-size:1.15rem;margin:6px 0 10px;color:var(--hd)}.rdpop .row2{display:flex;gap:6px;flex-wrap:wrap}
@@ -598,8 +599,8 @@ body.fbon main{padding-bottom:210px}
 .rdCtl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .rdNav{display:flex;gap:10px;margin-top:14px}.rdNav .btn{flex:1}
 .rdAdm textarea{width:100%;min-height:150px;direction:ltr;text-align:left;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit}
-.rdAdm input{width:100%;margin:6px 0}
-.rdRow{display:flex;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.rdRow b{flex:1}
+.rdAdm input{width:100%;margin:6px 0}.rdTrRow{border-top:1px dashed var(--line);padding:6px 0}.rdTrRow .de{text-align:left;font-size:.95rem}.rdTrRow input{margin:4px 0 0;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:inherit}
+.rdRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.rdRow b{flex:1}.rdRow .btn{padding:6px 10px;font-size:.82rem;white-space:nowrap}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
 .bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
 .aiPrev{position:relative;display:inline-block;margin-bottom:6px}.aiPrev button{position:absolute;top:4px;left:4px;border:0;border-radius:50%;width:28px;height:28px;background:rgba(0,0,0,.6);color:#fff;font-size:1rem}
@@ -3622,7 +3623,7 @@ function rdListShow(){
 }
 async function rdOpen(id){
   const el=$("reading");el.innerHTML=`<div class="empty">جارٍ التحميل…</div>`;
-  try{const j=await apiPost("/rd",{op:"get",id});RDV={id,ti:j.ti,s:j.s,i:j.p>=j.s.length?0:j.p};rdShow();scrollTo(0,0)}
+  try{const j=await apiPost("/rd",{op:"get",id});RDV={id,ti:j.ti,s:j.s,ar:j.ar||[],i:j.p>=j.s.length?0:j.p};rdShow();scrollTo(0,0)}
   catch(e){el.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال</div>'}
 }
 // عرض النص كاملًا: الجملة الحالية ملوّنة، والكلمة التي تُقرأ ملوّنة وتمشي مع الصوت، والضغط على جملة يُظهر ترجمتها
@@ -3670,7 +3671,7 @@ async function rdWordTap(i,k,el){
   let p=$("rdPop");if(!p){p=document.createElement("div");p.id="rdPop";p.className="rdpop";document.body.appendChild(p)}
   const g=await rdGloss(),m=rdMean(g,w);if(RDV!==v)return;
   p.innerHTML=`<button class="x" id="rdPx">×</button><div class="w">${esc(w)}</div><div class="m">${m?esc(m):'<span style="color:var(--muted)">لم يُضف معناها بعد</span>'}</div>
-   <div class="row2"><button class="btn" id="rdPw">🔊 الكلمة</button><button class="btn" id="rdPws">🐢 ببطء</button><button class="btn" id="rdPs">🔊 الجملة</button><button class="btn" id="rdPf">▶ اقرأ من هنا</button></div>`;
+   <div class="row2"><button class="btn" id="rdPw">🔊 الكلمة</button><button class="btn" id="rdPws">🐢 ببطء</button><button class="btn" id="rdPs">🔊 الجملة</button><button class="btn" id="rdPf">▶ اقرأ من هنا</button></div>${(v.ar||[])[i]?`<div class="rar" style="margin-top:8px;color:var(--muted)">${esc(v.ar[i])}</div>`:""}`;
   $("rdPx").onclick=rdPopClose;$("rdPw").onclick=()=>speak(w);$("rdPws").onclick=()=>speak(w,true);
   $("rdPs").onclick=async()=>{const tok=++RDTOK;await rdSay(i,RDSLOW,f=>{if(tok===RDTOK)rdMark(i,f)});if(tok===RDTOK)rdMark(i)};
   $("rdPf").onclick=()=>{rdPopClose();rdPlayAll(i)};
@@ -3678,13 +3679,15 @@ async function rdWordTap(i,k,el){
 function rdPopClose(){const p=$("rdPop");if(p)p.remove();document.querySelectorAll("#rdTxt .rw.sel").forEach(x=>x.classList.remove("sel"))}
 function rdShow(){
   const el=$("reading"),v=RDV;if(!v)return rdListShow();rdPopClose();
-  el.innerHTML=`<div class="rdbar"><button class="btn" id="rdBack">‹ رجوع</button><button class="btn" id="rdPlay"></button><button class="btn${RDSLOW?" on":""}" id="rdSl">🐢 ببطء</button></div>
-   <div class="rdtx" id="rdTxt"><h3>${esc(v.ti)}</h3><p>${v.s.map((s,i)=>`<span class="rs" data-i="${i}">${rdWs(s).map((w,k)=>`<span class="rw" data-k="${k}">${esc(w)}</span>`).join(" ")}</span>`).join(" ")}</p></div>
+  const hasAr=(v.ar||[]).some(Boolean),trOn=hasAr&&st(K("rdTr"))==="1";
+  el.innerHTML=`<div class="rdbar"><button class="btn" id="rdBack">‹ رجوع</button><button class="btn" id="rdPlay"></button><button class="btn${RDSLOW?" on":""}" id="rdSl">🐢 ببطء</button>${hasAr?`<button class="btn${trOn?" on":""}" id="rdTrB">الترجمة</button>`:""}</div>
+   <div class="rdtx${trOn?" tr":""}" id="rdTxt"><h3>${esc(v.ti)}</h3><p>${v.s.map((s,i)=>`<span class="rs" data-i="${i}">${rdWs(s).map((w,k)=>`<span class="rw" data-k="${k}">${esc(w)}</span>`).join(" ")}${trOn&&v.ar[i]?`<span class="rar">${esc(v.ar[i])}</span>`:""}</span>`).join(" ")}</p></div>
    <p class="rnote" style="text-align:center;margin-top:8px">اضغط على أي كلمة لتسمعها وترى معناها.</p>`;
   rdBarUpd();if(v.i<v.s.length)rdMark(v.i);
   $("rdBack").onclick=()=>rdBack();
   $("rdPlay").onclick=()=>{if(RDPLAY)rdStop();else rdPlayAll(v.i<v.s.length?v.i:0)};
   $("rdSl").onclick=()=>{RDSLOW=!RDSLOW;$("rdSl").classList.toggle("on",RDSLOW);if(RDPLAY){rdStop();rdPlayAll(v.i)}};
+  if(hasAr)$("rdTrB").onclick=()=>{st(K("rdTr"),trOn?"0":"1");const was=RDPLAY;rdStop();rdShow();if(was)rdPlayAll(v.i)};
   $("rdTxt").onclick=e=>{const w=e.target.closest(".rw"),s=e.target.closest(".rs");if(w&&s)rdWordTap(+s.dataset.i,+w.dataset.k,w)};rdGloss();
 }
 // زر الرجوع: يغلق نافذة الترجمة، ثم يعود من النص إلى القائمة (ويحفظ الموضع فورًا)
@@ -3699,15 +3702,16 @@ async function rdAdm(uid,edit){
   const box=document.getElementById("rdAdmBox");if(!box)return;
   let L=[];try{L=(await apiPost("/rd",{op:"list",u:uid})).g||[]}catch(e){box.innerHTML=`<h3>${I3("book")} القراءة</h3><div class="empty">تعذّر التحميل</div>`;return}
   if(!box.isConnected)return;
-  let ed=null;if(edit&&edit!=="new"){try{const j=await apiPost("/rd",{op:"get",u:uid,id:edit});ed={id:edit,ti:j.ti,txt:j.s.join("\n")}}catch(e){}}
-  if(edit==="new")ed={id:"",ti:"",txt:""};
+  let ed=null;if(edit&&edit!=="new"){try{const j=await apiPost("/rd",{op:"get",u:uid,id:edit});ed={id:edit,ti:j.ti,txt:j.s.join("\n"),tr:Object.fromEntries(j.s.map((x,i)=>[x,(j.ar||[])[i]||""]))}}catch(e){}}
+  if(edit==="new")ed={id:"",ti:"",txt:"",tr:{}};
   if(!box.isConnected)return;const $=id=>box.querySelector("#"+id);
   box.innerHTML=`<h3>${I3("book")} القراءة</h3>
    <p class="rnote">مجموعات جمل يقرؤها جملةً جملة بصوت ألماني، ويضغط «التالية». تظهر له وحده، ولا يراها أي حساب آخر.</p>
-   ${L.map(g=>`<div class="rdRow"><b>${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-cp="${esc(g.id)}">📋 نسخ النص لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
+   ${L.map(g=>`<div class="rdRow"><b>${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
    ${ed?`<div class="rdAdm" style="margin-top:10px"><input id="rdTi" maxlength="80" placeholder="العنوان (مثلًا: Der Wunschstern)" value="${esc(ed.ti)}">
      <textarea id="rdTx" placeholder="اكتب الجمل أو الصقها هنا. تُقسم عند . ! ? وعند كل سطر جديد.">${esc(ed.txt)}</textarea>
      <p class="rnote" id="rdCnt"></p>
+     <div id="rdTrs"></div>
      <div class="rdNav"><button class="btn" id="rdCancel">إلغاء</button><button class="btn next" id="rdSave">حفظ</button></div><div class="stmsg" id="rdMsg"></div></div>`
    :`<button class="btn" id="rdNew" style="width:100%;margin-top:8px">＋ مجموعة جديدة</button>`}`;
   box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>rdAdm(uid,b.dataset.ed));
@@ -3721,14 +3725,17 @@ async function rdAdm(uid,edit){
     if(!await uiConfirm("حذف المجموعة «"+(g?g.ti:"")+"»؟"))return;b.disabled=true;
     try{const j=await apiPost("/rd",{op:"del",u:uid,id:b.dataset.del});if(!j.left)await rdSetOn(uid,false);rdAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر الحذف")}});
   if(!ed){$("rdNew").onclick=()=>rdAdm(uid,"new");return}
-  const cnt=async()=>{const t=$("rdTx").value;if(!t.trim()){$("rdCnt").textContent="";return}
-    try{const j=await apiPost("/rd",{op:"split",u:uid,txt:t});$("rdCnt").textContent="عدد الجمل: "+j.s.length+" — أول جملة: «"+(j.s[0]||"")+"»"}catch(e){}};
+  // خانة ترجمة تحت كل جملة: يكتبها المشرف بنفسه، وتبقى ما دامت الجملة نفسها
+  const trKeep=()=>box.querySelectorAll(".rdTrIn").forEach(x=>{ed.tr[x.dataset.s]=x.value});
+  const cnt=async()=>{const t=$("rdTx").value;if(!t.trim()){$("rdCnt").textContent="";$("rdTrs").innerHTML="";return}
+    try{const j=await apiPost("/rd",{op:"split",u:uid,txt:t});trKeep();$("rdCnt").textContent="عدد الجمل: "+j.s.length+" — اكتب ترجمة كل جملة تحتها (اختياري):";
+      $("rdTrs").innerHTML=j.s.map(x=>`<div class="rdTrRow"><div class="de">${esc(x)}</div><input class="rdTrIn" dir="rtl" maxlength="400" placeholder="الترجمة" data-s="${esc(x)}" value="${esc(ed.tr[x]||"")}"></div>`).join("")}catch(e){}};
   let ct=0;$("rdTx").oninput=()=>{clearTimeout(ct);ct=setTimeout(cnt,700)};cnt();
   $("rdCancel").onclick=()=>rdAdm(uid);
   $("rdSave").onclick=async()=>{const ti=$("rdTi").value.trim(),txt=$("rdTx").value,m=$("rdMsg");
     if(!ti||!txt.trim()){m.textContent="اكتب العنوان والجمل";m.className="stmsg bad";return}
     $("rdSave").disabled=true;m.textContent="جارٍ الحفظ…";m.className="stmsg";
-    try{await apiPost("/rd",{op:"save",u:uid,id:ed.id,ti,txt});await rdSetOn(uid,true);rdAdm(uid)}
+    trKeep();try{await apiPost("/rd",{op:"save",u:uid,id:ed.id,ti,txt,tr:ed.tr});await rdSetOn(uid,true);rdAdm(uid)}
     catch(e){m.textContent="تعذّر الحفظ";m.className="stmsg bad";$("rdSave").disabled=false}};
 }
 async function rdSetOn(uid,on){

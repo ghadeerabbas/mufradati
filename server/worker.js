@@ -1294,7 +1294,7 @@ async function handleRd(fs, user, body, env) {
   const doc = await fs.get(`rd/${u}`), d = doc ? doc.data : {};
   if (op === "list") return { status: 200, json: { g: rdGroups(d).map(g => ({ id: g.id, ti: g.ti, n: g.s.length, p: +d["p_" + g.id] || 0, t: g.t || 0 })) } };
   const g = id ? d["g_" + id] : null;
-  if (op === "get") { if (!g) return { status: 404, json: { error: "nog" } }; return { status: 200, json: { ti: g.ti, s: g.s, p: +d["p_" + id] || 0 } } }
+  if (op === "get") { if (!g) return { status: 404, json: { error: "nog" } }; return { status: 200, json: { ti: g.ti, s: g.s, ar: Array.isArray(g.ar) ? g.ar : [], p: +d["p_" + id] || 0 } } }
   if (op === "pos") { if (admin || !g) return { status: 400, json: { error: "pos" } };
     const i = Math.max(0, Math.min(g.s.length, Math.floor(+body.i || 0))); await fs.commit([{ path: `rd/${u}`, data: { ["p_" + id]: i }, merge: true }]); return { status: 200, json: { ok: true } } }
   if (op === "aud") {
@@ -1308,7 +1308,9 @@ async function handleRd(fs, user, body, env) {
     if (!ti || !s.length) return { status: 400, json: { error: "empty" } };
     const nid = id || (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)), old = d["g_" + nid];
     const o = old ? old.o : Math.max(0, ...rdGroups(d).map(x => x.o || 0)) + 1;
-    const nd = { ...d, ["g_" + nid]: { ti, s, o, t: { __ts: Date.now() } } };
+    // ترجمة كل جملة يكتبها المشرف بنفسه: {الجملة: ترجمتها}، وتُحفظ بترتيب الجمل
+    const trm = body.tr && typeof body.tr === "object" ? body.tr : {}, ar = s.map(x => String(trm[x] || "").replace(/\s+/g, " ").trim().slice(0, RD_MAX_LEN));
+    const nd = { ...d, ["g_" + nid]: { ti, s, ar, o, t: { __ts: Date.now() } } };
     // إن تغيّرت الجمل يبدأ المتعلّم المجموعة من أوّلها
     if (old && JSON.stringify(old.s) !== JSON.stringify(s)) nd["p_" + nid] = 0;
     await fs.commit([{ path: `rd/${u}`, data: nd }]);
