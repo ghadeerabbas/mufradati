@@ -560,6 +560,7 @@ body.fbon main{padding-bottom:210px}
 .frcard .gic{font-size:1.8rem}.frcard b{display:block;font-size:1rem}.frcard small{opacity:.85;font-size:.78rem}.frcard .mbadge{top:8px;left:10px;right:auto}
 .frrow{display:flex;align-items:center;gap:8px;padding:10px 0;border-top:1px solid var(--line)}.frrow>div{flex:1;min-width:0}.frrow b{display:block}.frrow small{color:var(--muted);font-size:.75rem}
 .frrow .btn{padding:6px 12px;font-size:.82rem}.frrow .x{background:var(--soft);color:var(--red)}.frdot{width:10px;height:10px;border-radius:50%;background:#bbb;flex-shrink:0}.frdot.on{background:#2fbf71;box-shadow:0 0 0 3px #2fbf7133}
+.frsel{display:flex;align-items:center;gap:2px;font-size:1rem;cursor:pointer}.frsel input{width:18px;height:18px}
 .fradd{display:flex;gap:6px;margin:8px 0}.frcode{display:flex;align-items:center;gap:10px;background:var(--soft);border-radius:12px;padding:10px 12px;margin-bottom:8px}.frcode small{color:var(--muted)}.frcode b{flex:1;font-size:1.5rem;letter-spacing:3px;text-align:center}.frcode .btn{padding:6px 12px;font-size:.82rem}.fradd input{flex:1;direction:ltr;text-align:left}
 #duelOv{display:none;position:fixed;inset:0;z-index:300;background:var(--paper);overflow:auto;padding:18px 16px calc(18px + env(safe-area-inset-bottom))}#duelOv.on{display:block}
 .dl{max-width:480px;margin:0 auto;text-align:center}.dl h2{margin:6px 0 14px}.dlbig{font-size:4rem;font-weight:900;color:var(--navy);margin:40px 0}
@@ -3336,9 +3337,10 @@ async function renderFriends(){
     <p class="rnote">اكتب رقم صديقك أو اسم دخوله. اسم دخولك أنت: <b dir="ltr">${esc(myLogin())}</b></p>
     <div class="fradd"><input id="frIn" placeholder="الرقم أو اسم الدخول" autocapitalize="off" autocomplete="off" maxlength="30"><button class="btn" id="frAdd">إرسال طلب</button></div><div class="stmsg" id="frMsg"></div></div>
    ${IN.length?`<div class="rsec"><h3>طلبات صداقة</h3>${IN.map(x=>`<div class="frrow"><div>${nm(x)}<small dir="ltr">${esc(x.login)}</small></div><button class="btn frAcc" data-u="${x.uid}">قبول</button><button class="btn x frDel" data-u="${x.uid}">رفض</button></div>`).join("")}</div>`:""}
-   <div class="rsec"><h3>أصدقائي</h3>${!enough?`<p class="rnote">للتحدي تحتاج ${DUEL_N} كلمات تعلّمتها على الأقل في الاختيار الحالي.</p>`:""}
+   <div class="rsec"><h3>أصدقائي</h3>${F.filter(x=>x.on).length>=2&&enough?'<p class="rnote">للتحدي الجماعي علّم 👥 عند صديقين أو ثلاثة متصلين.</p>':""}${!enough?`<p class="rnote">للتحدي تحتاج ${DUEL_N} كلمات تعلّمتها على الأقل في الاختيار الحالي.</p>`:""}
     ${F.length?F.map(x=>`<div class="frrow"><span class="frdot${x.on?" on":""}"></span><div>${nm(x)}<small>${x.on?"متصل الآن":seenAgo(x.seen)}${x.w||x.l?` · فزت ${x.w} · خسرت ${x.l}`:""}</small></div>
-      <button class="btn frDuel" data-u="${x.uid}" ${x.on&&enough?"":"disabled"}>تحدَّ</button><button class="btn x frDel" data-u="${x.uid}" data-f="1" title="حذف">×</button></div>`).join(""):'<div class="empty">لا أصدقاء بعد. أضف صديقًا برقمه أو باسم دخوله.</div>'}</div>
+      ${x.on&&enough?`<label class="frsel" title="اختره للتحدي الجماعي"><input type="checkbox" class="frPick" value="${x.uid}"><span>👥</span></label>`:""}<button class="btn frDuel" data-u="${x.uid}" ${x.on&&enough?"":"disabled"}>تحدَّ</button><button class="btn x frDel" data-u="${x.uid}" data-f="1" title="حذف">×</button></div>`).join(""):'<div class="empty">لا أصدقاء بعد. أضف صديقًا برقمه أو باسم دخوله.</div>'}</div>
+   <button class="btn next" id="frGroup" style="width:100%;display:none;position:sticky;bottom:calc(70px + env(safe-area-inset-bottom));z-index:5"></button>
    ${OUT.length?`<div class="rsec"><h3>طلبات أرسلتها</h3>${OUT.map(x=>`<div class="frrow"><div>${nm(x)}<small>بانتظار الموافقة</small></div><button class="btn x frDel" data-u="${x.uid}">إلغاء</button></div>`).join("")}</div>`:""}`;
   $("frBack").onclick=()=>{FRV=false;clearTimeout(FRLT);renderGames()};
   const cp=$("frCopy");if(cp)cp.onclick=async()=>{try{await navigator.clipboard.writeText(FRC);toast("📋","نُسخ رقمك",FRC)}catch(e){toast("📋","رقمك",FRC)}};
@@ -3350,6 +3352,10 @@ async function renderFriends(){
   el.querySelectorAll(".frAcc").forEach(b=>b.onclick=async()=>{b.disabled=true;try{await apiPost("/fr",{op:"acc",uid:b.dataset.u});toast("👫","صرتما صديقين","");renderFriends()}catch(e){b.disabled=false}});
   el.querySelectorAll(".frDel").forEach(b=>b.onclick=async()=>{if(b.dataset.f&&!await uiConfirm("حذف هذا الصديق؟"))return;b.disabled=true;try{await apiPost("/fr",{op:"del",uid:b.dataset.u});renderFriends()}catch(e){b.disabled=false}});
   el.querySelectorAll(".frDuel").forEach(b=>b.onclick=()=>duelStart(b.dataset.u));
+  // التحدي الجماعي: اختر حتى 3 أصدقاء متصلين
+  const picks=[...el.querySelectorAll(".frPick")],gb=$("frGroup");
+  const upd=()=>{const n=picks.filter(x=>x.checked).length;picks.forEach(x=>{if(!x.checked)x.disabled=n>=3});if(gb){gb.style.display=n>=2?"":"none";gb.textContent="⚔️ تحدٍّ جماعي مع "+n+" أصدقاء"}};
+  picks.forEach(x=>x.onchange=upd);if(gb)gb.onclick=()=>duelStart(picks.filter(x=>x.checked).map(x=>x.value));upd();
   clearTimeout(FRLT);FRLT=setTimeout(()=>{if(FRV&&$("games").classList.contains("on")&&!DL)renderFriends()},15e3);
 }
 /* ---------- التحدي ---------- */
@@ -3364,39 +3370,54 @@ function duelQs(){
 const dlOv=h=>{const o=$("duelOv");o.className="on";o.innerHTML=`<div class="dl">${h}</div>`;return o};
 function duelClose(){if(DL){clearTimeout(DL.pt);DL=null}const o=$("duelOv");o.className="";o.innerHTML="";if(FRV&&$("games").classList.contains("on"))renderFriends()}
 async function duelPoll(op,extra){try{const j=await apiPost("/duel",{op,id:DL.id,...extra});if(!DL||j.id!==DL.id)return j;DL.off=j.now-Date.now();DL.d=j;return j}catch(e){return null}}
+// اللاعبون الفعليون: صاحب الدعوة ومن قبل (أثناء الانتظار يظهر كل المدعوّين)
+const dlPlayers=d=>d.st==="inv"?d.ps:d.ps.filter((u,k)=>k===0||d.ac[u]==="acc");
+const dlName=(d,u)=>u===DL.me?"أنت":(d.nm[u]||"صديق");
+const dlOthers=d=>dlPlayers(d).filter(u=>u!==DL.me).map(u=>d.nm[u]||"صديق");
 async function duelStart(to){
+  to=[].concat(to);
   if(duelPool().length<DUEL_N){uiAlert("للتحدي تحتاج "+DUEL_N+" كلمات تعلّمتها على الأقل.");return}
   dlOv('<h2>جارٍ إرسال التحدي…</h2>');
-  let j;try{j=await apiPost("/duel",{op:"inv",to})}catch(e){duelClose();uiAlert(e.error==="offline"?"صديقك غير متصل الآن.":e.error==="busy"?"صديقك عنده دعوة تحدٍّ أخرى الآن، جرّب بعد دقيقة.":"تعذّر إرسال التحدي.");return}
+  let j;try{j=await apiPost("/duel",{op:"inv",to})}catch(e){duelClose();const who=(e.who||[]).join("، ");
+    uiAlert(e.error==="offline"?(who||"صديقك")+" غير متصل الآن.":e.error==="busy"?(who||"صديقك")+" عنده دعوة تحدٍّ أخرى الآن، جرّب بعد دقيقة.":"تعذّر إرسال التحدي.");return}
   DL={id:j.id,me:j.me,d:j,off:j.now-Date.now()};duelWait();
 }
+// شاشة الانتظار: صاحب الدعوة يرى ردّ كل مدعوّ، ويستطيع البدء مع من قبل
 function duelWait(){
-  if(!DL)return;const d=DL.d,op=d.a===DL.me?d.bn:d.an;
-  dlOv(`<h2>⚔️ تحدٍّ مع ${esc(op)}</h2><div class="dlbig">⏳</div><p class="rnote">بانتظار أن يقبل ${esc(op)}… (دقيقة على الأكثر)</p><button class="btn" id="dlCancel" style="background:var(--soft);color:var(--red)">إلغاء</button>`);
-  $("dlCancel").onclick=async()=>{await duelPoll("no");duelClose()};
-  const tick=async()=>{if(!DL)return;const j=await duelPoll("st");if(!DL)return;
+  if(!DL)return;
+  const draw=()=>{const d=DL.d,host=d.ps[0]===DL.me,inv=d.ps.slice(1),acc=inv.filter(u=>d.ac[u]==="acc").length,ic={acc:"✅",no:"❌",inv:"⏳"};
+    dlOv(`<h2>⚔️ تحدٍّ ${d.ps.length>2?"جماعي":"مع "+esc(d.nm[d.ps[host?1:0]]||"")}</h2>
+     <div class="rsec" style="text-align:start">${d.ps.map((u,k)=>`<div class="frrow"><div><b>${esc(dlName(d,u))}</b><small>${k===0?"صاحب التحدي":d.ac[u]==="acc"?"قبل":d.ac[u]==="no"?"رفض":"بانتظار الرد…"}</small></div><span>${k===0?"👑":ic[d.ac[u]||"inv"]}</span></div>`).join("")}</div>
+     <p class="rnote">${host?"يبدأ التحدي حين يردّ الجميع، أو بعد دقيقة مع من قبل.":"بانتظار الباقين…"}</p>
+     ${host&&acc&&inv.length>1?`<button class="btn next" id="dlGo" style="width:100%">ابدأ الآن مع من قبل (${acc})</button>`:""}
+     <button class="btn" id="dlCancel" style="background:var(--soft);color:var(--red);margin-top:8px">${host?"إلغاء التحدي":"انسحاب"}</button>`);
+    $("dlCancel").onclick=async()=>{await duelPoll("no");duelClose()};
+    const g=$("dlGo");if(g)g.onclick=async()=>{g.disabled=true;await duelPoll("go");tick()}};
+  const tick=async()=>{if(!DL)return;clearTimeout(DL.pt);const j=await duelPoll("st");if(!DL)return;
     if(j&&j.st==="on"){duelPlay();return}
-    if(j&&(j.st==="no"||j.st==="x")){duelClose();uiAlert(j.st==="no"?esc(op)+" رفض التحدي هذه المرة.":"انتهت مهلة الدعوة دون رد.");return}
-    DL.pt=setTimeout(tick,1500)};DL.pt=setTimeout(tick,1500);
+    if(j&&(j.st==="no"||j.st==="x")){const host=DL.d.ps[0]===DL.me;duelClose();uiAlert(j.st==="no"?(host?"رفضوا التحدي هذه المرة.":"أُلغي التحدي."):host?"انتهت مهلة الدعوة دون رد.":"ألغى صاحب التحدي الدعوة.");return}
+    draw();DL.pt=setTimeout(tick,1500)};
+  draw();DL.pt=setTimeout(tick,1500);
 }
 async function duelInvited(inv){
   if(duelPool().length<DUEL_N){toast("⚔️",inv.name+" يتحدّاك","تحتاج "+DUEL_N+" كلمات تعلّمتها لتقبل");return}
   DL={id:inv.id,me:UID,d:null,off:0,inv:true};
   try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
-  dlOv(`<h2>⚔️ ${esc(inv.name)} يتحدّاك!</h2><div class="dlbig">🏁</div><p class="rnote">${DUEL_N} أسئلة بالسرعة، كلٌّ من كلماته. الأكثر إجابات صحيحة يفوز، وعند التعادل الأسرع.</p>
+  const w=(inv.with||[]).filter(Boolean);
+  dlOv(`<h2>⚔️ ${esc(inv.name)} يتحدّاك!</h2>${w.length?`<p class="rnote">ومعكم في التحدي: <b>${w.map(esc).join("، ")}</b></p>`:""}<div class="dlbig">🏁</div><p class="rnote">${DUEL_N} أسئلة بالسرعة، كلٌّ من كلماته. الأكثر إجابات صحيحة يفوز، وعند التعادل الأسرع.</p>
    <button class="btn next" id="dlAcc" style="width:100%">قبول التحدي</button><button class="link" id="dlNo">ليس الآن</button>`);
   $("dlNo").onclick=async()=>{await duelPoll("no");duelClose()};
   $("dlAcc").onclick=async()=>{$("dlAcc").disabled=true;const j=await duelPoll("acc");if(!DL)return;
-    if(j&&j.st==="on")duelPlay();else{duelClose();uiAlert("انتهت الدعوة أو ألغاها صديقك.")}};
-  setTimeout(()=>{if(DL&&DL.id===inv.id&&!DL.q){duelClose()}},60e3);
+    if(j&&j.st==="on")duelPlay();else if(j&&j.st==="inv")duelWait();else{duelClose();uiAlert("انتهت الدعوة أو ألغاها صاحب التحدي.")}};
+  setTimeout(()=>{if(DL&&DL.id===inv.id&&!DL.d){duelClose()}},60e3);
 }
 function duelBars(){
-  const d=DL.d,mine=d.a===DL.me?d.pa:d.pb,his=d.a===DL.me?d.pb:d.pa,hn=d.a===DL.me?d.bn:d.an,mi=Math.max(DL.i||0,mine.i||0);
-  return `<div class="dlbars"><div class="dlbar"><small><b>أنت</b><span>${mi}/${DUEL_N}</span></small><i><b style="width:${mi*100/DUEL_N}%"></b></i></div>
-   <div class="dlbar op"><small><b>${esc(hn)}</b><span>${his.i||0}/${DUEL_N}</span></small><i><b style="width:${(his.i||0)*100/DUEL_N}%"></b></i></div></div>`;
+  const d=DL.d,ps=dlPlayers(d).slice().sort((a,b)=>(b===DL.me)-(a===DL.me));
+  return `<div class="dlbars">${ps.map(u=>{const n=u===DL.me?Math.max(DL.i||0,(d.p[u]||{}).i||0):((d.p[u]||{}).i||0);
+    return `<div class="dlbar${u===DL.me?"":" op"}"><small><b>${esc(dlName(d,u))}</b><span>${n}/${DUEL_N}</span></small><i><b style="width:${n*100/DUEL_N}%"></b></i></div>`}).join("")}</div>`;
 }
 function duelPlay(){
-  if(!DL)return;DL.q=duelQs();DL.i=0;DL.c=0;DL.sendQ=Promise.resolve();
+  if(!DL)return;clearTimeout(DL.pt);DL.q=duelQs();DL.i=0;DL.c=0;DL.sendQ=Promise.resolve();
   const wait=()=>{if(!DL)return;const left=Math.ceil((DL.d.s-(Date.now()+DL.off))/1000);
     if(left>0){dlOv(`<h2>استعد!</h2><div class="dlbig">${left}</div>`);DL.pt=setTimeout(wait,250);return}
     duelQ();DL.pt=setTimeout(poll,1500)};
@@ -3409,26 +3430,26 @@ function duelQ(){
   const q=DL.q[DL.i];
   const o=dlOv(`<button class="dlx" id="dlQuit">انسحاب</button><h2>سؤال ${DL.i+1} من ${DUEL_N}</h2><div id="dlBars">${duelBars()}</div>
    <div class="dlq">${esc(q.w.de)}</div><div class="dlopts">${q.opts.map((x,k)=>`<button data-k="${k}">${esc(x.ar)}</button>`).join("")}</div>`);
-  $("dlQuit").onclick=async()=>{if(await uiConfirm("تنسحب من التحدي؟ يفوز صديقك."))duelClose()};
+  $("dlQuit").onclick=async()=>{if(await uiConfirm("تنسحب من التحدي؟"))duelClose()};
   o.querySelectorAll(".dlopts button").forEach(b=>b.onclick=()=>{
     if(DL.lock)return;DL.lock=true;const ok=q.opts[+b.dataset.k].k===q.w.k;b.classList.add(ok?"ok":"no");
     if(!ok)o.querySelectorAll(".dlopts button").forEach(x=>{if(q.opts[+x.dataset.k].k===q.w.k)x.classList.add("ok")});
     DL.i++;if(ok)DL.c++;const i=DL.i;
-    // الإجابات تُرسل بالترتيب، وتُعاد إن سبقها اللاعب الآخر في الحفظ
-    DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0});const me=j&&(j.a===DL.me?j.pa:j.pb);if(me&&me.i>=i||j&&j.st!=="on")break}});
+    // الإجابات تُرسل بالترتيب، وتُعاد إن لم تُحفظ
+    DL.sendQ=DL.sendQ.then(async()=>{for(let t=0;t<3&&DL;t++){const j=await duelPoll("ans",{i,ok:ok?1:0});const me=j&&j.p&&j.p[DL.me];if(me&&me.i>=i||j&&j.st!=="on")break}});
     setTimeout(()=>{if(!DL)return;DL.lock=false;duelQ()},ok?350:900);
   });
 }
 function duelWaitEnd(){
-  if(!DL||DL.end)return;const d=DL.d,hn=d.a===DL.me?d.bn:d.an;
-  if(!$("dlFin"))dlOv(`<h2 id="dlFin">أنهيت! ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote">بانتظار ${esc(hn)}…</p>`);
+  if(!DL||DL.end)return;const rest=dlOthers(DL.d);
+  if(!$("dlFin"))dlOv(`<h2 id="dlFin">أنهيت! ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote">بانتظار ${esc(rest.join("، "))}…</p>`);
 }
 async function duelEnd(){
-  if(!DL||DL.end)return;DL.end=true;await DL.sendQ;const d=DL.d,me=d.a===DL.me?d.pa:d.pb,his=d.a===DL.me?d.pb:d.pa,hn=d.a===DL.me?d.bn:d.an;
-  const r=d.win==="tie"?["🤝","تعادل!"]:d.win===DL.me?["🏆","فزت!"]:["💪","خسرت هذه المرة"],sec=x=>x&&x.d?(x.ms/1000).toFixed(1)+" ث":"لم يُنهِ";
+  if(!DL||DL.end)return;DL.end=true;await DL.sendQ;const d=DL.d,tie=d.rank[0]==="tie",R=d.rank.filter(u=>u!=="tie"),pos=R.indexOf(DL.me);
+  const md=["🥇","🥈","🥉","4"],sec=x=>x&&x.d?(x.ms/1000).toFixed(1)+" ث":"لم يُنهِ";
+  const r=tie?["🤝","تعادل!"]:pos===0?["🏆","فزت!"]:R.length>2?[md[pos]||"💪","المركز "+["الأول","الثاني","الثالث","الرابع"][pos]]:["💪","خسرت هذه المرة"];
   dlOv(`<div class="dlres">${r[0]}</div><h2>${r[1]}</h2>
-   <div class="rsec" style="text-align:start"><div class="frrow"><div><b>أنت</b></div><b>${me.c||0}/${DUEL_N} ✓</b><small>${sec(me)}</small></div>
-    <div class="frrow"><div><b>${esc(hn)}</b></div><b>${his.c||0}/${DUEL_N} ✓</b><small>${sec(his)}</small></div></div>
+   <div class="rsec" style="text-align:start">${R.map((u,k)=>`<div class="frrow"><span>${tie?"🤝":md[k]}</span><div><b>${esc(dlName(d,u))}</b></div><b>${(d.p[u]||{}).c||0}/${DUEL_N} ✓</b><small>${sec(d.p[u])}</small></div>`).join("")}</div>
    <button class="btn next" id="dlOk" style="width:100%">رجوع</button>`);
   $("dlOk").onclick=duelClose;
 }
