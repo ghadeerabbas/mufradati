@@ -33,7 +33,7 @@ self.addEventListener("message", e => {
 });
 
 // ما يتغيّر محتواه دون تغيّر اسمه: يُطلب من الخادم أولًا، والمحفوظ احتياط عند انقطاع الإنترنت
-const isData = p => /\/(words[^/]*\.json|courses\.json|manifest\.json|audio\/index\.json)$/.test(p);
+const isData = p => /\/(words[^/]*\.json|texts\.json|courses\.json|manifest\.json|audio\/index\.json)$/.test(p);
 // ما لا يتغيّر محتواه (أو يتغيّر اسمه مع كل نسخة): يؤخذ من المحفوظ إن وُجد
 const isStatic = (u) => u.origin === self.location.origin
   ? (/\/(fonts|img|icons|audio)\//.test(u.pathname) || (/\.js$/.test(u.pathname) && u.search))

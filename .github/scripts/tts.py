@@ -39,7 +39,24 @@ def texts():
             for t in [w.get("de", ""), answer0(w.get("de", ""))] + str(w.get("ex", "") or "").split("\n"):
                 t = speakable(t.strip())
                 if t and re.search(r"[A-Za-zÄÖÜäöüß]", t): out.add(t)
-    return sorted(out)
+    return sorted(out | reading_texts())
+
+# نصوص القراءة (texts.json): كل جملة كما هي، وكل كلمة وحدها، بالتهيئة نفسها التي في التطبيق (rdNorm وrdCore)
+def rd_norm(s): return re.sub(r"\s+", " ", str(s or "")).strip()
+def rd_core(x): return re.sub(r"^[\W_]+|[\W_]+$", "", x)
+def reading_texts():
+    out = set()
+    if not os.path.exists("texts.json"): return out
+    for t in json.load(open("texts.json", encoding="utf-8")).get("texts", []):
+        sents = [t.get("t", "")] + [s.get("de", "") for p in t.get("p", []) for s in p]
+        for s in sents:
+            s = rd_norm(s)
+            if not re.search(r"[A-Za-zÄÖÜäöüß0-9]", s): continue
+            out.add(s)
+            for x in s.split(" "):
+                c = rd_core(x)
+                if c: out.add(c)
+    return out
 
 def synth(text):
     ssml = f"<speak version='1.0' xml:lang='de-DE'><voice name='{VOICE}'><prosody rate='-6%'>{html.escape(text)}</prosody></voice></speak>"

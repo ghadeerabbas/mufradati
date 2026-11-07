@@ -2,7 +2,7 @@ name: Pronunciation audio
 on:
   push:
     branches: [main]
-    paths: ["words*.json", "courses.json", ".github/scripts/tts.py", ".github/workflows/tts.yml"]
+    paths: ["words*.json", "texts.json", "courses.json", ".github/scripts/tts.py", ".github/workflows/tts.yml"]
   workflow_dispatch:
 permissions:
   contents: write
