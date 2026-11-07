@@ -39,6 +39,11 @@ def texts():
             for t in [w.get("de", ""), answer0(w.get("de", ""))] + str(w.get("ex", "") or "").split("\n"):
                 t = speakable(t.strip())
                 if t and re.search(r"[A-Za-zÄÖÜäöüß]", t): out.add(t)
+    # كلمات القراءة (rdgloss.json): صوت لكل كلمة يكتب Claude معناها
+    if os.path.exists("rdgloss.json"):
+        for w in json.load(open("rdgloss.json", encoding="utf-8")).get("w", {}):
+            t = speakable(w.strip())
+            if t and re.search(r"[A-Za-zÄÖÜäöüß]", t): out.add(t)
     return sorted(out)
 
 def synth(text):
