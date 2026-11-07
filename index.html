@@ -3426,7 +3426,8 @@ function duelPlay(){
     if(left>0){dlOv(`<h2>استعد!</h2><div class="dlbig">${left}</div>`);DL.pt=setTimeout(wait,250);return}
     duelQ();DL.pt=setTimeout(poll,1500)};
   const poll=async()=>{if(!DL||DL.end)return;await duelPoll("st");if(!DL)return;const b=$("dlBars");if(b)b.innerHTML=duelBars();
-    if(DL.d.st==="done"){duelEnd();return}if(DL.i>=DUEL_N)duelWaitEnd();DL.pt=setTimeout(poll,1500)};
+    if(DL.d.st==="done"){duelEnd(true);return}
+    if(DL.i>=DUEL_N){if(dlMyFixed(DL.d))duelEnd(false);else duelWaitEnd()}DL.pt=setTimeout(poll,1500)};
   wait();
 }
 function duelQ(){
@@ -3446,21 +3447,35 @@ function duelQ(){
   });
 }
 function duelWaitEnd(){
-  if(!DL||DL.end)return;const rest=dlOthers(DL.d);
-  if(!$("dlFin"))dlOv(`<h2 id="dlFin">أنهيت! ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote">بانتظار ${esc(rest.join("، "))}…</p>`);
+  if(!DL||DL.end)return;const d=DL.d,rest=dlPlayers(d).filter(u=>u!==DL.me&&!(d.p[u]||{}).d).map(u=>d.nm[u]||"صديق");
+  if(!$("dlFin"))dlOv(`<h2 id="dlFin">أنهيت! ${DL.c}/${DUEL_N} ✓</h2><div id="dlBars">${duelBars()}</div><div class="dlbig">⏳</div><p class="rnote" id="dlRest"></p>`);
+  const r=$("dlRest");if(r)r.textContent=rest.length?"بانتظار "+rest.join("، ")+"…":"جارٍ حساب النتيجة…";
 }
-async function duelEnd(){
-  if(!DL||DL.end)return;DL.end=true;await DL.sendQ;const d=DL.d,tie=d.rank[0]==="tie",R=d.rank.filter(u=>u!=="tie"),pos=R.indexOf(DL.me);
+// ترتيبي ثابت إن لم يعد أحد ممّن يلعبون يستطيع أن يتخطّاني أو أن أتخطّاه:
+// من يلعب ويملك صحيحًا أكثر مني فهو أمامي حتمًا، ومن لا يستطيع بما بقي له أن يزيد عن صحيحي فهو خلفي حتمًا (حتى في التعادل، لأنه سيُنهي بعدي فيكون أبطأ)
+function dlMyFixed(d){
+  const me=d.p[DL.me]||{};if(!me.d)return false;
+  return dlPlayers(d).every(u=>{if(u===DL.me)return true;const p=d.p[u]||{};if(p.d)return true;const c=p.c||0,left=DUEL_N-(p.i||0);return c>me.c||c+left<=me.c});
+}
+// الترتيب الحالي: الأكثر صحيحًا، ثم الأسرع ممن أنهوا (من لم يُنهِ بعدُ أبطأ)
+const dlRankNow=d=>dlPlayers(d).slice().sort((a,b)=>{const x=d.p[a]||{},y=d.p[b]||{};return (y.c||0)-(x.c||0)||(x.d?x.ms:Infinity)-(y.d?y.ms:Infinity)});
+// النتيجة: نهائية حين ينتهي التحدي، أو مبكرة حين يثبت ترتيبي ويظلّ الباقون يلعبون (تتحدّث وحدها حتى ينهوا)
+async function duelEnd(final){
+  if(!DL||DL.end)return;if(final){DL.end=true;await DL.sendQ}
+  const sig=JSON.stringify([final,DL.d.p]);if(DL.sig===sig)return;DL.sig=sig;   // لا يُعاد الرسم إلا إن تغيّر شيء (حتى لا يقفز التمرير)
+  const ov=$("duelOv"),y=ov.scrollTop;
+  const d=DL.d,tie=final&&d.rank[0]==="tie",R=final?d.rank.filter(u=>u!=="tie"):dlRankNow(d),pos=R.indexOf(DL.me),playing=R.filter(u=>!(d.p[u]||{}).d);
   const md=["🥇","🥈","🥉","4"],sec=x=>x&&x.d?(x.ms/1000).toFixed(1)+" ث":"لم يُنهِ";
   const r=tie?["🤝","تعادل!"]:pos===0?["🏆","فزت!"]:R.length>2?[md[pos]||"💪","المركز "+["الأول","الثاني","الثالث","الرابع"][pos]]:["💪","خسرت هذه المرة"];
   dlOv(`<div class="dlres">${r[0]}</div><h2>${r[1]}</h2>
-   <div class="rsec" style="text-align:start">${R.map((u,k)=>`<div class="frrow"><span>${tie?"🤝":md[k]}</span><div><b>${esc(dlName(d,u))}</b></div><b>${(d.p[u]||{}).c||0}/${DUEL_N} ✓</b><small>${sec(d.p[u])}</small></div>`).join("")}</div>
+   ${!final&&playing.length?`<p class="rnote">ترتيبك ثابت ✔ — ${esc(playing.map(u=>d.nm[u]||"صديق").join("، "))} ما زال يلعب، والنتيجة تتحدّث وحدها.</p>`:""}
+   <div class="rsec" style="text-align:start">${R.map((u,k)=>`<div class="frrow"><span>${tie?"🤝":(d.p[u]||{}).d||final?md[k]:"⏳"}</span><div><b>${esc(dlName(d,u))}</b></div><b>${(d.p[u]||{}).c||0}/${DUEL_N} ✓</b><small>${(d.p[u]||{}).d||final?sec(d.p[u]):"يلعب… "+((d.p[u]||{}).i||0)+"/"+DUEL_N}</small></div>`).join("")}</div>
    <div class="rsec" style="text-align:start"><h3>تقرير الأخطاء</h3>${R.map(u=>{const p=d.p[u]||{},x=u===DL.me&&DL.x.length>=(p.x||[]).length?DL.x:(p.x||[]),h=u===DL.me?DL.h:(p.h||"");
      return `<div class="dlrep"><b>${esc(dlName(d,u))}</b><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div>
-      ${x.length?x.map(e=>`<div class="dlerr"><span dir="ltr">${esc(e.de)}</span><span>✓ ${esc(e.ar)}</span>${e.pk?`<small>اختار: ${esc(e.pk)}</small>`:""}</div>`).join(""):h.length?'<small class="ok">بلا أخطاء 👏</small>':'<small>لم يُجِب</small>'}
-      ${h.length&&h.length<DUEL_N?`<small>لم يُكمل: أجاب عن ${h.length} من ${DUEL_N}</small>`:""}</div>`}).join("")}</div>
+      ${!final&&!p.d&&u!==DL.me?'<small>ما زال يلعب…</small>':""}${x.length?x.map(e=>`<div class="dlerr"><span dir="ltr">${esc(e.de)}</span><span>✓ ${esc(e.ar)}</span>${e.pk?`<small>اختار: ${esc(e.pk)}</small>`:""}</div>`).join(""):!final&&!p.d&&u!==DL.me?"":h.length?'<small class="ok">بلا أخطاء 👏</small>':'<small>لم يُجِب</small>'}
+      ${final&&h.length&&h.length<DUEL_N?`<small>لم يُكمل: أجاب عن ${h.length} من ${DUEL_N}</small>`:""}</div>`}).join("")}</div>
    <button class="btn next" id="dlOk" style="width:100%">رجوع</button>`);
-  $("dlOk").onclick=duelClose;
+  $("dlOk").onclick=duelClose;ov.scrollTop=y;
 }
 
 /* ================= الحماية (للمشرف): النسخ الاحتياطية وتتبّع الأخطاء ================= */
