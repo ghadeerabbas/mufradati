@@ -970,7 +970,7 @@ function renderHeader(){
   $("hXp").style.width=(e.rest/e.need*100)+"%";
   setH($("hXpT"),`${I3("sparkles")} ${e.rest}/${e.need}`);$("hXpT").title="نقاط الخبرة";
   // الشعلة: رمادية من منتصف الليل حتى أول دراسة في اليوم، ثم تشتعل
-  const hf=$("hFire"),lit=!!e.s.today;setH(hf,I3("fire")+e.s.streak);hf.classList.toggle("on",lit);hf.classList.toggle("dim",!lit);
+  const hf=$("hFire"),lit=!!e.s.today;setH(hf,I3("fire")+e.s.streak);hf.classList.toggle("on",lit);hf.classList.toggle("dim",!lit);if(lit)markStudied();
   hf.title=lit?"أكملت دراسة اليوم، سلسلتك "+e.s.streak+" يومًا":e.s.streak?"ادرس اليوم لتحافظ على سلسلتك":"ابدأ سلسلتك بالدراسة اليوم";
   hf.classList.remove("ignite");
   if(lit&&FIRE_LIT===false&&FIRE_DAY===dkey(Date.now())){void hf.offsetWidth;hf.classList.add("ignite");fx("streak");setTimeout(()=>hf.classList.remove("ignite"),1000)}
@@ -1315,7 +1315,7 @@ function endDrill(){
 function finishStation(){
   const S_=STS,now=Date.now(),prev=EC||econ();
   ev({type:"stDone",words:S_.words.map(w=>w.k),miss:[...S_.miss],t:now});
-  S.newCount=(S.newCount||0)+S_.words.length;save();markStudied();
+  S.newCount=(S.newCount||0)+S_.words.length;save();
   STS=null;RVDONE=null;const N=S_.words.length;
   RES={title:"أنهيت المحطة "+S_.n+"! تعلّمت "+arN(N,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" · +"+CFG.gems.station+" 💎",xp:Math.max(0,econ().xp-prev.xp),acc:(N-S_.miss.size)/N,ms:now-(S_.t0||now),drill:1};
   celebrate(prev);schedSync();reviewHome();toCur();
@@ -1463,7 +1463,7 @@ function rate(r,btn){
   const now=Date.now(),old=P[cur.k],prev=EC||econ();
   if(!old)S.newCount=(S.newCount||0)+1;
   const en0=enNow();
-  if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;markStudied();
+  if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
   queue.shift();sessDone++;
   if(RVDONE&&RVDONE.mode==="review"){rvRated++;if(r<2&&RVDONE.fail)RVDONE.fail.add(cur.k)}
@@ -1573,7 +1573,7 @@ function showQ(){
   $("qQuit").onclick=()=>{qz=[];quizIntro();scrollTo(0,0)};
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
     if(document.querySelector(".opt.ok"))return;
-    const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);markStudied();if(ok){qs++;streakQ++}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
+    const ok=b.dataset.k===w.k;qzA.push([w.k,ok?1:0]);if(ok){qs++;streakQ++}else{b.classList.add("no");streakQ=0;b.parentElement.classList.add("flash-no")}
     document.querySelector(`.opt[data-k="${CSS.escape(w.k)}"]`).classList.add("ok");
     $("qnext").innerHTML=`<div style="margin-top:8px">${exPairs(w)}</div><button class="btn next" id="nx">التالي</button>`;
     $("nx").onclick=()=>{qi++;showQ()};
@@ -1930,7 +1930,7 @@ function bindTypeHints(q,w,inp){
 function answered(ok,el,auto){
   revealAr();const q=GM.q,w=q.w;GM.answered=true;GM.n++;if(ok){if(q.hint)GM.helped=(GM.helped||0)+1;else GM.ok++}else{const b=$("gBox");if(b)b.classList.add("flash-no")}   // بمساعدة: صحيحة بلا خبرة
   comboHit(ok);
-  (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);markStudied();
+  (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);
   let fb="";
   if(q.kind==="type"||q.kind==="ltype"){const r=GM.typed.r;fb=r.ok?`<div class="gres good">✓ صحيح${q.hint?' <small style="font-weight:600;opacity:.75">· بمساعدة، بلا خبرة</small>':""}</div>${r.note?`<div class="gres" style="color:var(--orange)">${esc(r.note)}</div>`:""}`
     :`<div class="gres bad">الجواب الصحيح:</div><div class="gans de">${diffHTML(coreOf(r.a)||r.a,coreOf(GM.typed.v))}</div>`}
@@ -1981,7 +1981,7 @@ function finishGame(){
     const r=ev({type:"quiz",kind:GM.id,ok:GM.ok,total:GM.n,qa:GM.qa,...(full&&GM.id!=="chal"?{full:1}:{})});
     if(GM.id==="chal"&&r===true){fx("done");confetti(160)}
   }
-  GM.done=true;markStudied();celebrate(prev);gameView();
+  GM.done=true;celebrate(prev);gameView();
   if(enNow()>en0){renderEnergy();toast("🔋","+"+(enNow()-en0)+" طاقة","أكملت التمرين")}
 }
 function gameResult(){
@@ -1995,7 +1995,9 @@ function gameResult(){
   if(GM.id==="chal"){$("gAgain").style.display="none";$("gBack").textContent="العودة إلى المسار";$("gBack").onclick=chalHome;return}
   $("gAgain").onclick=()=>startGame(GM.id);$("gBack").onclick=()=>{GM=null;renderGames()};
 }
-function markStudied(){try{if(window.MufApp&&MufApp.markStudied&&econ().s.today)MufApp.markStudied(today())}catch(e){}
+// تذكير الهاتف مربوط بإشارة السلسلة نفسها: متى اشتعلت شعلة اليوم 🔥 (بأي طريقة) يتوقّف تذكير اليوم
+let MARKED="";
+function markStudied(){try{const d=today();if(MARKED===d||!(window.MufApp&&MufApp.markStudied))return;const e=EC||econ();if(e&&e.s&&e.s.today){MufApp.markStudied(d);MARKED=d}}catch(e){}
 }
 
 /* ================= المقياس والدوري ================= */
@@ -2327,7 +2329,7 @@ const API="https://mufradati-api.afunogrv.workers.dev";
 function ev(e){
   syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
-  EVQ.push(e);save();econ();schedSync(EVQ.length>=100?1000:0);return true;
+  EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);return true;
 }
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
 function applyServer(j){
@@ -3510,9 +3512,8 @@ function duelQ(){
 }
 // إنهاء التحدي ينشّط سلسلة اليوم إن لم تكن نشطة (بلا خبرة ولا جواهر)
 function duelStreak(id){
-  try{if(duelDays().includes(dkey(Date.now()))){markStudied();return}const was=econ().s.today;
-    if(ev({type:"duel",id})===true){markStudied();   // يوقف تذكير اليوم في الهاتف
-      if(!was&&econ().s.today){toast("🔥","نشّطت سلسلتك اليوم","بإنهاء التحدي");renderHeader()}}}catch(e){}
+  try{if(duelDays().includes(dkey(Date.now())))return;const was=econ().s.today;
+    if(ev({type:"duel",id})===true&&!was&&econ().s.today){toast("🔥","نشّطت سلسلتك اليوم","بإنهاء التحدي");renderHeader()}}catch(e){}
 }
 function duelWaitEnd(){
   if(!DL||DL.end)return;const d=DL.d,rest=dlPlayers(d).filter(u=>u!==DL.me&&!(d.p[u]||{}).d).map(u=>d.nm[u]||"صديق");
