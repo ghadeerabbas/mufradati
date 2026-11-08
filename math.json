@@ -2114,6 +2114,278 @@
    ]
   },
   {
+   "id": "k4-personalformen-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "hide": 1,
+   "ti": "Personalformen des Verbs",
+   "tar": "تصريف الفعل مع الضمائر، ومن الاسم إلى الفعل",
+   "ex": [
+    {
+     "de": "Schreibe die Verben in der passenden Personalform auf.",
+     "ar": "اكتب الفعل بالتصريف المناسب للضمير.",
+     "t": "w",
+     "items": [
+      {
+       "q": "beten: ich ___",
+       "a": [
+        "bete"
+       ],
+       "qa": "يصلّي",
+       "w": "جذر beten ينتهي بـ t، فنضيف e قبل ‎-st‎ و‎-t‎: du betest، er betet، ihr betet."
+      },
+      {
+       "q": "lachen: ich ___",
+       "a": [
+        "lache"
+       ],
+       "qa": "يضحك",
+       "w": "lachen فعل منتظم: ich lache، du lachst، er lacht، wir lachen، ihr lacht، sie lachen."
+      },
+      {
+       "q": "fallen: ich ___",
+       "a": [
+        "falle"
+       ],
+       "qa": "يقع، يسقط",
+       "w": "في fallen يصير a إلى ä مع du و er/sie/es فقط: du fällst، er fällt؛ أما ihr fallt فبلا ä."
+      },
+      {
+       "q": "trinken: du ___",
+       "a": [
+        "trinkst"
+       ],
+       "qa": "يشرب",
+       "w": "trinken فعل منتظم: ich trinke، du trinkst، er trinkt، wir trinken، ihr trinkt، sie trinken."
+      },
+      {
+       "q": "lachen: du ___",
+       "a": [
+        "lachst"
+       ],
+       "qa": "يضحك",
+       "w": "lachen فعل منتظم: ich lache، du lachst، er lacht، wir lachen، ihr lacht، sie lachen."
+      },
+      {
+       "q": "fallen: du ___",
+       "a": [
+        "fällst"
+       ],
+       "qa": "يقع، يسقط",
+       "w": "في fallen يصير a إلى ä مع du و er/sie/es فقط: du fällst، er fällt؛ أما ihr fallt فبلا ä."
+      },
+      {
+       "q": "trinken: er/sie/es ___",
+       "a": [
+        "trinkt"
+       ],
+       "qa": "يشرب",
+       "w": "trinken فعل منتظم: ich trinke، du trinkst، er trinkt، wir trinken، ihr trinkt، sie trinken."
+      },
+      {
+       "q": "beten: er/sie/es ___",
+       "a": [
+        "betet"
+       ],
+       "qa": "يصلّي",
+       "w": "جذر beten ينتهي بـ t، فنضيف e قبل ‎-st‎ و‎-t‎: du betest، er betet، ihr betet."
+      },
+      {
+       "q": "fallen: er/sie/es ___",
+       "a": [
+        "fällt"
+       ],
+       "qa": "يقع، يسقط",
+       "w": "في fallen يصير a إلى ä مع du و er/sie/es فقط: du fällst، er fällt؛ أما ihr fallt فبلا ä."
+      },
+      {
+       "q": "trinken: wir ___",
+       "a": [
+        "trinken"
+       ],
+       "qa": "يشرب",
+       "w": "trinken فعل منتظم: ich trinke، du trinkst، er trinkt، wir trinken، ihr trinkt، sie trinken."
+      },
+      {
+       "q": "beten: wir ___",
+       "a": [
+        "beten"
+       ],
+       "qa": "يصلّي",
+       "w": "جذر beten ينتهي بـ t، فنضيف e قبل ‎-st‎ و‎-t‎: du betest، er betet، ihr betet."
+      },
+      {
+       "q": "lachen: wir ___",
+       "a": [
+        "lachen"
+       ],
+       "qa": "يضحك",
+       "w": "lachen فعل منتظم: ich lache، du lachst، er lacht، wir lachen، ihr lacht، sie lachen."
+      },
+      {
+       "q": "trinken: ihr ___",
+       "a": [
+        "trinkt"
+       ],
+       "qa": "يشرب",
+       "w": "trinken فعل منتظم: ich trinke، du trinkst، er trinkt، wir trinken، ihr trinkt، sie trinken."
+      },
+      {
+       "q": "beten: ihr ___",
+       "a": [
+        "betet"
+       ],
+       "qa": "يصلّي",
+       "w": "جذر beten ينتهي بـ t، فنضيف e قبل ‎-st‎ و‎-t‎: du betest، er betet، ihr betet."
+      },
+      {
+       "q": "lachen: ihr ___",
+       "a": [
+        "lacht"
+       ],
+       "qa": "يضحك",
+       "w": "lachen فعل منتظم: ich lache، du lachst، er lacht، wir lachen، ihr lacht، sie lachen."
+      },
+      {
+       "q": "fallen: ihr ___",
+       "a": [
+        "fallt"
+       ],
+       "qa": "يقع، يسقط",
+       "w": "في fallen يصير a إلى ä مع du و er/sie/es فقط: du fällst، er fällt؛ أما ihr fallt فبلا ä."
+      },
+      {
+       "q": "trinken: sie ___",
+       "a": [
+        "trinken"
+       ],
+       "qa": "يشرب",
+       "w": "trinken فعل منتظم: ich trinke، du trinkst، er trinkt، wir trinken، ihr trinkt، sie trinken."
+      },
+      {
+       "q": "beten: sie ___",
+       "a": [
+        "beten"
+       ],
+       "qa": "يصلّي",
+       "w": "جذر beten ينتهي بـ t، فنضيف e قبل ‎-st‎ و‎-t‎: du betest، er betet، ihr betet."
+      },
+      {
+       "q": "lachen: sie ___",
+       "a": [
+        "lachen"
+       ],
+       "qa": "يضحك",
+       "w": "lachen فعل منتظم: ich lache، du lachst، er lacht، wir lachen، ihr lacht، sie lachen."
+      },
+      {
+       "q": "fallen: sie ___",
+       "a": [
+        "fallen"
+       ],
+       "qa": "يقع، يسقط",
+       "w": "في fallen يصير a إلى ä مع du و er/sie/es فقط: du fällst، er fällt؛ أما ihr fallt فبلا ä."
+      }
+     ]
+    },
+    {
+     "de": "Bilde aus den Nomen Verben in der Grundform.",
+     "ar": "كوّن من الاسم فعلًا في صيغة المصدر.",
+     "t": "w",
+     "items": [
+      {
+       "q": "der Kampf: ___",
+       "a": [
+        "kämpfen"
+       ],
+       "qa": "القتال، الصراع ← يقاتل",
+       "w": "الفعل في صيغة المصدر من Kampf: kämpfen (يصير a إلى ä)."
+      },
+      {
+       "q": "die Rutsche: ___",
+       "a": [
+        "rutschen"
+       ],
+       "qa": "الزحليقة ← يتزحلق",
+       "w": "من Rutsche نحذف e ونضيف ‎-en‎: rutschen."
+      },
+      {
+       "q": "das Ereignis: ___",
+       "a": [
+        "ereignen",
+        "sich ereignen"
+       ],
+       "qa": "الحدث ← يحدث",
+       "w": "من Ereignis: (sich) ereignen، أي يحدث."
+      },
+      {
+       "q": "die Wäsche: ___",
+       "a": [
+        "waschen"
+       ],
+       "qa": "الغسيل ← يغسل",
+       "w": "من Wäsche: waschen (بلا ä في المصدر)."
+      },
+      {
+       "q": "die Farbe: ___",
+       "a": [
+        "färben"
+       ],
+       "qa": "اللون ← يلوّن",
+       "w": "من Farbe: färben (يصير a إلى ä)."
+      },
+      {
+       "q": "die Sprache: ___",
+       "a": [
+        "sprechen"
+       ],
+       "qa": "اللغة ← يتكلّم",
+       "w": "من Sprache: sprechen (يتغيّر حرف العلّة a إلى e)."
+      }
+     ]
+    },
+    {
+     "de": "Schreibe die passende Personalform auf.",
+     "ar": "اكتب الفعل الذي بين القوسين بالتصريف المناسب.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Der Pianist (spielen) ___ im Konzertsaal.",
+       "a": [
+        "spielt"
+       ],
+       "qa": "يعزف عازف البيانو في قاعة الحفلات.",
+       "w": "der Pianist = er ← er spielt."
+      },
+      {
+       "q": "Die Zuschauer (jubeln) ___ beim Torschuss.",
+       "a": [
+        "jubeln"
+       ],
+       "qa": "يهتف المتفرّجون عند تسديد الهدف.",
+       "w": "die Zuschauer جمع = sie ← sie jubeln."
+      },
+      {
+       "q": "Die Königin (feiern) ___ ein Fest.",
+       "a": [
+        "feiert"
+       ],
+       "qa": "تقيم الملكة حفلًا.",
+       "w": "die Königin = sie (مفرد) ← sie feiert."
+      },
+      {
+       "q": "Ihr (sparen) ___ viel Geld.",
+       "a": [
+        "spart"
+       ],
+       "qa": "أنتم توفّرون مالًا كثيرًا.",
+       "w": "مع ihr ينتهي الفعل بـ ‎-t‎: ihr spart."
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "k3-kartoffel-1",
    "c": "k3",
    "sub": "Sachunterricht",

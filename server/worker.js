@@ -1320,8 +1320,8 @@ async function handleMt(fs, user, body) {
   if (op === "get") {
     const doc = await fs.get(`mt/${u}`), d = doc ? doc.data : {}, out = {};
     for (const k in d) if (k.startsWith("m_") && d[k] && typeof d[k] === "object") { let r = {}; try { r = JSON.parse(d[k].r || "{}") } catch (e) {} let f = {}; try { f = JSON.parse(d[k].f || "{}") } catch (e) {} out[d[k].id || k.slice(2)] = { i: +d[k].i || 0, r, f, t: d[k].t || 0, z: +d[k].z || 0 } }
-    let hid = []; try { hid = JSON.parse(d.hid || "[]") } catch (e) {}
-    return { status: 200, json: { m: out, hid: Array.isArray(hid) ? hid : [] } };
+    const arr = x => { try { const a = JSON.parse(x || "[]"); return Array.isArray(a) ? a : [] } catch (e) { return [] } };
+    return { status: 200, json: { m: out, hid: arr(d.hid), shw: arr(d.shw) } };
   }
   if (!sid) return { status: 400, json: { error: "set" } };
   if (op === "save" && !admin) {
@@ -1335,9 +1335,10 @@ async function handleMt(fs, user, body) {
   }
   // إخفاء ورقة عن المتعلّم أو إظهارها (hid: قائمة الأوراق المخفية)
   if (op === "vis" && admin) {
-    const doc = await fs.get(`mt/${u}`); let h = []; try { h = JSON.parse(doc && doc.data.hid || "[]") } catch (e) {}
-    h = (Array.isArray(h) ? h : []).filter(x => x !== sid); if (body.h) h.push(sid);
-    await fs.commit([{ path: `mt/${u}`, data: { hid: JSON.stringify(h.slice(-200)) }, merge: true }]); return { status: 200, json: { ok: true } };
+    // shw: أوراق مخفية أصلًا (hide في math.json) أظهرها المشرف لهذا المتعلّم
+    const doc = await fs.get(`mt/${u}`), dd = doc ? doc.data : {}, arr = x => { try { const a = JSON.parse(x || "[]"); return Array.isArray(a) ? a : [] } catch (e) { return [] } };
+    let h = arr(dd.hid).filter(x => x !== sid), s = arr(dd.shw).filter(x => x !== sid); if (body.h) h.push(sid); else s.push(sid);
+    await fs.commit([{ path: `mt/${u}`, data: { hid: JSON.stringify(h.slice(-200)), shw: JSON.stringify(s.slice(-200)) }, merge: true }]); return { status: 200, json: { ok: true } };
   }
   if (op === "reset" && admin) { await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i: 0, r: "{}", f: "{}", t: Date.now(), z: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } } }
   return { status: 400, json: { error: "op" } };

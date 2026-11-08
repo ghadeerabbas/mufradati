@@ -3942,8 +3942,10 @@ function mtLoad(){const c=st("muf_math");if(c){try{MTS=JSON.parse(c).sets||[]}ca
   fetch("math.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_math"))return;st("muf_math",t);try{MTS=JSON.parse(t).sets||[]}catch(e){}mtUI();
     const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}).catch(()=>{})}
 // الأوراق التي أخفاها المشرف عن هذا المتعلّم (من الخادم، وتُحفظ في الجهاز)
-const mtHid=()=>{const h=jget(K("mthid"),[]);return Array.isArray(h)?h:[]};
-const myMath=()=>isAdmin()?MTS:MTS.filter(s=>(MY_COURSES||[]).includes(s.c)&&!mtHid().includes(s.id));
+// والورقة التي فيها hide في math.json مخفية حتى يُظهرها المشرف (shw)
+const mtHid=()=>{const h=jget(K("mthid"),[]);return Array.isArray(h)?h:[]},mtShw=()=>{const h=jget(K("mtshw"),[]);return Array.isArray(h)?h:[]};
+const mtHidOf=(s,H,W)=>H.includes(s.id)||(!!s.hide&&!W.includes(s.id));
+const myMath=()=>{if(isAdmin())return MTS;const H=mtHid(),W=mtShw();return MTS.filter(s=>(MY_COURSES||[]).includes(s.c)&&!mtHidOf(s,H,W))};
 const mtOn=()=>!!(UID&&myMath().length);
 function mtUI(){const b=$("mtBtn");if(b)b.style.display=mtOn()?"":"none"}
 // حالة كل ورقة في الجهاز: {setId:{i: رقم السؤال الحالي, r:{رقم السؤال: {v: جوابه, ok}}}}
@@ -4021,17 +4023,17 @@ function mtPush(id,ss){if(isAdmin())return;apiPost("/mt",{op:"save",set:id,i:ss.
 // z: وقت آخر «من الأوّل» من المشرف؛ إن كان أحدث مما عند الجهاز تُمسح حالة الجهاز لتلك الورقة وتبدأ من جديد
 async function mtPull(force){if(!force&&Date.now()-MTSYNC<15000)return;MTSYNC=Date.now();try{const j=await apiPost("/mt",{op:"get"}),M=j&&j.m||{},S=mtSt();let ch=0;
   for(const id in M){const a=S[id],b=M[id],rs=a&&(b.z||0)>(a.z||0);if(!a||rs||Object.keys(b.r||{}).length>Object.keys(a.r||{}).length||(b.i||0)>(a.i||0)){S[id]={i:b.i||0,r:b.r||{},f:b.f||{},z:b.z||0};ch=1;if(rs&&MTO===id)MTO=null}}
-  const h=Array.isArray(j&&j.hid)?j.hid:[];if(JSON.stringify(h)!==JSON.stringify(mtHid())){st(K("mthid"),JSON.stringify(h));ch=1;if(MTO&&h.includes(MTO))MTO=null;mtUI()}
+  const h=Array.isArray(j&&j.hid)?j.hid:[],w=Array.isArray(j&&j.shw)?j.shw:[];if(JSON.stringify(h)!==JSON.stringify(mtHid())||JSON.stringify(w)!==JSON.stringify(mtShw())){st(K("mthid"),JSON.stringify(h));st(K("mtshw"),JSON.stringify(w));ch=1;if(MTO&&!myMath().some(x=>x.id===MTO))MTO=null;mtUI()}
   for(const id in S)if(!M[id]||Object.keys(S[id].r||{}).length>Object.keys(M[id].r||{}).length)mtPush(id,S[id]);   // ما حلّه قبل التحديث يُرسَل
   if(ch){mtSave(S);const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}}catch(e){MTSYNC=0}}
 // تقرير المشرف: لكل ورقة إلى أين وصل ونتيجته وأخطاؤه (جوابه والجواب الصحيح)، وزر «من الأوّل»
 async function mtAdm(uid){
-  const box=document.getElementById("mtAdmBox");if(!box)return;let M={},H=[],cs=null;
-  try{const [j,d]=await Promise.all([apiPost("/mt",{op:"get",u:uid}),aref(uid).get().catch(()=>null)]);M=j.m||{};H=Array.isArray(j.hid)?j.hid:[];
+  const box=document.getElementById("mtAdmBox");if(!box)return;let M={},H=[],W=[],cs=null;
+  try{const [j,d]=await Promise.all([apiPost("/mt",{op:"get",u:uid}),aref(uid).get().catch(()=>null)]);M=j.m||{};H=Array.isArray(j.hid)?j.hid:[];W=Array.isArray(j.shw)?j.shw:[];
     if(d&&d.exists){const c=(d.data().courses||[]).filter(x=>COURSES[x]);cs=c.length?c:DEF_COURSES}}catch(e){box.innerHTML='<h3>✏️ التمارين</h3><div class="empty">تعذّر التحميل</div>';return}
   // كل أوراق مناهجه: الاسم ولمحة عن تمارينها وزر الإظهار/الإخفاء، ثم تقدّمه وأخطاؤه إن بدأها
   const L=MTS.filter(s=>!cs||cs.includes(s.c)),kind=e=>e.t==="o"?"ترتيب كلمات":e.ch?"اختيار":"كتابة";
-  box.innerHTML='<h3>✏️ التمارين</h3><p class="rnote">كل ورقة ظاهرة له ما لم تُخفِها.</p>'+(L.length?L.map(s=>{const m=M[s.id]||{},R=m.r||{},F=mtFlat(s),T=F.length,hid=H.includes(s.id),
+  box.innerHTML='<h3>✏️ التمارين</h3><p class="rnote">أظهر له الورقة حين يصل إلى درسها، وأخفِها متى شئت.</p>'+(L.length?L.map(s=>{const m=M[s.id]||{},R=m.r||{},F=mtFlat(s),T=F.length,hid=mtHidOf(s,H,W),
       Fa=Object.keys(m.f||{}).length?m.f:R,n=Object.keys(Fa).length,g=Object.values(Fa).filter(v=>v.ok).length,gNow=Object.values(R).filter(v=>v.ok).length,
       // الأخطاء من أول محاولة (لا تختفي حين يعيد السؤال ويصيب)، ومعها هل صحّحها بعد الإعادة
       bad=Object.keys(Fa).filter(k=>!Fa[k].ok).map(k=>{const q=F[+k];if(!q)return"";const a=q.it.a,fix=R[k]&&R[k].ok;
