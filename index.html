@@ -1154,9 +1154,26 @@ function stationSteps1(words){
   while(pend.length)take(true);
   return out;
 }
+// خيارات الاختيار من متعدد: لا يُعرض خياران متقاربا المعنى (مثل «بسبب» و«بسبب / بناءً على»)
+// كل معنى عربي يُقسم عند / و، و, و«أو» وما بين القوسين، ويُوحَّد (بلا تشكيل ولا «ال»، أ/إ/آ=ا، ة=ه، ى=ي)
+const arNormP=t=>t.replace(/[ً-ْٰـ]/g,"").replace(/[أإآ]/g,"ا").replace(/ة/g,"ه").replace(/ى/g,"ي").replace(/[^؀-ۿ\s]/g," ").split(/\s+/).filter(Boolean).map(x=>x.length>3&&x.startsWith("ال")?x.slice(2):x).join(" ");
+const arPartsC=new Map();
+function arParts(ar){let r=arPartsC.get(ar);if(r)return r;
+  const raw=String(ar||"").replace(/[()]/g,"/").split(/[\/،,;؛]|\sأو\s/);r=[...new Set(raw.map(arNormP).filter(x=>x.length>1))];arPartsC.set(ar,r);return r}
+function arClash(a,b){
+  if(a.ar===b.ar||a.de===b.de)return true;
+  const A=arParts(a.ar),B=arParts(b.ar);
+  for(const x of A)for(const y of B){if(x===y)return true;const [s,l]=x.length<y.length?[x,y]:[y,x];if((" "+l+" ").includes(" "+s+" "))return true}
+  return false;
+}
+function pickOpts(w,pool){   // الصحيحة + ثلاثة بعيدة المعنى عنها وعن بعضها، من النوع نفسه أوّلًا
+  const out=[w],cand=[...shuffle(pool.filter(x=>x.t===w.t)),...shuffle(pool.filter(x=>x.t!==w.t))];
+  for(const x of cand){if(out.length>=4)break;if(x.k===w.k||out.some(o=>arClash(o,x)))continue;out.push(x)}
+  for(const x of cand){if(out.length>=4)break;if(!out.includes(x)&&x.ar!==w.ar)out.push(x)}   // إن لم يكفِ البعيد
+  return shuffle(out);
+}
 function stOpts(w,de){   // أربعة خيارات من النوع نفسه
-  const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de),same=shuffle(pool.filter(x=>x.t===w.t));
-  return shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)]);
+  return pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de));
 }
 function stationView(){
   const el=$("review"),S_=STS;
@@ -1609,9 +1626,7 @@ function showQ(){
     el.innerHTML=`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.png" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`;
     if(qs===qz.length)confetti(150);
     $("again").onclick=startQuiz;$("qBack").onclick=()=>{qz=[];quizIntro()};return}
-  const w=qz[qi],pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar);
-  const same=shuffle(pool.filter(x=>x.t===w.t)),wrong=(same.length>=3?same:shuffle(pool)).slice(0,3);
-  const opts=shuffle([w,...wrong]);
+  const w=qz[qi],opts=pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar));
   el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span><button class="link" id="qQuit">إنهاء</button></div>
    <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${bigDe(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   $("qQuit").onclick=()=>{qz=[];quizIntro();scrollTo(0,0)};
@@ -1860,7 +1875,7 @@ function makeQ(kind,w){
   if(kind==="order"){const o=orderOf(w),have=new Set(o.toks.map(t=>normO(t)));
     const extra=[];for(const x of shuffle(learnedList())){const ox=x.k!==w.k&&orderOf(x);if(!ox)continue;for(const t of ox.toks){if(!have.has(normO(t))&&extra.length<2){extra.push(t);have.add(normO(t))}}if(extra.length>=2)break}
     return {kind,w,o,tiles:shuffle([...o.toks,...extra]),picked:[]}}
-  if(kind==="mc"){const pool=uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(pool.filter(x=>x.t===w.t));return {kind,w,opts:shuffle([w,...(same.length>=3?same:shuffle(pool)).slice(0,3)])}}
+  if(kind==="mc")return {kind,w,opts:pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar))};
   if(kind==="cloze"){
     // الخيارات بالصيغة نفسها التي في الجملة (fährt مع holt وfällt، لا مع fahren)، وتُفضَّل الكلمات ذات النهاية نفسها
     const c=clozeOf(w),ans=c.word,low=ans.toLowerCase(),cap=/^[A-ZÄÖÜ]/.test(ans);
@@ -3462,8 +3477,7 @@ function duelPick(L){
 }
 function duelQs(){
   const L=duelPool(),pool=duelPick(L),all=L.length>=8?L:uniq(W);dlhAdd(pool.map(w=>w.k));
-  return pool.map(w=>{const others=all.filter(x=>x.k!==w.k&&x.ar!==w.ar),same=shuffle(others.filter(x=>x.t===w.t));
-    return {w,opts:shuffle([w,...(same.length>=3?same:shuffle(others)).slice(0,3)])}});
+  return pool.map(w=>({w,opts:pickOpts(w,all.filter(x=>x.k!==w.k&&x.ar!==w.ar))}));
 }
 const dlOv=h=>{const o=$("duelOv");o.className="on";o.innerHTML=`<div class="dl">${h}</div>`;return o};
 function duelClose(){if(DL){clearTimeout(DL.pt);clearInterval(DL.ti);DL=null}
