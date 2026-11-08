@@ -606,7 +606,7 @@ body.fbon main{padding-bottom:210px}
 .rdNav{display:flex;gap:10px;margin-top:14px}.rdNav .btn{flex:1}
 .rdAdm textarea{width:100%;min-height:150px;direction:ltr;text-align:left;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit}
 .rdAdm input{width:100%;margin:6px 0}.rdTrRow{border-top:1px dashed var(--line);padding:6px 0}.rdTrRow .de{text-align:left;font-size:.95rem}.rdTrRow .rdNo{display:inline-block;min-width:26px;padding:0 6px;margin-right:4px;border-radius:8px;background:var(--soft);color:var(--hd);text-align:center;font-size:.85rem}.rdTrRow input{margin:4px 0 0;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:inherit}
-.rdRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.rdRow b{flex:1}.rdRow .btn{padding:6px 10px;font-size:.82rem;white-space:nowrap}
+.rdRow.hid b{opacity:.55}.rdRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.rdRow b{flex:1 1 calc(100% - 80px)}.rdRow small{min-width:60px;text-align:left}.rdRow .btn{padding:6px 10px;font-size:.82rem;white-space:nowrap}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
 .bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
 .aiPrev{position:relative;display:inline-block;margin-bottom:6px}.aiPrev button{position:absolute;top:4px;left:4px;border:0;border-radius:50%;width:28px;height:28px;background:rgba(0,0,0,.6);color:#fff;font-size:1rem}
@@ -3745,7 +3745,7 @@ async function rdAdm(uid,edit){
   if(!box.isConnected)return;const $=id=>box.querySelector("#"+id);
   box.innerHTML=`<h3>${I3("book")} القراءة</h3>
    <p class="rnote">مجموعات جمل يقرؤها جملةً جملة بصوت ألماني، ويضغط «التالية». تظهر له وحده، ولا يراها أي حساب آخر.</p>
-   ${L.map(g=>`<div class="rdRow"><b>${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-pv="${esc(g.id)}">👁 معاينة</button><button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
+   ${L.map(g=>`<div class="rdRow${g.h?" hid":""}"><b>${g.h?"🙈 ":""}${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-vis="${esc(g.id)}" data-h="${g.h?0:1}">${g.h?"✅ إظهار له":"🙈 إخفاء عنه"}</button><button class="btn" data-pv="${esc(g.id)}">👁 معاينة</button><button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
    ${ed?`<div class="rdAdm" style="margin-top:10px"><input id="rdTi" maxlength="80" placeholder="العنوان (مثلًا: Der Wunschstern)" value="${esc(ed.ti)}">
      <textarea id="rdTx" placeholder="اكتب الجمل أو الصقها هنا. تُقسم عند . ! ? وعند كل سطر جديد.">${esc(ed.txt)}</textarea>
      <p class="rnote" id="rdCnt"></p>
@@ -3753,6 +3753,9 @@ async function rdAdm(uid,edit){
      <div class="rdNav"><button class="btn" id="rdCancel">إلغاء</button><button class="btn next" id="rdSave">حفظ</button></div><div class="stmsg" id="rdMsg"></div></div>`
    :`<button class="btn" id="rdNew" style="width:100%;margin-top:8px">＋ مجموعة جديدة</button>`}`;
   box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>rdAdm(uid,b.dataset.ed));
+  // إظهار المجموعة للمتعلّم أو إخفاؤها (حين ينهي دراستها)
+  box.querySelectorAll("[data-vis]").forEach(b=>b.onclick=async()=>{b.disabled=true;
+    try{await apiPost("/rd",{op:"vis",u:uid,id:b.dataset.vis,h:b.dataset.h==="1"});toast(b.dataset.h==="1"?"🙈":"✅",b.dataset.h==="1"?"أُخفيت عنه":"صارت ظاهرة له","");rdAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر التغيير")}});
   // معاينة المجموعة كما يراها المتعلّم، بالصوت ومعاني الكلمات، دون تغيير موضعه
   box.querySelectorAll("[data-pv]").forEach(b=>b.onclick=async()=>{b.disabled=true;
     try{const j=await apiPost("/rd",{op:"get",u:uid,id:b.dataset.pv});RDV={id:b.dataset.pv,u:uid,ti:j.ti,s:j.s,ar:j.ar||[],i:0};RDTRON=false}catch(e){b.disabled=false;uiAlert("تعذّر التحميل");return}

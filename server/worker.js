@@ -1297,8 +1297,9 @@ async function handleRd(fs, user, body, env) {
   const id = String(body.id || "");
   if (id && !/^[A-Za-z0-9]{4,20}$/.test(id)) return { status: 400, json: { error: "id" } };
   const doc = await fs.get(`rd/${u}`), d = doc ? doc.data : {};
-  if (op === "list") return { status: 200, json: { g: rdGroups(d).map(g => ({ id: g.id, ti: g.ti, n: g.s.length, p: +d["p_" + g.id] || 0, t: g.t || 0 })) } };
-  const g = id ? d["g_" + id] : null;
+  // المجموعة المخفية (h) لا تظهر للمتعلّم، والمشرف يراها كلها
+  if (op === "list") return { status: 200, json: { g: rdGroups(d).filter(g => admin || !g.h).map(g => ({ id: g.id, ti: g.ti, n: g.s.length, p: +d["p_" + g.id] || 0, t: g.t || 0, h: g.h ? 1 : 0 })) } };
+  const g0 = id ? d["g_" + id] : null, g = g0 && (admin || !g0.h) ? g0 : null;
   if (op === "get") { if (!g) return { status: 404, json: { error: "nog" } }; return { status: 200, json: { ti: g.ti, s: g.s, ar: Array.isArray(g.ar) ? g.ar : [], p: +d["p_" + id] || 0 } } }
   if (op === "pos") { if (admin || !g) return { status: 400, json: { error: "pos" } };
     const i = Math.max(0, Math.min(g.s.length, Math.floor(+body.i || 0))); await fs.commit([{ path: `rd/${u}`, data: { ["p_" + id]: i }, merge: true }]); return { status: 200, json: { ok: true } } }
@@ -1315,7 +1316,7 @@ async function handleRd(fs, user, body, env) {
     const o = old ? old.o : Math.max(0, ...rdGroups(d).map(x => x.o || 0)) + 1;
     // ترجمة كل جملة يكتبها المشرف بنفسه: {الجملة: ترجمتها}، وتُحفظ بترتيب الجمل
     const trm = body.tr && typeof body.tr === "object" ? body.tr : {}, ar = s.map(x => String(trm[x] || "").replace(/\s+/g, " ").trim().slice(0, RD_MAX_LEN));
-    const nd = { ...d, ["g_" + nid]: { ti, s, ar, o, t: { __ts: Date.now() } } };
+    const nd = { ...d, ["g_" + nid]: { ti, s, ar, o, h: old && old.h ? 1 : 0, t: { __ts: Date.now() } } };
     // إن تغيّرت الجمل يبدأ المتعلّم المجموعة من أوّلها
     if (old && JSON.stringify(old.s) !== JSON.stringify(s)) nd["p_" + nid] = 0;
     await fs.commit([{ path: `rd/${u}`, data: nd }]);
@@ -1328,6 +1329,10 @@ async function handleRd(fs, user, body, env) {
     const nd = { ...d }; delete nd["g_" + id]; delete nd["p_" + id];
     await fs.commit([Object.keys(nd).length ? { path: `rd/${u}`, data: nd } : { path: `rd/${u}`, del: true }]);
     return { status: 200, json: { ok: true, left: rdGroups(nd).length } };
+  }
+  if (op === "vis") {   // إظهار المجموعة للمتعلّم أو إخفاؤها
+    if (!g) return { status: 404, json: { error: "nog" } };
+    await fs.commit([{ path: `rd/${u}`, data: { ["g_" + id]: { ...g, h: body.h ? 1 : 0 } }, merge: true }]); return { status: 200, json: { ok: true, h: body.h ? 1 : 0 } };
   }
   if (op === "split") return { status: 200, json: { s: rdSplit(body.txt) } };
   return { status: 400, json: { error: "op" } };
