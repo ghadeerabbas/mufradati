@@ -48,7 +48,7 @@ def texts():
     # كلمات أسئلة الألمانية في التمارين (math.json): صوت لكل كلمة يضغط عليها الولد (يطابق mtCore في التطبيق)
     if os.path.exists("math.json"):
         for st in json.load(open("math.json", encoding="utf-8")).get("sets", []):
-            if st.get("sub") != "Deutsch": continue
+            if st.get("sub", "Mathe") == "Mathe": continue
             for e in st.get("ex", []):
                 for it in e.get("items", []):
                     for x in it.get("q", "").replace("**", "").split():

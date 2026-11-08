@@ -588,7 +588,7 @@ body.fbon main{padding-bottom:210px}
 #aiBtn .i3,#rdBtn .i3{width:26px;height:26px}#mtBtn .mtIco{font-size:22px;line-height:1}
 .mtList{display:flex;flex-direction:column;gap:12px}
 .mtCard{display:block;width:100%;text-align:right;border:0;border-radius:20px;padding:16px 18px;color:#fff;font:inherit;background:linear-gradient(135deg,#7c4dff,#1cb0f6);box-shadow:0 5px 0 rgba(0,0,0,.18)}
-.mtCard.de{background:linear-gradient(135deg,#ff7a45,#ff4b8b)}.mtCard .sub{display:inline-block;background:rgba(255,255,255,.25);border-radius:10px;padding:1px 10px;font-size:.85rem;font-weight:800;margin-bottom:6px}.mtHl{color:#1cb0f6;text-decoration:underline;text-underline-offset:4px}.mtQq{word-break:break-word}.mtQq.long{font-size:1.25rem}.mtCard.done{background:linear-gradient(135deg,#46a302,#58cc02)}.mtCard .t{text-align:left;font-size:1.35rem;font-weight:900;letter-spacing:.2px}.mtCard .a{font-size:1.05rem;opacity:.95;margin-top:2px}
+.mtCard.su{background:linear-gradient(135deg,#00b894,#2ecc71)}.mtCard.de{background:linear-gradient(135deg,#ff7a45,#ff4b8b)}.mtCard .sub{display:inline-block;background:rgba(255,255,255,.25);border-radius:10px;padding:1px 10px;font-size:.85rem;font-weight:800;margin-bottom:6px}.mtHl{color:#1cb0f6;text-decoration:underline;text-underline-offset:4px}.mtQq{word-break:break-word}.mtQq.long{font-size:1.25rem}.mtCard.done{background:linear-gradient(135deg,#46a302,#58cc02)}.mtCard .t{text-align:left;font-size:1.35rem;font-weight:900;letter-spacing:.2px}.mtCard .a{font-size:1.05rem;opacity:.95;margin-top:2px}
 .mtCard .m{margin-top:8px;font-weight:700}.mtCard .bar,.mtProg{height:10px;border-radius:6px;background:rgba(255,255,255,.3);overflow:hidden;margin-top:10px}.mtCard .bar i,.mtProg i{display:block;height:100%;background:#ffd43b;border-radius:6px}
 .mtProg{background:var(--soft)}.mtProg i{background:linear-gradient(90deg,#7c4dff,#1cb0f6)}
 .mtBox{background:var(--card);color:var(--ink);border:2px solid var(--line);border-radius:20px;padding:16px;margin:8px 0 24px}
@@ -3923,7 +3923,7 @@ function mtUI(){const b=$("mtBtn");if(b)b.style.display=mtOn()?"":"none"}
 const mtSt=()=>jget(K("math2"),{}),mtSave=o=>st(K("math2"),JSON.stringify(o));
 // المقارنة تتجاهل المسافات وعلامات الترقيم وحالة الأحرف، وتقبل ae/oe/ue/ss بدل ä/ö/ü/ß والأرقام العربية الهندية
 const mtNorm=x=>String(x||"").toLowerCase().replace(/ä/g,"ae").replace(/ö/g,"oe").replace(/ü/g,"ue").replace(/ß/g,"ss").replace(/[\s.,'’·?!;:„“"»«()\-–→]/g,"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));
-const mtPron=x=>String(x||"").trim().replace(/^(ich|du|er|sie|es|wir|ihr)\s+/i,"");   // «ich forschte» يُقبل مثل «forschte»
+const mtPron=x=>String(x||"").trim().replace(/^(ich|du|er|sie|es|wir|ihr|der|die|das|den|dem|des|ein|eine)\s+/i,"");   // «ich forschte» و«die Wurzeln» تُقبل مثل «forschte» و«Wurzeln»
 const mtQ=x=>esc(x).replace(/\*\*(.+?)\*\*/g,'<b class="mtHl">$1</b>');   // **…** = الكلمة المطلوبة بخط عريض
 // أسئلة الألمانية: كل كلمة تُضغط فتُقرأ بصوتها (ملف Azure من tts.py، وإلا صوت الجهاز)
 const mtCore=x=>x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"");
@@ -3941,7 +3941,7 @@ function renderMath(){
   const el=$("math");if(!mtOn()){el.innerHTML='<div class="empty">لا توجد تمارين بعد.</div>';return}
   const L=myMath(),S=mtSt(),s=MTO&&L.find(x=>x.id===MTO);
   if(!s){MTO=null;if(!MTSYNC&&!isAdmin())mtPull();el.innerHTML=`<div class="mhead"><h2>✏️ التمارين</h2></div><div class="mtList">${L.map(x=>{const F=mtFlat(x),st0=S[x.id]||{},R=st0.r||{},n=Object.keys(R).length,g=Object.values(R).filter(v=>v.ok).length,T=F.length,dn=n>=T;
-      return `<button class="mtCard${dn?" done":""}${x.sub==="Deutsch"?" de":""}" data-id="${esc(x.id)}">${x.sub?`<span class="sub">${x.sub==="Deutsch"?"🇩🇪 Deutsch":"🔢 Mathe"}</span>`:""}<div class="t" dir="ltr">${esc(x.ti)}</div><div class="a">${esc(x.tar||"")}</div>
+      return `<button class="mtCard${dn?" done":""}${x.sub==="Deutsch"?" de":x.sub==="Sachunterricht"?" su":""}" data-id="${esc(x.id)}">${x.sub?`<span class="sub">${{Deutsch:"🇩🇪 Deutsch",Sachunterricht:"🌱 Sachunterricht",Mathe:"🔢 Mathe"}[x.sub]||esc(x.sub)}</span>`:""}<div class="t" dir="ltr">${esc(x.ti)}</div><div class="a">${esc(x.tar||"")}</div>
         <div class="bar"><i style="width:${Math.round(n/T*100)}%"></i></div><div class="m">${dn?`🏆 أنهيتها · ${mtNum(g)} صحيحة من ${mtNum(T)}`:n?`وصلت إلى السؤال ${mtNum(n+1)} من ${mtNum(T)}`:`${mtNum(T)} سؤالًا · ابدأ ←`}</div></button>`}).join("")}</div>`;
     el.querySelectorAll(".mtCard").forEach(b=>b.onclick=()=>{MTO=b.dataset.id;renderMath();scrollTo(0,0)});return}
   const F=mtFlat(s),T=F.length,ss=S[s.id]||(S[s.id]={i:0,r:{}}),i=Math.min(ss.i||0,T);
@@ -3959,7 +3959,7 @@ function renderMath(){
   const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci];
   el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round((rq?ss.qi/ss.q.length:i/T)*100)}%"></i></div><p class="rnote" style="text-align:center">${rq?`🔁 إعادة الخطأ ${mtNum(ss.qi+1)} من ${mtNum(ss.q.length)}`:`السؤال ${mtNum(i+1)} من ${mtNum(T)}`}</p>
    <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar mtTr" hidden>${esc(q.e.ar)}</div></div></div>
-    <div class="mtQq${q.it.q.length>26?" long":""}" dir="ltr">${s.sub==="Deutsch"?mtQw(q.it.q):mtQ(q.it.q)}</div>${q.it.qa?`<div class="mtQa mtTr" hidden>${esc(q.it.qa)}</div>`:""}
+    <div class="mtQq${q.it.q.length>26?" long":""}" dir="ltr">${s.sub&&s.sub!=="Mathe"?mtQw(q.it.q):mtQ(q.it.q)}</div>${q.it.qa?`<div class="mtQa mtTr" hidden>${esc(q.it.qa)}</div>`:""}
     <div style="text-align:center"><button class="btn mtTrB" id="mtTrB">🌐 الترجمة</button></div>
     ${q.e.ch?`<div class="mtCh">${q.e.ch.map(c=>{const isA=q.it.a.some(a=>mtNorm(a)===mtNorm(c)),me=done&&mtNorm(done.v)===mtNorm(c);
       return `<button class="mtC${done?(isA?" ok":me?" bad":" off"):""}" data-c="${esc(c)}" ${done?"disabled":""}>${esc(c)}</button>`}).join("")}</div>`:`<div class="mtIn2"><input id="mtInp" dir="ltr" ${q.e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} ${done?"disabled":""} value="${esc(done?done.v:"")}" class="${done?(done.ok?"ok":"bad"):""}">${q.it.u?`<i>${esc(q.it.u)}</i>`:""}</div>`}

@@ -1387,6 +1387,102 @@
      ]
     }
    ]
+  },
+  {
+   "id": "k3-kartoffel-1",
+   "c": "k3",
+   "sub": "Sachunterricht",
+   "ti": "Kartoffelrätsel",
+   "tar": "لغز البطاطا",
+   "ex": [
+    {
+     "de": "Finde die richtigen Begriffe. Diese Silben helfen dir: Ameri – Au – Bee – Blät – bus – fel – gel – gen – ka – Kar – Knol – Ko – le – lum – mes – Pom – re – Stän – ter – tof – Wur – zeln",
+     "ar": "جد الكلمات الصحيحة. هذه المقاطع تساعدك (ركّب منها الكلمات).",
+     "t": "w",
+     "items": [
+      {
+       "q": "Sie sind ganz unten in der Erde.",
+       "a": [
+        "Wurzeln"
+       ],
+       "qa": "هي في أسفل التربة تمامًا.",
+       "w": "Wur + zeln = die Wurzeln (الجذور): هي في أسفل النبتة داخل التربة."
+      },
+      {
+       "q": "An ihm wachsen die Blätter und Früchte.",
+       "a": [
+        "Stängel"
+       ],
+       "qa": "عليه تنمو الأوراق والثمار.",
+       "w": "Stän + gel = der Stängel (الساق): عليه تنمو الأوراق والثمار."
+      },
+      {
+       "q": "Sie sind ganz grün.",
+       "a": [
+        "Blätter"
+       ],
+       "qa": "هي خضراء تمامًا.",
+       "w": "Blät + ter = die Blätter (الأوراق): لونها أخضر."
+      },
+      {
+       "q": "Viele Kinder essen sie gern.",
+       "a": [
+        "Pommes"
+       ],
+       "qa": "كثير من الأطفال يحبّون أكلها.",
+       "w": "Pom + mes = die Pommes (البطاطا المقلية)."
+      },
+      {
+       "q": "Von dort stammen die Kartoffeln.",
+       "a": [
+        "Amerika"
+       ],
+       "qa": "من هناك أصل البطاطا.",
+       "w": "Ameri + ka = Amerika (أمريكا): البطاطا أصلها من أمريكا الجنوبية."
+      },
+      {
+       "q": "Er brachte die Kartoffeln nach Europa.",
+       "a": [
+        "Kolumbus"
+       ],
+       "qa": "هو أحضر البطاطا إلى أوروبا.",
+       "w": "Ko + lum + bus = Kolumbus (كولومبوس)."
+      },
+      {
+       "q": "So heißt die ganze Pflanze.",
+       "a": [
+        "Kartoffel"
+       ],
+       "qa": "هذا اسم النبتة كلها.",
+       "w": "Kar + tof + fel = die Kartoffel (البطاطا)."
+      },
+      {
+       "q": "So heißt die Frucht in der Erde.",
+       "a": [
+        "Knolle"
+       ],
+       "qa": "هذا اسم الثمرة التي في التربة.",
+       "w": "Knol + le = die Knolle (الدرنة): هي البطاطا التي نأكلها."
+      },
+      {
+       "q": "Sie ist grün und giftig.",
+       "a": [
+        "Beere"
+       ],
+       "qa": "هي خضراء وسامّة.",
+       "w": "Bee + re = die Beere (الثمرة الخضراء الصغيرة فوق الأرض): سامّة لا تُؤكل."
+      },
+      {
+       "q": "Aus ihnen wachsen die Triebe.",
+       "a": [
+        "Augen"
+       ],
+       "qa": "منها تنمو البراعم.",
+       "w": "Au + gen = die Augen (العيون): النقاط الصغيرة على البطاطا، منها تنمو البراعم."
+      }
+     ]
+    }
+   ]
   }
  ]
 }
