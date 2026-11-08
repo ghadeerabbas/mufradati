@@ -599,7 +599,7 @@ body.fbon main{padding-bottom:210px}
 .mtIn2 i{font-style:normal;font-size:1.3rem;color:var(--muted)}.mtIn2 input.ok{border-color:#58cc02;background:rgba(88,204,2,.12)}.mtIn2 input.bad{border-color:var(--red);background:rgba(255,75,75,.1)}
 .mtFb{border-radius:14px;padding:12px 14px;margin:6px 0 12px;line-height:1.9}.mtFb.ok{background:rgba(88,204,2,.15);color:#58cc02;font-weight:800;text-align:center;font-size:1.15rem}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
-.mtTrB{background:var(--soft);color:var(--hd);padding:6px 14px;font-size:.9rem;margin-top:6px}.mtTrB.on{background:#1cb0f6;color:#fff}.mtNb{font-weight:800}.mtGo2{width:100%;margin-top:10px;background:var(--soft);color:var(--hd)}.mtWi{text-align:right;border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}.mtWi .q{font-weight:900;color:var(--hd);text-align:left;margin-bottom:4px}.mtAdmS{border-top:1px solid var(--line);padding:8px 0}.mtAdmS .h{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;justify-content:space-between}.mtAdmS small{color:var(--muted)}.mtBads{margin:6px 0}.mtBad{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--line);font-size:.95rem}.mtBad .q{flex:1 1 100%;text-align:left}.mtBad .v{color:var(--red);font-weight:800;direction:ltr}.mtBad .c{color:#58cc02;font-weight:800;direction:ltr}.mtGo{width:100%;font-size:1.15rem}.mtEnd{text-align:center}.mtEnd .big{font-size:3.5rem}.mtEnd .t{font-size:1.4rem;font-weight:900;color:var(--hd)}.mtEnd .sc{font-size:2.4rem;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#7c4dff,#1cb0f6);-webkit-background-clip:text;background-clip:text;color:transparent}.mtEnd .a{color:var(--muted);margin-bottom:14px}
+.mtTrB{background:var(--soft);color:var(--hd);padding:6px 14px;font-size:.9rem;margin-top:6px}.mtTrB.on{background:#1cb0f6;color:#fff}.mtNb{font-weight:800}.mtGo2{width:100%;margin-top:10px;background:var(--soft);color:var(--hd)}.mtWi{text-align:right;border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}.mtWi .q{font-weight:900;color:var(--hd);text-align:left;margin-bottom:4px}.mtAdmS{border-top:1px solid var(--line);padding:8px 0}.mtAdmS .h{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;justify-content:space-between}.mtAdmS small{color:var(--muted)}.mtBads{margin:6px 0}.mtBad{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--line);font-size:.95rem}.mtBad .q{flex:1 1 100%;text-align:left}.mtBad .v{color:var(--red);font-weight:800;direction:ltr}.mtBad .c{color:#58cc02;font-weight:800;direction:ltr}.mtBad .fx{font-size:.8rem;background:rgba(88,204,2,.15);color:#46a302;border-radius:8px;padding:1px 8px}.mtGo{width:100%;font-size:1.15rem}.mtEnd{text-align:center}.mtEnd .big{font-size:3.5rem}.mtEnd .t{font-size:1.4rem;font-weight:900;color:var(--hd)}.mtEnd .sc{font-size:2.4rem;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#7c4dff,#1cb0f6);-webkit-background-clip:text;background-clip:text;color:transparent}.mtEnd .a{color:var(--muted);margin-bottom:14px}
 /* القراءة */
 .rdList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .rdItem{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:start;width:100%;font:inherit;color:inherit;cursor:pointer}
@@ -3948,9 +3948,9 @@ function renderMath(){
       ${W.length?`<button class="btn next mtGo" id="mtRetry">🔁 أعد الأسئلة التي أخطأت فيها (${mtNum(W.length)})</button><button class="btn mtGo2" id="mtShowW">📋 اعرض أخطائي</button><div id="mtWl" hidden>${W.map(([q,k])=>`<div class="mtWi"><div class="q" dir="ltr">${mtQ(q.it.q)}</div>${mtFb(q,ss.r[k])}</div>`).join("")}</div>`:""}
       <button class="btn mtGo2" id="mtAgain">↺ حلّها كلها من جديد</button></div>`;
     $("mtBack").onclick=()=>mtBack();
-    if(W.length){$("mtRetry").onclick=()=>{ss.q=W.map(([q,k])=>k);ss.qi=0;W.forEach(([q,k])=>delete ss.r[k]);mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
+    if(W.length){$("mtRetry").onclick=()=>{ss.f=ss.f||{...ss.r};ss.q=W.map(([q,k])=>k);ss.qi=0;W.forEach(([q,k])=>delete ss.r[k]);mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
       $("mtShowW").onclick=()=>{const l=$("mtWl");l.hidden=!l.hidden;$("mtShowW").textContent=l.hidden?"📋 اعرض أخطائي":"📋 أخفِ أخطائي"}}
-    $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{}};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
+    $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{},f:{}};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
   const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci];
   el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round((rq?ss.qi/ss.q.length:i/T)*100)}%"></i></div><p class="rnote" style="text-align:center">${rq?`🔁 إعادة الخطأ ${mtNum(ss.qi+1)} من ${mtNum(ss.q.length)}`:`السؤال ${mtNum(i+1)} من ${mtNum(T)}`}</p>
    <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar mtTr" hidden>${esc(q.e.ar)}</div></div></div>
@@ -3965,7 +3965,7 @@ function renderMath(){
   const inp=$("mtInp");
   if(!done){if(!hasNative())setTimeout(()=>inp.focus(),50);inp.onkeydown=e=>{if(e.key==="Enter")$("mtChk").click()};
     $("mtChk").onclick=()=>{const v=inp.value.trim();if(!mtNorm(v)){inp.classList.add("bad");setTimeout(()=>inp.classList.remove("bad"),400);return}
-      const ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v)||mtNorm(a)===mtNorm(mtPron(v)));ss.r[ci]={v,ok};mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()}}
+      const ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v)||mtNorm(a)===mtNorm(mtPron(v)));ss.r[ci]={v,ok};ss.f=ss.f||{...ss.r};if(!ss.f[ci])ss.f[ci]={v,ok};/* أول جواب يبقى كما هو */mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()}}
   else $("mtNext").onclick=()=>{if(rq){ss.qi++;if(ss.qi>=ss.q.length){delete ss.q;delete ss.qi;fx("done")}}else{ss.i=i+1;if(ss.i>=T)fx("done")}mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
 }
 function mtFb(q,d){
@@ -3974,9 +3974,9 @@ function mtFb(q,d){
   return `<div class="mtFb bad"><div>❌ جوابك: ${mtNum(d.v)}</div><div class="c">✔️ الجواب الصحيح: ${ans}</div>${mtWhy(q.it)?`<div class="w"><b>لماذا؟</b> ${mtWhy(q.it)}</div>`:""}</div>`}
 // النتائج تُرسل إلى الخادم ليراها المشرف؛ وعند أول فتح تُدمج نتائج الخادم مع الجهاز (الأبعد تقدّمًا يبقى)
 let MTSYNC=0;
-function mtPush(id,ss){if(isAdmin())return;apiPost("/mt",{op:"save",set:id,i:ss.i||0,r:ss.r||{}}).catch(()=>{})}
+function mtPush(id,ss){if(isAdmin())return;apiPost("/mt",{op:"save",set:id,i:ss.i||0,r:ss.r||{},f:ss.f||ss.r||{}}).catch(()=>{})}
 async function mtPull(){MTSYNC=1;try{const j=await apiPost("/mt",{op:"get"}),M=j&&j.m||{},S=mtSt();let ch=0;
-  for(const id in M){const a=S[id],b=M[id];if(!a||Object.keys(b.r||{}).length>Object.keys(a.r||{}).length||(b.i||0)>(a.i||0)){S[id]={i:b.i||0,r:b.r||{}};ch=1}}
+  for(const id in M){const a=S[id],b=M[id];if(!a||Object.keys(b.r||{}).length>Object.keys(a.r||{}).length||(b.i||0)>(a.i||0)){S[id]={i:b.i||0,r:b.r||{},f:b.f||{}};ch=1}}
   for(const id in S)if(!M[id]||Object.keys(S[id].r||{}).length>Object.keys(M[id].r||{}).length)mtPush(id,S[id]);   // ما حلّه قبل التحديث يُرسَل
   if(ch){mtSave(S);const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}}catch(e){MTSYNC=0}}
 // تقرير المشرف: لكل ورقة إلى أين وصل ونتيجته وأخطاؤه (جوابه والجواب الصحيح)، وزر «من الأوّل»
@@ -3985,10 +3985,11 @@ async function mtAdm(uid){
   try{const j=await apiPost("/mt",{op:"get",u:uid});M=j.m||{}}catch(e){box.innerHTML='<h3>🔢 الرياضيات</h3><div class="empty">تعذّر التحميل</div>';return}
   const ids=Object.keys(M).filter(id=>Object.keys(M[id].r||{}).length||M[id].i);
   box.innerHTML='<h3>✏️ التمارين</h3>'+(ids.length?ids.map(id=>{const s=MTS.find(x=>x.id===id),m=M[id],R=m.r||{};
-    if(!s)return "";const F=mtFlat(s),T=F.length,n=Object.keys(R).length,g=Object.values(R).filter(v=>v.ok).length,
-      bad=Object.keys(R).filter(k=>!R[k].ok).map(k=>{const q=F[+k];if(!q)return"";const a=q.it.a;
-        return `<div class="mtBad"><span class="q" dir="ltr">${mtQ(q.it.q)}</span><span class="v">✗ ${esc(R[k].v)}</span><span class="c">✓ ${esc(q.e.t==="w"?a[0]:mtFmt(a[0]))}${a.length>1?" …":""}</span></div>`}).join("");
-    return `<div class="mtAdmS"><div class="h"><b dir="ltr">${esc(s.ti)}</b><small>${n>=T?"أنهاها":`وصل إلى ${Math.min((m.i||0)+1,T)} من ${T}`} · ✅ ${g} · ❌ ${n-g}</small></div>
+    if(!s)return "";const F=mtFlat(s),T=F.length,Fa=Object.keys(m.f||{}).length?m.f:R,n=Object.keys(Fa).length,g=Object.values(Fa).filter(v=>v.ok).length,gNow=Object.values(R).filter(v=>v.ok).length,
+      // الأخطاء من أول محاولة (لا تختفي حين يعيد السؤال ويصيب)، ومعها هل صحّحها بعد الإعادة
+      bad=Object.keys(Fa).filter(k=>!Fa[k].ok).map(k=>{const q=F[+k];if(!q)return"";const a=q.it.a,fix=R[k]&&R[k].ok;
+        return `<div class="mtBad"><span class="q" dir="ltr">${mtQ(q.it.q)}</span><span class="v">✗ ${esc(Fa[k].v)}</span><span class="c">✓ ${esc(q.e.t==="w"?a[0]:mtFmt(a[0]))}${a.length>1?" …":""}</span>${fix?'<span class="fx">صحّحه بعد الإعادة</span>':""}</div>`}).join("");
+    return `<div class="mtAdmS"><div class="h"><b dir="ltr">${esc(s.ti)}</b><small>${(m.i||0)>=T?"أنهاها":`وصل إلى ${Math.min((m.i||0)+1,T)} من ${T}`} · أول محاولة: ✅ ${g} · ❌ ${n-g}${gNow>g?` · بعد الإعادة: ✅ ${gNow}`:""}</small></div>
       ${bad?`<div class="mtBads">${bad}</div>`:n?'<p class="rnote">لا أخطاء 🎉</p>':""}${n?`<button class="btn" data-mrs="${esc(id)}">↺ من الأوّل</button>`:""}</div>`}).join(""):'<div class="empty">لم يحلّ أي ورقة بعد.</div>');
   box.querySelectorAll("[data-mrs]").forEach(b=>b.onclick=async()=>{if(!await uiConfirm("يبدأ الورقة من السؤال الأوّل من جديد؟"))return;b.disabled=true;
     try{await apiPost("/mt",{op:"reset",u:uid,set:b.dataset.mrs});toast("↺","رجعت من الأوّل","");mtAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر التغيير")}});
