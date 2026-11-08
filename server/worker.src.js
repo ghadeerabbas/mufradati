@@ -791,7 +791,7 @@ function rdSplit(txt) {
   const out = [];
   for (const line of String(txt || "").replace(/\r/g, "").split(/\n+/)) {
     const L = line.replace(/\s+/g, " ").trim(); if (!L) continue;
-    const parts = L.match(/[^.!?…]+(?:[.!?…]+["“”»«'’)]*|$)/g) || [L];
+    const parts = L.match(/[^.!?…]+(?:[.!?…]+["“”»«›‹'’)]*|$)/g) || [L];   // ›‹ علامتا الاقتباس الداخلي
     let cur = "";
     for (const raw of parts) {
       const x = raw.trim(); if (!x) continue;
