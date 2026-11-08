@@ -1389,6 +1389,300 @@
    ]
   },
   {
+   "id": "k4-zeitformen-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Welche Zeitform ist das?",
+   "tar": "ما زمن الفعل؟ (اختر الزمن)",
+   "ex": [
+    {
+     "de": "Lies das Verb. Welche Zeitform ist das? Wähle: Präsens, Präteritum, Perfekt oder Futur.",
+     "ar": "اقرأ الفعل. ما زمنه؟ اختر: Präsens أو Präteritum أو Perfekt أو Futur.",
+     "t": "w",
+     "ch": [
+      "Präsens",
+      "Präteritum",
+      "Perfekt",
+      "Futur"
+     ],
+     "items": [
+      {
+       "q": "er forschte",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "بحثَ",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "ihr werdet gehen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "ستذهبون",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "wir fliegen",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "نطير",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "ihr habt gemacht",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد عملتم",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "sie stiegen",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "صعدوا",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "er erzählt",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "يحكي",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "er ist gegangen",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد ذهب",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "ich werde fliegen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "سأطير",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "wir machten",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "عملنا",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "ich steige",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "أصعد",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "wir haben geforscht",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد بحثنا",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "sie werden erzählen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "سيحكون",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "er flog",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "طار",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "du gehst",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "تذهب",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "er ist gestiegen",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد صعد",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "du wirst forschen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "ستبحث",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "ich erzählte",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "حكيتُ",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "sie forschen",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "يبحثون",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "sie sind geflogen",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد طاروا",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "er wird machen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "سيعمل",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "wir gingen",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "ذهبنا",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "du machst",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "تعمل",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "wir haben erzählt",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد حكينا",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "wir werden steigen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "سنصعد",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "er beobachtete",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "راقبَ",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "ich habe beobachtet",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد راقبتُ",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "man erfand",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "اخترع الناس",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "sie haben erfunden",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد اخترعوا",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "wir hatten",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "كان عندنا",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "ich habe gehabt",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد كان عندي",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "ich war",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "كنتُ",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "er ist gewesen",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد كان",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "wir wissen",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "نعرف",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "er wusste",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "عرفَ",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "k3-kartoffel-1",
    "c": "k3",
    "sub": "Sachunterricht",
