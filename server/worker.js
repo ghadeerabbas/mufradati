@@ -1308,6 +1308,29 @@ async function rdAudio(env, t) {
   if (!r.ok) return null;
   const buf = await r.arrayBuffer(); await env.BAK.put(k, buf); return buf;
 }
+// نتائج أوراق الرياضيات (mt/{uid}): الحقل m_<ورقة> = {i: السؤال الحالي, r: نص JSON {رقم: {v, ok}}, t}
+// المتعلّم يحفظ ويقرأ نتائجه؛ المشرف يقرأ نتائج أي متعلّم ويصفّر ورقة
+async function handleMt(fs, user, body) {
+  const admin = user.email === ADMIN, op = String(body.op || "get");
+  const u = admin ? String(body.u || "") : user.uid;
+  if (!/^[A-Za-z0-9_-]{4,64}$/.test(u)) return { status: 400, json: { error: "u" } };
+  const sid = String(body.set || "");
+  if (sid && !/^[A-Za-z0-9_-]{3,40}$/.test(sid)) return { status: 400, json: { error: "set" } };
+  const key = "m_" + sid.replace(/[^A-Za-z0-9]/g, "_");
+  if (op === "get") {
+    const doc = await fs.get(`mt/${u}`), d = doc ? doc.data : {}, out = {};
+    for (const k in d) if (k.startsWith("m_") && d[k] && typeof d[k] === "object") { let r = {}; try { r = JSON.parse(d[k].r || "{}") } catch (e) {} out[d[k].id || k.slice(2)] = { i: +d[k].i || 0, r, t: d[k].t || 0 } }
+    return { status: 200, json: { m: out } };
+  }
+  if (!sid) return { status: 400, json: { error: "set" } };
+  if (op === "save" && !admin) {
+    const i = Math.max(0, Math.min(500, Math.floor(+body.i || 0))), r0 = body.r && typeof body.r === "object" ? body.r : {}, r = {};
+    for (const k of Object.keys(r0).slice(0, 500)) if (/^\d{1,3}$/.test(k) && r0[k]) r[k] = { v: String(r0[k].v || "").slice(0, 40), ok: !!r0[k].ok };
+    await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i, r: JSON.stringify(r), t: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } };
+  }
+  if (op === "reset" && admin) { await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i: 0, r: "{}", t: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } } }
+  return { status: 400, json: { error: "op" } };
+}
 async function handleRd(fs, user, body, env) {
   const admin = user.email === ADMIN, op = String(body.op || "list");
   const u = admin ? String(body.u || "") : user.uid;
@@ -1368,7 +1391,7 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd", "/mt"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     try {
       const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
@@ -1378,7 +1401,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/mt" ? await handleMt(fs0, user, body) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;
