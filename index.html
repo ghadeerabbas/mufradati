@@ -585,7 +585,15 @@ body.fbon main{padding-bottom:210px}
 .errrow pre{direction:ltr;text-align:left;white-space:pre-wrap;overflow-wrap:anywhere;font-size:.7rem;background:var(--soft);padding:8px;border-radius:8px;margin:6px 0;max-height:240px;overflow:auto}.errrow .btn{padding:4px 10px;font-size:.78rem;background:var(--soft);color:var(--red)}
 #admNav button{position:relative}#eBadge{top:0;left:auto;right:50%;margin-right:-22px}
 /* مساعد الوظيفة */
-#aiBtn .i3,#rdBtn .i3{width:26px;height:26px}
+#aiBtn .i3,#rdBtn .i3{width:26px;height:26px}#mtBtn .mtIco{font-size:22px;line-height:1}
+.mtEx{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin:12px 0}
+.mtQ{display:flex;gap:8px;align-items:flex-start;margin-bottom:10px}.mtN{flex:none;width:28px;height:28px;border-radius:50%;background:#1cb0f6;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.mtQ .de{direction:ltr;text-align:left;font-weight:700}.mtQ .ar{color:var(--muted);font-size:.95rem;margin-top:2px}
+.mtItems{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;direction:ltr}.mtIt{min-width:0;display:flex;flex-direction:column;gap:4px;direction:ltr}.mtIt.wide{grid-column:1/-1}
+.mtIt .q{font-size:1rem}.mtIt .q small{display:block;direction:rtl;text-align:right;color:var(--muted)}
+.mtIn{display:flex;align-items:center;gap:4px}.mtIn input{flex:1;min-width:0;font:inherit;font-size:1.1rem;padding:8px 10px;border:2px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink)}.mtIn i{font-style:normal;color:var(--muted)}
+.mtIn input.ok{border-color:#58cc02;background:rgba(88,204,2,.1)}.mtIn input.bad{border-color:var(--red);background:rgba(255,75,75,.08)}
+.mtChk{width:100%;margin-top:10px}.mtRes{text-align:center;margin-top:6px;font-weight:700}.mtRes .g{color:#58cc02}.mtSum{text-align:center;font-weight:800;margin:8px 0 30px}
 /* القراءة */
 .rdList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .rdItem{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:start;width:100%;font:inherit;color:inherit;cursor:pointer}
@@ -704,6 +712,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
       <button class="iconbtn mbtn" id="usersBtn" title="المستخدمون" style="display:none"><img class="i3" src="img/3d/people.png" alt=""><span class="mbadge" id="uBadge"></span></button>
       <button class="iconbtn" id="aiBtn" title="مساعد الوظيفة" style="display:none"><img class="i3" src="img/3d/owl.png" alt=""></button>
       <button class="iconbtn" id="rdBtn" title="القراءة" style="display:none"><img class="i3" src="img/3d/book.png" alt=""></button>
+      <button class="iconbtn" id="mtBtn" title="الرياضيات" style="display:none"><span class="mtIco">🔢</span></button>
       <button class="iconbtn mbtn" id="msgBtn" title="الرسائل"><img class="i3" src="img/3d/mail.png" alt=""><span class="mbadge" id="mBadge"></span></button>
       <button class="iconbtn" id="setBtn" title="الإعدادات"><img class="i3" src="img/3d/gear.png" alt=""></button>
    </div>
@@ -758,6 +767,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
   <section id="messages" class="panel"></section>
   <section id="helper" class="panel"></section>
   <section id="reading" class="panel"></section>
+  <section id="math" class="panel"></section>
   <div id="duelOv"></div>
   <section id="users" class="panel"></section>
   <section id="cfgP" class="panel"></section>
@@ -769,7 +779,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
 <script>
 // فتح فوري: آخر شاشة رئيسية محفوظة على الجهاز تظهر مباشرة، ريثما يتحقّق التطبيق من الحساب ويحمّل الجديد
 try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
-  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="hBtns"')&&SHL.h.includes('id="rdBtn"')){   // نسخة محفوظة من شكل أقدم للرأس (قبل صفّ الأزرار) لا تُستعمل
+  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="hBtns"')&&SHL.h.includes('id="rdBtn"')&&SHL.h.includes('id="mtBtn"')){   // نسخة محفوظة من شكل أقدم للرأس (قبل صفّ الأزرار) لا تُستعمل
     
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
     document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
@@ -895,7 +905,7 @@ async function loadOtherWords(){
 const noFilter=()=>["fDay","fLvl","fCore","fSubj"].every(id=>!$(id)||$(id).value==="all");
 // مجموعة المراجعة والتمارين والاختبار: كل مناهجه (إلا إذا اختار تصفية معيّنة)
 const studyPool=()=>noFilter()?uniq([...W,...Object.values(OTHERC).flat(),...ORPH]):filtered();
-function renderCourseSel(){const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
+function renderCourseSel(){mtUI();const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
 async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
   await loadWords(c);loadOtherWords();renderCourseSel();econ();renderHeader();refresh();if(!silent)toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
@@ -2932,7 +2942,7 @@ async function onLogin(user){
   // حساب الإشراف: لوحة تحكّم فقط، بلا دراسة
   if(isAdmin()){
     document.body.classList.add("adm");appReady();$("login").style.display="none";applyLook();renderHeader();$("hTitle").innerHTML="<bdi>لوحة الإشراف</bdi>";
-    $("usersBtn").style.display="";loadNameReqs();startMessages();goTab("users");setTimeout(errCheck,3000);return;
+    $("usersBtn").style.display="";loadNameReqs();startMessages();mtLoad();goTab("users");setTimeout(errCheck,3000);return;
   }
   const saved=st(K("course"));let first=MY_COURSES.includes(saved)?saved:MY_COURSES[0];
   // منهج البداية الذي حدّده المشرف: يُطبَّق من أول دخول، مرة واحدة
@@ -2946,7 +2956,7 @@ async function onLogin(user){
   syncNow(true).then(enDaily,enDaily);
   loadNameReqs();watchGifts();
   startMessages();
-  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();setTimeout(frTick,2500);
+  $("usersBtn").style.display=isAdmin()?"":"none";aiUI();mtLoad();setTimeout(frTick,2500);
   await syncNow(true);
   setTimeout(freezeReminder,2500);
   setTimeout(maybeAskFeedback,4000);
@@ -3883,6 +3893,51 @@ async function aiLogShow(uid,more){
   const mo=$("aiMore");if(mo)mo.onclick=()=>aiLogShow(uid,true);
 }
 
+/* ================= الرياضيات: أوراق تمارين يكتب فيها الولد الجواب والتطبيق يطابقه ================= */
+// التمارين في math.json (أرقام أوراق المدرسة؛ لكل ورقة منهج c فتظهر لمن عنده المنهج، والمشرف يراها كلها)
+// لا خيارات ولا تلميحات ولا عرض للجواب: يكتب ويضغط «تحقّق»، فيُعلَّم الصحيح بالأخضر والخطأ بالأحمر ويعيد المحاولة
+let MTS=[],MTO=null;
+function mtLoad(){const c=st("muf_math");if(c){try{MTS=JSON.parse(c).sets||[]}catch(e){}}mtUI();
+  fetch("math.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_math"))return;st("muf_math",t);try{MTS=JSON.parse(t).sets||[]}catch(e){}mtUI();
+    const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}).catch(()=>{})}
+const myMath=()=>isAdmin()?MTS:MTS.filter(s=>(MY_COURSES||[]).includes(s.c));
+const mtOn=()=>!!(UID&&myMath().length);
+function mtUI(){const b=$("mtBtn");if(b)b.style.display=mtOn()?"":"none"}
+// حفظ ما أصاب فيه (محليًّا): {setId:{"e.i":"الجواب الصحيح الذي كتبه"}}
+const mtSt=()=>jget(K("mathOk"),{}),mtSave=o=>st(K("mathOk"),JSON.stringify(o));
+const mtNorm=x=>String(x||"").toLowerCase().replace(/[\s.,'’·]/g,"").replace(/[٠-٩]/g,d=>"٠١٢٣٤٥٦٧٨٩".indexOf(d));
+const mtTotal=s=>s.ex.reduce((a,e)=>a+e.items.length,0);
+function renderMath(){
+  const el=$("math");if(!mtOn()){el.innerHTML='<div class="empty">لا توجد تمارين بعد.</div>';return}
+  const L=myMath(),S=mtSt(),s=MTO&&L.find(x=>x.id===MTO);
+  if(!s){MTO=null;el.innerHTML=`<div class="mhead"><h2>🔢 الرياضيات</h2></div><div class="rdl">${L.map(x=>{const n=Object.keys(S[x.id]||{}).length,T=mtTotal(x),dn=n>=T;
+      return `<button class="rdc${dn?" done":""}" data-id="${esc(x.id)}"><span class="rdi">🔢</span><div><b>${esc(x.ti)}</b><small>${esc(x.tar||"")} · ${n} / ${T}</small></div>${dn?'<span class="ok">✓</span>':""}</button>`}).join("")}</div>`;
+    el.querySelectorAll(".rdc").forEach(b=>b.onclick=()=>{MTO=b.dataset.id;renderMath();scrollTo(0,0)});return}
+  const ok=S[s.id]||{};
+  el.innerHTML=`<div class="mhead"><h2>${esc(s.ti)}</h2><button class="btn" id="mtBack">رجوع</button></div><p class="rnote">${esc(s.tar||"")}</p>`+
+   s.ex.map((e,ei)=>`<div class="mtEx" data-e="${ei}"><div class="mtQ"><span class="mtN">${ei+1}</span><div><div class="de">${esc(e.de)}</div><div class="ar">${esc(e.ar)}</div></div></div>
+     <div class="mtItems">${e.items.map((it,ii)=>{const k=ei+"."+ii,v=ok[k];return `<div class="mtIt${it.qa?" wide":""}"><div class="q"><span dir="ltr">${esc(it.q)}</span>${it.qa?`<small>${esc(it.qa)}</small>`:""}</div>
+       <span class="mtIn"><input dir="ltr" ${e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} data-k="${k}" value="${esc(v||"")}" class="${v?"ok":""}">${it.u?`<i>${esc(it.u)}</i>`:""}</span></div>`}).join("")}</div>
+     <button class="btn next mtChk" data-e="${ei}">تحقّق ✓</button><div class="mtRes" id="mtRes${ei}"></div></div>`).join("")+
+   `<div class="mtSum" id="mtSum"></div>`;
+  $("mtBack").onclick=()=>mtBack();
+  el.querySelectorAll(".mtIt input").forEach(i=>i.oninput=()=>i.classList.remove("ok","bad"));
+  el.querySelectorAll(".mtChk").forEach(b=>b.onclick=()=>mtCheck(s,+b.dataset.e));
+  mtSumUpd(s);
+}
+function mtCheck(s,ei){
+  const e=s.ex[ei],S=mtSt(),ok=S[s.id]||(S[s.id]={});let good=0,empty=0;
+  document.querySelectorAll(`.mtEx[data-e="${ei}"] .mtIt input`).forEach(inp=>{const k=inp.dataset.k,ii=+k.split(".")[1],v=mtNorm(inp.value);
+    inp.classList.remove("ok","bad");if(!v){empty++;delete ok[k];return}
+    if(e.items[ii].a.some(a=>mtNorm(a)===v)){inp.classList.add("ok");ok[k]=inp.value.trim();good++}else{inp.classList.add("bad");delete ok[k]}});
+  mtSave(S);const n=e.items.length,r=$("mtRes"+ei);
+  if(good===n){r.innerHTML='<span class="g">🎉 كلها صحيحة!</span>';fx("done")}
+  else{r.innerHTML=`<span>${good} من ${n} صحيحة${empty?` · ${empty} فارغة`:""}${good<n-empty?" · صحّح الأحمر وتحقّق من جديد":""}</span>`;fx(good?"ok":"no")}
+  mtSumUpd(s);
+}
+function mtSumUpd(s){const n=Object.keys(mtSt()[s.id]||{}).length,T=mtTotal(s),el=$("mtSum");if(el)el.innerHTML=n>=T?"🏆 أنهيت الورقة كلها!":`أجبت صحيحًا عن ${n} من ${T}`}
+function mtBack(){if(!MTO)return false;MTO=null;renderMath();scrollTo(0,0);return true}
+
 /* ================= سؤال التقييم ================= */
 async function maybeAskFeedback(){
   if(!UID||isAdmin()||st(K("fbDone")))return;
@@ -3905,17 +3960,18 @@ async function maybeAskFeedback(){
 /* ================= التشغيل ================= */
 function renderPanel(p){
   if(p!=="reading"&&typeof rdStop==="function"){rdStop();rdPopClose()}
-  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="reading"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
+  $("mainFilters").style.display=(p==="rewards"||p==="profile"||p==="settings"||p==="shop"||p==="messages"||p==="helper"||p==="reading"||p==="math"||p==="users"||p==="cfgP"||p==="shopEd"||p==="usage"||p==="safe")?"none":"";
   if(p==="usage"){renderUsage();return}
   if(p==="safe"){renderSafe();return}
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
-  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe","reading"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
+  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe","reading","math"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
   if(p==="helper"){renderHelper();return}
   if(p==="reading"){renderReading();return}
+  if(p==="math"){renderMath();return}
   if(p==="users"){renderUsers();return}
   if(p==="games"){renderGames();return}
   // الاختبار: يبدأ من جديد عند فتحه إلا إذا كان المستخدم في منتصفه، فيأخذ الكلمات التي تعلّمها للتوّ
@@ -3936,6 +3992,7 @@ function init(){
   $("hEn").onclick=()=>{const n=enNow(),m=Math.ceil(enNext()/60000);toast("🔋","الطاقة "+n+" من "+EN_MAX,n<EN_MAX?"وحدة جديدة بعد "+m+" دقيقة":"")};
   setInterval(()=>{if(UID){enDaily();renderEnergy()}},30000);
   $("usersBtn").onclick=()=>{uOpen=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0)};   // يفتح دائمًا قائمة المستخدمين كلهم
+  const mtb=$("mtBtn");if(mtb)mtb.onclick=()=>{MTO=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("math").classList.add("on");renderPanel("math");scrollTo(0,0)};
   const rdb=$("rdBtn");if(rdb)rdb.onclick=()=>{RDV=null;document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("reading").classList.add("on");renderPanel("reading");scrollTo(0,0)};
   const aib=$("aiBtn");if(aib)aib.onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("helper").classList.add("on");renderPanel("helper");scrollTo(0,0)};
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
@@ -3974,6 +4031,7 @@ async function handleBack(){
   if(id==="messages"&&isAdmin()&&openTh){openTh=null;if(thUnsub){thUnsub();thUnsub=null}renderInbox();return}
   if(id==="users"&&uOpen){uOpen=null;renderUserList();return}
   if(id==="reading"&&rdBack())return;
+  if(id==="math"&&mtBack())return;
   goTab("review");scrollTo(0,0);
 }
 window.addEventListener("popstate",()=>{if(EXITING)return;trapBack();handleBack()});
