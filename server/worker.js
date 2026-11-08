@@ -1319,17 +1319,20 @@ async function handleMt(fs, user, body) {
   const key = "m_" + sid.replace(/[^A-Za-z0-9]/g, "_");
   if (op === "get") {
     const doc = await fs.get(`mt/${u}`), d = doc ? doc.data : {}, out = {};
-    for (const k in d) if (k.startsWith("m_") && d[k] && typeof d[k] === "object") { let r = {}; try { r = JSON.parse(d[k].r || "{}") } catch (e) {} let f = {}; try { f = JSON.parse(d[k].f || "{}") } catch (e) {} out[d[k].id || k.slice(2)] = { i: +d[k].i || 0, r, f, t: d[k].t || 0 } }
+    for (const k in d) if (k.startsWith("m_") && d[k] && typeof d[k] === "object") { let r = {}; try { r = JSON.parse(d[k].r || "{}") } catch (e) {} let f = {}; try { f = JSON.parse(d[k].f || "{}") } catch (e) {} out[d[k].id || k.slice(2)] = { i: +d[k].i || 0, r, f, t: d[k].t || 0, z: +d[k].z || 0 } }
     return { status: 200, json: { m: out } };
   }
   if (!sid) return { status: 400, json: { error: "set" } };
   if (op === "save" && !admin) {
+    // جهاز لم يعلم بعدُ بـ«من الأوّل» (z أقدم) لا يكتب فوق الإعادة
+    const cur = await fs.get(`mt/${u}`), cz = cur && cur.data[key] && +cur.data[key].z || 0;
+    if ((+body.z || 0) < cz) return { status: 200, json: { ok: false, reset: 1 } };
     const i = Math.max(0, Math.min(500, Math.floor(+body.i || 0)));
     // r: آخر جواب لكل سؤال؛ f: أول جواب (لا يتغيّر بالإعادة، ليرى المشرف أخطاءه الأولى)
     const clean = o => { const x = {}; o = o && typeof o === "object" ? o : {}; for (const k of Object.keys(o).slice(0, 500)) if (/^\d{1,3}$/.test(k) && o[k]) x[k] = { v: String(o[k].v || "").slice(0, 40), ok: !!o[k].ok }; return x };
-    await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i, r: JSON.stringify(clean(body.r)), f: JSON.stringify(clean(body.f)), t: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } };
+    await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i, r: JSON.stringify(clean(body.r)), f: JSON.stringify(clean(body.f)), t: Date.now(), z: cz } }, merge: true }]); return { status: 200, json: { ok: true } };
   }
-  if (op === "reset" && admin) { await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i: 0, r: "{}", f: "{}", t: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } } }
+  if (op === "reset" && admin) { await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i: 0, r: "{}", f: "{}", t: Date.now(), z: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } } }
   return { status: 400, json: { error: "op" } };
 }
 async function handleRd(fs, user, body, env) {

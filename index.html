@@ -3940,7 +3940,7 @@ function mtWhy(it){if(it.w)return esc(it.w).replace(/[A-Za-zÄÖÜäöüß‎][A
 function renderMath(){
   const el=$("math");if(!mtOn()){el.innerHTML='<div class="empty">لا توجد تمارين بعد.</div>';return}
   const L=myMath(),S=mtSt(),s=MTO&&L.find(x=>x.id===MTO);
-  if(!s){MTO=null;if(!MTSYNC&&!isAdmin())mtPull();el.innerHTML=`<div class="mhead"><h2>✏️ التمارين</h2></div><div class="mtList">${L.map(x=>{const F=mtFlat(x),st0=S[x.id]||{},R=st0.r||{},n=Object.keys(R).length,g=Object.values(R).filter(v=>v.ok).length,T=F.length,dn=n>=T;
+  if(!s){MTO=null;if(!isAdmin())mtPull();el.innerHTML=`<div class="mhead"><h2>✏️ التمارين</h2></div><div class="mtList">${L.map(x=>{const F=mtFlat(x),st0=S[x.id]||{},R=st0.r||{},n=Object.keys(R).length,g=Object.values(R).filter(v=>v.ok).length,T=F.length,dn=n>=T;
       return `<button class="mtCard${dn?" done":""}${x.sub==="Deutsch"?" de":x.sub==="Sachunterricht"?" su":""}" data-id="${esc(x.id)}">${x.sub?`<span class="sub">${{Deutsch:"🇩🇪 Deutsch",Sachunterricht:"🌱 Sachunterricht",Mathe:"🔢 Mathe"}[x.sub]||esc(x.sub)}</span>`:""}<div class="t" dir="ltr">${esc(x.ti)}</div><div class="a">${esc(x.tar||"")}</div>
         <div class="bar"><i style="width:${Math.round(n/T*100)}%"></i></div><div class="m">${dn?`🏆 أنهيتها · ${mtNum(g)} صحيحة من ${mtNum(T)}`:n?`وصلت إلى السؤال ${mtNum(n+1)} من ${mtNum(T)}`:`${mtNum(T)} سؤالًا · ابدأ ←`}</div></button>`}).join("")}</div>`;
     el.querySelectorAll(".mtCard").forEach(b=>b.onclick=()=>{MTO=b.dataset.id;renderMath();scrollTo(0,0)});return}
@@ -3955,7 +3955,7 @@ function renderMath(){
     $("mtBack").onclick=()=>mtBack();
     if(W.length){$("mtRetry").onclick=()=>{ss.f=ss.f||{...ss.r};ss.q=W.map(([q,k])=>k);ss.qi=0;W.forEach(([q,k])=>delete ss.r[k]);mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
       $("mtShowW").onclick=()=>{const l=$("mtWl");l.hidden=!l.hidden;$("mtShowW").textContent=l.hidden?"📋 اعرض أخطائي":"📋 أخفِ أخطائي"}}
-    $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{},f:{}};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
+    $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{},f:{},z:(S[s.id]||{}).z||0};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
   const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci];
   el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round((rq?ss.qi/ss.q.length:i/T)*100)}%"></i></div><p class="rnote" style="text-align:center">${rq?`🔁 إعادة الخطأ ${mtNum(ss.qi+1)} من ${mtNum(ss.q.length)}`:`السؤال ${mtNum(i+1)} من ${mtNum(T)}`}</p>
    <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar mtTr" hidden>${esc(q.e.ar)}</div></div></div>
@@ -3983,9 +3983,10 @@ function mtFb(q,d){
   return `<div class="mtFb bad"><div>❌ جوابك: ${mtNum(d.v)}</div><div class="c">✔️ الجواب الصحيح: ${ans}</div>${mtWhy(q.it)?`<div class="w"><b>لماذا؟</b> ${mtWhy(q.it)}</div>`:""}</div>`}
 // النتائج تُرسل إلى الخادم ليراها المشرف؛ وعند أول فتح تُدمج نتائج الخادم مع الجهاز (الأبعد تقدّمًا يبقى)
 let MTSYNC=0;
-function mtPush(id,ss){if(isAdmin())return;apiPost("/mt",{op:"save",set:id,i:ss.i||0,r:ss.r||{},f:ss.f||ss.r||{}}).catch(()=>{})}
-async function mtPull(){MTSYNC=1;try{const j=await apiPost("/mt",{op:"get"}),M=j&&j.m||{},S=mtSt();let ch=0;
-  for(const id in M){const a=S[id],b=M[id];if(!a||Object.keys(b.r||{}).length>Object.keys(a.r||{}).length||(b.i||0)>(a.i||0)){S[id]={i:b.i||0,r:b.r||{},f:b.f||{}};ch=1}}
+function mtPush(id,ss){if(isAdmin())return;apiPost("/mt",{op:"save",set:id,i:ss.i||0,r:ss.r||{},f:ss.f||ss.r||{},z:ss.z||0}).then(j=>{if(j&&j.reset)mtPull(1)}).catch(()=>{})}
+// z: وقت آخر «من الأوّل» من المشرف؛ إن كان أحدث مما عند الجهاز تُمسح حالة الجهاز لتلك الورقة وتبدأ من جديد
+async function mtPull(force){if(!force&&Date.now()-MTSYNC<15000)return;MTSYNC=Date.now();try{const j=await apiPost("/mt",{op:"get"}),M=j&&j.m||{},S=mtSt();let ch=0;
+  for(const id in M){const a=S[id],b=M[id],rs=a&&(b.z||0)>(a.z||0);if(!a||rs||Object.keys(b.r||{}).length>Object.keys(a.r||{}).length||(b.i||0)>(a.i||0)){S[id]={i:b.i||0,r:b.r||{},f:b.f||{},z:b.z||0};ch=1;if(rs&&MTO===id)MTO=null}}
   for(const id in S)if(!M[id]||Object.keys(S[id].r||{}).length>Object.keys(M[id].r||{}).length)mtPush(id,S[id]);   // ما حلّه قبل التحديث يُرسَل
   if(ch){mtSave(S);const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}}catch(e){MTSYNC=0}}
 // تقرير المشرف: لكل ورقة إلى أين وصل ونتيجته وأخطاؤه (جوابه والجواب الصحيح)، وزر «من الأوّل»
