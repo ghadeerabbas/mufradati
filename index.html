@@ -2093,8 +2093,16 @@ async function weekDocs(w,fresh){
   const q=await lgref(w).get();const d=q.docs.map(x=>({id:x.id,...x.data()}));LGW[w]={at:Date.now(),d};return d;
 }
 // جدول مجموعتي في أسبوع ما: المتعلّمون الحقيقيون ثم الآليّون، مرتّبين بالخبرة
+// الأسبوع السابق انتهى فلا تتغيّر بياناته: تُقرأ من الخادم نفسه (لا من نسخة الهاتف المؤقتة التي قد تكون ناقصة)
+// وتُحفظ في الذاكرة. منها تُحسب خبرة المنافسين الآليّين، فإن جاءت ناقصة اختلف الآليّون بين الأجهزة
+const LGP={};
+async function prevWeekDocs(w){
+  if(LGP[w])return LGP[w];let q;
+  try{q=await lgref(w).get({source:"server"})}catch(e){q=await lgref(w).get()}
+  const d=q.docs.map(x=>({id:x.id,...x.data()}));if(d.length&&!(q.metadata&&q.metadata.fromCache))LGP[w]=d;return d;
+}
 async function groupTable(w,prog,fresh){
-  const docs=await weekDocs(w,fresh),prev=await weekDocs(weekId(new Date(w+"T12:00:00").getTime()-3*DAY));
+  const docs=await weekDocs(w,fresh),prev=await prevWeekDocs(weekId(new Date(w+"T12:00:00").getTime()-3*DAY));
   return tableFor(UID,w,docs,prev,prog);
 }
 // نتيجة الأسبوع الماضي يحسبها الخادم، والتطبيق يعرضها عند وصولها
