@@ -599,6 +599,7 @@ body.fbon main{padding-bottom:210px}
 .mtIn2 i{font-style:normal;font-size:1.3rem;color:var(--muted)}.mtIn2 input.ok{border-color:#58cc02;background:rgba(88,204,2,.12)}.mtIn2 input.bad{border-color:var(--red);background:rgba(255,75,75,.1)}
 .mtFb{border-radius:14px;padding:12px 14px;margin:6px 0 12px;line-height:1.9}.mtFb.ok{background:rgba(88,204,2,.15);color:#58cc02;font-weight:800;text-align:center;font-size:1.15rem}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
+.mtNo{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:12px;background:#1cb0f6;color:#fff;font-size:.8rem;font-weight:800;margin-left:6px;vertical-align:middle}.mtWhen{display:block;color:var(--muted);margin-top:2px}
 .mtX{background:var(--soft);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:1rem;line-height:1.75;text-align:left;color:var(--ink)}.mtCk{list-style:none;padding:0;margin:8px 0;font-size:.92rem;color:var(--ink)}.mtCk li{margin:3px 0;text-align:left}
 #mtTx{width:100%;box-sizing:border-box;font-family:inherit;font-size:1.05rem;line-height:1.6;padding:10px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);resize:vertical}#mtTx.bad{border-color:var(--red)}
 .mtFree{background:var(--soft);border-radius:12px;padding:8px 10px;margin:8px 0}.mtFree .tx{white-space:pre-wrap;font-size:.9rem;margin:6px 0;text-align:left}
@@ -4039,21 +4040,24 @@ async function mtPull(force){if(!force&&Date.now()-MTSYNC<15000)return;MTSYNC=Da
   for(const id in S)if(!M[id]||Object.keys(S[id].r||{}).length>Object.keys(M[id].r||{}).length)mtPush(id,S[id]);   // ما حلّه قبل التحديث يُرسَل
   if(ch){mtSave(S);const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}}catch(e){MTSYNC=0}}
 // تقرير المشرف: لكل ورقة إلى أين وصل ونتيجته وأخطاؤه (جوابه والجواب الصحيح)، وزر «من الأوّل»
+// تاريخ آخر حلّ: «اليوم 14:30» أو «الأحد 8 تشرين الثاني، 14:30»
+function mtWhen(t){const d=new Date(t),n=new Date(),day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime(),dd=Math.round((day(n)-day(d))/864e5),L="ar-SY-u-nu-latn",
+  h=d.toLocaleTimeString(L,{hour:"2-digit",minute:"2-digit",hour12:false});return dd===0?`اليوم ${h}`:dd===1?`أمس ${h}`:`${d.toLocaleDateString(L,{weekday:"long",day:"numeric",month:"long",...(d.getFullYear()!==n.getFullYear()?{year:"numeric"}:{})})}، ${h}`}
 async function mtAdm(uid){
   const box=document.getElementById("mtAdmBox");if(!box)return;let M={},H=[],W=[],cs=null;
   try{const [j,d]=await Promise.all([apiPost("/mt",{op:"get",u:uid}),aref(uid).get().catch(()=>null)]);M=j.m||{};H=Array.isArray(j.hid)?j.hid:[];W=Array.isArray(j.shw)?j.shw:[];
     if(d&&d.exists){const c=(d.data().courses||[]).filter(x=>COURSES[x]);cs=c.length?c:DEF_COURSES}}catch(e){box.innerHTML='<h3>✏️ التمارين</h3><div class="empty">تعذّر التحميل</div>';return}
   // كل أوراق مناهجه: الاسم ولمحة عن تمارينها وزر الإظهار/الإخفاء، ثم تقدّمه وأخطاؤه إن بدأها
   const L=MTS.filter(s=>!cs||cs.includes(s.c)),kind=e=>e.t==="f"?"كتابة حرّة يقرؤها المشرف":e.t==="o"?"ترتيب كلمات":e.ch||e.items.some(x=>x.ch)?"اختيار":"كتابة";
-  box.innerHTML='<h3>✏️ التمارين</h3><p class="rnote">أظهر له الورقة حين يصل إلى درسها، وأخفِها متى شئت.</p>'+(L.length?L.map(s=>{const m=M[s.id]||{},R=m.r||{},F=mtFlat(s),T=F.length,hid=mtHidOf(s,H,W),
+  box.innerHTML='<h3>✏️ التمارين</h3><p class="rnote">أظهر له الورقة حين يصل إلى درسها، وأخفِها متى شئت.</p>'+(L.length?L.map((s,si)=>{const m=M[s.id]||{},R=m.r||{},F=mtFlat(s),T=F.length,hid=mtHidOf(s,H,W),
       Fa=Object.keys(m.f||{}).length?m.f:R,n=Object.keys(Fa).length,g=Object.values(Fa).filter(v=>v.ok).length,gNow=Object.values(R).filter(v=>v.ok).length,
       // الأخطاء من أول محاولة (لا تختفي حين يعيد السؤال ويصيب)، ومعها هل صحّحها بعد الإعادة
       bad=Object.keys(Fa).filter(k=>!Fa[k].ok).map(k=>{const q=F[+k];if(!q)return"";const a=q.it.a,fix=R[k]&&R[k].ok;
         return `<div class="mtBad"><span class="q" dir="ltr">${mtQ(q.it.q)}</span><span class="v">✗ ${esc(Fa[k].v)}</span><span class="c">✓ ${esc(q.e.t==="w"||q.e.t==="o"?a[0]:mtFmt(a[0]))}${a.length>1?" …":""}</span>${fix?'<span class="fx">صحّحه بعد الإعادة</span>':""}</div>`}).join("");
-    return `<div class="mtAdmS${hid?" hid":""}"><div class="h"><b dir="ltr">${esc(s.ti)}</b><small>${mtWhy({w:s.tar||""})}<br>عدد الأسئلة: ${T}</small></div>
+    return `<div class="mtAdmS${hid?" hid":""}"><div class="h"><span class="mtNo">${si+1}</span><b dir="ltr">${esc(s.ti)}</b><small>${mtWhy({w:s.tar||""})}<br>عدد الأسئلة: ${T}</small></div>
       <details><summary>لمحة عن التمارين</summary><ol>${s.ex.map(e=>`<li>${mtWhy({w:e.ar})} <small>— ${kind(e)}، عدد الأسئلة: ${e.items.length}</small></li>`).join("")}</ol></details>
       <button class="btn vis${hid?" off":""}" data-mh="${esc(s.id)}" data-h="${hid?0:1}">${hid?"🙈 مخفية عنه · أظهرها":"👁️ ظاهرة له · أخفِها"}</button>
-      <small style="display:block">${n||m.i?`${(m.i||0)>=T?"أنهاها":`وصل إلى ${Math.min((m.i||0)+1,T)} من ${T}`} · أول محاولة: ✅ ${g} · ❌ ${n-g}${gNow>g?` · بعد الإعادة: ✅ ${gNow}`:""}`:"لم يبدأها بعد"}</small>
+      <small style="display:block">${n||m.i?`${(m.i||0)>=T?"أنهاها":`وصل إلى ${Math.min((m.i||0)+1,T)} من ${T}`} · أول محاولة: ✅ ${g} · ❌ ${n-g}${gNow>g?` · بعد الإعادة: ✅ ${gNow}`:""}`:"لم يبدأها بعد"}</small>${(n||m.i)&&+m.t?`<small class="mtWhen">🕒 آخر مرّة حلّ فيها: ${mtWhen(+m.t)}</small>`:""}
       ${F.map((q,k)=>q.e.t==="f"&&R[k]?`<div class="mtFree"><b dir="ltr">${esc(q.it.q)}</b><div class="tx" dir="ltr">${esc(R[k].v)}</div><button class="btn" data-cpf="${esc(s.id)}|${k}">📋 نسخ لكلود</button></div>`:"").join("")}
       ${bad?`<div class="mtBads">${bad}</div>`:n?'<p class="rnote">لا أخطاء 🎉</p>':""}${n?`<button class="btn" data-mrs="${esc(s.id)}">↺ من الأوّل</button>`:""}</div>`}).join(""):'<div class="empty">لا توجد أوراق في مناهجه.</div>');
   box.querySelectorAll("[data-cpf]").forEach(b=>b.onclick=async()=>{const [id,k]=b.dataset.cpf.split("|"),s=MTS.find(x=>x.id===id),q=mtFlat(s)[+k],t=((M[id]||{}).r||{})[k];
