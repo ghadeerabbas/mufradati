@@ -599,6 +599,8 @@ body.fbon main{padding-bottom:210px}
 .mtIn2 i{font-style:normal;font-size:1.3rem;color:var(--muted)}.mtIn2 input.ok{border-color:#58cc02;background:rgba(88,204,2,.12)}.mtIn2 input.bad{border-color:var(--red);background:rgba(255,75,75,.1)}
 .mtFb{border-radius:14px;padding:12px 14px;margin:6px 0 12px;line-height:1.9}.mtFb.ok{background:rgba(88,204,2,.15);color:#58cc02;font-weight:800;text-align:center;font-size:1.15rem}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
+.rsec[data-fk]>h3{cursor:pointer;user-select:none;margin-bottom:0}.rsec[data-fk]:not(.fold)>h3{margin-bottom:8px}.rsec[data-fk]>h3::after{content:"▾";float:left;color:var(--muted);font-size:.9em}.rsec.fold>h3::after{content:"◂"}.rsec.fold>:not(h3){display:none!important}
+.mtBadD{margin:6px 0}.mtBadD>summary{cursor:pointer;font-size:.88rem;font-weight:700;color:var(--hd)}
 .mtNo{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:12px;background:#1cb0f6;color:#fff;font-size:.8rem;font-weight:800;margin-left:6px;vertical-align:middle}.mtWhen{display:block;color:var(--muted);margin-top:2px}
 .mtX{background:var(--soft);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:1rem;line-height:1.75;text-align:left;color:var(--ink)}.mtCk{list-style:none;padding:0;margin:8px 0;font-size:.92rem;color:var(--ink)}.mtCk li{margin:3px 0;text-align:left}
 #mtTx{width:100%;box-sizing:border-box;font-family:inherit;font-size:1.05rem;line-height:1.6;padding:10px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);resize:vertical}#mtTx.bad{border-color:var(--red)}
@@ -3312,6 +3314,11 @@ function drawUList(){
   const go=d=>{uPage+=d;drawUList();const sb=document.querySelector(".usearch");if(sb)sb.scrollIntoView({block:"start",behavior:"smooth"})};
   if($("uPrev"))$("uPrev").onclick=()=>go(-1);if($("uNext"))$("uNext").onclick=()=>go(1);
 }
+// صفحة المتعلّم عند المشرف: كل قسم له عنوان يُطوى، ويُفتح بالضغط على عنوانه (ويبقى مفتوحًا ما دام التطبيق مفتوحًا)
+const UOPENS=new Set();
+function uFold(el){el.querySelectorAll(".rsec").forEach(r=>{const h=r.querySelector(":scope>h3");if(!h)return;const k=h.textContent.replace(/[\d()]/g,"").trim().slice(0,30);r.dataset.fk=k;r.classList.toggle("fold",!UOPENS.has(k))});
+  if(el.dataset.fb)return;el.dataset.fb=1;el.addEventListener("click",e=>{const h=e.target.closest(".rsec>h3"),r=h&&h.parentElement;if(!r||!r.dataset.fk||!el.contains(r))return;
+    r.classList.toggle("fold");if(r.classList.contains("fold"))UOPENS.delete(r.dataset.fk);else UOPENS.add(r.dataset.fk)})}
 function renderUser(){
   const el=$("users"),u=USERS.find(x=>x.id===uOpen);if(!u){uOpen=null;return renderUserList()}
   const sm=u.sum,f=FEEDS[u.id];
@@ -3356,7 +3363,7 @@ function renderUser(){
   <div class="rsec"><h3>تقييمه للتطبيق</h3>${f?`<div style="font-size:1.4rem">${"⭐".repeat(f.stars)}<span style="opacity:.25">${"⭐".repeat(5-f.stars)}</span></div>${f.note?`<p style="margin-top:6px;white-space:pre-wrap">${esc(f.note)}</p>`:""}`:'<div class="empty">لم يقيّم بعد.</div>'}</div>`;
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   $("uMsg").onclick=()=>{goTab("messages");openThread(u.id)};
-  renderAssign(u.id);bindGiftBox(u.id);rdAdm(u.id);mtAdm(u.id);
+  renderAssign(u.id);bindGiftBox(u.id);rdAdm(u.id);mtAdm(u.id);uFold(el);
   {const cb=$("uAi");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setAi(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false};$("uAiLog").onclick=()=>aiLogShow(u.id)}
   {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
     const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
@@ -4058,8 +4065,8 @@ async function mtAdm(uid){
       <details><summary>لمحة عن التمارين</summary><ol>${s.ex.map(e=>`<li>${mtWhy({w:e.ar})} <small>— ${kind(e)}، عدد الأسئلة: ${e.items.length}</small></li>`).join("")}</ol></details>
       <button class="btn vis${hid?" off":""}" data-mh="${esc(s.id)}" data-h="${hid?0:1}">${hid?"🙈 مخفية عنه · أظهرها":"👁️ ظاهرة له · أخفِها"}</button>
       <small style="display:block">${n||m.i?`${(m.i||0)>=T?"أنهاها":`وصل إلى ${Math.min((m.i||0)+1,T)} من ${T}`} · أول محاولة: ✅ ${g} · ❌ ${n-g}${gNow>g?` · بعد الإعادة: ✅ ${gNow}`:""}`:"لم يبدأها بعد"}</small>${(n||m.i)&&+m.t?`<small class="mtWhen">🕒 آخر مرّة حلّ فيها: ${mtWhen(+m.t)}</small>`:""}
-      ${F.map((q,k)=>q.e.t==="f"&&R[k]?`<div class="mtFree"><b dir="ltr">${esc(q.it.q)}</b><div class="tx" dir="ltr">${esc(R[k].v)}</div><button class="btn" data-cpf="${esc(s.id)}|${k}">📋 نسخ لكلود</button></div>`:"").join("")}
-      ${bad?`<div class="mtBads">${bad}</div>`:n?'<p class="rnote">لا أخطاء 🎉</p>':""}${n?`<button class="btn" data-mrs="${esc(s.id)}">↺ من الأوّل</button>`:""}</div>`}).join(""):'<div class="empty">لا توجد أوراق في مناهجه.</div>');
+      ${F.some((q,k)=>q.e.t==="f"&&R[k])?`<details class="mtBadD"><summary>📝 نصوصه (${F.filter((q,k)=>q.e.t==="f"&&R[k]).length})</summary>`:""}${F.map((q,k)=>q.e.t==="f"&&R[k]?`<div class="mtFree"><b dir="ltr">${esc(q.it.q)}</b><div class="tx" dir="ltr">${esc(R[k].v)}</div><button class="btn" data-cpf="${esc(s.id)}|${k}">📋 نسخ لكلود</button></div>`:"").join("")}${F.some((q,k)=>q.e.t==="f"&&R[k])?"</details>":""}
+      ${bad?`<details class="mtBadD"><summary>📋 أخطاؤه في أول محاولة (${n-g})</summary><div class="mtBads">${bad}</div></details>`:n?'<p class="rnote">لا أخطاء 🎉</p>':""}${n?`<button class="btn" data-mrs="${esc(s.id)}">↺ من الأوّل</button>`:""}</div>`}).join(""):'<div class="empty">لا توجد أوراق في مناهجه.</div>');
   box.querySelectorAll("[data-cpf]").forEach(b=>b.onclick=async()=>{const [id,k]=b.dataset.cpf.split("|"),s=MTS.find(x=>x.id===id),q=mtFlat(s)[+k],t=((M[id]||{}).r||{})[k];
     const txt=`راجع نص ابني (الصف الرابع) وصحّح أخطاءه:\nالمهمّة: ${q.it.q}\n${(q.it.chk||[]).map(c=>"- "+c[0]).join("\n")}\n\nنصّه:\n${t?t.v:""}`;
     try{await navigator.clipboard.writeText(txt);toast("📋","نُسخ النص","أرسله إلى كلود")}catch(e){uiAlert("تعذّر النسخ")}});
