@@ -1320,7 +1320,8 @@ async function handleMt(fs, user, body) {
   if (op === "get") {
     const doc = await fs.get(`mt/${u}`), d = doc ? doc.data : {}, out = {};
     for (const k in d) if (k.startsWith("m_") && d[k] && typeof d[k] === "object") { let r = {}; try { r = JSON.parse(d[k].r || "{}") } catch (e) {} let f = {}; try { f = JSON.parse(d[k].f || "{}") } catch (e) {} out[d[k].id || k.slice(2)] = { i: +d[k].i || 0, r, f, t: d[k].t || 0, z: +d[k].z || 0 } }
-    return { status: 200, json: { m: out } };
+    let hid = []; try { hid = JSON.parse(d.hid || "[]") } catch (e) {}
+    return { status: 200, json: { m: out, hid: Array.isArray(hid) ? hid : [] } };
   }
   if (!sid) return { status: 400, json: { error: "set" } };
   if (op === "save" && !admin) {
@@ -1331,6 +1332,12 @@ async function handleMt(fs, user, body) {
     // r: آخر جواب لكل سؤال؛ f: أول جواب (لا يتغيّر بالإعادة، ليرى المشرف أخطاءه الأولى)
     const clean = o => { const x = {}; o = o && typeof o === "object" ? o : {}; for (const k of Object.keys(o).slice(0, 500)) if (/^\d{1,3}$/.test(k) && o[k]) x[k] = { v: String(o[k].v || "").slice(0, 40), ok: !!o[k].ok }; return x };
     await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i, r: JSON.stringify(clean(body.r)), f: JSON.stringify(clean(body.f)), t: Date.now(), z: cz } }, merge: true }]); return { status: 200, json: { ok: true } };
+  }
+  // إخفاء ورقة عن المتعلّم أو إظهارها (hid: قائمة الأوراق المخفية)
+  if (op === "vis" && admin) {
+    const doc = await fs.get(`mt/${u}`); let h = []; try { h = JSON.parse(doc && doc.data.hid || "[]") } catch (e) {}
+    h = (Array.isArray(h) ? h : []).filter(x => x !== sid); if (body.h) h.push(sid);
+    await fs.commit([{ path: `mt/${u}`, data: { hid: JSON.stringify(h.slice(-200)) }, merge: true }]); return { status: 200, json: { ok: true } };
   }
   if (op === "reset" && admin) { await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i: 0, r: "{}", f: "{}", t: Date.now(), z: Date.now() } }, merge: true }]); return { status: 200, json: { ok: true } } }
   return { status: 400, json: { error: "op" } };

@@ -1683,6 +1683,437 @@
    ]
   },
   {
+   "id": "k4-praesens-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Zeitformen des Verbs: Präsens",
+   "tar": "الحاضر: تصريف الفعل وترتيب الجملة",
+   "ex": [
+    {
+     "de": "Fülle die Lücken mit der Präsensform der Verben aus.",
+     "ar": "اكتب الفعل الذي بين القوسين في الحاضر بالتصريف المناسب.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Opa (kochen) ___ Mias Lieblingsgericht.",
+       "a": [
+        "kocht"
+       ],
+       "qa": "يطبخ الجدّ أكلة ميا المفضّلة.",
+       "w": "Opa = er، والفعل مع er ينتهي بـ ‎-t‎: kochen ← er kocht."
+      },
+      {
+       "q": "Mia (lesen) ___ sich die Hausaufgaben durch.",
+       "a": [
+        "liest"
+       ],
+       "qa": "تقرأ ميا وظائفها كلّها.",
+       "w": "Mia = sie، وفي lesen يتغيّر حرف العلّة e إلى ie: sie liest. وكلمة durch تذهب إلى آخر الجملة (durchlesen)."
+      },
+      {
+       "q": "Mias jüngerer Bruder Till (spielen) ___ Flöte.",
+       "a": [
+        "spielt"
+       ],
+       "qa": "يعزف تيل، أخو ميا الأصغر، على الفلوت.",
+       "w": "Till = er ← er spielt."
+      },
+      {
+       "q": "Die Hauskatze Nala (jagen) ___ eine Maus.",
+       "a": [
+        "jagt"
+       ],
+       "qa": "تطارد قطّة البيت نالا فأرًا.",
+       "w": "die Hauskatze مفرد = sie ← sie jagt."
+      },
+      {
+       "q": "Am Abend (kommen) ___ die Eltern nach Hause.",
+       "a": [
+        "kommen"
+       ],
+       "qa": "في المساء يعود الأهل إلى البيت.",
+       "w": "die Eltern جمع = sie ← sie kommen. والفعل في المكان الثاني بعد Am Abend."
+      },
+      {
+       "q": "Alle (essen) ___ gemeinsam zu Abend.",
+       "a": [
+        "essen"
+       ],
+       "qa": "يتعشّى الجميع معًا.",
+       "w": "alle جمع = sie ← sie essen."
+      },
+      {
+       "q": "Danach (putzen) ___ sich Till die Zähne und muss ins Bett.",
+       "a": [
+        "putzt"
+       ],
+       "qa": "بعد ذلك ينظّف تيل أسنانه، وعليه أن يذهب إلى السرير.",
+       "w": "Till = er ← er putzt."
+      }
+     ]
+    },
+    {
+     "de": "Bilde aus den Wörtern sinnvolle Sätze im Präsens.",
+     "ar": "رتّب الكلمات جملةً صحيحة في الحاضر: اضغط الكلمات بالترتيب. للفعل شكلان، فاختر الصحيح منهما واترك الآخر.",
+     "t": "o",
+     "items": [
+      {
+       "q": "Werkzeugkoffer · Handwerker · holen · holt · seinen · der",
+       "a": [
+        "Der Handwerker holt seinen Werkzeugkoffer",
+        "Seinen Werkzeugkoffer holt der Handwerker"
+       ],
+       "qa": "يُحضر الحِرَفيّ صندوق عُدّته.",
+       "w": "der Handwerker = er ← holt، والفعل في المكان الثاني: Der Handwerker holt seinen Werkzeugkoffer.",
+       "o": [
+        "Werkzeugkoffer",
+        "Handwerker",
+        "holen",
+        "holt",
+        "seinen",
+        "der"
+       ]
+      },
+      {
+       "q": "bauen · baut · Nest · Vogelmutter · die · ein",
+       "a": [
+        "Die Vogelmutter baut ein Nest",
+        "Ein Nest baut die Vogelmutter"
+       ],
+       "qa": "تبني أنثى الطائر عشًّا.",
+       "w": "die Vogelmutter = sie ← baut: Die Vogelmutter baut ein Nest.",
+       "o": [
+        "bauen",
+        "baut",
+        "Nest",
+        "Vogelmutter",
+        "die",
+        "ein"
+       ]
+      },
+      {
+       "q": "Autofahrer · an · halten · hält · der · Ampel · die",
+       "a": [
+        "Die Autofahrer halten an der Ampel",
+        "An der Ampel halten die Autofahrer"
+       ],
+       "qa": "يتوقّف السائقون عند الإشارة.",
+       "w": "في الكلمات die و der، فـ die Autofahrer هنا جمع ← halten، و der Ampel بعد an: Die Autofahrer halten an der Ampel.",
+       "o": [
+        "Autofahrer",
+        "an",
+        "halten",
+        "hält",
+        "der",
+        "Ampel",
+        "die"
+       ]
+      },
+      {
+       "q": "kochen · kocht · Opa · Lieblingsgericht · Mias",
+       "a": [
+        "Opa kocht Mias Lieblingsgericht",
+        "Mias Lieblingsgericht kocht Opa"
+       ],
+       "qa": "يطبخ الجدّ أكلة ميا المفضّلة.",
+       "w": "Opa = er ← kocht: Opa kocht Mias Lieblingsgericht.",
+       "o": [
+        "kochen",
+        "kocht",
+        "Opa",
+        "Lieblingsgericht",
+        "Mias"
+       ]
+      },
+      {
+       "q": "kommen · kommt · Eltern · die · Hause · nach",
+       "a": [
+        "Die Eltern kommen nach Hause",
+        "Nach Hause kommen die Eltern"
+       ],
+       "qa": "يعود الأهل إلى البيت.",
+       "w": "die Eltern جمع ← kommen: Die Eltern kommen nach Hause.",
+       "o": [
+        "kommen",
+        "kommt",
+        "Eltern",
+        "die",
+        "Hause",
+        "nach"
+       ]
+      },
+      {
+       "q": "jagen · jagt · Nala · Maus · eine",
+       "a": [
+        "Nala jagt eine Maus"
+       ],
+       "qa": "تطارد نالا فأرًا.",
+       "w": "Nala = sie ← jagt: Nala jagt eine Maus.",
+       "o": [
+        "jagen",
+        "jagt",
+        "Nala",
+        "Maus",
+        "eine"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k4-praeteritum-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Zeitformen des Verbs: Präteritum",
+   "tar": "الماضي Präteritum: تصريف الأفعال وتحويل النص",
+   "ex": [
+    {
+     "de": "Schreibe die Personalform der Verben im Präteritum.",
+     "ar": "اكتب الفعل في Präteritum مع الضمير نفسه.",
+     "t": "w",
+     "items": [
+      {
+       "q": "ich gehe → ich ___",
+       "a": [
+        "ging"
+       ],
+       "qa": "أذهب ← ذهبتُ",
+       "w": "gehen فعل يتغيّر شكله: ich ging."
+      },
+      {
+       "q": "er klettert → er ___",
+       "a": [
+        "kletterte"
+       ],
+       "qa": "يتسلّق ← تسلّق",
+       "w": "klettern فعل منتظم يأخذ ‎-te‎: er kletterte."
+      },
+      {
+       "q": "wir singen → wir ___",
+       "a": [
+        "sangen"
+       ],
+       "qa": "نغنّي ← غنّينا",
+       "w": "singen يتغيّر فيه حرف العلّة i إلى a: wir sangen."
+      },
+      {
+       "q": "sie steht → sie ___",
+       "a": [
+        "stand"
+       ],
+       "qa": "تقف ← وقفت",
+       "w": "stehen يتغيّر شكله: sie stand."
+      },
+      {
+       "q": "du schwimmst → du ___",
+       "a": [
+        "schwammst"
+       ],
+       "qa": "تسبح ← سبحتَ",
+       "w": "schwimmen يتغيّر فيه i إلى a، ومع du ‎-st‎: du schwammst."
+      },
+      {
+       "q": "ihr könnt → ihr ___",
+       "a": [
+        "konntet"
+       ],
+       "qa": "تستطيعون ← استطعتم",
+       "w": "können ← konnte، ومع ihr ‎-t‎: ihr konntet."
+      }
+     ]
+    },
+    {
+     "de": "Schreibe den Text im Präteritum ab.",
+     "ar": "حوّل الفعل الذي بين القوسين إلى Präteritum، جملةً جملة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Josefine (malt) ___ ein Bild für ihre Großeltern.",
+       "a": [
+        "malte"
+       ],
+       "qa": "رسمت يوزيفينه صورة لجدّها وجدّتها.",
+       "w": "malen منتظم يأخذ ‎-te‎: Josefine malte."
+      },
+      {
+       "q": "Sie (packt) ___ es als Geschenk ein.",
+       "a": [
+        "packte"
+       ],
+       "qa": "غلّفتها هديّةً.",
+       "w": "einpacken منتظم: sie packte … ein، وتبقى ein في آخر الجملة."
+      },
+      {
+       "q": "Sie (fährt) ___ mit dem Roller zu den Großeltern.",
+       "a": [
+        "fuhr"
+       ],
+       "qa": "ذهبت بالسكوتر إلى جدّها وجدّتها.",
+       "w": "fahren يتغيّر شكله: sie fuhr."
+      },
+      {
+       "q": "Dort (essen) ___ sie zu Mittag.",
+       "a": [
+        "aßen"
+       ],
+       "qa": "هناك تناولوا الغداء.",
+       "w": "essen يتغيّر شكله، و sie هنا جمع: sie aßen."
+      },
+      {
+       "q": "Später (überreicht) ___ Josefine das Bild ihren Großeltern.",
+       "a": [
+        "überreichte"
+       ],
+       "qa": "بعد ذلك قدّمت يوزيفينه الصورة لجدّها وجدّتها.",
+       "w": "überreichen منتظم: Josefine überreichte."
+      },
+      {
+       "q": "Diese (freuen) ___ sich riesig.",
+       "a": [
+        "freuten"
+       ],
+       "qa": "ففرحا كثيرًا.",
+       "w": "freuen منتظم، و diese جمع: sie freuten sich."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k4-perfekt-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Zeitformen des Verbs: Perfekt",
+   "tar": "الماضي Perfekt مع haben أو sein والتصريف الثالث",
+   "ex": [
+    {
+     "de": "Setze das passende Hilfsverb ein.",
+     "ar": "اختر الفعل المساعد المناسب.",
+     "t": "w",
+     "ch": [
+      "hat",
+      "ist",
+      "sind",
+      "bin"
+     ],
+     "items": [
+      {
+       "q": "Gerade ___ es geregnet.",
+       "a": [
+        "hat"
+       ],
+       "qa": "أمطرت قبل قليل.",
+       "w": "regnen ليس فعل حركة ← haben، ومع es: es hat geregnet."
+      },
+      {
+       "q": "Leo und Florian ___ ins Kino gegangen.",
+       "a": [
+        "sind"
+       ],
+       "qa": "ذهب ليو وفلوريان إلى السينما.",
+       "w": "gehen فعل حركة ← sein، و Leo und Florian جمع ← sind gegangen."
+      },
+      {
+       "q": "Eva ___ zur Reithalle gefahren.",
+       "a": [
+        "ist"
+       ],
+       "qa": "ذهبت إيفا إلى صالة ركوب الخيل.",
+       "w": "fahren فعل حركة ← sein، و Eva = sie ← ist gefahren."
+      },
+      {
+       "q": "Ich ___ mit dem neuen Fahrrad gefahren.",
+       "a": [
+        "bin"
+       ],
+       "qa": "ذهبتُ بالبسكليت الجديد.",
+       "w": "fahren فعل حركة ← sein، ومع ich ← bin gefahren."
+      },
+      {
+       "q": "Opa ___ das Essen gekocht.",
+       "a": [
+        "hat"
+       ],
+       "qa": "طبخ الجدّ الطعام.",
+       "w": "kochen ليس فعل حركة ← haben، و Opa = er ← hat gekocht."
+      },
+      {
+       "q": "Wir ___ nach Hause gegangen.",
+       "a": [
+        "sind"
+       ],
+       "qa": "ذهبنا إلى البيت.",
+       "w": "gehen فعل حركة ← sein، ومع wir ← sind gegangen."
+      },
+      {
+       "q": "Ich ___ schnell gelaufen.",
+       "a": [
+        "bin"
+       ],
+       "qa": "ركضتُ بسرعة.",
+       "w": "laufen فعل حركة ← sein، ومع ich ← bin gelaufen."
+      }
+     ]
+    },
+    {
+     "de": "Bilde die Sätze im Perfekt.",
+     "ar": "اكتب الجملة في Perfekt: الفعل المساعد ثم التصريف الثالث.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Es schneit. → Es ___ ___.",
+       "a": [
+        "hat geschneit"
+       ],
+       "qa": "تثلج. ← لقد أثلجت.",
+       "w": "schneien ← haben: Es hat geschneit."
+      },
+      {
+       "q": "Der Baum wächst groß. → Der Baum ___ groß ___.",
+       "a": [
+        "ist gewachsen",
+        "ist groß gewachsen"
+       ],
+       "qa": "تكبر الشجرة. ← لقد كبرت الشجرة.",
+       "w": "wachsen تغيّر في الحال ← sein: Der Baum ist groß gewachsen."
+      }
+     ]
+    },
+    {
+     "de": "Schreibe den Text im Perfekt auf.",
+     "ar": "حوّل النص إلى Perfekt، جملةً جملة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Christian fuhr mit dem Auto zur Werkstatt. → Christian ___ mit dem Auto zur Werkstatt ___.",
+       "a": [
+        "ist gefahren"
+       ],
+       "qa": "ذهب كريستيان بالسيارة إلى ورشة التصليح.",
+       "w": "fahren فعل حركة ← sein: Christian ist mit dem Auto zur Werkstatt gefahren."
+      },
+      {
+       "q": "Dort reparierte er das Auto. → Dort ___ er das Auto ___.",
+       "a": [
+        "hat repariert"
+       ],
+       "qa": "هناك صلّح السيارة.",
+       "w": "reparieren ← haben، والأفعال التي تنتهي بـ ‎-ieren‎ لا تأخذ ge: Dort hat er das Auto repariert."
+      },
+      {
+       "q": "Dann stellte er es in der Garage ab. → Dann ___ er es in der Garage ___.",
+       "a": [
+        "hat abgestellt"
+       ],
+       "qa": "ثم ركنها في الكراج.",
+       "w": "abstellen ← haben، وفي الفعل المنفصل تدخل ge بين ab و stellt: Dann hat er es in der Garage abgestellt."
+      }
+     ]
+    }
+   ]
+  },
+  {
    "id": "k3-kartoffel-1",
    "c": "k3",
    "sub": "Sachunterricht",
