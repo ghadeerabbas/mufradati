@@ -1866,7 +1866,7 @@
    "c": "k4",
    "sub": "Deutsch",
    "ti": "Zeitformen des Verbs: Präteritum",
-   "tar": "الماضي Präteritum: تصريف الأفعال وتحويل النص",
+   "tar": "الماضي البسيط: تصريف الأفعال وتحويل النص",
    "ex": [
     {
      "de": "Schreibe die Personalform der Verben im Präteritum.",
@@ -1985,7 +1985,7 @@
    "c": "k4",
    "sub": "Deutsch",
    "ti": "Zeitformen des Verbs: Perfekt",
-   "tar": "الماضي Perfekt مع haben أو sein والتصريف الثالث",
+   "tar": "الماضي التامّ: الفعل المساعد والتصريف الثالث",
    "ex": [
     {
      "de": "Setze das passende Hilfsverb ein.",
@@ -2380,6 +2380,501 @@
        ],
        "qa": "أنتم توفّرون مالًا كثيرًا.",
        "w": "مع ihr ينتهي الفعل بـ ‎-t‎: ihr spart."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k4-einladung-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "hide": 1,
+   "ti": "Eine Einladung und ein Brief",
+   "tar": "الدعوة والرسالة: المعلومات، وأجزاء الرسالة، و Liebe أو Lieber",
+   "ex": [
+    {
+     "de": "Lies Mailins Notizen und wähle die richtige Antwort.",
+     "ar": "اقرأ ملاحظات مايلين واختر الجواب الصحيح.",
+     "t": "w",
+     "x": "Mailins Notizen:\nAnlass: Gartenfest zum Sommerbeginn\nDatum: Samstag, 1. Juni\nUhrzeit: 15:00 – 18:00 Uhr\nOrt: in unserem Garten, Florastraße 5\nGäste: meine Freundinnen und Freunde aus der Klasse\nProgramm: Spiele, Basteln, eine Schatzsuche\nEssen und Trinken: Kuchen, Obst und Limonade\nBitte: gebt mir bis zum 28. Mai Bescheid, ob ihr kommt.",
+     "items": [
+      {
+       "q": "Was feiert Mailin?",
+       "a": [
+        "ein Gartenfest"
+       ],
+       "qa": "ماذا تحتفل مايلين؟",
+       "w": "في الملاحظات: Anlass: Gartenfest.",
+       "ch": [
+        "ein Gartenfest",
+        "einen Geburtstag",
+        "ein Schulfest"
+       ]
+      },
+      {
+       "q": "An welchem Tag ist das Fest?",
+       "a": [
+        "Samstag, 1. Juni"
+       ],
+       "qa": "في أيّ يوم الحفل؟",
+       "w": "في الملاحظات: Datum: Samstag, 1. Juni.",
+       "ch": [
+        "Sonntag, 1. Juni",
+        "Samstag, 1. Juni",
+        "Samstag, 28. Mai"
+       ]
+      },
+      {
+       "q": "Wann beginnt das Fest?",
+       "a": [
+        "um 15:00 Uhr"
+       ],
+       "qa": "متى يبدأ الحفل؟",
+       "w": "Uhrzeit: 15:00 – 18:00 Uhr: يبدأ الساعة 15:00 وينتهي 18:00.",
+       "ch": [
+        "um 18:00 Uhr",
+        "um 13:00 Uhr",
+        "um 15:00 Uhr"
+       ]
+      },
+      {
+       "q": "Wo ist das Fest?",
+       "a": [
+        "in Mailins Garten"
+       ],
+       "qa": "أين الحفل؟",
+       "w": "Ort: in unserem Garten، أي في حديقة مايلين.",
+       "ch": [
+        "in Mailins Garten",
+        "in der Schule",
+        "im Park"
+       ]
+      },
+      {
+       "q": "Wer ist eingeladen?",
+       "a": [
+        "Freundinnen und Freunde aus der Klasse"
+       ],
+       "qa": "من المدعوّون؟",
+       "w": "Gäste: meine Freundinnen und Freunde aus der Klasse.",
+       "ch": [
+        "die ganze Schule",
+        "Freundinnen und Freunde aus der Klasse",
+        "nur die Familie"
+       ]
+      },
+      {
+       "q": "Was machen die Kinder auf dem Fest?",
+       "a": [
+        "Spiele, Basteln, eine Schatzsuche"
+       ],
+       "qa": "ماذا يفعل الأطفال في الحفل؟",
+       "w": "Programm: Spiele, Basteln, eine Schatzsuche.",
+       "ch": [
+        "Schwimmen und Radfahren",
+        "Spiele, Basteln, eine Schatzsuche",
+        "Fernsehen"
+       ]
+      },
+      {
+       "q": "Was gibt es zu trinken?",
+       "a": [
+        "Limonade"
+       ],
+       "qa": "ماذا يوجد للشرب؟",
+       "w": "Essen und Trinken: Kuchen, Obst und Limonade.",
+       "ch": [
+        "Kakao",
+        "Wasser",
+        "Limonade"
+       ]
+      },
+      {
+       "q": "Bis wann sollen die Gäste Bescheid geben?",
+       "a": [
+        "bis zum 28. Mai"
+       ],
+       "qa": "حتى متى يجب أن يخبر الضيوف مايلين إن كانوا سيأتون؟",
+       "w": "Bitte: gebt mir bis zum 28. Mai Bescheid.",
+       "ch": [
+        "bis zum 28. Mai",
+        "bis zum 1. Juni",
+        "bis zum 15. Mai"
+       ]
+      }
+     ]
+    },
+    {
+     "de": "Zu welchem Teil des Briefes gehört der Satz?",
+     "ar": "إلى أيّ جزء من الرسالة تنتمي الجملة؟",
+     "t": "w",
+     "ch": [
+      "Anrede",
+      "Einleitung",
+      "Hauptteil",
+      "Schluss",
+      "Grußformel"
+     ],
+     "items": [
+      {
+       "q": "Liebe Emma,",
+       "a": [
+        "Anrede"
+       ],
+       "qa": "عزيزتي إيما،",
+       "w": "التحية في أول الرسالة ← Anrede."
+      },
+      {
+       "q": "Wie geht es dir?",
+       "a": [
+        "Einleitung"
+       ],
+       "qa": "كيف حالك؟",
+       "w": "المقدّمة: سؤال عن الحال أو شكر ← Einleitung."
+      },
+      {
+       "q": "Am Wochenende war ich im Zoo.",
+       "a": [
+        "Hauptteil"
+       ],
+       "qa": "في عطلة نهاية الأسبوع كنتُ في حديقة الحيوانات.",
+       "w": "الموضوع الأساسي: ماذا حدث أو ما المناسبة ← Hauptteil."
+      },
+      {
+       "q": "Viele Grüße",
+       "a": [
+        "Grußformel"
+       ],
+       "qa": "تحيّات كثيرة",
+       "w": "عبارة الوداع في آخر الرسالة ← Grußformel."
+      },
+      {
+       "q": "Ich freue mich auf deine Antwort.",
+       "a": [
+        "Schluss"
+       ],
+       "qa": "أنتظر ردّك بفرح.",
+       "w": "الخاتمة قبل الوداع ← Schluss."
+      },
+      {
+       "q": "Vielen Dank für deinen Brief.",
+       "a": [
+        "Einleitung"
+       ],
+       "qa": "شكرًا جزيلًا على رسالتك.",
+       "w": "المقدّمة: سؤال عن الحال أو شكر ← Einleitung."
+      },
+      {
+       "q": "Hallo Sara,",
+       "a": [
+        "Anrede"
+       ],
+       "qa": "مرحبًا سارة،",
+       "w": "التحية في أول الرسالة ← Anrede."
+      },
+      {
+       "q": "Letzte Woche habe ich ein Fußballspiel gesehen.",
+       "a": [
+        "Hauptteil"
+       ],
+       "qa": "في الأسبوع الماضي شاهدتُ مباراة كرة قدم.",
+       "w": "الموضوع الأساسي: ماذا حدث أو ما المناسبة ← Hauptteil."
+      },
+      {
+       "q": "Hoffentlich sehen wir uns bald.",
+       "a": [
+        "Schluss"
+       ],
+       "qa": "أتمنّى أن نلتقي قريبًا.",
+       "w": "الخاتمة قبل الوداع ← Schluss."
+      },
+      {
+       "q": "Bis bald",
+       "a": [
+        "Grußformel"
+       ],
+       "qa": "إلى اللقاء قريبًا",
+       "w": "عبارة الوداع في آخر الرسالة ← Grußformel."
+      },
+      {
+       "q": "Das Fest findet am Samstag statt.",
+       "a": [
+        "Hauptteil"
+       ],
+       "qa": "يُقام الحفل يوم السبت.",
+       "w": "الموضوع الأساسي: ماذا حدث أو ما المناسبة ← Hauptteil."
+      },
+      {
+       "q": "Ich habe mich sehr gefreut.",
+       "a": [
+        "Einleitung"
+       ],
+       "qa": "فرحتُ كثيرًا.",
+       "w": "المقدّمة: سؤال عن الحال أو شكر ← Einleitung."
+      }
+     ]
+    },
+    {
+     "de": "Liebe oder Lieber?",
+     "ar": "اختر Liebe أو Lieber.",
+     "t": "w",
+     "ch": [
+      "Liebe",
+      "Lieber"
+     ],
+     "items": [
+      {
+       "q": "___ Max,",
+       "a": [
+        "Lieber"
+       ],
+       "qa": "عزيزي ماكس،",
+       "w": "Lieber مع المذكّر (der): Lieber Max، Lieber Opa."
+      },
+      {
+       "q": "___ Emma,",
+       "a": [
+        "Liebe"
+       ],
+       "qa": "عزيزتي إيما،",
+       "w": "Liebe مع المؤنّث والجمع (die): Liebe Emma، Liebe Freunde."
+      },
+      {
+       "q": "___ Oma,",
+       "a": [
+        "Liebe"
+       ],
+       "qa": "جدّتي العزيزة،",
+       "w": "Liebe مع المؤنّث والجمع (die): Liebe Emma، Liebe Freunde."
+      },
+      {
+       "q": "___ Opa,",
+       "a": [
+        "Lieber"
+       ],
+       "qa": "جدّي العزيز،",
+       "w": "Lieber مع المذكّر (der): Lieber Max، Lieber Opa."
+      },
+      {
+       "q": "___ Frau Schmidt,",
+       "a": [
+        "Liebe"
+       ],
+       "qa": "السيّدة شميت العزيزة،",
+       "w": "Liebe مع المؤنّث والجمع (die): Liebe Emma، Liebe Freunde."
+      },
+      {
+       "q": "___ Herr Müller,",
+       "a": [
+        "Lieber"
+       ],
+       "qa": "السيّد مولر العزيز،",
+       "w": "Lieber مع المذكّر (der): Lieber Max، Lieber Opa."
+      },
+      {
+       "q": "___ Freundinnen und Freunde,",
+       "a": [
+        "Liebe"
+       ],
+       "qa": "صديقاتي وأصدقائي الأعزّاء،",
+       "w": "Liebe مع المؤنّث والجمع (die): Liebe Emma، Liebe Freunde."
+      }
+     ]
+    },
+    {
+     "de": "Bilde aus den Wörtern Sätze für eine Einladung.",
+     "ar": "رتّب الكلمات جملًا لدعوة: اضغط الكلمات بالترتيب.",
+     "t": "o",
+     "items": [
+      {
+       "q": "findet · das · Fest · am · Samstag · statt",
+       "a": [
+        "Das Fest findet am Samstag statt",
+        "Am Samstag findet das Fest statt"
+       ],
+       "qa": "يُقام الحفل يوم السبت.",
+       "w": "stattfinden فعل منفصل: findet في المكان الثاني و statt في آخر الجملة.",
+       "o": [
+        "findet",
+        "das",
+        "Fest",
+        "am",
+        "Samstag",
+        "statt"
+       ]
+      },
+      {
+       "q": "beginnen · wir · um · 15 Uhr",
+       "a": [
+        "Wir beginnen um 15 Uhr",
+        "Um 15 Uhr beginnen wir"
+       ],
+       "qa": "نبدأ الساعة الثالثة.",
+       "w": "الفعل beginnen في المكان الثاني: Wir beginnen um 15 Uhr.",
+       "o": [
+        "beginnen",
+        "wir",
+        "um",
+        "15 Uhr"
+       ]
+      },
+      {
+       "q": "lade · ich · euch · herzlich · ein",
+       "a": [
+        "Ich lade euch herzlich ein",
+        "Herzlich lade ich euch ein"
+       ],
+       "qa": "أدعوكم من القلب.",
+       "w": "einladen فعل منفصل: lade في المكان الثاني و ein في آخر الجملة.",
+       "o": [
+        "lade",
+        "ich",
+        "euch",
+        "herzlich",
+        "ein"
+       ]
+      },
+      {
+       "q": "gebt · bitte · mir · Bescheid",
+       "a": [
+        "Bitte gebt mir Bescheid",
+        "Gebt mir bitte Bescheid"
+       ],
+       "qa": "من فضلكم أخبروني.",
+       "w": "جملة طلب: الفعل gebt في أوّلها، أو بعد bitte.",
+       "o": [
+        "gebt",
+        "bitte",
+        "mir",
+        "Bescheid"
+       ]
+      },
+      {
+       "q": "freue · ich · mich · auf · euch",
+       "a": [
+        "Ich freue mich auf euch",
+        "Auf euch freue ich mich"
+       ],
+       "qa": "أنتظر لقاءكم بفرح.",
+       "w": "sich freuen auf: Ich freue mich auf euch.",
+       "o": [
+        "freue",
+        "ich",
+        "mich",
+        "auf",
+        "euch"
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k4-schreiben-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "hide": 1,
+   "ti": "Texte schreiben",
+   "tar": "كتابة حرّة: يكتب النص ويُرسله، ويقرؤه المشرف",
+   "ex": [
+    {
+     "de": "Schreibe den Text. Achte auf die Punkte.",
+     "ar": "اكتب النص، وانتبه إلى النقاط المذكورة.",
+     "t": "f",
+     "items": [
+      {
+       "x": "Mailins Notizen:\nAnlass: Gartenfest zum Sommerbeginn\nDatum: Samstag, 1. Juni\nUhrzeit: 15:00 – 18:00 Uhr\nOrt: in unserem Garten, Florastraße 5\nGäste: meine Freundinnen und Freunde aus der Klasse\nProgramm: Spiele, Basteln, eine Schatzsuche\nEssen und Trinken: Kuchen, Obst und Limonade\nBitte: gebt mir bis zum 28. Mai Bescheid, ob ihr kommt.",
+       "q": "Schreibe eine Einladung für Mailin. Nutze alle Informationen aus den Notizen.",
+       "a": [
+        "-"
+       ],
+       "qa": "اكتب دعوة لمايلين، واستعمل كل المعلومات من الملاحظات.",
+       "chk": [
+        [
+         "eine passende Überschrift",
+         "عنوان مناسب"
+        ],
+        [
+         "einen freundlichen Anfang",
+         "بداية لطيفة"
+        ],
+        [
+         "alle wichtigen Informationen (Wann? Wo? Was?)",
+         "كل المعلومات المهمّة (متى؟ أين؟ ماذا؟)"
+        ],
+        [
+         "eine Bitte um Rückmeldung",
+         "طلب الردّ"
+        ],
+        [
+         "einen höflichen Schluss und deine Unterschrift",
+         "خاتمة مهذّبة وتوقيعك"
+        ],
+        [
+         "Extra: Warum freust du dich auf das Fest?",
+         "إضافي: لماذا تفرح بالحفل؟"
+        ]
+       ]
+      },
+      {
+       "x": "Mia und ihr Bruder Noah sind auf dem Dachboden bei Oma und Opa.\nIn einer alten Truhe finden sie eine Schachtel.\nDarin sind ein alter Brief und ein kleiner Schlüssel.",
+       "q": "Wie geht die Geschichte weiter? Schreibe ein passendes Ende.",
+       "a": [
+        "-"
+       ],
+       "qa": "كيف تكمل القصة؟ اكتب نهاية مناسبة.",
+       "chk": [
+        [
+         "eine spannende und passende Fortsetzung",
+         "متابعة مشوّقة ومناسبة"
+        ],
+        [
+         "eine sinnvolle Lösung",
+         "حلّ منطقي"
+        ],
+        [
+         "abwechslungsreiche Wörter",
+         "كلمات متنوّعة"
+        ],
+        [
+         "richtige Rechtschreibung und Grammatik",
+         "إملاء وقواعد صحيحة"
+        ]
+       ]
+      },
+      {
+       "q": "Schreibe einen Brief an deinen Freund. Erzähle von deinem Wochenende (8–12 Sätze).",
+       "a": [
+        "-"
+       ],
+       "qa": "اكتب رسالة إلى صديقك تحكي فيها عن عطلة نهاية الأسبوع (8 إلى 12 جملة).",
+       "chk": [
+        [
+         "Anrede und Einleitung",
+         "التحية والمقدّمة"
+        ],
+        [
+         "Wo warst du? Mit wem?",
+         "أين كنت؟ ومع من؟"
+        ],
+        [
+         "Was hast du gesehen und gemacht?",
+         "ماذا شاهدت وماذا فعلت؟"
+        ],
+        [
+         "Hat es dir gefallen?",
+         "هل استمتعت؟"
+        ],
+        [
+         "Frage nach seinem nächsten Wochenende",
+         "اسأله عن عطلته القادمة"
+        ],
+        [
+         "Schluss, Grußformel und Unterschrift",
+         "الخاتمة وعبارة الوداع والتوقيع"
+        ]
+       ]
       }
      ]
     }

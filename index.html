@@ -599,6 +599,9 @@ body.fbon main{padding-bottom:210px}
 .mtIn2 i{font-style:normal;font-size:1.3rem;color:var(--muted)}.mtIn2 input.ok{border-color:#58cc02;background:rgba(88,204,2,.12)}.mtIn2 input.bad{border-color:var(--red);background:rgba(255,75,75,.1)}
 .mtFb{border-radius:14px;padding:12px 14px;margin:6px 0 12px;line-height:1.9}.mtFb.ok{background:rgba(88,204,2,.15);color:#58cc02;font-weight:800;text-align:center;font-size:1.15rem}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
+.mtX{background:var(--soft);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:1rem;line-height:1.75;text-align:left;color:var(--ink)}.mtCk{list-style:none;padding:0;margin:8px 0;font-size:.92rem;color:var(--ink)}.mtCk li{margin:3px 0;text-align:left}
+#mtTx{width:100%;box-sizing:border-box;font-family:inherit;font-size:1.05rem;line-height:1.6;padding:10px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);resize:vertical}#mtTx.bad{border-color:var(--red)}
+.mtFree{background:var(--soft);border-radius:12px;padding:8px 10px;margin:8px 0}.mtFree .tx{white-space:pre-wrap;font-size:.9rem;margin:6px 0;text-align:left}
 .mtOl{min-height:58px;border:2px dashed var(--line);border-radius:14px;padding:8px;margin:12px 0 6px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;align-items:center;font-size:1.15rem;font-weight:700;color:var(--ink);line-height:1.6}.mtOl.bad{border-color:var(--red)}.mtOl .ph{color:var(--muted);font-size:.9rem;font-weight:400}
 .mtOw{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:10px 0}.mtOc{background:var(--card);color:var(--ink);border:2px solid var(--line);border-bottom-width:4px;border-radius:12px;padding:8px 13px;font-size:1.1rem;font-weight:700;font-family:inherit;cursor:pointer}.mtOc.used{visibility:hidden}.mtOc.in{border-color:#1cb0f6;color:#1899d6}
 .mtAdmS .vis{font-size:.82rem;padding:6px 10px;margin:6px 0}.mtAdmS .vis.off{background:var(--soft);color:var(--muted)}.mtAdmS details{font-size:.84rem;margin:4px 0}.mtAdmS details li{margin:3px 18px 3px 0}.mtAdmS.hid{opacity:.75}
@@ -3985,22 +3988,30 @@ function renderMath(){
     if(W.length){$("mtRetry").onclick=()=>{ss.f=ss.f||{...ss.r};ss.q=W.map(([q,k])=>k);ss.qi=0;W.forEach(([q,k])=>delete ss.r[k]);mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
       $("mtShowW").onclick=()=>{const l=$("mtWl");l.hidden=!l.hidden;$("mtShowW").textContent=l.hidden?"📋 اعرض أخطائي":"📋 أخفِ أخطائي"}}
     $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{},f:{},z:(S[s.id]||{}).z||0};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
-  const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci],ord=q.e.t==="o";   // ord: رتّب الكلمات بالضغط عليها
+  const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci],ord=q.e.t==="o",fr=q.e.t==="f",CH=q.it.ch||q.e.ch,X=q.it.x||q.e.x;   // ord: رتّب الكلمات بالضغط عليها · fr: كتابة حرّة يقرؤها المشرف · CH: خيارات (للسؤال أو للتمرين) · X: نص يُقرأ قبل السؤال
+  const dk=K("mtdr_"+s.id+"_"+ci);
   el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round((rq?ss.qi/ss.q.length:i/T)*100)}%"></i></div><p class="rnote" style="text-align:center">${rq?`🔁 إعادة الخطأ ${mtNum(ss.qi+1)} من ${mtNum(ss.q.length)}`:`السؤال ${mtNum(i+1)} من ${mtNum(T)}`}</p>
    <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar mtTr" hidden>${esc(q.e.ar)}</div></div></div>
+    ${X?`<div class="mtX" dir="ltr">${String(X).split("\n").map(mtQw).join("<br>")}</div>`:""}
     ${ord?`<div class="mtOl" id="mtOl" dir="ltr">${done?esc(done.v):""}</div>${done?"":`<div class="mtOw" dir="ltr">${q.it.o.map((w,k)=>`<button class="mtOc" data-k="${k}">${esc(w)}</button>`).join("")}</div>`}`:`<div class="mtQq${q.it.q.length>26?" long":""}" dir="ltr">${s.sub&&s.sub!=="Mathe"?mtQw(q.it.q):mtQ(q.it.q)}</div>`}${q.it.qa?`<div class="mtQa mtTr" hidden>${esc(q.it.qa)}</div>`:""}
     <div style="text-align:center"><button class="btn mtTrB" id="mtTrB">🌐 الترجمة</button></div>
-    ${q.e.ch?`<div class="mtCh">${q.e.ch.map(c=>{const isA=q.it.a.some(a=>mtNorm(a)===mtNorm(c)),me=done&&mtNorm(done.v)===mtNorm(c);
+    ${fr?`<ul class="mtCk">${(q.it.chk||[]).map(c=>`<li><span dir="ltr">☐ ${esc(c[0])}</span><span class="mtTr" hidden> · ${esc(c[1]||"")}</span></li>`).join("")}</ul>
+      <textarea id="mtTx" dir="ltr" rows="9" autocapitalize="sentences" ${done?"disabled":""} placeholder="اكتب هنا…">${esc(done?done.v:st(dk)||"")}</textarea><div class="rnote" id="mtWc" style="text-align:center"></div>`:""}
+    ${fr?"":CH?`<div class="mtCh">${CH.map(c=>{const isA=q.it.a.some(a=>mtNorm(a)===mtNorm(c)),me=done&&mtNorm(done.v)===mtNorm(c);
       return `<button class="mtC${done?(isA?" ok":me?" bad":" off"):""}" data-c="${esc(c)}" ${done?"disabled":""}>${esc(c)}</button>`}).join("")}</div>`:ord?"":`<div class="mtIn2"><input id="mtInp" dir="ltr" ${q.e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} ${done?"disabled":""} value="${esc(done?done.v:"")}" class="${done?(done.ok?"ok":"bad"):""}">${q.it.u?`<i>${esc(q.it.u)}</i>`:""}</div>`}
     <div id="mtFb">${done?mtFb(q,done):""}</div>
-    ${done?`<button class="btn next mtGo" id="mtNext">${(rq?ss.qi+1<ss.q.length:i+1<T)?"التالي ←":"النتيجة 🏆"}</button>`:q.e.ch?"":`<button class="btn next mtGo" id="mtChk">تحقّق ✓</button>`}</div>`;
+    ${done?`<button class="btn next mtGo" id="mtNext">${(rq?ss.qi+1<ss.q.length:i+1<T)?"التالي ←":"النتيجة 🏆"}</button>`:CH&&!fr?"":`<button class="btn next mtGo" id="mtChk">${fr?"📨 أرسل نصّي":"تحقّق ✓"}</button>`}</div>`;
   $("mtBack").onclick=()=>mtBack();
-  el.querySelectorAll(".mtQq .mtW").forEach(w=>w.onclick=()=>{el.querySelectorAll(".mtW.on").forEach(x=>x.classList.remove("on"));w.classList.add("on");speak(w.dataset.w);setTimeout(()=>w.classList.remove("on"),900)});
+  el.querySelectorAll(".mtQq .mtW,.mtX .mtW").forEach(w=>w.onclick=()=>{el.querySelectorAll(".mtW.on").forEach(x=>x.classList.remove("on"));w.classList.add("on");speak(w.dataset.w);setTimeout(()=>w.classList.remove("on"),900)});
   // الترجمة مخفية في كل سؤال، ويُظهرها الولد إن احتاج
   $("mtTrB").onclick=()=>{const T=el.querySelectorAll(".mtTr"),on=T[0]&&T[0].hidden;T.forEach(x=>x.hidden=!on);$("mtTrB").classList.toggle("on",on)};
   const inp=$("mtInp");
   // الأدوات: خيارات بدل الكتابة؛ الضغط على خيار هو الجواب
-  if(!done&&q.e.ch){el.querySelectorAll(".mtC").forEach(b=>b.onclick=()=>{const v=b.dataset.c,ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v));ss.r[ci]={v,ok};ss.f=ss.f||{...ss.r};if(!ss.f[ci])ss.f[ci]={v,ok};mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()})}
+  if(!done&&fr){const tx=$("mtTx"),wc=()=>{const t=tx.value.trim(),n=t?t.split(/\s+/).length:0,m=(t.match(/[.!?]+(\s|$)/g)||[]).length;$("mtWc").textContent=`عدد الكلمات: ${n} · عدد الجمل: ${m}`};
+    tx.oninput=()=>{st(dk,tx.value);wc()};wc();mtKb(el,tx);   // المسودّة تُحفظ في الجهاز حتى يرسلها
+    $("mtChk").onclick=async()=>{const v=tx.value.trim();if(v.split(/\s+/).length<5){tx.classList.add("bad");setTimeout(()=>tx.classList.remove("bad"),400);return}
+      if(!await uiConfirm("ترسل نصّك؟ بعد الإرسال لا يمكن تعديله."))return;ss.r[ci]={v,ok:true};ss.f=ss.f||{...ss.r};if(!ss.f[ci])ss.f[ci]={v,ok:true};try{localStorage.removeItem(dk)}catch(e){}mtSave(S);mtPush(s.id,ss);fx("ok");renderMath()}}
+  else if(!done&&CH){el.querySelectorAll(".mtC").forEach(b=>b.onclick=()=>{const v=b.dataset.c,ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v));ss.r[ci]={v,ok};ss.f=ss.f||{...ss.r};if(!ss.f[ci])ss.f[ci]={v,ok};mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()})}
   else if(!done&&ord){const pick=[],O=q.it.o,cap=x=>x.charAt(0).toUpperCase()+x.slice(1),sent=()=>pick.map((k,j)=>j?O[k]:cap(O[k])).join(" ");
     // كلمات الجملة: الضغط على كلمة في الأسفل يضعها في السطر (وتُقرأ)، والضغط عليها في السطر يعيدها
     const draw=()=>{const l=$("mtOl");l.innerHTML=pick.length?pick.map((k,j)=>`<button class="mtOc in" data-j="${j}">${esc(j?O[k]:cap(O[k]))}</button>`).join(""):'<span class="ph">اضغط الكلمات بالترتيب</span>';
@@ -4014,6 +4025,7 @@ function renderMath(){
   else $("mtNext").onclick=()=>{if(rq){ss.qi++;if(ss.qi>=ss.q.length){delete ss.q;delete ss.qi;fx("done")}}else{ss.i=i+1;if(ss.i>=T)fx("done")}mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
 }
 function mtFb(q,d){
+  if(q.e.t==="f")return `<div class="mtFb ok">📨 أُرسل نصّك، وسيقرؤه أبوك ويخبرك بملاحظاته.</div>`;
   if(d.ok)return `<div class="mtFb ok">✅ أحسنت! جوابك صحيح.</div>`;
   const a=q.it.a,ans=a.length>1?a.map(x=>mtNum(q.e.t==="w"?x:mtFmt(x))).join(" أو "):mtNum(q.e.t==="w"?a[0]:mtFmt(a[0]));
   return `<div class="mtFb bad"><div>❌ جوابك: ${mtNum(d.v)}</div><div class="c">✔️ الجواب الصحيح: ${ans}</div>${mtWhy(q.it)?`<div class="w"><b>لماذا؟</b> ${mtWhy(q.it)}</div>`:""}</div>`}
@@ -4032,7 +4044,7 @@ async function mtAdm(uid){
   try{const [j,d]=await Promise.all([apiPost("/mt",{op:"get",u:uid}),aref(uid).get().catch(()=>null)]);M=j.m||{};H=Array.isArray(j.hid)?j.hid:[];W=Array.isArray(j.shw)?j.shw:[];
     if(d&&d.exists){const c=(d.data().courses||[]).filter(x=>COURSES[x]);cs=c.length?c:DEF_COURSES}}catch(e){box.innerHTML='<h3>✏️ التمارين</h3><div class="empty">تعذّر التحميل</div>';return}
   // كل أوراق مناهجه: الاسم ولمحة عن تمارينها وزر الإظهار/الإخفاء، ثم تقدّمه وأخطاؤه إن بدأها
-  const L=MTS.filter(s=>!cs||cs.includes(s.c)),kind=e=>e.t==="o"?"ترتيب كلمات":e.ch?"اختيار":"كتابة";
+  const L=MTS.filter(s=>!cs||cs.includes(s.c)),kind=e=>e.t==="f"?"كتابة حرّة يقرؤها المشرف":e.t==="o"?"ترتيب كلمات":e.ch||e.items.some(x=>x.ch)?"اختيار":"كتابة";
   box.innerHTML='<h3>✏️ التمارين</h3><p class="rnote">أظهر له الورقة حين يصل إلى درسها، وأخفِها متى شئت.</p>'+(L.length?L.map(s=>{const m=M[s.id]||{},R=m.r||{},F=mtFlat(s),T=F.length,hid=mtHidOf(s,H,W),
       Fa=Object.keys(m.f||{}).length?m.f:R,n=Object.keys(Fa).length,g=Object.values(Fa).filter(v=>v.ok).length,gNow=Object.values(R).filter(v=>v.ok).length,
       // الأخطاء من أول محاولة (لا تختفي حين يعيد السؤال ويصيب)، ومعها هل صحّحها بعد الإعادة
@@ -4042,7 +4054,11 @@ async function mtAdm(uid){
       <details><summary>لمحة عن التمارين</summary><ol>${s.ex.map(e=>`<li>${mtWhy({w:e.ar})} <small>— ${kind(e)}، عدد الأسئلة: ${e.items.length}</small></li>`).join("")}</ol></details>
       <button class="btn vis${hid?" off":""}" data-mh="${esc(s.id)}" data-h="${hid?0:1}">${hid?"🙈 مخفية عنه · أظهرها":"👁️ ظاهرة له · أخفِها"}</button>
       <small style="display:block">${n||m.i?`${(m.i||0)>=T?"أنهاها":`وصل إلى ${Math.min((m.i||0)+1,T)} من ${T}`} · أول محاولة: ✅ ${g} · ❌ ${n-g}${gNow>g?` · بعد الإعادة: ✅ ${gNow}`:""}`:"لم يبدأها بعد"}</small>
+      ${F.map((q,k)=>q.e.t==="f"&&R[k]?`<div class="mtFree"><b dir="ltr">${esc(q.it.q)}</b><div class="tx" dir="ltr">${esc(R[k].v)}</div><button class="btn" data-cpf="${esc(s.id)}|${k}">📋 نسخ لكلود</button></div>`:"").join("")}
       ${bad?`<div class="mtBads">${bad}</div>`:n?'<p class="rnote">لا أخطاء 🎉</p>':""}${n?`<button class="btn" data-mrs="${esc(s.id)}">↺ من الأوّل</button>`:""}</div>`}).join(""):'<div class="empty">لا توجد أوراق في مناهجه.</div>');
+  box.querySelectorAll("[data-cpf]").forEach(b=>b.onclick=async()=>{const [id,k]=b.dataset.cpf.split("|"),s=MTS.find(x=>x.id===id),q=mtFlat(s)[+k],t=((M[id]||{}).r||{})[k];
+    const txt=`راجع نص ابني (الصف الرابع) وصحّح أخطاءه:\nالمهمّة: ${q.it.q}\n${(q.it.chk||[]).map(c=>"- "+c[0]).join("\n")}\n\nنصّه:\n${t?t.v:""}`;
+    try{await navigator.clipboard.writeText(txt);toast("📋","نُسخ النص","أرسله إلى كلود")}catch(e){uiAlert("تعذّر النسخ")}});
   box.querySelectorAll("[data-mh]").forEach(b=>b.onclick=async()=>{b.disabled=true;
     try{await apiPost("/mt",{op:"vis",u:uid,set:b.dataset.mh,h:b.dataset.h==="1"});mtAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر التغيير")}});
   box.querySelectorAll("[data-mrs]").forEach(b=>b.onclick=async()=>{if(!await uiConfirm("يبدأ الورقة من السؤال الأوّل من جديد؟"))return;b.disabled=true;

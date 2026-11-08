@@ -51,9 +51,13 @@ def texts():
             if st.get("sub", "Mathe") == "Mathe": continue
             for e in st.get("ex", []):
                 for it in e.get("items", []):
-                    for x in it.get("q", "").replace("**", "").split():
+                    # السؤال، والنص الذي يُقرأ قبله (x)، وأزرار ترتيب الكلمات (o: كل زر كما هو)
+                    for x in " ".join([it.get("q", ""), it.get("x", ""), e.get("x", "")]).replace("**", "").split():
                         c = speakable(re.sub(r"^[\W_]+|[\W_]+$", "", x))
                         if c and re.search(r"[A-Za-zÄÖÜäöüß]", c): out.add(c)
+                    for x in it.get("o", []):
+                        c = speakable(x.strip())
+                        if c: out.add(c)
     return sorted(out)
 
 def synth(text):

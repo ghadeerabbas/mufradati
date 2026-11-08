@@ -849,7 +849,7 @@ async function handleMt(fs, user, body) {
     if ((+body.z || 0) < cz) return { status: 200, json: { ok: false, reset: 1 } };
     const i = Math.max(0, Math.min(500, Math.floor(+body.i || 0)));
     // r: آخر جواب لكل سؤال؛ f: أول جواب (لا يتغيّر بالإعادة، ليرى المشرف أخطاءه الأولى)
-    const clean = o => { const x = {}; o = o && typeof o === "object" ? o : {}; for (const k of Object.keys(o).slice(0, 500)) if (/^\d{1,3}$/.test(k) && o[k]) x[k] = { v: String(o[k].v || "").slice(0, 40), ok: !!o[k].ok }; return x };
+    const clean = o => { const x = {}; o = o && typeof o === "object" ? o : {}; for (const k of Object.keys(o).slice(0, 500)) if (/^\d{1,3}$/.test(k) && o[k]) x[k] = { v: String(o[k].v || "").slice(0, 1500), ok: !!o[k].ok } /* 1500: نصوص الكتابة الحرّة */; return x };
     await fs.commit([{ path: `mt/${u}`, data: { [key]: { id: sid, i, r: JSON.stringify(clean(body.r)), f: JSON.stringify(clean(body.f)), t: Date.now(), z: cz } }, merge: true }]); return { status: 200, json: { ok: true } };
   }
   // إخفاء ورقة عن المتعلّم أو إظهارها (hid: قائمة الأوراق المخفية)
