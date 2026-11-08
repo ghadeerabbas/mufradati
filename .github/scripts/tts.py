@@ -41,7 +41,8 @@ def texts():
                 if t and re.search(r"[A-Za-zÄÖÜäöüß]", t): out.add(t)
     # كلمات القراءة (rdgloss.json): صوت لكل كلمة يكتب Claude معناها
     if os.path.exists("rdgloss.json"):
-        for w in json.load(open("rdgloss.json", encoding="utf-8")).get("w", {}):
+        G = json.load(open("rdgloss.json", encoding="utf-8"))
+        for w in list(G.get("w", {})) + [k for t in G.get("t", {}).values() for k in t]:
             t = speakable(w.strip())
             if t and re.search(r"[A-Za-zÄÖÜäöüß0-9]", t): out.add(t)   # والأرقام أيضًا (16، 1969)
     return sorted(out)

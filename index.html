@@ -3684,11 +3684,13 @@ function rdSay(rate){rate=rate||1;const slow=rate<.85;return new Promise(async r
 function rdStop(){RDTOK++;clearInterval(RDTM);try{if(RDEL){RDEL.pause();RDEL=null}if("speechSynthesis" in window)speechSynthesis.cancel();if(window.MufApp&&MufApp.stop)MufApp.stop()}catch(e){}rdMark(null);rdReBtn(false)}
 // معاني كلمات القراءة: يكتبها Claude يدويًّا في rdgloss.json (كلمات فقط، لا جمل)، ولكل كلمة صوت جاهز (tts.py)
 let RDG=null;
-function rdGloss(){if(RDG)return Promise.resolve(RDG);const c=st("muf_rdgloss");if(c){try{RDG=JSON.parse(c).w||{}}catch(e){}}
-  const net=fetch("rdgloss.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(t){st("muf_rdgloss",t);try{RDG=JSON.parse(t).w||{}}catch(e){}}return RDG||{}}).catch(()=>RDG||{});
+function rdGloss(){if(RDG)return Promise.resolve(RDG);const c=st("muf_rdgloss");if(c){try{RDG=JSON.parse(c)}catch(e){}}
+  const net=fetch("rdgloss.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(t){st("muf_rdgloss",t);try{RDG=JSON.parse(t)}catch(e){}}return RDG||{}}).catch(()=>RDG||{});
   return RDG?Promise.resolve(RDG):net}
 const rdCore=x=>x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"");
-const rdMean=(g,w)=>g[w]||g[w.toLowerCase()]||g[w.charAt(0).toUpperCase()+w.slice(1)]||"";
+// المعنى بحسب النص أولًا (t: معاني كل عنوان في سياقه)، ثم المعاني العامة (w)
+const rdLook=(g,w)=>g&&(g[w]||g[w.toLowerCase()]||g[w.charAt(0).toUpperCase()+w.slice(1)])||"";
+const rdMean=(G,w)=>{G=G||{};const t=RDV&&G.t&&G.t[RDV.ti];return rdLook(t,w)||rdLook(G.w,w)};
 async function rdWordTap(el){
   const v=RDV;if(!v)return;rdStop();const w=rdCore(el.textContent);if(!w)return;
   document.querySelectorAll("#rdSent .rw.sel").forEach(x=>x.classList.remove("sel"));el.classList.add("sel");
