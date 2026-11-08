@@ -3934,7 +3934,7 @@ const mtFlat=s=>{const L=[];s.ex.forEach((e,ei)=>e.items.forEach((it,ii)=>L.push
 const mtFmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g," ");   // 87950 ← 87 950 كما في الورقة
 const mtNum=x=>`<bdi dir="ltr" class="mtNb">${esc(String(x))}</bdi>`;
 // لماذا: للتقريب يُكتب الشرح تلقائيًّا من الرقم، وغيره مكتوب في الورقة (w)
-function mtWhy(it){if(it.w)return esc(it.w).replace(/[A-Za-zÄÖÜäöüß‎][A-Za-zÄÖÜäöüß0-9 .,:'’?!()\/…–‎-]*[A-Za-zÄÖÜäöüß0-9?!)…]|\d[\d ×=]*\d|\d/g,m=>`<bdi dir="ltr" class="mtNb">${m}</bdi>`);   // الألمانية والأرقام بترتيبها داخل الشرح العربيif(!it.r)return"";
+function mtWhy(it){if(it.w)return esc(it.w).replace(/[A-Za-zÄÖÜäöüß‎][A-Za-zÄÖÜäöüß0-9 .,:'’?!\/…–‎-]*[A-Za-zÄÖÜäöüß0-9?!…]|\d[\d ×=]*\d|\d/g,m=>`<bdi dir="ltr" class="mtNb">${m}</bdi>`);   // الألمانية والأرقام بترتيبها داخل الشرح العربيif(!it.r)return"";
   const n=it.n,r=it.r,dig=Math.floor(n%r/(r/10)),up=dig>=5,res=Math.round(n/r)*r;
   return `للتقريب إلى أقرب ${r===100?"مئة":"ألف"} ننظر إلى رقم ${r===100?"العشرات":"المئات"} في ${mtNum(mtFmt(n))}: هو ${mtNum(dig)}، ${up?"أي 5 أو أكثر، فنقرّب إلى <b>الأعلى</b>":"أي أقل من 5، فنقرّب إلى <b>الأسفل</b>"}:<div class="mtEq" dir="ltr">${mtNum(mtFmt(n))} ≈ ${mtNum(mtFmt(res))}</div>`}
 function renderMath(){

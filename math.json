@@ -1483,6 +1483,554 @@
      ]
     }
    ]
+  },
+  {
+   "id": "k3-getreide-1",
+   "c": "k3",
+   "sub": "Sachunterricht",
+   "ti": "Das Getreide",
+   "tar": "الحبوب",
+   "ex": [
+    {
+     "de": "Wie trägt das Getreide seine Körner? Wähle: Ähre, Rispe oder Kolben.",
+     "ar": "كيف يحمل النبات حبوبه؟ اختر: Ähre (سنبلة) أو Rispe (عنقود) أو Kolben (كوز).",
+     "ch": [
+      "Ähre",
+      "Rispe",
+      "Kolben"
+     ],
+     "t": "w",
+     "items": [
+      {
+       "q": "Weizen",
+       "a": [
+        "Ähre"
+       ],
+       "qa": "القمح",
+       "w": "القمح (Weizen) يحمل حبوبه في سنبلة: die Ähre."
+      },
+      {
+       "q": "Gerste",
+       "a": [
+        "Ähre"
+       ],
+       "qa": "الشعير",
+       "w": "الشعير (Gerste) يحمل حبوبه في سنبلة: die Ähre."
+      },
+      {
+       "q": "Roggen",
+       "a": [
+        "Ähre"
+       ],
+       "qa": "الجاودار",
+       "w": "الجاودار (Roggen) يحمل حبوبه في سنبلة: die Ähre."
+      },
+      {
+       "q": "Hafer",
+       "a": [
+        "Rispe"
+       ],
+       "qa": "الشوفان",
+       "w": "الشوفان (Hafer) يحمل حبوبه في عنقود متفرّع: die Rispe."
+      },
+      {
+       "q": "Mais",
+       "a": [
+        "Kolben"
+       ],
+       "qa": "الذرة",
+       "w": "الذرة (Mais) تحمل حبوبها في كوز: der Kolben."
+      }
+     ]
+    },
+    {
+     "de": "Wie heißen die Teile der Getreidepflanze? Schreibe das Wort.",
+     "ar": "ما أسماء أجزاء نبتة الحبوب؟ اكتب الكلمة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Der lange, dünne Stängel heißt ___.",
+       "a": [
+        "Halm"
+       ],
+       "qa": "الساق الطويلة الرفيعة اسمها…",
+       "w": "der Halm: الساق الطويلة الرفيعة للنبتة."
+      },
+      {
+       "q": "Die dicken Stellen am Halm heißen ___.",
+       "a": [
+        "Knoten"
+       ],
+       "qa": "الأماكن السميكة على الساق اسمها…",
+       "w": "der Knoten: العقدة، وهي المكان السميك على الساق."
+      },
+      {
+       "q": "Oben am Halm sitzt die ___ mit den Körnern.",
+       "a": [
+        "Ähre"
+       ],
+       "qa": "في أعلى الساق توجد … وفيها الحبوب.",
+       "w": "die Ähre: السنبلة، وفيها الحبوب."
+      },
+      {
+       "q": "Die langen Haare an der Ähre heißen ___.",
+       "a": [
+        "Grannen",
+        "Granne"
+       ],
+       "qa": "الشعيرات الطويلة على السنبلة اسمها…",
+       "w": "die Granne: الشعيرة الطويلة على السنبلة (الجمع: die Grannen)."
+      },
+      {
+       "q": "Unten in der Erde ist die ___.",
+       "a": [
+        "Wurzel"
+       ],
+       "qa": "في الأسفل داخل التربة يوجد…",
+       "w": "die Wurzel: الجذر، وهو في التربة."
+      },
+      {
+       "q": "Am Halm wachsen die grünen ___.",
+       "a": [
+        "Blätter",
+        "Blatt"
+       ],
+       "qa": "على الساق تنمو … الخضراء.",
+       "w": "das Blatt: الورقة (الجمع: die Blätter)."
+      }
+     ]
+    },
+    {
+     "de": "Das Korn: Ergänze das fehlende Wort.",
+     "ar": "حبّة الحبوب: أكمل الكلمة الناقصة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Das Innere des Korns nennt man ___.",
+       "a": [
+        "Mehlkörper"
+       ],
+       "qa": "داخل الحبّة اسمه…",
+       "w": "der Mehlkörper: داخل الحبّة، ومنه يُصنع الطحين الأبيض."
+      },
+      {
+       "q": "Aus dem ___ wächst die neue Pflanze.",
+       "a": [
+        "Keimling"
+       ],
+       "qa": "من … تنمو النبتة الجديدة.",
+       "w": "der Keimling: الجنين، في الطرف السميك من الحبّة، ومنه تنمو النبتة الجديدة."
+      },
+      {
+       "q": "Die Schalen enthalten Vitamine und ___.",
+       "a": [
+        "Mineralstoffe"
+       ],
+       "qa": "القشور فيها فيتامينات و…",
+       "w": "قشور الحبّة (Frucht- und Samenschale) فيها الفيتامينات والمعادن: Mineralstoffe."
+      },
+      {
+       "q": "Wird nur der Mehlkörper gemahlen, erhält man ___.",
+       "a": [
+        "Weißmehl"
+       ],
+       "qa": "إذا طُحن داخل الحبّة فقط نحصل على…",
+       "w": "طحن داخل الحبّة فقط يعطي الطحين الأبيض: das Weißmehl."
+      },
+      {
+       "q": "Wird das ganze Korn gemahlen, erhält man ___.",
+       "a": [
+        "Vollkornmehl"
+       ],
+       "qa": "إذا طُحنت الحبّة كلها نحصل على…",
+       "w": "طحن الحبّة كلها يعطي طحين القمح الكامل: das Vollkornmehl."
+      },
+      {
+       "q": "Beim Weißmehl fehlen die Schalen und der ___.",
+       "a": [
+        "Keimling"
+       ],
+       "qa": "في الطحين الأبيض تنقص القشور و…",
+       "w": "الطحين الأبيض من داخل الحبّة فقط، فتنقصه القشور والجنين (der Keimling)، ولذلك طحين القمح الكامل أفيد للصحة."
+      }
+     ]
+    },
+    {
+     "de": "Anbau und Ernte: Ergänze das fehlende Wort.",
+     "ar": "الزراعة والحصاد: أكمل الكلمة الناقصة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Mit einem ___ wird der Boden umgegraben.",
+       "a": [
+        "Pflug"
+       ],
+       "qa": "بـ… تُقلب التربة (تُحرث).",
+       "w": "der Pflug: المحراث، به تُحرث الأرض."
+      },
+      {
+       "q": "Früher zogen Pferde den Pflug, heute macht das ein ___.",
+       "a": [
+        "Traktor"
+       ],
+       "qa": "قديمًا كانت الخيول تجرّ المحراث، واليوم يفعل ذلك…",
+       "w": "der Traktor: التراكتور، يجرّ المحراث اليوم."
+      },
+      {
+       "q": "Die Samen in den Boden legen heißt ___.",
+       "a": [
+        "Aussaat"
+       ],
+       "qa": "وضع البذور في التربة اسمه…",
+       "w": "die Aussaat: البَذْر، أي وضع البذور في الأرض."
+      },
+      {
+       "q": "Früher schnitt man die Halme mit einer ___.",
+       "a": [
+        "Sense"
+       ],
+       "qa": "قديمًا كانوا يقطعون السيقان بـ…",
+       "w": "die Sense: المنجل الكبير، كانوا يحصدون به باليد."
+      },
+      {
+       "q": "Die Körner werden aus den Ähren geschlagen: Das Getreide wird ___.",
+       "a": [
+        "gedroschen"
+       ],
+       "qa": "تُضرب الحبوب لتخرج من السنابل: الحبوب …",
+       "w": "dreschen ← gedroschen: الدَّرْس، أي إخراج الحبوب من السنابل."
+      },
+      {
+       "q": "Heute mäht, drischt und reinigt eine Maschine alles: der ___.",
+       "a": [
+        "Mähdrescher"
+       ],
+       "qa": "اليوم آلة واحدة تحصد وتدرس وتنظّف كل شيء: …",
+       "w": "der Mähdrescher: الحصّادة الدرّاسة، تعمل كل الخطوات معًا."
+      }
+     ]
+    },
+    {
+     "de": "Vom Korn zum Brot: Ergänze das fehlende Wort.",
+     "ar": "من الحبّة إلى الخبز: أكمل الكلمة الناقصة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Nach der Ernte bringt man die Körner zu einer ___.",
+       "a": [
+        "Mühle"
+       ],
+       "qa": "بعد الحصاد تُؤخذ الحبوب إلى…",
+       "w": "die Mühle: المطحنة."
+      },
+      {
+       "q": "Der ___ mahlt die Körner zu Mehl.",
+       "a": [
+        "Müller"
+       ],
+       "qa": "… يطحن الحبوب فتصير طحينًا.",
+       "w": "der Müller: الطحّان."
+      },
+      {
+       "q": "Aus Mehl, Salz, Hefe, Öl und Wasser macht der Bäcker den ___.",
+       "a": [
+        "Teig",
+        "Brotteig"
+       ],
+       "qa": "من الطحين والملح والخميرة والزيت والماء يصنع الخبّاز…",
+       "w": "der Teig (der Brotteig): العجين."
+      },
+      {
+       "q": "Der ___ backt das Brot im Ofen.",
+       "a": [
+        "Bäcker"
+       ],
+       "qa": "… يخبز الخبز في الفرن.",
+       "w": "der Bäcker: الخبّاز."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k3-kartoffel-2",
+   "c": "k3",
+   "sub": "Sachunterricht",
+   "ti": "Die Kartoffel",
+   "tar": "البطاطا",
+   "ex": [
+    {
+     "de": "Die Geschichte der Kartoffel: Ergänze das fehlende Wort.",
+     "ar": "قصة البطاطا: أكمل الكلمة الناقصة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Vor 2000 Jahren bauten die ___ in Peru Kartoffeln an.",
+       "a": [
+        "Inkas",
+        "Inka"
+       ],
+       "qa": "قبل 2000 سنة زرع … البطاطا في بيرو.",
+       "w": "die Inkas: شعب الإنكا في بيرو، زرعوا البطاطا قبل 2000 سنة."
+      },
+      {
+       "q": "Die Inkas lebten in ___.",
+       "a": [
+        "Peru"
+       ],
+       "qa": "عاش الإنكا في…",
+       "w": "Peru: بيرو، بلد في أمريكا الجنوبية."
+      },
+      {
+       "q": "Die Kartoffel kam durch die ___ nach Europa.",
+       "a": [
+        "Spanier"
+       ],
+       "qa": "وصلت البطاطا إلى أوروبا عن طريق…",
+       "w": "die Spanier: الإسبان، أحضروها في القرن السادس عشر."
+      },
+      {
+       "q": "Die Kartoffel kam auf dem ___ nach Europa.",
+       "a": [
+        "Seeweg"
+       ],
+       "qa": "وصلت البطاطا إلى أوروبا عن طريق…",
+       "w": "der Seeweg: طريق البحر، أي بالسفن."
+      },
+      {
+       "q": "Sie kam im ___. Jahrhundert nach Europa.",
+       "a": [
+        "16",
+        "sechzehnten"
+       ],
+       "qa": "وصلت إلى أوروبا في القرن…",
+       "w": "im 16. Jahrhundert: في القرن السادس عشر."
+      },
+      {
+       "q": "Lange wuchs die Kartoffelpflanze in Gärten wegen ihrer schönen ___.",
+       "a": [
+        "Blüten"
+       ],
+       "qa": "زُرعت نبتة البطاطا طويلًا في الحدائق بسبب … الجميلة.",
+       "w": "die Blüten: الأزهار؛ كانت نبتة زينة قبل أن تصير طعامًا."
+      },
+      {
+       "q": "Die Kartoffelfelder ließ der ___ bewachen.",
+       "a": [
+        "Preußenkönig",
+        "König",
+        "Alte Fritz",
+        "der Alte Fritz",
+        "Friedrich",
+        "Friedrich der Große"
+       ],
+       "qa": "جعل … حقول البطاطا محروسة.",
+       "w": "ملك بروسيا (der Preußenkönig، ويُسمّى der Alte Fritz) جعل الجنود يحرسون حقول البطاطا، فظنّها الفلاحون ثمينة."
+      },
+      {
+       "q": "Die Felder wurden von ___ bewacht.",
+       "a": [
+        "Soldaten"
+       ],
+       "qa": "كانت الحقول يحرسها…",
+       "w": "die Soldaten: الجنود."
+      },
+      {
+       "q": "Die Bauern dachten: Die Kartoffeln sind ___.",
+       "a": [
+        "wertvoll"
+       ],
+       "qa": "ظنّ الفلاحون أن البطاطا…",
+       "w": "wertvoll: ثمينة؛ لأنها محروسة، فأخذوها وزرعوها بأنفسهم."
+      }
+     ]
+    },
+    {
+     "de": "Die Kartoffelpflanze: Ergänze das fehlende Wort.",
+     "ar": "نبتة البطاطا: أكمل الكلمة الناقصة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Welchen Teil der Kartoffelpflanze essen wir? Die ___.",
+       "a": [
+        "Knolle",
+        "Kartoffel",
+        "Kartoffelknolle"
+       ],
+       "qa": "أي جزء من نبتة البطاطا نأكل؟",
+       "w": "نأكل الدرنة التي تنمو تحت الأرض: die Knolle (die Kartoffel)."
+      },
+      {
+       "q": "Aus den Augen der Kartoffel wachsen kleine weiße ___.",
+       "a": [
+        "Triebe"
+       ],
+       "qa": "من عيون البطاطا تنمو … بيضاء صغيرة.",
+       "w": "die Triebe: البراعم."
+      },
+      {
+       "q": "Die Kartoffel, die man in die Erde legt, heißt ___.",
+       "a": [
+        "Pflanzkartoffel"
+       ],
+       "qa": "البطاطا التي توضع في التربة اسمها…",
+       "w": "die Pflanzkartoffel: بطاطا الزراعة (البذار)."
+      },
+      {
+       "q": "Neue Kartoffeln wachsen am Ende der ___.",
+       "a": [
+        "Tragfäden"
+       ],
+       "qa": "البطاطا الجديدة تنمو في نهاية…",
+       "w": "die Tragfäden: الخيوط تحت الأرض، وفي نهايتها تتكوّن البطاطا الجديدة."
+      },
+      {
+       "q": "Die grünen Beeren sind ___.",
+       "a": [
+        "giftig"
+       ],
+       "qa": "الثمار الخضراء…",
+       "w": "giftig: سامّة. كل أجزاء النبتة فوق الأرض سامّة."
+      },
+      {
+       "q": "Alle Teile über der Erde sind ___.",
+       "a": [
+        "giftig"
+       ],
+       "qa": "كل الأجزاء فوق الأرض…",
+       "w": "giftig: سامّة؛ لا نأكل إلا البطاطا التي تحت الأرض."
+      },
+      {
+       "q": "Kartoffeln lagert man kühl und ___.",
+       "a": [
+        "dunkel"
+       ],
+       "qa": "تُحفظ البطاطا في مكان بارد و…",
+       "w": "dunkel: مظلم."
+      },
+      {
+       "q": "Welcher Käfer frisst die Blätter der Kartoffel? Der ___.",
+       "a": [
+        "Kartoffelkäfer"
+       ],
+       "qa": "أي خنفساء تأكل أوراق البطاطا؟",
+       "w": "der Kartoffelkäfer: خنفساء البطاطا."
+      },
+      {
+       "q": "Nenne eine Blütenfarbe der Kartoffelpflanze.",
+       "a": [
+        "lila",
+        "weiß",
+        "violett",
+        "rosa"
+       ],
+       "qa": "اذكر لونًا من ألوان زهر البطاطا.",
+       "w": "زهر البطاطا يكون مثلًا lila (بنفسجي) أو weiß (أبيض)."
+      },
+      {
+       "q": "Es gibt festkochende, vorwiegend festkochende und ___ Kartoffeln.",
+       "a": [
+        "mehligkochende",
+        "mehlig kochende",
+        "mehlige"
+       ],
+       "qa": "يوجد بطاطا صلبة، وصلبة غالبًا، و…",
+       "w": "mehligkochend: بطاطا تصير طرية كالطحين عند الطبخ."
+      }
+     ]
+    },
+    {
+     "de": "Nenne ein Nahrungsmittel aus Kartoffeln.",
+     "ar": "اذكر طعامًا مصنوعًا من البطاطا.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Nahrungsmittel aus Kartoffeln (1)",
+       "a": [
+        "Pommes",
+        "Pommes frites",
+        "Chips",
+        "Kartoffelchips",
+        "Kartoffelpüree",
+        "Püree",
+        "Kartoffelsalat",
+        "Kartoffelsuppe",
+        "Kartoffelknödel",
+        "Knödel",
+        "Klöße",
+        "Kartoffelklöße",
+        "Bratkartoffeln",
+        "Kartoffelpuffer",
+        "Reibekuchen",
+        "Rösti",
+        "Salzkartoffeln",
+        "Pellkartoffeln",
+        "Kartoffelbrei",
+        "Gratin",
+        "Kartoffelgratin"
+       ],
+       "qa": "طعام من البطاطا",
+       "w": "مثلًا: Pommes، Kartoffelchips، Kartoffelpüree، Kartoffelsalat، Kartoffelsuppe، Kartoffelknödel، Bratkartoffeln."
+      },
+      {
+       "q": "Nahrungsmittel aus Kartoffeln (2)",
+       "a": [
+        "Pommes",
+        "Pommes frites",
+        "Chips",
+        "Kartoffelchips",
+        "Kartoffelpüree",
+        "Püree",
+        "Kartoffelsalat",
+        "Kartoffelsuppe",
+        "Kartoffelknödel",
+        "Knödel",
+        "Klöße",
+        "Kartoffelklöße",
+        "Bratkartoffeln",
+        "Kartoffelpuffer",
+        "Reibekuchen",
+        "Rösti",
+        "Salzkartoffeln",
+        "Pellkartoffeln",
+        "Kartoffelbrei",
+        "Gratin",
+        "Kartoffelgratin"
+       ],
+       "qa": "طعام من البطاطا",
+       "w": "مثلًا: Pommes، Kartoffelchips، Kartoffelpüree، Kartoffelsalat، Kartoffelsuppe، Kartoffelknödel، Bratkartoffeln."
+      },
+      {
+       "q": "Nahrungsmittel aus Kartoffeln (3)",
+       "a": [
+        "Pommes",
+        "Pommes frites",
+        "Chips",
+        "Kartoffelchips",
+        "Kartoffelpüree",
+        "Püree",
+        "Kartoffelsalat",
+        "Kartoffelsuppe",
+        "Kartoffelknödel",
+        "Knödel",
+        "Klöße",
+        "Kartoffelklöße",
+        "Bratkartoffeln",
+        "Kartoffelpuffer",
+        "Reibekuchen",
+        "Rösti",
+        "Salzkartoffeln",
+        "Pellkartoffeln",
+        "Kartoffelbrei",
+        "Gratin",
+        "Kartoffelgratin"
+       ],
+       "qa": "طعام من البطاطا",
+       "w": "مثلًا: Pommes، Kartoffelchips، Kartoffelpüree، Kartoffelsalat، Kartoffelsuppe، Kartoffelknödel، Bratkartoffeln."
+      }
+     ]
+    }
+   ]
   }
  ]
 }
