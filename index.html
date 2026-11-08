@@ -599,7 +599,7 @@ body.fbon main{padding-bottom:210px}
 .mtIn2 i{font-style:normal;font-size:1.3rem;color:var(--muted)}.mtIn2 input.ok{border-color:#58cc02;background:rgba(88,204,2,.12)}.mtIn2 input.bad{border-color:var(--red);background:rgba(255,75,75,.1)}
 .mtFb{border-radius:14px;padding:12px 14px;margin:6px 0 12px;line-height:1.9}.mtFb.ok{background:rgba(88,204,2,.15);color:#58cc02;font-weight:800;text-align:center;font-size:1.15rem}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
-.mtTrB{background:var(--soft);color:var(--hd);padding:6px 14px;font-size:.9rem;margin-top:6px}.mtTrB.on{background:#1cb0f6;color:#fff}.mtNb{font-weight:800}.mtAdmS{border-top:1px solid var(--line);padding:8px 0}.mtAdmS .h{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;justify-content:space-between}.mtAdmS small{color:var(--muted)}.mtBads{margin:6px 0}.mtBad{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--line);font-size:.95rem}.mtBad .q{flex:1 1 100%;text-align:left}.mtBad .v{color:var(--red);font-weight:800;direction:ltr}.mtBad .c{color:#58cc02;font-weight:800;direction:ltr}.mtGo{width:100%;font-size:1.15rem}.mtEnd{text-align:center}.mtEnd .big{font-size:3.5rem}.mtEnd .t{font-size:1.4rem;font-weight:900;color:var(--hd)}.mtEnd .sc{font-size:2.4rem;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#7c4dff,#1cb0f6);-webkit-background-clip:text;background-clip:text;color:transparent}.mtEnd .a{color:var(--muted);margin-bottom:14px}
+.mtTrB{background:var(--soft);color:var(--hd);padding:6px 14px;font-size:.9rem;margin-top:6px}.mtTrB.on{background:#1cb0f6;color:#fff}.mtNb{font-weight:800}.mtGo2{width:100%;margin-top:10px;background:var(--soft);color:var(--hd)}.mtWi{text-align:right;border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}.mtWi .q{font-weight:900;color:var(--hd);text-align:left;margin-bottom:4px}.mtAdmS{border-top:1px solid var(--line);padding:8px 0}.mtAdmS .h{display:flex;flex-wrap:wrap;gap:6px;align-items:baseline;justify-content:space-between}.mtAdmS small{color:var(--muted)}.mtBads{margin:6px 0}.mtBad{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--line);font-size:.95rem}.mtBad .q{flex:1 1 100%;text-align:left}.mtBad .v{color:var(--red);font-weight:800;direction:ltr}.mtBad .c{color:#58cc02;font-weight:800;direction:ltr}.mtGo{width:100%;font-size:1.15rem}.mtEnd{text-align:center}.mtEnd .big{font-size:3.5rem}.mtEnd .t{font-size:1.4rem;font-weight:900;color:var(--hd)}.mtEnd .sc{font-size:2.4rem;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#7c4dff,#1cb0f6);-webkit-background-clip:text;background-clip:text;color:transparent}.mtEnd .a{color:var(--muted);margin-bottom:14px}
 /* القراءة */
 .rdList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .rdItem{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:start;width:100%;font:inherit;color:inherit;cursor:pointer}
@@ -3932,26 +3932,32 @@ function renderMath(){
     el.querySelectorAll(".mtCard").forEach(b=>b.onclick=()=>{MTO=b.dataset.id;renderMath();scrollTo(0,0)});return}
   const F=mtFlat(s),T=F.length,ss=S[s.id]||(S[s.id]={i:0,r:{}}),i=Math.min(ss.i||0,T);
   const head=`<div class="mhead"><h2 dir="ltr" style="font-size:1.1rem">${esc(s.ti)}</h2><button class="btn" id="mtBack">رجوع</button></div>`;
-  if(i>=T){const g=Object.values(ss.r||{}).filter(v=>v.ok).length;
+  // إعادة الأسئلة الخاطئة فقط: ss.q قائمة أرقامها، وss.qi موضعه فيها
+  const rq=Array.isArray(ss.q)&&ss.qi<ss.q.length;
+  if(i>=T&&!rq){const g=Object.values(ss.r||{}).filter(v=>v.ok).length,W=F.map((q,k)=>[q,k]).filter(([q,k])=>ss.r[k]&&!ss.r[k].ok);
     el.innerHTML=head+`<div class="mtBox mtEnd"><div class="big">${g===T?"🏆":"🎉"}</div><div class="t">أنهيت الورقة!</div><div class="sc">${mtNum(g)} / ${mtNum(T)}</div><div class="a">إجابة صحيحة</div>
-      <button class="btn next" id="mtAgain">🔁 حلّها من جديد</button></div>`;
-    $("mtBack").onclick=()=>mtBack();$("mtAgain").onclick=()=>{S[s.id]={i:0,r:{}};mtSave(S);renderMath()};return}
-  const q=F[i],done=ss.r[i];
-  el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round(i/T*100)}%"></i></div><p class="rnote" style="text-align:center">السؤال ${mtNum(i+1)} من ${mtNum(T)}</p>
+      ${W.length?`<button class="btn next mtGo" id="mtRetry">🔁 أعد الأسئلة التي أخطأت فيها (${mtNum(W.length)})</button><button class="btn mtGo2" id="mtShowW">📋 اعرض أخطائي</button><div id="mtWl" hidden>${W.map(([q,k])=>`<div class="mtWi"><div class="q" dir="ltr">${mtQ(q.it.q)}</div>${mtFb(q,ss.r[k])}</div>`).join("")}</div>`:""}
+      <button class="btn mtGo2" id="mtAgain">↺ حلّها كلها من جديد</button></div>`;
+    $("mtBack").onclick=()=>mtBack();
+    if(W.length){$("mtRetry").onclick=()=>{ss.q=W.map(([q,k])=>k);ss.qi=0;W.forEach(([q,k])=>delete ss.r[k]);mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
+      $("mtShowW").onclick=()=>{const l=$("mtWl");l.hidden=!l.hidden;$("mtShowW").textContent=l.hidden?"📋 اعرض أخطائي":"📋 أخفِ أخطائي"}}
+    $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{}};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
+  const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci];
+  el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round((rq?ss.qi/ss.q.length:i/T)*100)}%"></i></div><p class="rnote" style="text-align:center">${rq?`🔁 إعادة الخطأ ${mtNum(ss.qi+1)} من ${mtNum(ss.q.length)}`:`السؤال ${mtNum(i+1)} من ${mtNum(T)}`}</p>
    <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar mtTr" hidden>${esc(q.e.ar)}</div></div></div>
     <div class="mtQq${q.it.q.length>26?" long":""}" dir="ltr">${mtQ(q.it.q)}</div>${q.it.qa?`<div class="mtQa mtTr" hidden>${esc(q.it.qa)}</div>`:""}
     <div style="text-align:center"><button class="btn mtTrB" id="mtTrB">🌐 الترجمة</button></div>
     <div class="mtIn2"><input id="mtInp" dir="ltr" ${q.e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} ${done?"disabled":""} value="${esc(done?done.v:"")}" class="${done?(done.ok?"ok":"bad"):""}">${q.it.u?`<i>${esc(q.it.u)}</i>`:""}</div>
     <div id="mtFb">${done?mtFb(q,done):""}</div>
-    ${done?`<button class="btn next mtGo" id="mtNext">${i+1<T?"التالي ←":"النتيجة 🏆"}</button>`:`<button class="btn next mtGo" id="mtChk">تحقّق ✓</button>`}</div>`;
+    ${done?`<button class="btn next mtGo" id="mtNext">${(rq?ss.qi+1<ss.q.length:i+1<T)?"التالي ←":"النتيجة 🏆"}</button>`:`<button class="btn next mtGo" id="mtChk">تحقّق ✓</button>`}</div>`;
   $("mtBack").onclick=()=>mtBack();
   // الترجمة مخفية في كل سؤال، ويُظهرها الولد إن احتاج
   $("mtTrB").onclick=()=>{const T=el.querySelectorAll(".mtTr"),on=T[0]&&T[0].hidden;T.forEach(x=>x.hidden=!on);$("mtTrB").classList.toggle("on",on)};
   const inp=$("mtInp");
   if(!done){if(!hasNative())setTimeout(()=>inp.focus(),50);inp.onkeydown=e=>{if(e.key==="Enter")$("mtChk").click()};
     $("mtChk").onclick=()=>{const v=inp.value.trim();if(!mtNorm(v)){inp.classList.add("bad");setTimeout(()=>inp.classList.remove("bad"),400);return}
-      const ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v)||mtNorm(a)===mtNorm(mtPron(v)));ss.r[i]={v,ok};mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()}}
-  else $("mtNext").onclick=()=>{ss.i=i+1;mtSave(S);mtPush(s.id,ss);if(ss.i>=T)fx("done");renderMath();scrollTo(0,0)};
+      const ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v)||mtNorm(a)===mtNorm(mtPron(v)));ss.r[ci]={v,ok};mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()}}
+  else $("mtNext").onclick=()=>{if(rq){ss.qi++;if(ss.qi>=ss.q.length){delete ss.q;delete ss.qi;fx("done")}}else{ss.i=i+1;if(ss.i>=T)fx("done")}mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
 }
 function mtFb(q,d){
   if(d.ok)return `<div class="mtFb ok">✅ أحسنت! جوابك صحيح.</div>`;
