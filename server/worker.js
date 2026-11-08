@@ -1330,6 +1330,10 @@ async function handleRd(fs, user, body, env) {
     await fs.commit([Object.keys(nd).length ? { path: `rd/${u}`, data: nd } : { path: `rd/${u}`, del: true }]);
     return { status: 200, json: { ok: true, left: rdGroups(nd).length } };
   }
+  if (op === "reset") {   // تصفير تقدّم المتعلّم في المجموعة: يبدأها من أوّل جملة
+    if (!g) return { status: 404, json: { error: "nog" } };
+    await fs.commit([{ path: `rd/${u}`, data: { ["p_" + id]: 0 }, merge: true }]); return { status: 200, json: { ok: true } };
+  }
   if (op === "vis") {   // إظهار المجموعة للمتعلّم أو إخفاؤها
     if (!g) return { status: 404, json: { error: "nog" } };
     await fs.commit([{ path: `rd/${u}`, data: { ["g_" + id]: { ...g, h: body.h ? 1 : 0 } }, merge: true }]); return { status: 200, json: { ok: true, h: body.h ? 1 : 0 } };

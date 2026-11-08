@@ -3745,7 +3745,7 @@ async function rdAdm(uid,edit){
   if(!box.isConnected)return;const $=id=>box.querySelector("#"+id);
   box.innerHTML=`<h3>${I3("book")} القراءة</h3>
    <p class="rnote">مجموعات جمل يقرؤها جملةً جملة بصوت ألماني، ويضغط «التالية». تظهر له وحده، ولا يراها أي حساب آخر.</p>
-   ${L.map(g=>`<div class="rdRow${g.h?" hid":""}"><b>${g.h?"🙈 ":""}${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-vis="${esc(g.id)}" data-h="${g.h?0:1}">${g.h?"✅ إظهار له":"🙈 إخفاء عنه"}</button><button class="btn" data-pv="${esc(g.id)}">👁 معاينة</button><button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
+   ${L.map(g=>`<div class="rdRow${g.h?" hid":""}"><b>${g.h?"🙈 ":""}${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-vis="${esc(g.id)}" data-h="${g.h?0:1}">${g.h?"✅ إظهار له":"🙈 إخفاء عنه"}</button><button class="btn" data-pv="${esc(g.id)}">👁 معاينة</button>${g.p>0?`<button class="btn" data-rs="${esc(g.id)}">↺ من الأوّل</button>`:""}<button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
    ${ed?`<div class="rdAdm" style="margin-top:10px"><input id="rdTi" maxlength="80" placeholder="العنوان (مثلًا: Der Wunschstern)" value="${esc(ed.ti)}">
      <textarea id="rdTx" placeholder="اكتب الجمل أو الصقها هنا. تُقسم عند . ! ? وعند كل سطر جديد.">${esc(ed.txt)}</textarea>
      <p class="rnote" id="rdCnt"></p>
@@ -3753,6 +3753,10 @@ async function rdAdm(uid,edit){
      <div class="rdNav"><button class="btn" id="rdCancel">إلغاء</button><button class="btn next" id="rdSave">حفظ</button></div><div class="stmsg" id="rdMsg"></div></div>`
    :`<button class="btn" id="rdNew" style="width:100%;margin-top:8px">＋ مجموعة جديدة</button>`}`;
   box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>rdAdm(uid,b.dataset.ed));
+  // تصفير تقدّمه في المجموعة: كأنه لم يقرأ منها شيئًا
+  box.querySelectorAll("[data-rs]").forEach(b=>b.onclick=async()=>{const g=L.find(x=>x.id===b.dataset.rs);
+    if(!await uiConfirm("يبدأ «"+(g?g.ti:"")+"» من الجملة الأولى من جديد؟"))return;b.disabled=true;
+    try{await apiPost("/rd",{op:"reset",u:uid,id:b.dataset.rs});toast("↺","رجعت من الأوّل",g?g.ti:"");rdAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر التغيير")}});
   // إظهار المجموعة للمتعلّم أو إخفاؤها (حين ينهي دراستها)
   box.querySelectorAll("[data-vis]").forEach(b=>b.onclick=async()=>{b.disabled=true;
     try{await apiPost("/rd",{op:"vis",u:uid,id:b.dataset.vis,h:b.dataset.h==="1"});toast(b.dataset.h==="1"?"🙈":"✅",b.dataset.h==="1"?"أُخفيت عنه":"صارت ظاهرة له","");rdAdm(uid)}catch(e){b.disabled=false;uiAlert("تعذّر التغيير")}});
