@@ -309,8 +309,8 @@
    "tar": "أداة التعريف وأداة التنكير",
    "ex": [
     {
-     "de": "Schreibe den bestimmten Artikel: der, die oder das.",
-     "ar": "اكتب أداة التعريف: der أو die أو das.",
+     "de": "Wähle den bestimmten Artikel: der, die oder das.",
+     "ar": "اختر أداة التعريف: der أو die أو das.",
      "t": "w",
      "items": [
       {
@@ -425,11 +425,16 @@
        "qa": "تلسكوب، منظار",
        "w": "Teleskop محايد، فأداة التعريف له das: das Teleskop."
       }
+     ],
+     "ch": [
+      "der",
+      "die",
+      "das"
      ]
     },
     {
-     "de": "Schreibe den unbestimmten Artikel: ein oder eine.",
-     "ar": "اكتب أداة التنكير: ein أو eine.",
+     "de": "Wähle den unbestimmten Artikel: ein oder eine.",
+     "ar": "اختر أداة التنكير: ein أو eine.",
      "t": "w",
      "items": [
       {
@@ -520,11 +525,15 @@
        "qa": "عين",
        "w": "Auge محايد (das Auge)، فأداة التنكير له ein: ein Auge. للمذكّر والمحايد ein، وللمؤنث eine."
       }
+     ],
+     "ch": [
+      "ein",
+      "eine"
      ]
     },
     {
-     "de": "Bestimmter oder unbestimmter Artikel? Setze ein.",
-     "ar": "أداة تعريف أم أداة تنكير؟ اكتب الأداة المناسبة.",
+     "de": "Bestimmter oder unbestimmter Artikel? Wähle.",
+     "ar": "أداة تعريف أم أداة تنكير؟ اختر الأداة المناسبة.",
      "t": "w",
      "items": [
       {
@@ -575,6 +584,13 @@
        "qa": "تجد صوفي صديقة. اسم الصديقة ليا.",
        "w": "الصديقة ذُكرت قبلها (eine Freundin)، فصارت معروفة: die Freundin."
       }
+     ],
+     "ch": [
+      "der",
+      "die",
+      "das",
+      "ein",
+      "eine"
      ]
     }
    ]
@@ -658,8 +674,8 @@
      ]
     },
     {
-     "de": "Schreibe den bestimmten Artikel im richtigen Fall.",
-     "ar": "اكتب أداة التعريف في الحالة الصحيحة.",
+     "de": "Wähle den bestimmten Artikel im richtigen Fall.",
+     "ar": "اختر أداة التعريف في الحالة الصحيحة.",
      "t": "w",
      "items": [
       {
@@ -854,6 +870,14 @@
        "qa": "ضوء",
        "w": "Licht محايد، وأداته في الحالات الأربع: das Licht – des Lichts – dem Licht – das Licht."
       }
+     ],
+     "ch": [
+      "der",
+      "die",
+      "das",
+      "des",
+      "dem",
+      "den"
      ]
     },
     {
