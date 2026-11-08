@@ -298,6 +298,1070 @@
       }
      ]
     }
+   ],
+   "sub": "Mathe"
+  },
+  {
+   "id": "k4-artikel-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Bestimmte und unbestimmte Artikel",
+   "tar": "أداة التعريف وأداة التنكير",
+   "ex": [
+    {
+     "de": "Schreibe den bestimmten Artikel: der, die oder das.",
+     "ar": "اكتب أداة التعريف: der أو die أو das.",
+     "t": "w",
+     "items": [
+      {
+       "q": "___ Stern",
+       "a": [
+        "der"
+       ],
+       "qa": "نجم",
+       "w": "Stern مذكّر، فأداة التعريف له der: der Stern."
+      },
+      {
+       "q": "___ Nacht",
+       "a": [
+        "die"
+       ],
+       "qa": "ليل، ليلة",
+       "w": "Nacht مؤنث، فأداة التعريف له die: die Nacht."
+      },
+      {
+       "q": "___ Licht",
+       "a": [
+        "das"
+       ],
+       "qa": "ضوء",
+       "w": "Licht محايد، فأداة التعريف له das: das Licht."
+      },
+      {
+       "q": "___ Mädchen",
+       "a": [
+        "das"
+       ],
+       "qa": "بنت، فتاة",
+       "w": "Mädchen محايد دائمًا، لأن الأسماء المنتهية بـ ‎-chen‎ محايدة، مع أن المقصود بنت: das Mädchen."
+      },
+      {
+       "q": "___ Fenster",
+       "a": [
+        "das"
+       ],
+       "qa": "شبّاك، نافذة",
+       "w": "Fenster محايد، فأداة التعريف له das: das Fenster."
+      },
+      {
+       "q": "___ Himmel",
+       "a": [
+        "der"
+       ],
+       "qa": "سماء",
+       "w": "Himmel مذكّر، فأداة التعريف له der: der Himmel."
+      },
+      {
+       "q": "___ Bett",
+       "a": [
+        "das"
+       ],
+       "qa": "سرير",
+       "w": "Bett محايد، فأداة التعريف له das: das Bett."
+      },
+      {
+       "q": "___ Planet",
+       "a": [
+        "der"
+       ],
+       "qa": "كوكب",
+       "w": "Planet مذكّر، فأداة التعريف له der: der Planet."
+      },
+      {
+       "q": "___ Freundin",
+       "a": [
+        "die"
+       ],
+       "qa": "صديقة",
+       "w": "Freundin مؤنث، فأداة التعريف له die: die Freundin."
+      },
+      {
+       "q": "___ Rakete",
+       "a": [
+        "die"
+       ],
+       "qa": "صاروخ",
+       "w": "Rakete مؤنث، فأداة التعريف له die: die Rakete."
+      },
+      {
+       "q": "___ Helm",
+       "a": [
+        "der"
+       ],
+       "qa": "خوذة",
+       "w": "Helm مذكّر، فأداة التعريف له der: der Helm."
+      },
+      {
+       "q": "___ Kugel",
+       "a": [
+        "die"
+       ],
+       "qa": "كرة",
+       "w": "Kugel مؤنث، فأداة التعريف له die: die Kugel."
+      },
+      {
+       "q": "___ Auge",
+       "a": [
+        "das"
+       ],
+       "qa": "عين",
+       "w": "Auge محايد، فأداة التعريف له das: das Auge."
+      },
+      {
+       "q": "___ Teleskop",
+       "a": [
+        "das"
+       ],
+       "qa": "تلسكوب، منظار",
+       "w": "Teleskop محايد، فأداة التعريف له das: das Teleskop."
+      }
+     ]
+    },
+    {
+     "de": "Schreibe den unbestimmten Artikel: ein oder eine.",
+     "ar": "اكتب أداة التنكير: ein أو eine.",
+     "t": "w",
+     "items": [
+      {
+       "q": "___ Stern",
+       "a": [
+        "ein"
+       ],
+       "qa": "نجم",
+       "w": "Stern مذكّر (der Stern)، فأداة التنكير له ein: ein Stern. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Nacht",
+       "a": [
+        "eine"
+       ],
+       "qa": "ليل، ليلة",
+       "w": "Nacht مؤنث (die Nacht)، فأداة التنكير له eine: eine Nacht. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Licht",
+       "a": [
+        "ein"
+       ],
+       "qa": "ضوء",
+       "w": "Licht محايد (das Licht)، فأداة التنكير له ein: ein Licht. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Blitz",
+       "a": [
+        "ein"
+       ],
+       "qa": "برق",
+       "w": "Blitz مذكّر (der Blitz)، فأداة التنكير له ein: ein Blitz. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Planet",
+       "a": [
+        "ein"
+       ],
+       "qa": "كوكب",
+       "w": "Planet مذكّر (der Planet)، فأداة التنكير له ein: ein Planet. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Freundin",
+       "a": [
+        "eine"
+       ],
+       "qa": "صديقة",
+       "w": "Freundin مؤنث (die Freundin)، فأداة التنكير له eine: eine Freundin. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Haus",
+       "a": [
+        "ein"
+       ],
+       "qa": "بيت",
+       "w": "Haus محايد (das Haus)، فأداة التنكير له ein: ein Haus. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Buch",
+       "a": [
+        "ein"
+       ],
+       "qa": "كتاب",
+       "w": "Buch محايد (das Buch)، فأداة التنكير له ein: ein Buch. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Kugel",
+       "a": [
+        "eine"
+       ],
+       "qa": "كرة",
+       "w": "Kugel مؤنث (die Kugel)، فأداة التنكير له eine: eine Kugel. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Flagge",
+       "a": [
+        "eine"
+       ],
+       "qa": "علم",
+       "w": "Flagge مؤنث (die Flagge)، فأداة التنكير له eine: eine Flagge. للمذكّر والمحايد ein، وللمؤنث eine."
+      },
+      {
+       "q": "___ Auge",
+       "a": [
+        "ein"
+       ],
+       "qa": "عين",
+       "w": "Auge محايد (das Auge)، فأداة التنكير له ein: ein Auge. للمذكّر والمحايد ein، وللمؤنث eine."
+      }
+     ]
+    },
+    {
+     "de": "Bestimmter oder unbestimmter Artikel? Setze ein.",
+     "ar": "أداة تعريف أم أداة تنكير؟ اكتب الأداة المناسبة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Im Garten steht ___ Haus. Das Haus ist klein.",
+       "a": [
+        "ein"
+       ],
+       "qa": "في الحديقة يوجد بيت. البيت صغير.",
+       "w": "البيت يُذكر هنا أول مرة، فنستعمل أداة التنكير: ein Haus. وبعد ذلك نعرفه، فنقول: das Haus."
+      },
+      {
+       "q": "Im Garten steht ein Haus. ___ Haus ist klein.",
+       "a": [
+        "das"
+       ],
+       "qa": "في الحديقة يوجد بيت. البيت صغير.",
+       "w": "البيت ذُكر قبلها (ein Haus)، فصار معروفًا، فنستعمل أداة التعريف: das Haus."
+      },
+      {
+       "q": "Sophie sieht ___ Licht am Fenster.",
+       "a": [
+        "ein"
+       ],
+       "qa": "ترى صوفي ضوءًا عند الشبّاك.",
+       "w": "الضوء يُذكر أول مرة ولم يُوصف بعد، فنستعمل أداة التنكير: ein Licht."
+      },
+      {
+       "q": "Am Himmel ist ein Stern. ___ Stern blinkt.",
+       "a": [
+        "der"
+       ],
+       "qa": "في السماء نجم. النجم يلمع.",
+       "w": "النجم ذُكر في الجملة الأولى (ein Stern)، فصار معروفًا: der Stern."
+      },
+      {
+       "q": "Sophie findet ___ Freundin.",
+       "a": [
+        "eine"
+       ],
+       "qa": "تجد صوفي صديقة.",
+       "w": "الصديقة تُذكر أول مرة، وFreundin مؤنث، فأداة التنكير eine."
+      },
+      {
+       "q": "Sophie findet eine Freundin. ___ Freundin heißt Lea.",
+       "a": [
+        "die"
+       ],
+       "qa": "تجد صوفي صديقة. اسم الصديقة ليا.",
+       "w": "الصديقة ذُكرت قبلها (eine Freundin)، فصارت معروفة: die Freundin."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k4-faelle-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Nomen in den vier Fällen",
+   "tar": "الاسم في الحالات الأربع",
+   "ex": [
+    {
+     "de": "Welche Frage gehört zu welchem Fall? Schreibe die Zahl oder die Frage.",
+     "ar": "أي سؤال لأي حالة؟ اكتب الرقم أو السؤال.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Wer oder was? → ___. Fall",
+       "a": [
+        "1"
+       ],
+       "qa": "مَن أو ماذا؟",
+       "w": "«Wer oder was?» سؤال الحالة الأولى (الفاعل): der Mond."
+      },
+      {
+       "q": "Wessen? → ___. Fall",
+       "a": [
+        "2"
+       ],
+       "qa": "لِمَن؟ (الملكية)",
+       "w": "«Wessen?» سؤال الحالة الثانية (الملكية، المضاف إليه): des Mondes."
+      },
+      {
+       "q": "Wem? → ___. Fall",
+       "a": [
+        "3"
+       ],
+       "qa": "لِمَن؟ (إلى مَن؟)",
+       "w": "«Wem?» سؤال الحالة الثالثة: dem Mond."
+      },
+      {
+       "q": "Wen oder was? → ___. Fall",
+       "a": [
+        "4"
+       ],
+       "qa": "مَن أو ماذا؟ (المفعول به)",
+       "w": "«Wen oder was?» سؤال الحالة الرابعة (المفعول به): den Mond."
+      },
+      {
+       "q": "1. Fall → Frage: ___",
+       "a": [
+        "wer oder was"
+       ],
+       "qa": "سؤال الحالة الأولى؟",
+       "w": "الحالة الأولى تجيب عن السؤال: Wer oder was?"
+      },
+      {
+       "q": "2. Fall → Frage: ___",
+       "a": [
+        "wessen"
+       ],
+       "qa": "سؤال الحالة الثانية؟",
+       "w": "الحالة الثانية تجيب عن السؤال: Wessen?"
+      },
+      {
+       "q": "3. Fall → Frage: ___",
+       "a": [
+        "wem"
+       ],
+       "qa": "سؤال الحالة الثالثة؟",
+       "w": "الحالة الثالثة تجيب عن السؤال: Wem?"
+      },
+      {
+       "q": "4. Fall → Frage: ___",
+       "a": [
+        "wen oder was"
+       ],
+       "qa": "سؤال الحالة الرابعة؟",
+       "w": "الحالة الرابعة تجيب عن السؤال: Wen oder was?"
+      }
+     ]
+    },
+    {
+     "de": "Schreibe den bestimmten Artikel im richtigen Fall.",
+     "ar": "اكتب أداة التعريف في الحالة الصحيحة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "1. Fall (Wer oder was?): ___ Mond",
+       "a": [
+        "der"
+       ],
+       "qa": "القمر",
+       "w": "Mond مذكّر، وأداته في الحالات الأربع: der Mond – des Mondes – dem Mond – den Mond."
+      },
+      {
+       "q": "2. Fall (Wessen?): ___ Mondes",
+       "a": [
+        "des"
+       ],
+       "qa": "القمر",
+       "w": "Mond مذكّر، وأداته في الحالات الأربع: der Mond – des Mondes – dem Mond – den Mond."
+      },
+      {
+       "q": "3. Fall (Wem?): ___ Mond",
+       "a": [
+        "dem"
+       ],
+       "qa": "القمر",
+       "w": "Mond مذكّر، وأداته في الحالات الأربع: der Mond – des Mondes – dem Mond – den Mond."
+      },
+      {
+       "q": "4. Fall (Wen oder was?): ___ Mond",
+       "a": [
+        "den"
+       ],
+       "qa": "القمر",
+       "w": "Mond مذكّر، وأداته في الحالات الأربع: der Mond – des Mondes – dem Mond – den Mond."
+      },
+      {
+       "q": "1. Fall (Wer oder was?): ___ Erde",
+       "a": [
+        "die"
+       ],
+       "qa": "الأرض",
+       "w": "Erde مؤنث، وأداته في الحالات الأربع: die Erde – der Erde – der Erde – die Erde."
+      },
+      {
+       "q": "2. Fall (Wessen?): ___ Erde",
+       "a": [
+        "der"
+       ],
+       "qa": "الأرض",
+       "w": "Erde مؤنث، وأداته في الحالات الأربع: die Erde – der Erde – der Erde – die Erde."
+      },
+      {
+       "q": "3. Fall (Wem?): ___ Erde",
+       "a": [
+        "der"
+       ],
+       "qa": "الأرض",
+       "w": "Erde مؤنث، وأداته في الحالات الأربع: die Erde – der Erde – der Erde – die Erde."
+      },
+      {
+       "q": "4. Fall (Wen oder was?): ___ Erde",
+       "a": [
+        "die"
+       ],
+       "qa": "الأرض",
+       "w": "Erde مؤنث، وأداته في الحالات الأربع: die Erde – der Erde – der Erde – die Erde."
+      },
+      {
+       "q": "1. Fall (Wer oder was?): ___ Raumschiff",
+       "a": [
+        "das"
+       ],
+       "qa": "مركبة فضائية",
+       "w": "Raumschiff محايد، وأداته في الحالات الأربع: das Raumschiff – des Raumschiffs – dem Raumschiff – das Raumschiff."
+      },
+      {
+       "q": "2. Fall (Wessen?): ___ Raumschiffs",
+       "a": [
+        "des"
+       ],
+       "qa": "مركبة فضائية",
+       "w": "Raumschiff محايد، وأداته في الحالات الأربع: das Raumschiff – des Raumschiffs – dem Raumschiff – das Raumschiff."
+      },
+      {
+       "q": "3. Fall (Wem?): ___ Raumschiff",
+       "a": [
+        "dem"
+       ],
+       "qa": "مركبة فضائية",
+       "w": "Raumschiff محايد، وأداته في الحالات الأربع: das Raumschiff – des Raumschiffs – dem Raumschiff – das Raumschiff."
+      },
+      {
+       "q": "4. Fall (Wen oder was?): ___ Raumschiff",
+       "a": [
+        "das"
+       ],
+       "qa": "مركبة فضائية",
+       "w": "Raumschiff محايد، وأداته في الحالات الأربع: das Raumschiff – des Raumschiffs – dem Raumschiff – das Raumschiff."
+      },
+      {
+       "q": "1. Fall (Wer oder was?): ___ Stern",
+       "a": [
+        "der"
+       ],
+       "qa": "نجم",
+       "w": "Stern مذكّر، وأداته في الحالات الأربع: der Stern – des Sterns – dem Stern – den Stern."
+      },
+      {
+       "q": "2. Fall (Wessen?): ___ Sterns",
+       "a": [
+        "des"
+       ],
+       "qa": "نجم",
+       "w": "Stern مذكّر، وأداته في الحالات الأربع: der Stern – des Sterns – dem Stern – den Stern."
+      },
+      {
+       "q": "3. Fall (Wem?): ___ Stern",
+       "a": [
+        "dem"
+       ],
+       "qa": "نجم",
+       "w": "Stern مذكّر، وأداته في الحالات الأربع: der Stern – des Sterns – dem Stern – den Stern."
+      },
+      {
+       "q": "4. Fall (Wen oder was?): ___ Stern",
+       "a": [
+        "den"
+       ],
+       "qa": "نجم",
+       "w": "Stern مذكّر، وأداته في الحالات الأربع: der Stern – des Sterns – dem Stern – den Stern."
+      },
+      {
+       "q": "1. Fall (Wer oder was?): ___ Rakete",
+       "a": [
+        "die"
+       ],
+       "qa": "صاروخ",
+       "w": "Rakete مؤنث، وأداته في الحالات الأربع: die Rakete – der Rakete – der Rakete – die Rakete."
+      },
+      {
+       "q": "2. Fall (Wessen?): ___ Rakete",
+       "a": [
+        "der"
+       ],
+       "qa": "صاروخ",
+       "w": "Rakete مؤنث، وأداته في الحالات الأربع: die Rakete – der Rakete – der Rakete – die Rakete."
+      },
+      {
+       "q": "3. Fall (Wem?): ___ Rakete",
+       "a": [
+        "der"
+       ],
+       "qa": "صاروخ",
+       "w": "Rakete مؤنث، وأداته في الحالات الأربع: die Rakete – der Rakete – der Rakete – die Rakete."
+      },
+      {
+       "q": "4. Fall (Wen oder was?): ___ Rakete",
+       "a": [
+        "die"
+       ],
+       "qa": "صاروخ",
+       "w": "Rakete مؤنث، وأداته في الحالات الأربع: die Rakete – der Rakete – der Rakete – die Rakete."
+      },
+      {
+       "q": "1. Fall (Wer oder was?): ___ Licht",
+       "a": [
+        "das"
+       ],
+       "qa": "ضوء",
+       "w": "Licht محايد، وأداته في الحالات الأربع: das Licht – des Lichts – dem Licht – das Licht."
+      },
+      {
+       "q": "2. Fall (Wessen?): ___ Lichts",
+       "a": [
+        "des"
+       ],
+       "qa": "ضوء",
+       "w": "Licht محايد، وأداته في الحالات الأربع: das Licht – des Lichts – dem Licht – das Licht."
+      },
+      {
+       "q": "3. Fall (Wem?): ___ Licht",
+       "a": [
+        "dem"
+       ],
+       "qa": "ضوء",
+       "w": "Licht محايد، وأداته في الحالات الأربع: das Licht – des Lichts – dem Licht – das Licht."
+      },
+      {
+       "q": "4. Fall (Wen oder was?): ___ Licht",
+       "a": [
+        "das"
+       ],
+       "qa": "ضوء",
+       "w": "Licht محايد، وأداته في الحالات الأربع: das Licht – des Lichts – dem Licht – das Licht."
+      }
+     ]
+    },
+    {
+     "de": "In welchem Fall steht das fett gedruckte Nomen? Schreibe die Zahl (1, 2, 3 oder 4).",
+     "ar": "في أي حالة الاسم المكتوب بالخط العريض؟ اكتب الرقم (1 أو 2 أو 3 أو 4).",
+     "items": [
+      {
+       "q": "**Der Mond** ist hell.",
+       "a": [
+        "1"
+       ],
+       "qa": "القمر مضيء.",
+       "w": "Wer oder was ist hell? der Mond ← الحالة الأولى."
+      },
+      {
+       "q": "Das Licht **des Mondes** ist hell.",
+       "a": [
+        "2"
+       ],
+       "qa": "ضوء القمر ساطع.",
+       "w": "Wessen Licht? des Mondes ← الحالة الثانية."
+      },
+      {
+       "q": "Das Raumschiff fliegt **dem Mond** entgegen.",
+       "a": [
+        "3"
+       ],
+       "qa": "المركبة تطير نحو القمر.",
+       "w": "Wem fliegt es entgegen? dem Mond ← الحالة الثالثة."
+      },
+      {
+       "q": "Armstrong betritt **den Mond**.",
+       "a": [
+        "4"
+       ],
+       "qa": "أرمسترونغ يطأ القمر.",
+       "w": "Wen oder was betritt er? den Mond ← الحالة الرابعة."
+      },
+      {
+       "q": "**Die Erde** ist blau.",
+       "a": [
+        "1"
+       ],
+       "qa": "الأرض زرقاء.",
+       "w": "Wer oder was ist blau? die Erde ← الحالة الأولى."
+      },
+      {
+       "q": "Die Farbe **der Erde** ist blau.",
+       "a": [
+        "2"
+       ],
+       "qa": "لون الأرض أزرق.",
+       "w": "Wessen Farbe? der Erde ← الحالة الثانية."
+      },
+      {
+       "q": "Die Astronauten winken **der Erde**.",
+       "a": [
+        "3"
+       ],
+       "qa": "رواد الفضاء يلوّحون للأرض.",
+       "w": "Wem winken sie? der Erde ← الحالة الثالثة."
+      },
+      {
+       "q": "Die Astronauten sehen **die Erde**.",
+       "a": [
+        "4"
+       ],
+       "qa": "رواد الفضاء يرون الأرض.",
+       "w": "Wen oder was sehen sie? die Erde ← الحالة الرابعة."
+      },
+      {
+       "q": "**Das Raumschiff** landet.",
+       "a": [
+        "1"
+       ],
+       "qa": "المركبة تهبط.",
+       "w": "Wer oder was landet? das Raumschiff ← الحالة الأولى."
+      },
+      {
+       "q": "Die Tür **des Raumschiffs** ist offen.",
+       "a": [
+        "2"
+       ],
+       "qa": "باب المركبة مفتوح.",
+       "w": "Wessen Tür? des Raumschiffs ← الحالة الثانية."
+      },
+      {
+       "q": "Sie steigen aus **dem Raumschiff**.",
+       "a": [
+        "3"
+       ],
+       "qa": "ينزلون من المركبة.",
+       "w": "بعد aus تأتي دائمًا الحالة الثالثة: aus dem Raumschiff."
+      },
+      {
+       "q": "Sie verlassen **das Raumschiff**.",
+       "a": [
+        "4"
+       ],
+       "qa": "يغادرون المركبة.",
+       "w": "Wen oder was verlassen sie? das Raumschiff ← الحالة الرابعة."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k4-verben-1",
+   "c": "k4",
+   "sub": "Deutsch",
+   "ti": "Personalformen und Zeitformen des Verbs",
+   "tar": "تصريف الفعل مع الضمائر وأزمنته",
+   "ex": [
+    {
+     "de": "Setze die passende Personalform von „gehen“ ein (Präsens).",
+     "ar": "اكتب تصريف الفعل gehen المناسب للضمير (في الحاضر).",
+     "t": "w",
+     "items": [
+      {
+       "q": "gehen: ich ___",
+       "a": [
+        "gehe"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "تصريف gehen في الحاضر: ich gehe، du gehst، er geht، wir gehen، ihr geht، sie gehen."
+      },
+      {
+       "q": "gehen: du ___",
+       "a": [
+        "gehst"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "تصريف gehen في الحاضر: ich gehe، du gehst، er geht، wir gehen، ihr geht، sie gehen."
+      },
+      {
+       "q": "gehen: er/sie/es ___",
+       "a": [
+        "geht"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "تصريف gehen في الحاضر: ich gehe، du gehst، er geht، wir gehen، ihr geht، sie gehen."
+      },
+      {
+       "q": "gehen: wir ___",
+       "a": [
+        "gehen"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "تصريف gehen في الحاضر: ich gehe، du gehst، er geht، wir gehen، ihr geht، sie gehen."
+      },
+      {
+       "q": "gehen: ihr ___",
+       "a": [
+        "geht"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "تصريف gehen في الحاضر: ich gehe، du gehst، er geht، wir gehen، ihr geht، sie gehen."
+      },
+      {
+       "q": "gehen: sie ___",
+       "a": [
+        "gehen"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "تصريف gehen في الحاضر: ich gehe، du gehst، er geht، wir gehen، ihr geht، sie gehen."
+      }
+     ]
+    },
+    {
+     "de": "Setze die Personalform von „haben“ oder „sein“ ein.",
+     "ar": "اكتب تصريف الفعل haben أو sein المناسب.",
+     "t": "w",
+     "items": [
+      {
+       "q": "haben · Präsens: ich ___",
+       "a": [
+        "habe"
+       ],
+       "qa": "يملك، عنده",
+       "w": "haben في الحاضر: habe، hast، hat، haben، habt، haben؛ وفي الماضي: hatte، hattest، hatte، hatten، hattet، hatten."
+      },
+      {
+       "q": "haben · Präsens: du ___",
+       "a": [
+        "hast"
+       ],
+       "qa": "يملك، عنده",
+       "w": "haben في الحاضر: habe، hast، hat، haben، habt، haben؛ وفي الماضي: hatte، hattest، hatte، hatten، hattet، hatten."
+      },
+      {
+       "q": "haben · Präsens: er ___",
+       "a": [
+        "hat"
+       ],
+       "qa": "يملك، عنده",
+       "w": "haben في الحاضر: habe، hast، hat، haben، habt، haben؛ وفي الماضي: hatte، hattest، hatte، hatten، hattet، hatten."
+      },
+      {
+       "q": "haben · Präteritum: ich ___",
+       "a": [
+        "hatte"
+       ],
+       "qa": "يملك، عنده",
+       "w": "haben في الحاضر: habe، hast، hat، haben، habt، haben؛ وفي الماضي: hatte، hattest، hatte، hatten، hattet، hatten."
+      },
+      {
+       "q": "haben · Präteritum: wir ___",
+       "a": [
+        "hatten"
+       ],
+       "qa": "يملك، عنده",
+       "w": "haben في الحاضر: habe، hast، hat، haben، habt، haben؛ وفي الماضي: hatte، hattest، hatte، hatten، hattet، hatten."
+      },
+      {
+       "q": "sein · Präsens: ich ___",
+       "a": [
+        "bin"
+       ],
+       "qa": "يكون",
+       "w": "sein في الحاضر: bin، bist، ist، sind، seid، sind؛ وفي الماضي: war، warst، war، waren، wart، waren."
+      },
+      {
+       "q": "sein · Präsens: du ___",
+       "a": [
+        "bist"
+       ],
+       "qa": "يكون",
+       "w": "sein في الحاضر: bin، bist، ist، sind، seid، sind؛ وفي الماضي: war، warst، war، waren، wart، waren."
+      },
+      {
+       "q": "sein · Präsens: wir ___",
+       "a": [
+        "sind"
+       ],
+       "qa": "يكون",
+       "w": "sein في الحاضر: bin، bist، ist، sind، seid، sind؛ وفي الماضي: war، warst، war، waren، wart، waren."
+      },
+      {
+       "q": "sein · Präteritum: ich ___",
+       "a": [
+        "war"
+       ],
+       "qa": "يكون",
+       "w": "sein في الحاضر: bin، bist، ist، sind، seid، sind؛ وفي الماضي: war، warst، war، waren، wart، waren."
+      },
+      {
+       "q": "sein · Präteritum: ihr ___",
+       "a": [
+        "wart"
+       ],
+       "qa": "يكون",
+       "w": "sein في الحاضر: bin، bist، ist، sind، seid، sind؛ وفي الماضي: war، warst، war، waren، wart، waren."
+      }
+     ]
+    },
+    {
+     "de": "Welche Zeitform ist das? Schreibe: Präsens, Präteritum, Perfekt oder Futur.",
+     "ar": "ما زمن الفعل؟ اكتب: Präsens أو Präteritum أو Perfekt أو Futur.",
+     "t": "w",
+     "items": [
+      {
+       "q": "ich forsche",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "أبحث (الآن)",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "ich forschte",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "بحثتُ",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "ich habe geforscht",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد بحثتُ",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "ich werde forschen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "سأبحث",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      },
+      {
+       "q": "ich bin gegangen",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد ذهبتُ",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "wir wissen",
+       "a": [
+        "Präsens"
+       ],
+       "qa": "نعرف",
+       "w": "فعل واحد في الحاضر، يدلّ على شيء يحدث الآن ← Präsens."
+      },
+      {
+       "q": "die Menschen beobachteten",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "راقب الناس",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "man erfand",
+       "a": [
+        "Präteritum"
+       ],
+       "qa": "اخترع الناس",
+       "w": "فعل واحد في صيغة الماضي (غالبًا ينتهي بـ ‎-te‎ أو يتغيّر حرف العلّة) ← Präteritum."
+      },
+      {
+       "q": "ich habe gemacht",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد عملتُ",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "ich bin gestiegen",
+       "a": [
+        "Perfekt"
+       ],
+       "qa": "لقد صعدتُ",
+       "w": "فعل مساعد (haben أو sein) مع التصريف الثالث (ge…t / ge…en) ← Perfekt."
+      },
+      {
+       "q": "die Menschen werden erzählen",
+       "a": [
+        "Futur"
+       ],
+       "qa": "سيحكي الناس",
+       "w": "الفعل المساعد werden مع الفعل في صيغة المصدر ← Futur."
+      }
+     ]
+    },
+    {
+     "de": "Schreibe das Verb in der richtigen Zeitform (ich-Form).",
+     "ar": "اكتب الفعل في الزمن المطلوب مع ich.",
+     "t": "w",
+     "items": [
+      {
+       "q": "forschen · Präsens: ich ___",
+       "a": [
+        "forsche"
+       ],
+       "qa": "يبحث",
+       "w": "الأزمنة الأربعة: ich forsche – ich forschte – ich habe geforscht – ich werde forschen."
+      },
+      {
+       "q": "forschen · Präteritum: ich ___",
+       "a": [
+        "forschte"
+       ],
+       "qa": "يبحث",
+       "w": "الأزمنة الأربعة: ich forsche – ich forschte – ich habe geforscht – ich werde forschen."
+      },
+      {
+       "q": "forschen · Perfekt: ich ___",
+       "a": [
+        "habe geforscht"
+       ],
+       "qa": "يبحث",
+       "w": "الأزمنة الأربعة: ich forsche – ich forschte – ich habe geforscht – ich werde forschen."
+      },
+      {
+       "q": "forschen · Futur: ich ___",
+       "a": [
+        "werde forschen"
+       ],
+       "qa": "يبحث",
+       "w": "الأزمنة الأربعة: ich forsche – ich forschte – ich habe geforscht – ich werde forschen."
+      },
+      {
+       "q": "gehen · Präsens: ich ___",
+       "a": [
+        "gehe"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "الأزمنة الأربعة: ich gehe – ich ging – ich bin gegangen – ich werde gehen."
+      },
+      {
+       "q": "gehen · Präteritum: ich ___",
+       "a": [
+        "ging"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "الأزمنة الأربعة: ich gehe – ich ging – ich bin gegangen – ich werde gehen."
+      },
+      {
+       "q": "gehen · Perfekt: ich ___",
+       "a": [
+        "bin gegangen"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "الأزمنة الأربعة: ich gehe – ich ging – ich bin gegangen – ich werde gehen."
+      },
+      {
+       "q": "gehen · Futur: ich ___",
+       "a": [
+        "werde gehen"
+       ],
+       "qa": "يذهب، يمشي",
+       "w": "الأزمنة الأربعة: ich gehe – ich ging – ich bin gegangen – ich werde gehen."
+      }
+     ]
+    },
+    {
+     "de": "Schreibe das Verb in der richtigen Zeitform (er-Form).",
+     "ar": "اكتب الفعل في الزمن المطلوب مع er.",
+     "t": "w",
+     "items": [
+      {
+       "q": "fliegen · Präsens: er ___",
+       "a": [
+        "fliegt"
+       ],
+       "qa": "يطير",
+       "w": "في صيغة er: er fliegt – er flog – er ist geflogen – er wird fliegen."
+      },
+      {
+       "q": "fliegen · Präteritum: er ___",
+       "a": [
+        "flog"
+       ],
+       "qa": "يطير",
+       "w": "في صيغة er: er fliegt – er flog – er ist geflogen – er wird fliegen."
+      },
+      {
+       "q": "fliegen · Perfekt: er ___",
+       "a": [
+        "ist geflogen"
+       ],
+       "qa": "يطير",
+       "w": "في صيغة er: er fliegt – er flog – er ist geflogen – er wird fliegen."
+      },
+      {
+       "q": "fliegen · Futur: er ___",
+       "a": [
+        "wird fliegen"
+       ],
+       "qa": "يطير",
+       "w": "في صيغة er: er fliegt – er flog – er ist geflogen – er wird fliegen."
+      },
+      {
+       "q": "machen · Präsens: er ___",
+       "a": [
+        "macht"
+       ],
+       "qa": "يعمل، يصنع",
+       "w": "في صيغة er: er macht – er machte – er hat gemacht – er wird machen."
+      },
+      {
+       "q": "machen · Präteritum: er ___",
+       "a": [
+        "machte"
+       ],
+       "qa": "يعمل، يصنع",
+       "w": "في صيغة er: er macht – er machte – er hat gemacht – er wird machen."
+      },
+      {
+       "q": "machen · Perfekt: er ___",
+       "a": [
+        "hat gemacht"
+       ],
+       "qa": "يعمل، يصنع",
+       "w": "في صيغة er: er macht – er machte – er hat gemacht – er wird machen."
+      },
+      {
+       "q": "machen · Futur: er ___",
+       "a": [
+        "wird machen"
+       ],
+       "qa": "يعمل، يصنع",
+       "w": "في صيغة er: er macht – er machte – er hat gemacht – er wird machen."
+      },
+      {
+       "q": "steigen · Präteritum: er ___",
+       "a": [
+        "stieg"
+       ],
+       "qa": "يصعد",
+       "w": "في صيغة er: er steigt – er stieg – er ist gestiegen – er wird steigen."
+      },
+      {
+       "q": "steigen · Perfekt: er ___",
+       "a": [
+        "ist gestiegen"
+       ],
+       "qa": "يصعد",
+       "w": "في صيغة er: er steigt – er stieg – er ist gestiegen – er wird steigen."
+      }
+     ]
+    }
    ]
   }
  ]
