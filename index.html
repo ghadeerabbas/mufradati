@@ -2149,6 +2149,15 @@ async function fillLeague(){
     drawLeague(rows);shown=true}
   catch(e){fail(e)}
 }
+// المتبقّي على نهاية أسبوع الدوري: بالأيام، وفي اليوم الأخير بالساعات والدقائق (يتحدّث كل دقيقة)
+function lgLeftTxt(){
+  const ms=Math.max(0,weekStart(Date.now())+7*DAY-Date.now());
+  if(ms>DAY){const d=Math.ceil(ms/DAY);return "بعد "+arN(d,"يوم","يومين","أيام")}
+  const tm=Math.max(1,Math.ceil(ms/60000)),h=Math.floor(tm/60),m=tm%60;
+  if(!h)return "بعد "+arN(m,"دقيقة","دقيقتين","دقائق");
+  return "بعد "+arN(h,"ساعة","ساعتين","ساعات")+(m?" و"+arN(m,"دقيقة","دقيقتين","دقائق"):"");
+}
+setInterval(()=>{const e=document.getElementById("lgLeft");if(e)e.textContent=lgLeftTxt()},60000);
 function drawLeague(rows){
   const box=$("lgBox");if(!box)return;
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
@@ -2156,7 +2165,7 @@ function drawLeague(rows){
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
     return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
-  const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع بعد ${left} ${left===1?"يوم":left===2?"يومين":"أيام"} · خبرتك هذا الأسبوع ${myXP}</small></div></div>
+  const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع <span id="lgLeft">${lgLeftTxt()}</span> · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
    ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
