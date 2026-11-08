@@ -599,7 +599,7 @@ body.fbon main{padding-bottom:210px}
 .mtIn2 i{font-style:normal;font-size:1.3rem;color:var(--muted)}.mtIn2 input.ok{border-color:#58cc02;background:rgba(88,204,2,.12)}.mtIn2 input.bad{border-color:var(--red);background:rgba(255,75,75,.1)}
 .mtFb{border-radius:14px;padding:12px 14px;margin:6px 0 12px;line-height:1.9}.mtFb.ok{background:rgba(88,204,2,.15);color:#58cc02;font-weight:800;text-align:center;font-size:1.15rem}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
-.mtNb{font-weight:800}.mtGo{width:100%;font-size:1.15rem}.mtEnd{text-align:center}.mtEnd .big{font-size:3.5rem}.mtEnd .t{font-size:1.4rem;font-weight:900;color:var(--hd)}.mtEnd .sc{font-size:2.4rem;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#7c4dff,#1cb0f6);-webkit-background-clip:text;background-clip:text;color:transparent}.mtEnd .a{color:var(--muted);margin-bottom:14px}
+.mtTrB{background:var(--soft);color:var(--hd);padding:6px 14px;font-size:.9rem;margin-top:6px}.mtTrB.on{background:#1cb0f6;color:#fff}.mtNb{font-weight:800}.mtGo{width:100%;font-size:1.15rem}.mtEnd{text-align:center}.mtEnd .big{font-size:3.5rem}.mtEnd .t{font-size:1.4rem;font-weight:900;color:var(--hd)}.mtEnd .sc{font-size:2.4rem;font-weight:900;margin-top:6px;background:linear-gradient(90deg,#7c4dff,#1cb0f6);-webkit-background-clip:text;background-clip:text;color:transparent}.mtEnd .a{color:var(--muted);margin-bottom:14px}
 /* القراءة */
 .rdList{display:flex;flex-direction:column;gap:10px;margin-top:10px}
 .rdItem{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--card);border:1px solid var(--line);text-align:start;width:100%;font:inherit;color:inherit;cursor:pointer}
@@ -3934,12 +3934,15 @@ function renderMath(){
     $("mtBack").onclick=()=>mtBack();$("mtAgain").onclick=()=>{S[s.id]={i:0,r:{}};mtSave(S);renderMath()};return}
   const q=F[i],done=ss.r[i];
   el.innerHTML=head+`<div class="bar mtProg"><i style="width:${Math.round(i/T*100)}%"></i></div><p class="rnote" style="text-align:center">السؤال ${mtNum(i+1)} من ${mtNum(T)}</p>
-   <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar">${esc(q.e.ar)}</div></div></div>
-    <div class="mtQq" dir="ltr">${esc(q.it.q)}</div>${q.it.qa?`<div class="mtQa">${esc(q.it.qa)}</div>`:""}
+   <div class="mtBox"><div class="mtInst"><span class="mtN">${q.ei+1}</span><div><div class="de">${esc(q.e.de)}</div><div class="ar mtTr" hidden>${esc(q.e.ar)}</div></div></div>
+    <div class="mtQq" dir="ltr">${esc(q.it.q)}</div>${q.it.qa?`<div class="mtQa mtTr" hidden>${esc(q.it.qa)}</div>`:""}
+    <div style="text-align:center"><button class="btn mtTrB" id="mtTrB">🌐 الترجمة</button></div>
     <div class="mtIn2"><input id="mtInp" dir="ltr" ${q.e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} ${done?"disabled":""} value="${esc(done?done.v:"")}" class="${done?(done.ok?"ok":"bad"):""}">${q.it.u?`<i>${esc(q.it.u)}</i>`:""}</div>
     <div id="mtFb">${done?mtFb(q,done):""}</div>
     ${done?`<button class="btn next mtGo" id="mtNext">${i+1<T?"التالي ←":"النتيجة 🏆"}</button>`:`<button class="btn next mtGo" id="mtChk">تحقّق ✓</button>`}</div>`;
   $("mtBack").onclick=()=>mtBack();
+  // الترجمة مخفية في كل سؤال، ويُظهرها الولد إن احتاج
+  $("mtTrB").onclick=()=>{const T=el.querySelectorAll(".mtTr"),on=T[0]&&T[0].hidden;T.forEach(x=>x.hidden=!on);$("mtTrB").classList.toggle("on",on)};
   const inp=$("mtInp");
   if(!done){if(!hasNative())setTimeout(()=>inp.focus(),50);inp.onkeydown=e=>{if(e.key==="Enter")$("mtChk").click()};
     $("mtChk").onclick=()=>{const v=inp.value.trim();if(!mtNorm(v)){inp.classList.add("bad");setTimeout(()=>inp.classList.remove("bad"),400);return}
