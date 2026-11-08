@@ -7,7 +7,7 @@ const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 /* --- إعدادات التطبيق: يغيّرها المشرف من لوحة التحكّم، ويقرؤها التطبيق والخادم معًا --- */
 const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
-  duel:{qt:15},   // ثواني كل سؤال في التحدي
+  duel:{qt:15,gem:1},   // ثواني كل سؤال في التحدي، وجواهر الفائز
   gems:{station:1,level:5,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
   league:{group:15,promoMin:60,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
   energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5,daily:10},
@@ -35,7 +35,7 @@ function applyCfg(c){
     league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
     energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000),daily:_num(en.daily,10,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
-    duel:{qt:_num(dl.qt,15,5,120)},
+    duel:{qt:_num(dl.qt,15,5,120),gem:_num(dl.gem,1,0,100)},
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
     shop:c.shop&&typeof c.shop==="object"?c.shop:{},items:Array.isArray(c.items)?c.items.slice(0,300):[],
     free:Array.isArray(c.free)?c.free.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[],   // حسابات «الدراسة الحرّة» يختارها المشرف
@@ -276,6 +276,7 @@ function econ(){
   gems+=R.bank||0;
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   gems+=giftSum();                                      // هدايا المشرف
+  gems+=(Array.isArray(R.dw)?R.dw:[]).reduce((a,x)=>a+(+x[1]||0),0);   // الفوز في تحدّيات الأصدقاء
   // الملصقات أُلغيت: ما اشتُري منها لا يُحسب من الجواهر، فيعود ثمنه إلى الرصيد (ويبقى في السجلّ لإنجاز «جامع التحف»)
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");if(GONE_CATS.includes(c))return a;const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
@@ -441,6 +442,12 @@ function applyAt(ev,T,now,ctx){
     return true;
   }
   // تحدٍّ أنهاه مع صديق: ينشّط سلسلة ذلك اليوم (الخادم يتحقّق أنه أنهى أسئلة التحدي فعلًا)
+  // الفوز في تحدٍّ مع الأصدقاء: جواهر مرة واحدة لكل تحدٍّ (الخادم يتحقّق أنه الفائز الوحيد بالمركز الأول)
+  if(T==="dwin"){
+    if(ctx.server&&!ctx.dwinOk)return "dwin";const id=String(ev.id||"");if(!/^[A-Za-z0-9_-]{4,40}$/.test(id))return "id";
+    if(!CFG.duel.gem)return "off";R.dw=Array.isArray(R.dw)?R.dw:[];if(R.dw.some(x=>x[0]===id))return "dup";
+    R.dw.push([id,CFG.duel.gem]);if(R.dw.length>2000)R.dw=R.dw.slice(-2000);return true;
+  }
   if(T==="duel"){
     if(ctx.server&&!ctx.duelOk)return "duel";
     const d=dkey(now);R.dd=duelDays().filter(x=>x!==d);R.dd.push(d);if(R.dd.length>400)R.dd=R.dd.slice(-400);return true;

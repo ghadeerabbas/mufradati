@@ -219,10 +219,12 @@ async function handleSync(fs, user, body) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); continue }
     if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); continue }      // أحداث من قبل حذف المشرف لا تُقبل
     if (e.type === "stDone" && !words) words = await wordSet();
-    let duelOk = false;   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
+    let duelOk = false, dwinOk = false;
+    if (e.type === "dwin") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
+      dwinOk = !!(dd && duelWinner(dd.data) === uid) }   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
-    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk });
+    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk });
     if (r !== true) rej.push([i, r]);
   }
   // المظهر الذي اختاره المتعلّم (يُتحقّق من ملكيّته)
@@ -694,6 +696,15 @@ const dProg = (d, u) => Object.assign({ i: 0, c: 0, ms: 0, d: false, h: "", x: [
 const duelView = (d, id, me) => ({ id, ps: d.ps || [], nm: d.nm || {}, ac: Object.fromEntries((d.ps || []).slice(1).map(u => [u, d["a_" + u] || "inv"])),
   p: Object.fromEntries((d.ps || []).map(u => [u, dProg(d, u)])), st: d.st, s: d.s || 0, qt: dQt(d), rank: d.rank || [], me, now: Date.now() });
 // الترتيب: الأكثر إجابات صحيحة، ثم الأسرع (من لم يُنهِ يُعدّ أبطأ). السجلّ (فوز/خسارة) للتحدي الثنائي فقط
+// الفائز: صاحب المركز الأول إن تفوّق فعلًا على الثاني (لا تعادل، ولا منسحب، وأنهى وأجاب صحيحًا مرة على الأقل)
+function duelWinner(d) {
+  if (d.st !== "done") return null;
+  const R = (d.rank || []).filter(u => u !== "tie"); if ((d.rank || [])[0] === "tie" || R.length < 2) return null;
+  const a = dProg(d, R[0]), b = dProg(d, R[1]);
+  if (a.q || !a.d || !(a.c > 0)) return null;
+  if (b.q) return R[0];
+  return a.c > b.c || (a.c === b.c && (!b.d || a.ms < b.ms)) ? R[0] : null;
+}
 async function duelFinishW(fs, d, now) {
   const A = dAct(d), key = u => { const p = dProg(d, u); return p.q ? [1, Infinity] : [-(p.c || 0), p.d ? p.ms : Infinity] };   // المنسحب آخرًا
   d.rank = A.slice().sort((x, y) => { const a = key(x), b = key(y); return a[0] - b[0] || a[1] - b[1] }); d.st = "done";
