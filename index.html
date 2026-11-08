@@ -3624,10 +3624,10 @@ async function renderSafe(){
 const rdOn=()=>!!(UID&&!isAdmin()&&CFG&&(CFG.rd||[]).includes(UID));
 let RDV=null,RDL=null;const RDA=new Map();let RDEL=null;
 async function rdAud(id,i){const k=id+"|"+i;if(RDA.has(k))return RDA.get(k);
-  const p=apiPost("/rd",{op:"aud",id,i}).then(j=>j&&j.a?"data:audio/mpeg;base64,"+j.a:"").catch(()=>"");RDA.set(k,p);const v=await p;if(!v)RDA.delete(k);return v}
+  const u=RDV&&RDV.u,p=apiPost("/rd",u?{op:"aud",u,id,i}:{op:"aud",id,i}).then(j=>j&&j.a?"data:audio/mpeg;base64,"+j.a:"").catch(()=>"");RDA.set(k,p);const v=await p;if(!v)RDA.delete(k);return v}
 async function renderReading(){
   rdStop();rdPopClose();
-  const el=$("reading");if(!rdOn()){el.innerHTML='<div class="empty">القراءة غير مفعّلة لهذا الحساب.</div>';return}
+  const el=$("reading");if(RDV&&RDV.u)return rdShow();if(!rdOn()){el.innerHTML='<div class="empty">القراءة غير مفعّلة لهذا الحساب.</div>';return}
   if(RDV)return rdShow();
   el.innerHTML=`<div class="mhead"><h2>${I3("book")} القراءة</h2></div><div class="empty">جارٍ التحميل…</div>`;
   try{RDL=(await apiPost("/rd",{op:"list"})).g||[]}catch(e){el.querySelector(".empty").textContent="تعذّر التحميل، تحقّق من الاتصال";return}
@@ -3728,9 +3728,11 @@ function rdShow(play){
 }
 // زر الرجوع: يغلق نافذة الكلمة، ثم يعود من الجمل إلى القائمة (ويحفظ الموضع فورًا)
 function rdBack(){if($("rdPop")){rdPopClose();return true}if(!RDV)return false;rdStop();const v0=RDV;RDV=null;
+  if(v0.u){document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("users").classList.add("on");renderPanel("users");scrollTo(0,0);return true}   // من المعاينة إلى صفحة المتعلّم
   if(RDPT){clearTimeout(RDPT);RDPT=0;apiPost("/rd",{op:"pos",id:v0.id,i:v0.i}).catch(()=>{})}const g=(RDL||[]).find(x=>x.id===v0.id);if(g)g.p=v0.i;rdListShow();scrollTo(0,0);return true}
 let RDPT=0;
-function rdPos(){const v=RDV;if(!v)return;const g=(RDL||[]).find(x=>x.id===v.id);if(g)g.p=v.i;
+function rdPos(){const v=RDV;if(!v||v.u)return;   // معاينة المشرف لا تغيّر موضع المتعلّم
+ const g=(RDL||[]).find(x=>x.id===v.id);if(g)g.p=v.i;
   clearTimeout(RDPT);RDPT=setTimeout(()=>{RDPT=0;apiPost("/rd",{op:"pos",id:v.id,i:v.i}).catch(()=>{})},1200)}
 
 /* لوحة المشرف: مجموعات القراءة لمتعلّم */
@@ -3743,7 +3745,7 @@ async function rdAdm(uid,edit){
   if(!box.isConnected)return;const $=id=>box.querySelector("#"+id);
   box.innerHTML=`<h3>${I3("book")} القراءة</h3>
    <p class="rnote">مجموعات جمل يقرؤها جملةً جملة بصوت ألماني، ويضغط «التالية». تظهر له وحده، ولا يراها أي حساب آخر.</p>
-   ${L.map(g=>`<div class="rdRow"><b>${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
+   ${L.map(g=>`<div class="rdRow"><b>${esc(g.ti)}</b><small>${Math.min(g.p,g.n)} / ${g.n}</small><button class="btn" data-pv="${esc(g.id)}">👁 معاينة</button><button class="btn" data-cp="${esc(g.id)}">📋 نسخ لكلود</button><button class="btn" data-ed="${esc(g.id)}">تعديل</button><button class="btn" data-del="${esc(g.id)}" style="color:var(--red)">حذف</button></div>`).join("")||'<p class="rnote">لا مجموعات بعد.</p>'}
    ${ed?`<div class="rdAdm" style="margin-top:10px"><input id="rdTi" maxlength="80" placeholder="العنوان (مثلًا: Der Wunschstern)" value="${esc(ed.ti)}">
      <textarea id="rdTx" placeholder="اكتب الجمل أو الصقها هنا. تُقسم عند . ! ? وعند كل سطر جديد.">${esc(ed.txt)}</textarea>
      <p class="rnote" id="rdCnt"></p>
@@ -3751,6 +3753,10 @@ async function rdAdm(uid,edit){
      <div class="rdNav"><button class="btn" id="rdCancel">إلغاء</button><button class="btn next" id="rdSave">حفظ</button></div><div class="stmsg" id="rdMsg"></div></div>`
    :`<button class="btn" id="rdNew" style="width:100%;margin-top:8px">＋ مجموعة جديدة</button>`}`;
   box.querySelectorAll("[data-ed]").forEach(b=>b.onclick=()=>rdAdm(uid,b.dataset.ed));
+  // معاينة المجموعة كما يراها المتعلّم، بالصوت ومعاني الكلمات، دون تغيير موضعه
+  box.querySelectorAll("[data-pv]").forEach(b=>b.onclick=async()=>{b.disabled=true;
+    try{const j=await apiPost("/rd",{op:"get",u:uid,id:b.dataset.pv});RDV={id:b.dataset.pv,u:uid,ti:j.ti,s:j.s,ar:j.ar||[],i:0};RDTRON=false}catch(e){b.disabled=false;uiAlert("تعذّر التحميل");return}
+    const G=x=>document.getElementById(x);document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));G("reading").classList.add("on");G("mainFilters").style.display="none";rdShow(true);scrollTo(0,0)});
   // نسخ جمل المجموعة ليلصقها غدير في محادثة Claude، فيكتب معاني كلماتها بحسب السياق
   box.querySelectorAll("[data-cp]").forEach(b=>b.onclick=async()=>{b.disabled=true;let t="";
     try{const j=await apiPost("/rd",{op:"get",u:uid,id:b.dataset.cp});t="معاني كلمات القراءة — "+j.ti+"\n\n"+j.s.join("\n")}catch(e){b.disabled=false;uiAlert("تعذّر التحميل");return}
@@ -3889,7 +3895,7 @@ function renderPanel(p){
   if(p==="safe"){renderSafe();return}
   if(p==="cfgP"){renderCfg();return}
   if(p==="shopEd"){renderShopEd();return}
-  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
+  if(isAdmin()&&!["users","messages","cfgP","shopEd","settings","usage","safe","reading"].includes(p)){goTab("users");return}   // حساب المشرف لا يرى صفحات الدراسة
   if(p==="profile"){renderProfile();return}
   if(p==="settings"){renderSettings();return}
   if(p==="messages"){renderMessages();return}
