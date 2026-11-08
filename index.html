@@ -605,7 +605,7 @@ body.fbon main{padding-bottom:210px}
 .rdCtl{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
 .rdNav{display:flex;gap:10px;margin-top:14px}.rdNav .btn{flex:1}
 .rdAdm textarea{width:100%;min-height:150px;direction:ltr;text-align:left;font:inherit;padding:10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:inherit}
-.rdAdm input{width:100%;margin:6px 0}.rdTrRow{border-top:1px dashed var(--line);padding:6px 0}.rdTrRow .de{text-align:left;font-size:.95rem}.rdTrRow input{margin:4px 0 0;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:inherit}
+.rdAdm input{width:100%;margin:6px 0}.rdTrRow{border-top:1px dashed var(--line);padding:6px 0}.rdTrRow .de{text-align:left;font-size:.95rem}.rdTrRow .rdNo{display:inline-block;min-width:26px;padding:0 6px;margin-right:4px;border-radius:8px;background:var(--soft);color:var(--hd);text-align:center;font-size:.85rem}.rdTrRow input{margin:4px 0 0;padding:8px;border:1px solid var(--line);border-radius:9px;background:var(--card);color:var(--ink);font:inherit}
 .rdRow{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:8px 0;border-bottom:1px solid var(--line)}.rdRow b{flex:1}.rdRow .btn{padding:6px 10px;font-size:.82rem;white-space:nowrap}
 .aib .ln{min-height:.6em}.aib b{font-weight:800}.aib img,.aiPrev img{display:block;max-width:100%;max-height:220px;border-radius:10px;margin-bottom:6px;cursor:zoom-in}.aib img.big{max-height:none;cursor:zoom-out}
 .bub.aib.them{white-space:normal}.bub.wait{opacity:.75;animation:aiw 1.2s ease-in-out infinite}@keyframes aiw{50%{opacity:.35}}
@@ -3765,7 +3765,7 @@ async function rdAdm(uid,edit){
   const trKeep=()=>box.querySelectorAll(".rdTrIn").forEach(x=>{ed.tr[x.dataset.s]=x.value});
   const cnt=async()=>{const t=$("rdTx").value;if(!t.trim()){$("rdCnt").textContent="";$("rdTrs").innerHTML="";return}
     try{const j=await apiPost("/rd",{op:"split",u:uid,txt:t});trKeep();$("rdCnt").textContent="عدد الجمل: "+j.s.length+" — اكتب ترجمة كل جملة تحتها (اختياري):";
-      $("rdTrs").innerHTML=j.s.map(x=>`<div class="rdTrRow"><div class="de">${esc(x)}</div><input class="rdTrIn" dir="rtl" maxlength="400" placeholder="الترجمة" data-s="${esc(x)}" value="${esc(ed.tr[x]||"")}"></div>`).join("")}catch(e){}};
+      $("rdTrs").innerHTML=j.s.map((x,n)=>`<div class="rdTrRow"><div class="de"><b class="rdNo">${n+1}</b> ${esc(x)}</div><input class="rdTrIn" dir="rtl" maxlength="400" placeholder="الترجمة" data-s="${esc(x)}" value="${esc(ed.tr[x]||"")}"></div>`).join("")}catch(e){}};
   let ct=0;$("rdTx").oninput=()=>{clearTimeout(ct);ct=setTimeout(cnt,700)};cnt();
   $("rdCancel").onclick=()=>rdAdm(uid);
   $("rdSave").onclick=async()=>{const ti=$("rdTi").value.trim(),txt=$("rdTx").value,m=$("rdMsg");
