@@ -3523,6 +3523,799 @@
      ]
     }
    ]
+  },
+  {
+   "id": "k3-wald-1",
+   "c": "k3",
+   "sub": "Sachunterricht",
+   "hide": 1,
+   "ti": "Der Wald",
+   "tar": "الغابة: أنواعها وطبقاتها وأشجارها وأدوارها",
+   "ex": [
+    {
+     "de": "Welche Waldart ist das?",
+     "ar": "ما نوع الغابة؟",
+     "t": "w",
+     "ch": [
+      "Laubwald",
+      "Nadelwald",
+      "Mischwald"
+     ],
+     "items": [
+      {
+       "q": "Ein Wald nur mit Laubbäumen heißt ___.",
+       "a": [
+        "Laubwald"
+       ],
+       "qa": "الغابة التي فيها أشجار ذات أوراق عريضة فقط تُسمّى ___.",
+       "w": "Laubbäume ← Laubwald."
+      },
+      {
+       "q": "Ein Wald nur mit Nadelbäumen heißt ___.",
+       "a": [
+        "Nadelwald"
+       ],
+       "qa": "الغابة التي فيها أشجار إبرية فقط تُسمّى ___.",
+       "w": "Nadelbäume ← Nadelwald."
+      },
+      {
+       "q": "Ein Wald mit Laubbäumen und Nadelbäumen heißt ___.",
+       "a": [
+        "Mischwald"
+       ],
+       "qa": "الغابة التي فيها الأشجار العريضة الأوراق والأشجار الإبرية معًا تُسمّى ___.",
+       "w": "mischen = يخلط: Laubbäume und Nadelbäume zusammen ← Mischwald."
+      }
+     ]
+    },
+    {
+     "de": "Laubbaum oder Nadelbaum?",
+     "ar": "شجرة عريضة الأوراق أم شجرة إبرية؟",
+     "t": "w",
+     "ch": [
+      "Laubbaum",
+      "Nadelbaum"
+     ],
+     "items": [
+      {
+       "q": "die Fichte",
+       "a": [
+        "Nadelbaum"
+       ],
+       "qa": "التنّوب",
+       "w": "Die Fichte hat Nadeln ← Nadelbaum."
+      },
+      {
+       "q": "die Eiche",
+       "a": [
+        "Laubbaum"
+       ],
+       "qa": "البلّوط (السنديان)",
+       "w": "Die Eiche hat Blätter ← Laubbaum."
+      },
+      {
+       "q": "die Kiefer",
+       "a": [
+        "Nadelbaum"
+       ],
+       "qa": "الصنوبر",
+       "w": "Die Kiefer hat Nadeln ← Nadelbaum."
+      },
+      {
+       "q": "die Ahorn",
+       "a": [
+        "Laubbaum"
+       ],
+       "qa": "القيقب",
+       "w": "Die Ahorn hat Blätter ← Laubbaum."
+      },
+      {
+       "q": "die Tanne",
+       "a": [
+        "Nadelbaum"
+       ],
+       "qa": "الشوح",
+       "w": "Die Tanne hat Nadeln ← Nadelbaum."
+      },
+      {
+       "q": "die Birke",
+       "a": [
+        "Laubbaum"
+       ],
+       "qa": "البتولا",
+       "w": "Die Birke hat Blätter ← Laubbaum."
+      },
+      {
+       "q": "die Lärche",
+       "a": [
+        "Nadelbaum"
+       ],
+       "qa": "اللاريس",
+       "w": "Die Lärche hat Nadeln ← Nadelbaum. (Die Lärche verliert im Herbst ihre Nadeln, ist aber ein Nadelbaum.)"
+      },
+      {
+       "q": "die Linde",
+       "a": [
+        "Laubbaum"
+       ],
+       "qa": "الزيزفون",
+       "w": "Die Linde hat Blätter ← Laubbaum."
+      },
+      {
+       "q": "die Buche",
+       "a": [
+        "Laubbaum"
+       ],
+       "qa": "الزان",
+       "w": "Die Buche hat Blätter ← Laubbaum."
+      },
+      {
+       "q": "die Kastanie",
+       "a": [
+        "Laubbaum"
+       ],
+       "qa": "الكستناء",
+       "w": "Die Kastanie hat Blätter ← Laubbaum."
+      }
+     ]
+    },
+    {
+     "de": "Die Stockwerke des Waldes: Wähle das richtige Stockwerk.",
+     "ar": "طبقات الغابة: اختر الطبقة الصحيحة.",
+     "t": "w",
+     "ch": [
+      "Baumschicht",
+      "Strauchschicht",
+      "Krautschicht",
+      "Moosschicht",
+      "Wurzelschicht"
+     ],
+     "items": [
+      {
+       "q": "Ganz oben sind die Baumkronen: die ___.",
+       "a": [
+        "Baumschicht"
+       ],
+       "qa": "في الأعلى تيجان الأشجار: ___.",
+       "w": "الطبقة العليا ← Baumschicht."
+      },
+      {
+       "q": "Hier wachsen Büsche und junge Bäume: die ___.",
+       "a": [
+        "Strauchschicht"
+       ],
+       "qa": "هنا تنمو الشجيرات والأشجار الصغيرة: ___.",
+       "w": "Strauch = شجيرة ← Strauchschicht."
+      },
+      {
+       "q": "Hier wachsen Gräser, Farne und Blumen: die ___.",
+       "a": [
+        "Krautschicht"
+       ],
+       "qa": "هنا تنمو الأعشاب والسرخس والأزهار: ___.",
+       "w": "Kraut = عشبة ← Krautschicht. (Manchmal zählt man Kraut- und Strauchschicht zusammen.)"
+      },
+      {
+       "q": "Direkt auf dem Boden wachsen Moose und Pilze: die ___.",
+       "a": [
+        "Moosschicht"
+       ],
+       "qa": "على الأرض مباشرة تنمو الطحالب والفطر: ___.",
+       "w": "Moos = طحلب ← Moosschicht."
+      },
+      {
+       "q": "Unter der Erde sind die Wurzeln: die ___.",
+       "a": [
+        "Wurzelschicht",
+        "Wurzelraum"
+       ],
+       "qa": "تحت التراب الجذور: ___.",
+       "w": "Wurzel = جذر ← Wurzelschicht (auch: Wurzelraum)."
+      },
+      {
+       "q": "Wo wohnt der Specht?",
+       "a": [
+        "Baumschicht"
+       ],
+       "qa": "أين يعيش نقّار الخشب؟",
+       "w": "Der Specht wohnt oben in den Bäumen ← Baumschicht."
+      },
+      {
+       "q": "Wo wohnt das Eichhörnchen?",
+       "a": [
+        "Baumschicht"
+       ],
+       "qa": "أين يعيش السنجاب؟",
+       "w": "Das Eichhörnchen klettert oben in den Bäumen ← Baumschicht."
+      },
+      {
+       "q": "Wo lebt das Reh?",
+       "a": [
+        "Strauchschicht"
+       ],
+       "qa": "أين يعيش الغزال؟",
+       "w": "Das Reh frisst Blätter von Büschen ← Strauchschicht."
+      },
+      {
+       "q": "Wo lebt die Spinne?",
+       "a": [
+        "Moosschicht"
+       ],
+       "qa": "أين يعيش العنكبوت؟",
+       "w": "Die Spinne lebt unten am Boden im Moos ← Moosschicht."
+      },
+      {
+       "q": "Wo lebt die Ameise?",
+       "a": [
+        "Moosschicht"
+       ],
+       "qa": "أين تعيش النملة؟",
+       "w": "Die Ameise lebt unten am Boden ← Moosschicht."
+      },
+      {
+       "q": "Wo lebt der Regenwurm?",
+       "a": [
+        "Wurzelschicht",
+        "Wurzelraum"
+       ],
+       "qa": "أين تعيش دودة الأرض؟",
+       "w": "Der Regenwurm lebt in der Erde bei den Wurzeln ← Wurzelschicht."
+      }
+     ]
+    },
+    {
+     "de": "Die Teile des Baumes: Schreibe das Wort.",
+     "ar": "أجزاء الشجرة: اكتب الكلمة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Alle Bäume haben drei Teile: Krone, Stamm und ___.",
+       "a": [
+        "Wurzeln",
+        "Wurzel",
+        "Baumwurzeln"
+       ],
+       "qa": "لكل الأشجار ثلاثة أجزاء: التاج، والجذع، و ___.",
+       "w": "Baumkrone, Baumstamm, Wurzeln."
+      },
+      {
+       "q": "Der dicke Teil zwischen Wurzeln und Krone heißt ___.",
+       "a": [
+        "Stamm",
+        "Baumstamm"
+       ],
+       "qa": "الجزء الثخين بين الجذور والتاج يُسمّى ___.",
+       "w": "Der Stamm trägt die Krone."
+      },
+      {
+       "q": "Oben sind die Äste, Zweige und Blätter: die ___.",
+       "a": [
+        "Krone",
+        "Baumkrone"
+       ],
+       "qa": "في الأعلى الأغصان والفروع والأوراق: ___.",
+       "w": "Äste + Zweige + Blätter = die Baumkrone."
+      },
+      {
+       "q": "Die Wurzeln halten den Baum fest und holen ___ aus dem Boden.",
+       "a": [
+        "Wasser"
+       ],
+       "qa": "الجذور تثبّت الشجرة وتأخذ ___ من التراب.",
+       "w": "Die Wurzeln holen Wasser aus dem Boden."
+      },
+      {
+       "q": "Woran erkennt man das Alter eines Baumes? An den ___.",
+       "a": [
+        "Jahresringen",
+        "Jahresringe",
+        "Jahresring"
+       ],
+       "qa": "كيف نعرف عمر الشجرة؟ من ___.",
+       "w": "Jedes Jahr wächst ein neuer Ring im Stamm ← Jahresringe."
+      },
+      {
+       "q": "Wann verlieren die Laubbäume ihre Blätter? Im ___.",
+       "a": [
+        "Herbst"
+       ],
+       "qa": "متى تفقد الأشجار أوراقها؟ في ___.",
+       "w": "Im Herbst werden die Blätter bunt und fallen ab.",
+       "ch": [
+        "Frühling",
+        "Sommer",
+        "Herbst",
+        "Winter"
+       ]
+      }
+     ]
+    },
+    {
+     "de": "Blätter und Früchte: Zu welchem Baum gehören sie?",
+     "ar": "الأوراق والثمار: لأيّ شجرة هي؟",
+     "t": "w",
+     "ch": [
+      "Eiche",
+      "Ahorn",
+      "Kastanie",
+      "Birke"
+     ],
+     "items": [
+      {
+       "q": "Die Eichel ist die Frucht der ___.",
+       "a": [
+        "Eiche"
+       ],
+       "qa": "البلّوطة ثمرة ___.",
+       "w": "Eichel ← Eiche."
+      },
+      {
+       "q": "Diese Frucht hat zwei Flügel und fliegt wie ein Propeller. Sie gehört zum ___.",
+       "a": [
+        "Ahorn"
+       ],
+       "qa": "هذه الثمرة لها جناحان وتطير مثل المروحة. هي من ___.",
+       "w": "Die Frucht mit Flügeln ← Ahorn."
+      },
+      {
+       "q": "Diese Frucht hat eine grüne Schale mit Stacheln. Sie gehört zur ___.",
+       "a": [
+        "Kastanie"
+       ],
+       "qa": "هذه الثمرة لها قشرة خضراء بأشواك. هي من ___.",
+       "w": "Die Stachel-Schale ← Kastanie."
+      },
+      {
+       "q": "Dieses Blatt hat runde Buchten am Rand. Es ist ein Blatt der ___.",
+       "a": [
+        "Eiche"
+       ],
+       "qa": "هذه الورقة حافّتها متموّجة بانحناءات مستديرة. هي ورقة ___.",
+       "w": "Runde Buchten ← Eichenblatt."
+      },
+      {
+       "q": "Dieses Blatt hat spitze Zacken wie eine Hand. Es ist ein Blatt vom ___.",
+       "a": [
+        "Ahorn"
+       ],
+       "qa": "هذه الورقة لها رؤوس مدبّبة مثل اليد. هي ورقة ___.",
+       "w": "Spitze Zacken wie eine Hand ← Ahornblatt."
+      },
+      {
+       "q": "Dieses Blatt hat fünf bis sieben lange Finger. Es ist ein Blatt der ___.",
+       "a": [
+        "Kastanie"
+       ],
+       "qa": "هذه الورقة لها من خمسة إلى سبعة أصابع طويلة. هي ورقة ___.",
+       "w": "Fünf bis sieben Finger ← Kastanienblatt."
+      },
+      {
+       "q": "Dieser Baum hat eine weiße Rinde und kleine, dreieckige Blätter: die ___.",
+       "a": [
+        "Birke"
+       ],
+       "qa": "هذه الشجرة لحاؤها أبيض وأوراقها صغيرة مثلثة: ___.",
+       "w": "Weiße Rinde ← Birke."
+      }
+     ]
+    },
+    {
+     "de": "Wer bin ich?",
+     "ar": "من أنا؟",
+     "t": "w",
+     "ch": [
+      "Fichte",
+      "Kiefer",
+      "Linde",
+      "Eiche",
+      "Lärche"
+     ],
+     "items": [
+      {
+       "q": "Ich habe spitze Nadeln rund um den Zweig. Meine Zapfen hängen nach unten und fallen ab. Wer bin ich?",
+       "a": [
+        "Fichte"
+       ],
+       "qa": "لي إبر حادّة حول الغصن، وأكوازي معلّقة وتسقط. من أنا؟",
+       "w": "Spitze Nadeln rund um den Zweig, hängende Zapfen ← Fichte."
+      },
+      {
+       "q": "Ich habe lange Nadeln, die zu mehreren zusammen stehen. Meine Rinde ist rotbraun. Wer bin ich?",
+       "a": [
+        "Kiefer"
+       ],
+       "qa": "لي إبر طويلة تخرج معًا في مجموعات، ولحائي بنّي محمرّ. من أنا؟",
+       "w": "Lange Nadeln zusammen, rotbraune Rinde ← Kiefer."
+      },
+      {
+       "q": "Ich bin ein Straßenbaum und habe herzförmige Blätter. Aus meinen Blüten macht man Tee. Wer bin ich?",
+       "a": [
+        "Linde"
+       ],
+       "qa": "أنا شجرة شوارع وأوراقي على شكل قلب، ومن أزهاري يُصنع الشاي. من أنا؟",
+       "w": "Herzförmige Blätter, Lindenblütentee ← Linde."
+      },
+      {
+       "q": "Ich habe einen dicken Stamm und stark gewellte Blätter. Eichhörnchen verbuddeln meine Früchte. Wer bin ich?",
+       "a": [
+        "Eiche"
+       ],
+       "qa": "لي جذع ثخين وأوراق متموّجة كثيرًا، والسناجب تدفن ثماري. من أنا؟",
+       "w": "Gewellte Blätter, Eicheln ← Eiche."
+      },
+      {
+       "q": "Ich bin ein Nadelbaum, aber im Herbst werden meine Nadeln gelb und fallen ab. Wer bin ich?",
+       "a": [
+        "Lärche"
+       ],
+       "qa": "أنا شجرة إبرية، لكن إبري تصفرّ في الخريف وتسقط. من أنا؟",
+       "w": "Nadeln fallen im Herbst ab ← Lärche."
+      },
+      {
+       "q": "Welcher Nadelbaum ist kein guter Weihnachtsbaum?",
+       "a": [
+        "Lärche"
+       ],
+       "qa": "أيّ شجرة إبرية لا تصلح شجرةً للميلاد؟",
+       "w": "Die Lärche, denn im Winter hat sie keine Nadeln."
+      }
+     ]
+    },
+    {
+     "de": "Richtig oder falsch?",
+     "ar": "صح أم خطأ؟",
+     "t": "w",
+     "ch": [
+      "richtig",
+      "falsch"
+     ],
+     "items": [
+      {
+       "q": "Der Wald reinigt die Luft.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "الغابة تنقّي الهواء.",
+       "w": "Die Bäume filtern Staub aus der Luft."
+      },
+      {
+       "q": "Der Wald schützt vor Lawinen.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "الغابة تحمي من الانهيارات الثلجية.",
+       "w": "Die Bäume halten den Schnee am Berg fest."
+      },
+      {
+       "q": "Der Waldboden ist trocken, weil die Bäume das Wasser aufsaugen.",
+       "a": [
+        "falsch"
+       ],
+       "qa": "أرض الغابة جافّة لأن الأشجار تمتصّ الماء.",
+       "w": "Falsch: Der Wald hält den Boden feucht und speichert Wasser."
+      },
+      {
+       "q": "Der Wald hält den Boden feucht.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "الغابة تُبقي الأرض رطبة.",
+       "w": "Richtig: Der Wald speichert Wasser."
+      },
+      {
+       "q": "Der Wald produziert Sauerstoff.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "الغابة تنتج الأكسجين.",
+       "w": "Die Blätter machen Sauerstoff, den wir atmen."
+      },
+      {
+       "q": "Der Wald schützt vor Lärm und Wind.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "الغابة تحمي من الضجيج والرياح.",
+       "w": "Die Bäume halten Lärm und Wind auf."
+      },
+      {
+       "q": "Die Wurzeln halten den Boden fest, damit er nicht wegrutscht.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "الجذور تثبّت التربة حتى لا تنجرف.",
+       "w": "Das nennt man Erosionsschutz."
+      },
+      {
+       "q": "Aus dem Holz macht man Möbel.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "من الخشب يصنعون الأثاث.",
+       "w": "Holz ← Möbel, Papier, Häuser."
+      },
+      {
+       "q": "Im Wald darf man ein Feuer machen.",
+       "a": [
+        "falsch"
+       ],
+       "qa": "يجوز إشعال النار في الغابة.",
+       "w": "Falsch: Feuer ist im Wald gefährlich."
+      },
+      {
+       "q": "Seinen Müll kann man im Wald liegen lassen.",
+       "a": [
+        "falsch"
+       ],
+       "qa": "يمكن ترك القمامة في الغابة.",
+       "w": "Falsch: Den Müll nimmt man wieder mit nach Hause."
+      },
+      {
+       "q": "Im Wald bleibt man auf den Wegen.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "في الغابة نبقى على الطرقات.",
+       "w": "Richtig: So stört man die Tiere und Pflanzen nicht."
+      },
+      {
+       "q": "Im Wald kann man sich gut erholen.",
+       "a": [
+        "richtig"
+       ],
+       "qa": "في الغابة يمكن أن نرتاح جيّدًا.",
+       "w": "Der Wald ist gut für die Freizeit und die Erholung."
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "k3-getreide-2",
+   "c": "k3",
+   "sub": "Sachunterricht",
+   "hide": 1,
+   "ti": "Getreide: Arten und Verwendung",
+   "tar": "الحبوب: تمييز أنواعها، واستعمالها، والنباتات المزروعة",
+   "ex": [
+    {
+     "de": "An der „Blüte“ erkennen wir die Getreideart. Welche ist es?",
+     "ar": "نعرف نوع الحبوب من سنبلتها. ما هو؟",
+     "t": "w",
+     "ch": [
+      "Weizen",
+      "Roggen",
+      "Hafer",
+      "Gerste",
+      "Mais"
+     ],
+     "items": [
+      {
+       "q": "mittellange Grannen, lange, schlanke Ähre, manchmal ein Mutterkorn",
+       "a": [
+        "Roggen"
+       ],
+       "qa": "سفاة متوسّطة الطول، وسنبلة طويلة نحيلة، وأحيانًا فيها فطر أسود يُسمّى Mutterkorn.",
+       "w": "Roggen: mittellange Grannen, schlanke Ähre."
+      },
+      {
+       "q": "keine Grannen, lockere Rispe",
+       "a": [
+        "Hafer"
+       ],
+       "qa": "بلا سفاة، وعنقود متفرّق.",
+       "w": "Hafer hat eine Rispe."
+      },
+      {
+       "q": "ganz kurze (fast keine) Grannen, dicke Ähre",
+       "a": [
+        "Weizen"
+       ],
+       "qa": "سفاة قصيرة جدًّا (تكاد لا توجد)، وسنبلة ثخينة.",
+       "w": "Weizen: fast keine Grannen, dicke Ähre."
+      },
+      {
+       "q": "sehr lange Grannen, lange, schmale Ähre",
+       "a": [
+        "Gerste"
+       ],
+       "qa": "سفاة طويلة جدًّا، وسنبلة طويلة ضيّقة.",
+       "w": "Gerste hat die längsten Grannen."
+      },
+      {
+       "q": "großer Kolben mit gelben Körnern",
+       "a": [
+        "Mais"
+       ],
+       "qa": "كوز كبير بحبوب صفراء.",
+       "w": "Mais hat einen Kolben."
+      }
+     ]
+    },
+    {
+     "de": "Aus welchem Getreide macht man das?",
+     "ar": "من أيّ حبوب يصنعون هذا؟",
+     "t": "w",
+     "ch": [
+      "Weizen",
+      "Roggen",
+      "Hafer",
+      "Gerste"
+     ],
+     "items": [
+      {
+       "q": "Daraus macht man Weißbrot und Brötchen.",
+       "a": [
+        "Weizen"
+       ],
+       "qa": "منه يصنعون الخبز الأبيض والكعك الصغير.",
+       "w": "Weißbrot und Brötchen ← Weizen."
+      },
+      {
+       "q": "Daraus macht man dunkles Mehl für Brot.",
+       "a": [
+        "Roggen"
+       ],
+       "qa": "منه يصنعون الطحين الأسمر للخبز.",
+       "w": "Dunkles Brot ← Roggen."
+      },
+      {
+       "q": "Daraus macht man Haferflocken. Pferde fressen es gern.",
+       "a": [
+        "Hafer"
+       ],
+       "qa": "منه يصنعون رقائق الشوفان، والخيل تحبّ أكله.",
+       "w": "Haferflocken, Pferdefutter ← Hafer."
+      },
+      {
+       "q": "Daraus macht man Malz für Malzkaffee.",
+       "a": [
+        "Gerste"
+       ],
+       "qa": "منه يصنعون الشعير المنبّت لقهوة الشعير.",
+       "w": "Malz ← Gerste."
+      },
+      {
+       "q": "Nudeln",
+       "a": [
+        "Weizen"
+       ],
+       "qa": "المعكرونة",
+       "w": "Nudeln macht man aus Weizen."
+      },
+      {
+       "q": "Malzkaffee",
+       "a": [
+        "Gerste"
+       ],
+       "qa": "قهوة الشعير",
+       "w": "Malzkaffee macht man aus Gerste."
+      },
+      {
+       "q": "Müsliflocken",
+       "a": [
+        "Hafer"
+       ],
+       "qa": "رقائق الموسلي",
+       "w": "Müsliflocken macht man aus Hafer."
+      },
+      {
+       "q": "Kuchen",
+       "a": [
+        "Weizen"
+       ],
+       "qa": "الكيك",
+       "w": "Kuchen backt man mit Weizenmehl."
+      }
+     ]
+    },
+    {
+     "de": "Kulturpflanzen",
+     "ar": "النباتات المزروعة: اختر الجواب الصحيح.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Kulturpflanzen sind Pflanzen, die …",
+       "a": [
+        "der Mensch aus Wildpflanzen gezüchtet hat und pflegt und nutzt"
+       ],
+       "qa": "النباتات المزروعة هي نباتات …",
+       "w": "Kulturpflanzen züchtet, pflegt und nutzt der Mensch.",
+       "ch": [
+        "nur wild im Wald wachsen",
+        "der Mensch aus Wildpflanzen gezüchtet hat und pflegt und nutzt",
+        "man nicht essen kann"
+       ]
+      },
+      {
+       "q": "Welche Pflanze ist eine Kulturpflanze?",
+       "a": [
+        "Reis"
+       ],
+       "qa": "أيّ نبتة من النباتات المزروعة؟",
+       "w": "Reis baut der Mensch an.",
+       "ch": [
+        "Moos",
+        "Reis",
+        "Brennnessel"
+       ]
+      },
+      {
+       "q": "Welche Pflanze ist eine Kulturpflanze?",
+       "a": [
+        "Mais"
+       ],
+       "qa": "أيّ نبتة من النباتات المزروعة؟",
+       "w": "Mais baut der Mensch auf dem Feld an.",
+       "ch": [
+        "Mais",
+        "Farn",
+        "Gänseblümchen"
+       ]
+      },
+      {
+       "q": "Welche Pflanze ist eine Kulturpflanze?",
+       "a": [
+        "Hirse"
+       ],
+       "qa": "أيّ نبتة من النباتات المزروعة؟",
+       "w": "Hirse ist auch ein Getreide.",
+       "ch": [
+        "Löwenzahn",
+        "Moos",
+        "Hirse"
+       ]
+      }
+     ]
+    },
+    {
+     "de": "Ergänze das Wort.",
+     "ar": "أكمل الكلمة.",
+     "t": "w",
+     "items": [
+      {
+       "q": "Der ___ sät und erntet das Korn.",
+       "a": [
+        "Bauer",
+        "Landwirt"
+       ],
+       "qa": "___ يزرع القمح ويحصده.",
+       "w": "Der Bauer (Landwirt) arbeitet auf dem Feld."
+      },
+      {
+       "q": "Der ___ dankt am Erntedankfest für die gute Ernte.",
+       "a": [
+        "Pastor",
+        "Pfarrer"
+       ],
+       "qa": "___ يشكر الله في عيد الحصاد على المحصول الجيّد.",
+       "w": "Der Pastor (Pfarrer) in der Kirche."
+      },
+      {
+       "q": "Früher droschen die Bauern das Getreide mit einem ___.",
+       "a": [
+        "Dreschflegel"
+       ],
+       "qa": "قديمًا كان الفلّاحون يدرسون الحبوب بـ ___.",
+       "w": "Früher: der Dreschflegel. Heute: der Mähdrescher."
+      },
+      {
+       "q": "Nenne ein Tier, das auf dem Feld großen Schaden macht: ___",
+       "a": [
+        "Feldmaus",
+        "Maus",
+        "Hamster",
+        "Sperling",
+        "Spatz",
+        "Wildschwein",
+        "Krähe"
+       ],
+       "qa": "اذكر حيوانًا يسبّب ضررًا كبيرًا في الحقل: ___",
+       "w": "Zum Beispiel: Sperling, Hamster, Feldmaus."
+      }
+     ]
+    }
+   ]
   }
  ]
 }
