@@ -601,6 +601,7 @@ body.fbon main{padding-bottom:210px}
 .mtFb.bad{background:rgba(255,75,75,.1);border:1px solid rgba(255,75,75,.4)}.mtFb .c{color:#58cc02;font-weight:800;font-size:1.1rem}.mtFb .w{margin-top:6px;color:var(--ink)}.mtEq{text-align:center;font-size:1.3rem;font-weight:900;margin-top:4px;color:var(--hd)}
 .rsec[data-fk]>h3{cursor:pointer;user-select:none;margin-bottom:0}.rsec[data-fk]:not(.fold)>h3{margin-bottom:8px}.rsec[data-fk]>h3::after{content:"▾";float:left;color:var(--muted);font-size:.9em}.rsec.fold>h3::after{content:"◂"}.rsec.fold>:not(h3){display:none!important}
 .mtBadD{margin:6px 0}.mtBadD>summary{cursor:pointer;font-size:.88rem;font-weight:700;color:var(--hd)}
+.mtChT{display:block;font-size:.78rem;font-weight:400;color:var(--muted);margin-top:2px;direction:rtl}.mtAm{color:var(--muted);font-weight:400}
 .mtNo{display:inline-grid;place-items:center;min-width:24px;height:24px;border-radius:12px;background:#1cb0f6;color:#fff;font-size:.8rem;font-weight:800;margin-left:6px;vertical-align:middle}.mtWhen{display:block;color:var(--muted);margin-top:2px}
 .mtX{background:var(--soft);border-radius:14px;padding:10px 12px;margin:10px 0;font-size:1rem;line-height:1.75;text-align:left;color:var(--ink)}.mtCk{list-style:none;padding:0;margin:8px 0;font-size:.92rem;color:var(--ink)}.mtCk li{margin:3px 0;text-align:left}
 #mtTx{width:100%;box-sizing:border-box;font-family:inherit;font-size:1.05rem;line-height:1.6;padding:10px;border:2px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);resize:vertical}#mtTx.bad{border-color:var(--red)}
@@ -3948,9 +3949,11 @@ async function aiLogShow(uid,more){
 /* ================= الرياضيات: أوراق تمارين، سؤال واحد في كل صفحة ================= */
 // التمارين في math.json (أرقام أوراق المدرسة؛ لكل ورقة منهج c فتظهر لمن عنده المنهج، والمشرف يراها كلها)
 // لا خيارات ولا تلميحات قبل الجواب: يكتب ويضغط «تحقّق»، فإن أخطأ يرى جوابه والجواب الصحيح ولماذا، ثم «التالي»
-let MTS=[],MTO=null;
-function mtLoad(){const c=st("muf_math");if(c){try{MTS=JSON.parse(c).sets||[]}catch(e){}}mtUI();
-  fetch("math.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_math"))return;st("muf_math",t);try{MTS=JSON.parse(t).sets||[]}catch(e){}mtUI();
+let MTS=[],MTO=null,MTGL={},MTGLL=null;
+// معاني كلمات الأجوبة والخيارات (gl في math.json): الكلمة كما هي، ثم بلا اعتبار لحالة الحروف
+const mtGl=w=>{w=String(w||"").trim();if(!w)return"";if(MTGL[w])return MTGL[w];if(!MTGLL){MTGLL={};for(const k in MTGL)MTGLL[k.toLowerCase()]=MTGL[k]}return MTGLL[w.toLowerCase()]||""};
+function mtLoad(){const c=st("muf_math");if(c){try{const j=JSON.parse(c);MTS=j.sets||[];MTGL=j.gl||{};MTGLL=null}catch(e){}}mtUI();
+  fetch("math.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_math"))return;st("muf_math",t);try{const j=JSON.parse(t);MTS=j.sets||[];MTGL=j.gl||{};MTGLL=null}catch(e){}mtUI();
     const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}).catch(()=>{})}
 // الأوراق التي أخفاها المشرف عن هذا المتعلّم (من الخادم، وتُحفظ في الجهاز)
 // والورقة التي فيها hide في math.json مخفية حتى يُظهرها المشرف (shw)
@@ -3977,7 +3980,7 @@ const mtNum=x=>`<bdi dir="ltr" class="mtNb">${esc(String(x))}</bdi>`;
 function mtWhy(it){if(it.w)return esc(it.w).replace(/[A-Za-zÄÖÜäöüß‎][A-Za-zÄÖÜäöüß0-9 .,:'’?!\/…–‎-]*[A-Za-zÄÖÜäöüß0-9?!…]|\d[\d ×=]*\d|\d/g,m=>`<bdi dir="ltr" class="mtNb">${m}</bdi>`);   // الألمانية والأرقام بترتيبها داخل الشرح العربيif(!it.r)return"";
   const n=it.n,r=it.r,dig=Math.floor(n%r/(r/10)),up=dig>=5,res=Math.round(n/r)*r;
   return `للتقريب إلى أقرب ${r===100?"مئة":"ألف"} ننظر إلى رقم ${r===100?"العشرات":"المئات"} في ${mtNum(mtFmt(n))}: هو ${mtNum(dig)}، ${up?"أي 5 أو أكثر، فنقرّب إلى <b>الأعلى</b>":"أي أقل من 5، فنقرّب إلى <b>الأسفل</b>"}:<div class="mtEq" dir="ltr">${mtNum(mtFmt(n))} ≈ ${mtNum(mtFmt(res))}</div>`}
-function renderMath(){
+function renderMath(){{const p=$("rdPop");if(p)p.remove()}
   const el=$("math");if(!mtOn()){el.innerHTML='<div class="empty">لا توجد تمارين بعد.</div>';return}
   const L=myMath(),S=mtSt(),s=MTO&&L.find(x=>x.id===MTO);
   if(!s){MTO=null;if(!isAdmin())mtPull();el.innerHTML=`<div class="mhead"><h2>✏️ التمارين</h2></div><div class="mtList">${L.map(x=>{const F=mtFlat(x),st0=S[x.id]||{},R=st0.r||{},n=Object.keys(R).length,g=Object.values(R).filter(v=>v.ok).length,T=F.length,dn=n>=T;
@@ -3994,7 +3997,7 @@ function renderMath(){
       <button class="btn mtGo2" id="mtAgain">↺ حلّها كلها من جديد</button></div>`;
     $("mtBack").onclick=()=>mtBack();
     if(W.length){$("mtRetry").onclick=()=>{ss.f=ss.f||{...ss.r};ss.q=W.map(([q,k])=>k);ss.qi=0;W.forEach(([q,k])=>delete ss.r[k]);mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
-      $("mtShowW").onclick=()=>{const l=$("mtWl");l.hidden=!l.hidden;$("mtShowW").textContent=l.hidden?"📋 اعرض أخطائي":"📋 أخفِ أخطائي"}}
+      $("mtShowW").onclick=()=>{const l=$("mtWl");l.hidden=!l.hidden;$("mtShowW").textContent=l.hidden?"📋 اعرض أخطائي":"📋 أخفِ أخطائي"};mtWBind(el)}
     $("mtAgain").onclick=async()=>{if(!await uiConfirm("تبدأ الورقة كلها من السؤال الأوّل؟"))return;S[s.id]={i:0,r:{},f:{},z:(S[s.id]||{}).z||0};mtSave(S);mtPush(s.id,S[s.id]);renderMath()};return}
   const ci=rq?ss.q[ss.qi]:i,q=F[ci],done=ss.r[ci],ord=q.e.t==="o",fr=q.e.t==="f",CH=q.it.ch||q.e.ch,X=q.it.x||q.e.x;   // ord: رتّب الكلمات بالضغط عليها · fr: كتابة حرّة يقرؤها المشرف · CH: خيارات (للسؤال أو للتمرين) · X: نص يُقرأ قبل السؤال
   const dk=K("mtdr_"+s.id+"_"+ci);
@@ -4006,11 +4009,11 @@ function renderMath(){
     ${fr?`<ul class="mtCk">${(q.it.chk||[]).map(c=>`<li><span dir="ltr">☐ ${esc(c[0])}</span><span class="mtTr" hidden> · ${esc(c[1]||"")}</span></li>`).join("")}</ul>
       <textarea id="mtTx" dir="ltr" rows="9" autocapitalize="sentences" ${done?"disabled":""} placeholder="اكتب هنا…">${esc(done?done.v:st(dk)||"")}</textarea><div class="rnote" id="mtWc" style="text-align:center"></div>`:""}
     ${fr?"":CH?`<div class="mtCh">${CH.map(c=>{const isA=q.it.a.some(a=>mtNorm(a)===mtNorm(c)),me=done&&mtNorm(done.v)===mtNorm(c);
-      return `<button class="mtC${done?(isA?" ok":me?" bad":" off"):""}" data-c="${esc(c)}" ${done?"disabled":""}>${esc(c)}</button>`}).join("")}</div>`:ord?"":`<div class="mtIn2"><input id="mtInp" dir="ltr" ${q.e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} ${done?"disabled":""} value="${esc(done?done.v:"")}" class="${done?(done.ok?"ok":"bad"):""}">${q.it.u?`<i>${esc(q.it.u)}</i>`:""}</div>`}
+      return `<button class="mtC${done?(isA?" ok":me?" bad":" off"):""}" data-c="${esc(c)}" ${done?"disabled":""}>${esc(c)}${mtGl(c)?`<span class="mtTr mtChT"${done?"":" hidden"}>${esc(mtGl(c))}</span>`:""}</button>`}).join("")}</div>`:ord?"":`<div class="mtIn2"><input id="mtInp" dir="ltr" ${q.e.t==="w"?'autocapitalize="off" autocomplete="off"':'inputmode="numeric"'} ${done?"disabled":""} value="${esc(done?done.v:"")}" class="${done?(done.ok?"ok":"bad"):""}">${q.it.u?`<i>${esc(q.it.u)}</i>`:""}</div>`}
     <div id="mtFb">${done?mtFb(q,done):""}</div>
     ${done?`<button class="btn next mtGo" id="mtNext">${(rq?ss.qi+1<ss.q.length:i+1<T)?"التالي ←":"النتيجة 🏆"}</button>`:CH&&!fr?"":`<button class="btn next mtGo" id="mtChk">${fr?"📨 أرسل نصّي":"تحقّق ✓"}</button>`}</div>`;
   $("mtBack").onclick=()=>mtBack();
-  el.querySelectorAll(".mtQq .mtW,.mtX .mtW").forEach(w=>w.onclick=()=>{el.querySelectorAll(".mtW.on").forEach(x=>x.classList.remove("on"));w.classList.add("on");speak(w.dataset.w);setTimeout(()=>w.classList.remove("on"),900)});
+  mtWBind(el);
   // الترجمة مخفية في كل سؤال، ويُظهرها الولد إن احتاج
   $("mtTrB").onclick=()=>{const T=el.querySelectorAll(".mtTr"),on=T[0]&&T[0].hidden;T.forEach(x=>x.hidden=!on);$("mtTrB").classList.toggle("on",on)};
   const inp=$("mtInp");
@@ -4032,11 +4035,19 @@ function renderMath(){
       const ok=q.it.a.some(a=>mtNorm(a)===mtNorm(v)||mtNorm(a)===mtNorm(mtPron(v)));ss.r[ci]={v,ok};ss.f=ss.f||{...ss.r};if(!ss.f[ci])ss.f[ci]={v,ok};/* أول جواب يبقى كما هو */mtSave(S);mtPush(s.id,ss);fx(ok?"ok":"no");renderMath()}}
   else $("mtNext").onclick=()=>{if(rq){ss.qi++;if(ss.qi>=ss.q.length){delete ss.q;delete ss.qi;fx("done")}}else{ss.i=i+1;if(ss.i>=T)fx("done")}mtSave(S);mtPush(s.id,ss);renderMath();scrollTo(0,0)};
 }
+// الضغط على كلمة ألمانية: تُقرأ، وإن كان لها معنى يظهر في لوحة صغيرة أسفل الشاشة
+function mtWBind(el){el.querySelectorAll(".mtW").forEach(w=>w.onclick=e=>{e.stopPropagation();el.querySelectorAll(".mtW.on").forEach(x=>x.classList.remove("on"));w.classList.add("on");const x=w.dataset.w,m=mtGl(x);speak(x);
+  let p=$("rdPop");if(!m){if(p)p.remove();setTimeout(()=>w.classList.remove("on"),900);return}
+  if(!p){p=document.createElement("div");p.id="rdPop";p.className="rdpop";document.body.appendChild(p)}
+  p.innerHTML=`<button class="x" id="rdPx">×</button><div class="w">${esc(x)}</div><div class="m">${esc(m)}</div><div class="row2"><button class="btn" id="rdPw">🔊 استمع</button><button class="btn" id="rdPws">🐢 ببطء</button></div>`;
+  $("rdPx").onclick=()=>{p.remove();w.classList.remove("on")};$("rdPw").onclick=()=>speak(x);$("rdPws").onclick=()=>speak(x,true)})}
+// جواب ألماني في التغذية الراجعة: كلماته تُضغط (صوت ومعنى)، ومعه معناه إن وُجد
+function mtAnsDe(x){const m=mtGl(x);return `<bdi dir="ltr">${mtQw(x)}</bdi>${m?` <small class="mtAm">(${esc(m)})</small>`:""}`}
 function mtFb(q,d){
   if(q.e.t==="f")return `<div class="mtFb ok">📨 أُرسل نصّك، وسيقرؤه أبوك ويخبرك بملاحظاته.</div>`;
   if(d.ok)return `<div class="mtFb ok">✅ أحسنت! جوابك صحيح.</div>`;
-  const a=q.it.a,ans=a.length>1?a.map(x=>mtNum(q.e.t==="w"?x:mtFmt(x))).join(" أو "):mtNum(q.e.t==="w"?a[0]:mtFmt(a[0]));
-  return `<div class="mtFb bad"><div>❌ جوابك: ${mtNum(d.v)}</div><div class="c">✔️ الجواب الصحيح: ${ans}</div>${mtWhy(q.it)?`<div class="w"><b>لماذا؟</b> ${mtWhy(q.it)}</div>`:""}</div>`}
+  const a=q.it.a,de=q.e.t==="w"||q.e.t==="o",one=x=>de&&/\p{L}/u.test(x)?mtAnsDe(x):mtNum(q.e.t==="w"?x:mtFmt(x)),ans=(a.length>3?a.slice(0,3):a).map(one).join(" أو ");
+  return `<div class="mtFb bad"><div>❌ جوابك: ${one(d.v)}</div><div class="c">✔️ الجواب الصحيح: ${ans}</div>${mtWhy(q.it)?`<div class="w"><b>لماذا؟</b> ${mtWhy(q.it)}</div>`:""}</div>`}
 // النتائج تُرسل إلى الخادم ليراها المشرف؛ وعند أول فتح تُدمج نتائج الخادم مع الجهاز (الأبعد تقدّمًا يبقى)
 let MTSYNC=0;
 function mtPush(id,ss){if(isAdmin())return;apiPost("/mt",{op:"save",set:id,i:ss.i||0,r:ss.r||{},f:ss.f||ss.r||{},z:ss.z||0}).then(j=>{if(j&&j.reset)mtPull(1)}).catch(()=>{})}
