@@ -26,7 +26,8 @@ public class Reminder extends BroadcastReceiver {
     static final int[] EOD = {60, 30, 15, 5};   // دقائق قبل منتصف الليل
 
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
-    static String today() { SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US); f.setTimeZone(BERLIN); return f.format(new Date()); }
+    static String today() { return dayOf(System.currentTimeMillis()); }
+    static String dayOf(long t) { SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd", Locale.US); f.setTimeZone(BERLIN); return f.format(new Date(t)); }
 
     static PendingIntent pi(Context c, String kind, long t) {
         Intent i = new Intent(c, Reminder.class).setAction("de.mufradati.REMIND").putExtra("kind", kind).putExtra("t", t);
@@ -95,8 +96,13 @@ public class Reminder extends BroadcastReceiver {
         String kind = intent.getStringExtra("kind");
         long t = intent.getLongExtra("t", System.currentTimeMillis());
         p.edit().putLong("lastT", t).apply();
-        boolean wanted = "custom".equals(kind) ? p.getBoolean("on", false) : kind != null && kind.startsWith("eod") && p.getBoolean("eod", true);
-        if (wanted && !today().equals(p.getString("studied", ""))) notifyNow(c, kind);
+        boolean eod = kind != null && kind.startsWith("eod");
+        boolean wanted = "custom".equals(kind) ? p.getBoolean("on", false) : eod && p.getBoolean("eod", true);
+        // اليوم المقصود هو يوم موعد المنبّه، لا يوم وصوله: قد يتأخّر أندرويد في إيصاله إلى ما بعد منتصف الليل،
+        // فيبدو اليوم الجديد غير مدروس. وتذكير نهاية يومٍ انتهى لا معنى له، فلا يُعرض.
+        String day = dayOf(t);
+        if (eod && !day.equals(today())) wanted = false;
+        if (wanted && !day.equals(p.getString("studied", ""))) notifyNow(c, kind);
         schedule(c);
     }
 

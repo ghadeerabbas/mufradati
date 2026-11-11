@@ -13,7 +13,7 @@
 | الخادم | `server/worker.src.js` | على Cloudflare Workers. يُبنى بـ`server/build.py` (يدمج `core.js`) إلى `server/worker.js`، وينشره `worker.yml` تلقائيًا عند الدفع |
 | إعداد الخادم | `server/wrangler.toml` | ربط الذكاء الصناعي `AI`، والتخزين `BAK`، وجدول ليلي `17 2 * * *` |
 | بوت تيليغرام | `bot/worker.js` | `@mufradati_de_bot` لطلبات الحسابات. **يُنشر يدويًا من غدير**، وليس من المستودع |
-| أندرويد | `android/` | WebView يحمّل الموقع. `MainActivity` (الكاميرا والاستوديو)، و`PhotoProvider`، و`Reminder` (التذكير). يُبنى بـ`apk.yml` إلى إصدار `apk-latest` (الملفان `mufradati.apk` و`mufradati1.apk`) |
+| أندرويد | `android/` | WebView يحمّل الموقع. `MainActivity` (الكاميرا والاستوديو)، و`PhotoProvider`، و`Reminder` (التذكير؛ يُحكم على «هل درس اليوم» بيوم موعد المنبّه لا بيوم وصوله، ولا يُعرض تذكير نهاية اليوم إن وصل بعد منتصف الليل). يُبنى بـ`apk.yml` إلى إصدار `apk-latest` (الملفان `mufradati.apk` و`mufradati1.apk`) |
 | العمل بلا إنترنت | `sw.js` | تجريبي، ومفعّل لحساب غدير فقط |
 | قواعد Firestore | `firestore.rules` | **لا تُنشر تلقائيًا**: تُنسخ يدويًا إلى Firebase. لذلك الميزات الجديدة تمرّ عبر الخادم بدل تغيير القواعد |
 | النطق | `.github/workflows/tts.yml` | يولّد صوت الكلمات والأمثلة الناقصة (Azure) عند تغيّر `words*.json` |
