@@ -715,6 +715,13 @@ body:not(.adm) #mainNav button.on i{background:var(--soft);box-shadow:inset 0 0 
 #navMe{font-size:1.6rem;line-height:1}#navMe img{width:32px;height:32px}
 #meBadge{top:6px;left:auto;right:calc(50% - 30px)}
 #segBar{display:flex;gap:4px;background:var(--soft);border-radius:14px;padding:4px;margin-bottom:14px}
+/* شريط الأقسام في الأسفل، ثابت فوق الأيقونات، ويختفي عند النزول في الصفحة ويعود عند الصعود */
+body:not(.adm) #segBar{position:fixed;left:50%;bottom:calc(var(--navH,64px) + 8px);transform:translateX(-50%);width:min(calc(100% - 32px),688px);margin:0;z-index:35;background:var(--card);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.1);transition:transform .25s,opacity .25s}
+body:not(.adm) #segBar button.on{background:var(--accl);color:var(--acct);box-shadow:none}
+body.seghide:not(.adm) #segBar{transform:translate(-50%,calc(100% + 80px));opacity:0;pointer-events:none}
+body.hasseg:not(.lesson) main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
+body.hasseg:not(.seghide):not(.adm):not(.lesson) #review .stgo:has(.btn){bottom:calc(var(--navH,64px) + var(--segH,56px) + 8px)}
+body:not(.adm):not(.lesson) #review .stgo:has(.btn){transition:bottom .25s}
 #segBar button{flex:1;border:0;background:none;border-radius:11px;padding:9px 6px;font:inherit;font-weight:800;font-size:.92rem;color:var(--muted);cursor:pointer}
 #segBar button.on{background:var(--card);color:var(--hd);box-shadow:0 1px 4px rgba(0,0,0,.1)}
 body.lesson #segBar,body.adm #segBar{display:none!important}
@@ -827,7 +834,10 @@ body:not(.adm) .mtgrid>.mt{border:2px solid var(--line);border-bottom-width:4px;
 body:not(.adm) .mt.on{border-color:var(--acc);background:var(--accl);color:var(--acct)}
 body:not(.adm) .mt.ok{border-color:#7cc644;background:#e8f8d8;color:#2f6b0a}
 body:not(.adm) .mt.no{border-color:#f19a9a;background:#ffe9e9}
-.stgo{margin-top:6px}.stgo:has(.btn){position:sticky;bottom:calc(var(--navH,64px) + env(safe-area-inset-bottom));z-index:16;background:var(--paper);padding:10px 0 8px;margin:0 -2px}
+.stgo{margin-top:6px}
+/* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
+body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:30;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
+body:not(.adm):not(.lesson) #review .rvbox:has(.stgo .btn){padding-bottom:110px}
 #review .stgo #stStart,#review .stgo #dStart,#review .stgo #chStart{position:static}
 .stsub{text-align:center;color:var(--muted);font-size:.85rem;margin:8px 4px 0;line-height:1.5}.stsub .i3{width:18px;height:18px;vertical-align:-3px}
 body:not(.adm) .zn.chal.lock,body:not(.adm) .zn.chal.cur{--base:var(--card);--depth:var(--line)}
@@ -4324,6 +4334,8 @@ function navSync(){
     if(sb.innerHTML!==h){sb.innerHTML=h;sb.querySelectorAll("button").forEach(b=>b.onclick=()=>{if(!b.classList.contains("on"))goTab(b.dataset.s)})}
     sb.style.display="";
   }else sb.style.display="none";
+  const hs=sb.style.display!=="none";document.body.classList.toggle("hasseg",hs);
+  if(hs)document.documentElement.style.setProperty("--segH",sb.offsetHeight+"px");else document.body.classList.remove("seghide");
   const mf=$("mainFilters"),fv=mf.style.display!=="none"&&[...mf.querySelectorAll("select")].some(x=>x.style.display!=="none");
   $("hFlt").classList.toggle("has",fv);$("hFlt").classList.toggle("act",!noFilter());
   if(!fv)document.body.classList.remove("fopen");
@@ -4352,6 +4364,10 @@ function renderMe(){
    ${it("setBtn",I3("gear"),"الإعدادات","الحساب والمظهر والتذكير")}
   </div>`;
 }
+
+// إخفاء شريط الأقسام عند النزول في الصفحة، وإظهاره عند الصعود أو في أعلاها
+let SEGY=0;addEventListener("scroll",()=>{const y=scrollY,d=y-SEGY;if(Math.abs(d)<6)return;
+  document.body.classList.toggle("seghide",d>0&&y>40);SEGY=y},{passive:true});
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
