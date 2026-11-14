@@ -805,6 +805,28 @@ body:not(.adm) .zn.lock .c small{color:var(--muted)}body:not(.adm) .zn.lock .svi
 #review .stgo .btn.next{font-size:1.05rem;padding:13px}
 body:not(.adm) #review .stgo .btn.next.blue,body:not(.adm) #review .stgo .chalbtn{background:var(--acc);color:#412402;box-shadow:0 5px 0 var(--accd)}
 body:not(.adm) #review .stgo .btn.next .i3,body:not(.adm) .stsub .i3{display:none}
+/* المراجعة في قسم خاص داخل الرئيسية، بنفس الألوان الكهرمانية */
+body:not(.rvtab) #review>.rsec,body:not(.rvtab) #review>.settings{display:none}
+body.rvtab #review>:not(.rsec):not(.settings){display:none!important}
+body.rvtab #review>.rsec{margin-top:4px}
+#segBar .segn{display:inline-block;background:var(--acc);color:#412402;border-radius:9px;font-size:.72rem;padding:0 7px;margin-inline-start:4px;line-height:1.6}
+body:not(.adm) .rsec h3 .i3{display:none}
+body:not(.adm) .rvbox .numpick.on{border-color:var(--acc);background:var(--accl);color:var(--acct)}
+body:not(.adm) .rvbox .numpick.on small{background:var(--acc);color:#412402}
+body:not(.adm) #rvRange{accent-color:var(--acc)}
+body:not(.adm) .btn.next.blue,body:not(.adm) .btn.next.chalbtn{background:var(--acc);color:#412402;box-shadow:0 5px 0 var(--accd)}
+body:not(.adm) .btn.next.blue:active{box-shadow:0 1px 0 var(--accd)}
+body:not(.adm) .btn.next .i3{display:none}
+/* شاشة النتيجة والتدريب: بطاقات هادئة بلون واحد */
+body:not(.adm) .result h2,body:not(.adm) .done h2{color:var(--acct)}
+body:not(.adm) .rcard{--c:var(--line);--d:var(--acct);border:2px solid var(--line);border-bottom-width:4px}
+body:not(.adm) .rcard small{background:var(--soft);color:var(--muted)}
+body:not(.adm) .rcard b .i3{width:22px;height:22px}
+body:not(.adm) #resDrill{background:var(--card);color:var(--acct);box-shadow:0 4px 0 var(--line);border:2px solid var(--acc)}
+body:not(.adm) .mtgrid>.mt{border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;background:var(--card);font-weight:700}
+body:not(.adm) .mt.on{border-color:var(--acc);background:var(--accl);color:var(--acct)}
+body:not(.adm) .mt.ok{border-color:#7cc644;background:#e8f8d8;color:#2f6b0a}
+body:not(.adm) .mt.no{border-color:#f19a9a;background:#ffe9e9}
 .stgo{margin-top:6px}.stgo:has(.btn){position:sticky;bottom:calc(var(--navH,64px) + env(safe-area-inset-bottom));z-index:16;background:var(--paper);padding:10px 0 8px;margin:0 -2px}
 #review .stgo #stStart,#review .stgo #dStart,#review .stgo #chStart{position:static}
 .stsub{text-align:center;color:var(--muted);font-size:.85rem;margin:8px 4px 0;line-height:1.5}.stsub .i3{width:18px;height:18px;vertical-align:-3px}
@@ -4289,7 +4311,15 @@ function navSync(){
   const g=Object.keys(NAVG).find(k=>NAVG[k].includes(id))||"review";
   document.querySelectorAll("#mainNav button").forEach(b=>b.classList.toggle("on",b.dataset.p===g));
   const sb=$("segBar"),items=NAVG[g].filter(x=>SEGN[x]);
-  if(items.length>1&&items.includes(id)){
+  // الرئيسية: قسمان «المسار» و«المراجعة» في الصفحة نفسها (يُبدَّل بينهما بصنف rvtab)
+  const home=id==="review"&&!document.body.classList.contains("lesson")&&!!$("review").querySelector(".rsec");
+  if(!home)document.body.classList.remove("rvtab");
+  if(home){
+    const rv=document.body.classList.contains("rvtab"),dn=$("review").querySelector('#rvState [data-v="due"] small'),n=dn?+dn.textContent:0;
+    const h=`<button type="button" data-t="0" class="${rv?"":"on"}">المسار</button><button type="button" data-t="1" class="${rv?"on":""}">المراجعة${n?` <span class="segn">${n}</span>`:""}</button>`;
+    if(sb.innerHTML!==h){sb.innerHTML=h;sb.querySelectorAll("button").forEach(b=>b.onclick=()=>{document.body.classList.toggle("rvtab",b.dataset.t==="1");navSync();scrollTo(0,0)})}
+    sb.style.display="";
+  }else if(items.length>1&&items.includes(id)){
     const h=items.map(x=>`<button type="button" data-s="${x}" class="${x===id?"on":""}">${SEGN[x]}</button>`).join("");
     if(sb.innerHTML!==h){sb.innerHTML=h;sb.querySelectorAll("button").forEach(b=>b.onclick=()=>{if(!b.classList.contains("on"))goTab(b.dataset.s)})}
     sb.style.display="";
@@ -4356,7 +4386,7 @@ function init(){
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=()=>{refresh();navSync()});
   $("hCrs").onclick=coursePicker;
   $("hFlt").onclick=()=>{document.body.classList.toggle("fopen");if(document.body.classList.contains("fopen"))scrollTo(0,0)};
-  try{const mo=new MutationObserver(()=>navSync());document.querySelectorAll("main>.panel").forEach(x=>mo.observe(x,{attributes:true,attributeFilter:["class"]}))}catch(e){}
+  try{const mo=new MutationObserver(()=>navSync());document.querySelectorAll("main>.panel").forEach(x=>mo.observe(x,{attributes:true,attributeFilter:["class"]}));mo.observe($("review"),{childList:true})}catch(e){}
   try{const nv=$("mainNav"),sn=()=>document.documentElement.style.setProperty("--navH",nv.offsetHeight+"px");sn();new ResizeObserver(sn).observe(nv)}catch(e){}
   $("setBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("settings").classList.add("on");renderPanel("settings");scrollTo(0,0)};
   $("q").oninput=()=>{LPAGE=0;renderList()};$("fType").onchange=()=>{LPAGE=0;renderList()};
