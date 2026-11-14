@@ -155,6 +155,12 @@ select,input[type=search]{font:inherit;font-size:.9rem;padding:7px 10px;border:1
 .exs{display:flex;flex-direction:column;gap:6px;text-align:center}
 .exp{background:var(--soft);border-radius:10px;padding:7px 10px}
 .exd{font-size:.98rem}.exa{font-size:.92rem;color:var(--muted);margin-top:2px}
+.exe{font-size:.9rem;color:var(--muted);margin-top:2px;font-style:italic}.stlearn .en{font-size:1.05rem;color:var(--muted);margin-top:4px}.item .men{font-size:.88rem;color:var(--muted);text-align:left;margin-top:2px}
+.wnote{margin-top:12px;padding:10px 12px;border-radius:12px;background:#e3f0f6;border-inline-start:4px solid #2b7a9b;text-align:right}.wntag{font-weight:800;font-size:.85rem;color:#1f5f7a}
+.wnen{text-align:left;font-size:.9rem;margin-top:6px;line-height:1.6}.wnar{font-size:.92rem;margin-top:6px;line-height:1.8}
+.say.ntde{display:inline;height:auto;padding:0 2px;margin:0;background:none;box-shadow:none;border-radius:4px;font-weight:700;font-size:inherit;color:#1f5f7a;white-space:normal;direction:ltr;text-decoration:underline dotted;cursor:pointer}
+[data-dark] .wnote{background:#0c3a52}[data-dark] .wntag,[data-dark] .say.ntde,[data-dark] .ntd summary{color:#7dd3fc}
+.ntd{margin-top:6px}.ntd summary{cursor:pointer;font-weight:700;font-size:.88rem;color:#1f5f7a}.ntd .wnote{margin-top:6px}
 .exs.list{text-align:right;margin-top:6px}.exs.list .exp{padding:5px 9px}.exs.list .exd{font-size:.9rem;text-align:left}.exs.list .exa{font-size:.86rem}
 .word{font-size:1.65rem;font-weight:700;color:var(--hd)}
 .word,.qword{overflow-wrap:anywhere;word-break:break-word;max-width:100%}
@@ -983,9 +989,15 @@ function artHTML(de){
 function exPairs(w,mode){
   const a=String(w.ex||"").split("\n"),b=String(w.exar||"").split("\n");
   if(!w.ex)return"";
-  const pairs=a.length===b.length?a.map((x,i)=>[x,b[i]]):[[w.ex,w.exar]];
-  return `<div class="exs ${mode||""}">${pairs.map(([x,y])=>`<div class="exp"><div class="exd de">${sayBtn(x)}${esc(x)}</div><div class="exa">${esc(y)}</div></div>`).join("")}</div>`;
+  const e=String(w.exen||"").split("\n");
+  const pairs=a.length===b.length?a.map((x,i)=>[x,b[i],e.length===a.length?e[i]:""]):[[w.ex,w.exar,w.exen||""]];
+  return `<div class="exs ${mode||""}">${pairs.map(([x,y,z])=>`<div class="exp"><div class="exd de">${sayBtn(x)}${esc(x)}</div>${z?`<div class="exe" dir="ltr">${esc(z)}</div>`:""}<div class="exa">${esc(y)}</div></div>`).join("")}</div>`;
 }
+// منهج «ألماني · إنكليزي»: المعنى الإنكليزي (بلا صوت)، وملاحظة الكتاب بالإنكليزية والعربية
+// في الملاحظة: ما بين [[ ]] جملة ألمانية تُقرأ عند الضغط عليها
+const enLine=w=>w.en?`<div class="en" dir="ltr">${esc(w.en)}</div>`:"";
+const ntText=t=>esc(t).replace(/\[\[(.+?)\]\]/g,(m,x)=>`<bdi dir="ltr" class="say ntde" data-say="${x}">${x}</bdi>`);
+const noteHTML=w=>w.nt?`<div class="wnote"><span class="wntag">💡 ملاحظة</span><div class="wnen" dir="ltr">${ntText(w.nt)}</div>${w.ntar?`<div class="wnar">${ntText(w.ntar)}</div>`:""}</div>`:"";
 function tags(w){
   return (w.lvl?`<span class="tag ${w.lvl}">${w.lvl}</span>`:"")+(w.subj&&useSubj()?`<span class="tag">📚 ${esc(w.subj)}</span>`:"")+`<span class="tag">${TYPE[w.t]||""}</span>`+
    w.s.map(s=>`<span class="tag de">${esc(s)}</span>`).join("")+
@@ -1139,7 +1151,7 @@ function startStation(){
 }
 // المحطة درس متدرّج: لكل كلمة ثلاث خطوات (تعرّف، ثم جملة، ثم تمرين)، ثم تُعاد الكلمات التي أُخطئ فيها
 function stationSteps(words){   // نحاول عدة ترتيبات عشوائية ونأخذ أول ترتيب لا تتكرّر فيه الكلمة نفسها مرتين متتاليتين
-  let s;for(let n=0;n<30;n++){s=stationSteps1(words);if(!s.some((x,i)=>i&&s[i-1].w===x.w))break}
+  let s;for(let n=0;n<30;n++){s=stationSteps1(words);if(!s.some((x,i)=>i&&s[i-1].w===x.w&&!x.seq))break}
   return s;
 }
 function stationSteps1(words){
@@ -1160,7 +1172,11 @@ function stationSteps1(words){
   };
   // لا تأتي ثلاث كلمات جديدة متتالية: بعد عرضين متتاليين يأتي تمرين على كلمة سبق عرضها
   const twoIntros=()=>out.length>=2&&out[out.length-1].t==="intro"&&out[out.length-2].t==="intro";
-  words.forEach((w,i)=>{if(twoIntros())take(true);out.push({t:"intro",w});pend.push({s:second(w),next:third(w,i),ready:out.length+2});take(false);});
+  // منهج «ألماني · إنكليزي» (الكلمات التي لها en): الكلمة، ثم جملتها مباشرة، ثم تمارينها موزّعة كالعادة
+  const seq=w=>!!(w.en&&w.ex);
+  words.forEach((w,i)=>{if(twoIntros())take(true);out.push({t:"intro",w});
+    if(seq(w)){out.push({t:"ex",w,seq:1});pend.push({s:{t:clozeOf(w)?"cloze":"rev",w},next:third(w,i),ready:out.length+2})}
+    else pend.push({s:second(w),next:third(w,i),ready:out.length+2});take(false);});
   while(pend.length)take(true);
   return out;
 }
@@ -1201,12 +1217,12 @@ function stationView(){
   };
   S_.ans=0;
   if(st.t==="intro"){
-    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}${enLine(w)}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
      <button class="btn next" id="stNext">التالي</button>`;
     speak(w.de);$("stNext").onclick=next;
   }
   else if(st.t==="ex"){
-    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("books")} في جملة</span>${wordLine}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}</div>
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("books")} في جملة</span>${wordLine}${enLine(w)}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}${noteHTML(w)}</div>
      <button class="btn next" id="stNext">التالي</button>`;
     speak(String(w.ex).split("\n")[0]);$("stNext").onclick=next;
   }
@@ -1592,8 +1608,8 @@ function renderList(){
   const from=LPAGE*LSIZE,part=r.slice(from,from+LSIZE);
   $("lcount").textContent=r.length?`تعلّمت ${arN(r.length,"كلمة واحدة","كلمتين","كلمات")} · ${from+1}–${from+part.length}`:q||t!=="all"?"لا كلمات":"لم تتعلّم كلمات بعد. ابدأ أول محطة لتظهر كلماتك هنا";
   $("litems").innerHTML=part.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
-   return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>
-   ${exPairs(w,"list")}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
+   return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>${w.en?`<div class="men" dir="ltr">${esc(w.en)}</div>`:""}
+   ${exPairs(w,"list")}${w.nt?`<details class="ntd"><summary>💡 ملاحظة</summary>${noteHTML(w)}</details>`:""}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
   $("litems").querySelectorAll(".pager button").forEach(b=>b.onclick=()=>{LPAGE=+b.dataset.pg;renderList();$("list").scrollIntoView({block:"start"});scrollBy(0,-130)});
 }
 

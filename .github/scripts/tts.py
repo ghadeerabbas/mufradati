@@ -36,7 +36,8 @@ def texts():
         d = json.load(open(c["file"], encoding="utf-8"))
         words = d["words"] if isinstance(d, dict) else d
         for w in words:
-            for t in [w.get("de", ""), answer0(w.get("de", ""))] + str(w.get("ex", "") or "").split("\n"):
+            notes = re.findall(r"\[\[(.+?)\]\]", str(w.get("nt", "") or "") + " " + str(w.get("ntar", "") or ""))   # جمل ألمانية في الملاحظة
+            for t in [w.get("de", ""), answer0(w.get("de", ""))] + str(w.get("ex", "") or "").split("\n") + notes:
                 t = speakable(t.strip())
                 if t and re.search(r"[A-Za-zÄÖÜäöüß]", t): out.add(t)
     # كلمات القراءة (rdgloss.json): صوت لكل كلمة يكتب Claude معناها
