@@ -849,6 +849,11 @@ body:not(.adm) .mtgrid>.mt{border:2px solid var(--line);border-bottom-width:4px;
 body:not(.adm) .mt.on{border-color:var(--acc);background:var(--accl);color:var(--acct)}
 body:not(.adm) .mt.ok{border-color:#7cc644;background:#e8f8d8;color:#2f6b0a}
 body:not(.adm) .mt.no{border-color:#f19a9a;background:#ffe9e9}
+/* أزرار نهاية الجلسات في الأسفل دائمًا، كأزرار الدروس */
+body:not(.adm):not(.lesson) #review .result #resGo{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:calc(var(--navH,64px) + 10px);z-index:17;margin:0}
+body:not(.adm):not(.lesson) #review .result #resDrill{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:calc(var(--navH,64px) + 76px);z-index:17;margin:0}
+body:not(.adm) #review .result{padding-bottom:16px}body:not(.adm) #review:has(.result){padding-bottom:150px}
+body:not(.adm) .bigfx #bfGo{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),420px);bottom:calc(20px + env(safe-area-inset-bottom));margin:0}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
@@ -4330,6 +4335,7 @@ const HIC=k=>{const B=n=>SVGI('<rect x="3" y="7" width="16" height="10" rx="2"/>
 /* ================= الواجهة الهادئة: خمس أيقونات، وأقسام فرعية، وصفحة «أنا» ================= */
 const NAVG={review:["review"],list:["list","report"],games:["games","quiz"],rewards:["rewards","shop"],me:["me","profile","settings","messages","helper","reading","math"]};
 const SEGN={list:"كلماتي",report:"التقارير",games:"التمارين",quiz:"الاختبار",rewards:"الدوري",shop:"المتجر"};
+let HOMETAB="path";   // آخر قسم اختاره في الرئيسية: يعود إليه بعد انتهاء الجلسة
 function navSync(){
   if(document.body.classList.contains("adm"))return;
   const on=document.querySelector("main>.panel.on");if(!on)return;const id=on.id;
@@ -4338,11 +4344,11 @@ function navSync(){
   const sb=$("segBar"),items=NAVG[g].filter(x=>SEGN[x]);
   // الرئيسية: قسمان «المسار» و«المراجعة» في الصفحة نفسها (يُبدَّل بينهما بصنف rvtab)
   const home=id==="review"&&!document.body.classList.contains("lesson")&&!!$("review").querySelector(".rsec");
-  if(!home)document.body.classList.remove("rvtab");
+  document.body.classList.toggle("rvtab",home&&HOMETAB==="rv");
   if(home){
     const rv=document.body.classList.contains("rvtab"),dn=$("review").querySelector('#rvState [data-v="due"] small'),n=dn?+dn.textContent:0;
     const h=`<button type="button" data-t="0" class="${rv?"":"on"}">المسار</button><button type="button" data-t="1" class="${rv?"on":""}">المراجعة${n?` <span class="segn">${n}</span>`:""}</button>`;
-    if(sb.innerHTML!==h){sb.innerHTML=h;sb.querySelectorAll("button").forEach(b=>b.onclick=()=>{document.body.classList.toggle("rvtab",b.dataset.t==="1");navSync();scrollTo(0,0)})}
+    if(sb.innerHTML!==h){sb.innerHTML=h;sb.querySelectorAll("button").forEach(b=>b.onclick=()=>{HOMETAB=b.dataset.t==="1"?"rv":"path";navSync();scrollTo(0,0)})}
     sb.style.display="";
   }else if(items.length>1&&items.includes(id)){
     const h=items.map(x=>`<button type="button" data-s="${x}" class="${x===id?"on":""}">${SEGN[x]}</button>`).join("");
