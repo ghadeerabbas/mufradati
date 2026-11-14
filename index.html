@@ -775,7 +775,18 @@ body.lesson:not(.adm) .cloze{font-size:1.4rem;line-height:2.1;text-align:center;
 body.lesson:not(.adm) .cloze .blank{display:inline-block;min-width:3.4em;border:2px dashed var(--acc);border-radius:10px;background:var(--accl);color:transparent;line-height:1.5;padding:0 6px}
 body.lesson:not(.adm) .cloze .blank.good{color:#2f6b0a;border:2px solid #7cc644;background:#e8f8d8}body.lesson:not(.adm) .cloze .blank.bad{color:#a32d2d;border:2px solid #f19a9a;background:#ffe9e9}
 body.lesson:not(.adm) .arwrap{text-align:center}
-body.lesson:not(.adm) .gopt{text-align:center!important;font-size:1.12rem;font-weight:700;padding:15px 12px;border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;margin-bottom:10px}
+body.lesson:not(.adm) .gopt{text-align:center!important;font-size:1.05rem;font-weight:700;padding:10px 12px;border:2px solid var(--line);border-bottom-width:4px;border-radius:14px;margin-bottom:8px}
+body.lesson.fbon:not(.adm) main{padding-bottom:calc(230px + env(safe-area-inset-bottom))!important}
+/* «في جملة»: الكلمة أصغر في الأعلى، والجملة في بطاقة بيضاء: زر استماع دائري، ثم الجملة، ثم خط، ثم الترجمة */
+body.lesson:not(.adm) .stlearn:has(.exs) .word{font-size:1.7rem}
+body.lesson:not(.adm) .stlearn:has(.exs) .word .sayrow{margin-top:6px}
+body.lesson:not(.adm) .stlearn:has(.exs) .word .say{font-size:.8rem;padding:4px 12px}
+body.lesson:not(.adm) .stlearn:has(.exs) .ar{font-size:1.15rem!important;margin:4px 0 16px}
+body.lesson:not(.adm) .stlearn .exs .exp{background:var(--card);border:2px solid var(--line);border-bottom-width:4px;border-radius:18px;padding:14px 16px 16px}
+body.lesson:not(.adm) .stlearn .exs .exd{display:flex;flex-direction:column;align-items:center;gap:10px;font-size:1.2rem;line-height:1.6;font-weight:600}
+body.lesson:not(.adm) .stlearn .exs .exd .say{font-size:0;width:44px;height:44px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:var(--accl);color:var(--accd);margin:0;flex:none}
+body.lesson:not(.adm) .stlearn .exs .exd .say svg{width:22px;height:22px}
+body.lesson:not(.adm) .stlearn .exs .exa{border-top:1px solid var(--line);margin-top:12px;padding-top:10px;font-size:1rem}
 body.lesson:not(.adm) .gopt:active{transform:translateY(2px);border-bottom-width:2px}
 body.lesson:not(.adm) .gopt.ok{background:#e8f8d8;border-color:#7cc644;color:#2f6b0a}
 body.lesson:not(.adm) .gopt.no{background:#ffe9e9;border-color:#f19a9a;color:#a32d2d}
