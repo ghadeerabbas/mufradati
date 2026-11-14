@@ -765,6 +765,35 @@ body:not(.adm) .zn.mini.wait{--base:var(--card);--depth:var(--line)}
 body:not(.adm) .zn.chal .svi{color:var(--accd)}body:not(.adm) .zn.chal.ok{--base:var(--acc);--depth:var(--accd)}body:not(.adm) .zn.chal.ok .svi{color:#fff}
 body:not(.adm) .zn.chal .c{width:84px;height:84px}
 body:not(.adm) .zpath .bg{stroke:#FAC775;opacity:.45}
+/* الدروس من الداخل بشكل هادئ: شريط تقدّم سميك، ✕ للخروج، سؤال كبير في الوسط، وخيارات بطاقات كبيرة */
+body.lesson:not(.adm) .sess{gap:10px;font-size:.75rem;padding-top:10px}
+body.lesson:not(.adm) .sess>.link{order:-1;font-size:0;padding:4px 6px;line-height:1;text-decoration:none}
+body.lesson:not(.adm) .sess>.link:before{content:"✕";font-size:1.45rem;color:var(--muted);font-weight:400}
+body.lesson:not(.adm) .sbar{height:16px;border-radius:10px}
+body.lesson:not(.adm) .sbar i{background:var(--acc);border-radius:10px;box-shadow:inset 0 -4px 0 rgba(0,0,0,.08),inset 0 4px 0 rgba(255,255,255,.35)}
+body.lesson:not(.adm) .cloze{font-size:1.4rem;line-height:2.1;text-align:center;margin:14px 0 6px}
+body.lesson:not(.adm) .cloze .blank{display:inline-block;min-width:3.4em;border:2px dashed var(--acc);border-radius:10px;background:var(--accl);color:transparent;line-height:1.5;padding:0 6px}
+body.lesson:not(.adm) .cloze .blank.good{color:#2f6b0a;border:2px solid #7cc644;background:#e8f8d8}body.lesson:not(.adm) .cloze .blank.bad{color:#a32d2d;border:2px solid #f19a9a;background:#ffe9e9}
+body.lesson:not(.adm) .arwrap{text-align:center}
+body.lesson:not(.adm) .gopt{text-align:center!important;font-size:1.12rem;font-weight:700;padding:15px 12px;border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;margin-bottom:10px}
+body.lesson:not(.adm) .gopt:active{transform:translateY(2px);border-bottom-width:2px}
+body.lesson:not(.adm) .gopt.ok{background:#e8f8d8;border-color:#7cc644;color:#2f6b0a}
+body.lesson:not(.adm) .gopt.no{background:#ffe9e9;border-color:#f19a9a;color:#a32d2d}
+[data-dark] body.lesson:not(.adm) .gopt.ok{background:#1f3a1a;color:#b9eb95}[data-dark] body.lesson:not(.adm) .gopt.no{background:#3d1f22;color:#ffb4b4}
+body:not(.adm) .fbar{border-top-width:0;border-radius:24px 24px 0 0}
+body:not(.adm) .fbar.ok{background:var(--accl)}body:not(.adm) .fbar.ok h4{color:var(--acct)}body:not(.adm) .fbar.ok p{color:var(--acct)}
+body:not(.adm) .fbar.no{background:var(--soft)}body:not(.adm) .fbar.no h4{color:#c23a3a}body:not(.adm) .fbar.no p{color:var(--ink)}
+[data-dark] body:not(.adm) .fbar.ok{background:#3a2c14}[data-dark] body:not(.adm) .fbar.ok h4,[data-dark] body:not(.adm) .fbar.ok p{color:#FAC775}
+body:not(.adm) .fbar .fbgo,body:not(.adm) .fbar.no .fbgo{background:var(--acc);color:#412402;box-shadow:0 5px 0 var(--accd)}
+body:not(.adm) .fbar .fbgo:active{box-shadow:0 1px 0 var(--accd)}
+body:not(.adm) .zn.mini.cur{--base:var(--acc);--depth:var(--accd)}
+body:not(.adm) .zn.mini.cur .c{transform:none;outline:5px solid var(--accl)}
+body:not(.adm) .zn.mini .go{top:12px;background:var(--soft);border:0;color:var(--muted);font-weight:700;font-size:.8rem;padding:5px 11px;border-radius:10px;animation:none}
+body:not(.adm) .zn.mini .go:after{display:none}
+body:not(.adm) .zn.lock .c small{color:var(--muted)}body:not(.adm) .zn.lock .svi{fill:none}
+#review .stgo .btn.next{font-size:1.05rem;padding:13px}
+body:not(.adm) #review .stgo .btn.next.blue,body:not(.adm) #review .stgo .chalbtn{background:var(--acc);color:#412402;box-shadow:0 5px 0 var(--accd)}
+body:not(.adm) #review .stgo .btn.next .i3,body:not(.adm) .stsub .i3{display:none}
 .stgo{margin-top:6px}.stgo:has(.btn){position:sticky;bottom:calc(var(--navH,64px) + env(safe-area-inset-bottom));z-index:16;background:var(--paper);padding:10px 0 8px;margin:0 -2px}
 #review .stgo #stStart,#review .stgo #dStart,#review .stgo #chStart{position:static}
 .stsub{text-align:center;color:var(--muted);font-size:.85rem;margin:8px 4px 0;line-height:1.5}.stsub .i3{width:18px;height:18px;vertical-align:-3px}
@@ -772,7 +801,7 @@ body:not(.adm) .zn.chal.lock,body:not(.adm) .zn.chal.cur{--base:var(--card);--de
 body:not(.adm) .zn.chal .c{border:2px solid var(--line)}body:not(.adm) .zn.chal.cur .c{border-color:var(--acc)}
 body:not(.adm) .zn.chal .i3{filter:none!important;opacity:1}body:not(.adm) .zn.chal.lock .i3{filter:grayscale(.8)!important;opacity:.6}
 body:not(.adm) .zn.chal .tl,body:not(.adm) .zn.chal .go{color:var(--accd)}
-#review #stStart,#review #dStart,#review #chStart{position:sticky;bottom:calc(var(--navH,64px) + 12px + env(safe-area-inset-bottom));z-index:16;font-size:1.1rem;padding:15px}
+
 .kidrow{display:flex;gap:10px;margin-bottom:12px}
 .kidrow button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--line);background:var(--card);border-radius:14px;padding:12px 8px;font:inherit;font-weight:800;color:var(--hd);cursor:pointer}
 .kidrow .i3,.kidrow .mtIco{width:28px;height:28px;font-size:1.4rem}
