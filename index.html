@@ -816,6 +816,21 @@ body:not(.adm) #review .stgo .btn.next .i3,body:not(.adm) .stsub .i3{display:non
 body:not(.rvtab) #review>.rsec,body:not(.rvtab) #review>.settings{display:none}
 body.rvtab #review>:not(.rsec):not(.settings){display:none!important}
 body.rvtab #review>.rsec{margin-top:4px}
+body.rvtab:not(.adm) #review>.rsec{background:none;border:0;padding:0;box-shadow:none}
+body.rvtab:not(.adm) #review>.rsec h3{background:var(--accl);color:var(--acct);text-align:center;border-radius:14px;padding:12px;margin-bottom:16px;font-size:1.05rem;display:flex;justify-content:center}
+body.rvtab:not(.adm) #rvState{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+body.rvtab:not(.adm) #rvState .numpick{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;padding:13px 14px;font-size:1rem;margin:0;background:var(--card)}
+body.rvtab:not(.adm) #rvState .numpick:first-child{grid-column:1/-1}
+body.rvtab:not(.adm) #rvState .numpick small{margin:0}
+body.rvtab:not(.adm) #rvState .numpick.on{background:var(--accl)}
+body.rvtab:not(.adm) .rvslide{background:var(--card);border:2px solid var(--line);border-bottom-width:4px;border-radius:16px;padding:14px 16px 10px;margin-top:16px}
+body.rvtab:not(.adm) #rvRange{-webkit-appearance:none;appearance:none;height:10px;border-radius:6px;background:var(--soft);outline:0;margin:10px 0 6px}
+body.rvtab:not(.adm) #rvRange::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--acc);border:4px solid var(--card);box-shadow:0 2px 6px rgba(0,0,0,.25)}
+body.rvtab:not(.adm) #rvRange::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--acc);border:4px solid var(--card)}
+body.rvtab:not(.adm) #review>.settings{display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;margin-top:14px;color:var(--muted);font-size:.9rem}
+body.rvtab:not(.adm):not(.lesson) #rvGo{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:calc(var(--navH,64px) + 10px);z-index:17;margin:0;transition:bottom .25s}
+body.rvtab.hasseg:not(.seghide):not(.adm):not(.lesson) #rvGo{bottom:calc(var(--navH,64px) + var(--segH,56px) + 18px)}
+body.rvtab:not(.adm) #review{padding-bottom:90px}
 #segBar .segn{display:inline-block;background:var(--acc);color:#412402;border-radius:9px;font-size:.72rem;padding:0 7px;margin-inline-start:4px;line-height:1.6}
 body:not(.adm) .rsec h3 .i3{display:none}
 body:not(.adm) .rvbox .numpick.on{border-color:var(--acc);background:var(--accl);color:var(--acct)}
