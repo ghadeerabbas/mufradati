@@ -1355,6 +1355,38 @@ body:not(.adm) #review .rate .r2{background:#3BA55C;color:#fff;box-shadow:0 4px 
 body:not(.adm) #review .rate .r3{background:#1E9FE0;color:#fff;box-shadow:0 4px 0 #1579AB}
 body:not(.adm) #review .rate .btn:active{transform:translateY(3px);box-shadow:none}
 
+/* ---------- صفحة كلماتي (هوية design) ---------- */
+body:not(.adm):has(#list.on){background:var(--ds-bg)}
+body:not(.adm) #list .filters{display:flex;gap:var(--sp-2);margin-bottom:var(--sp-3)}
+body:not(.adm) #list .filters input,body:not(.adm) #list .filters select{background:var(--ds-card);color:var(--ds-navy);border:0;box-shadow:var(--sh-1);border-radius:var(--r-md);font-weight:700;height:46px}
+body:not(.adm) #list .filters input{flex:1.4;padding-inline-start:40px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23737987' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='M21 21l-6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-size:18px;background-position:right 14px center}
+body:not(.adm) #list .filters input::placeholder{color:var(--ds-muted);font-weight:600}
+body:not(.adm) #list .count{color:var(--ds-muted);font-weight:700;font-size:var(--fs-sm);margin:var(--sp-1) 0 var(--sp-3)}
+body:not(.adm) #list .item{background:var(--ds-card);border:0;border-right:4px solid var(--tc,var(--ds-navy));border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-3)}
+body:not(.adm) #list .item.mq3{border-color:var(--tc,var(--ds-navy));box-shadow:var(--sh-2)}
+body:not(.adm) #list .item .top{align-items:center}
+body:not(.adm) #list .item .w{font-size:1.15rem;font-weight:800}
+body:not(.adm) #list .item>.m{color:var(--ds-navy);font-weight:800;font-size:var(--fs-md);margin-top:2px;text-align:right}
+body:not(.adm) #list .item .men{color:var(--ds-muted)}
+body:not(.adm) #list .item .exs{margin-top:var(--sp-2)}
+body:not(.adm) #list .item .exp{background:var(--ds-bg);border:0;border-radius:var(--r-md);box-shadow:none}
+body:not(.adm) #list .item .exa{color:var(--ds-muted)}
+body:not(.adm) #list .item .say{background:var(--ds-bg);color:var(--ds-navy);box-shadow:none;font-weight:800}
+body:not(.adm) #list .item .tags span,body:not(.adm) #list .item .tag{background:var(--ds-bg);color:var(--ds-muted);border:0;font-weight:800}
+body:not(.adm) #list .ntd summary{color:var(--ds-acc-dd);font-weight:800;display:inline-flex;align-items:center;gap:4px;cursor:pointer}
+body:not(.adm) #list .ntd summary .svi{width:16px;height:16px}
+/* مقياس الإتقان: ثلاث شحطات وكلمة (قيد التعلّم، محفوظة، راسخة) */
+.mqm{display:inline-flex;align-items:center;gap:3px;flex:none;background:var(--ds-bg);border-radius:var(--r-pill);padding:4px 10px}
+.mqm i{width:6px;height:12px;border-radius:3px;background:var(--ds-line)}
+.mqm b{font-size:var(--fs-xs);font-weight:800;color:var(--ds-muted);margin-inline-start:4px}
+.mqm.mq-1 i:nth-child(1){background:var(--ds-acc)}
+.mqm.mq-2 i:nth-child(-n+2){background:var(--ds-acc)}
+.mqm.mq-3 i{background:var(--ds-acc)}.mqm.mq-3{background:var(--ds-cream)}.mqm.mq-3 b{color:var(--ds-acc-dd)}
+body:not(.adm) #list .pager span{color:var(--ds-muted);font-weight:700}
+body:not(.adm) #list .pager .btn{background:var(--ds-card);color:var(--ds-navy);box-shadow:var(--sh-1);border:0;border-radius:var(--r-md);font-weight:800}
+body:not(.adm) #list .pager .btn:disabled{opacity:.45}
+@media (max-width:380px){body:not(.adm) #list .item{padding:var(--sp-3)}body:not(.adm) #list .item .w{font-size:1.05rem}}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2502,10 +2534,12 @@ function renderList(){
   const pages=Math.max(1,Math.ceil(r.length/LSIZE));LPAGE=Math.min(Math.max(0,LPAGE),pages-1);
   const from=LPAGE*LSIZE,part=r.slice(from,from+LSIZE);
   $("lcount").textContent=r.length?`تعلّمت ${arN(r.length,"كلمة واحدة","كلمتين","كلمات")} · ${from+1}–${from+part.length}`:q||t!=="all"?"لا كلمات":"لم تتعلّم كلمات بعد. ابدأ أول محطة لتظهر كلماتك هنا";
-  $("litems").innerHTML=part.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
+  const LRN=!isAdmin();   // المتعلّم: مقياس إتقان مسطّح بدل الرموز التعبيرية (هوية design)
+  $("litems").innerHTML=part.map(w=>{const p=P[w.k],stg=LRN||!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
    const mq=!p?0:p.box>=7?3:p.box>=4?2:1;   // الإتقان: لم تُتعلّم (رمادية) ← قيد التعلّم ← محفوظة ← راسخة (بألوانها كاملة)
-   return `<div class="item t-${w.t} mq${mq}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>${w.en?`<div class="men" dir="ltr">${esc(w.en)}</div>`:""}
-   ${exPairs(w,"list")}${w.nt?`<details class="ntd"><summary>💡 ملاحظة</summary>${noteHTML(w)}</details>`:""}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
+   const mtr=LRN&&mq?`<span class="mqm mq-${mq}" title="${["","قيد التعلّم","محفوظة","راسخة"][mq]}"><i></i><i></i><i></i><b>${["","قيد التعلّم","محفوظة","راسخة"][mq]}</b></span>`:"";
+   return `<div class="item t-${w.t} mq${mq}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span>${LRN?mtr:`<span class="m">${esc(w.ar)}</span>`}</div>${LRN?`<div class="m">${esc(w.ar)}</div>`:""}${w.en?`<div class="men" dir="ltr">${esc(w.en)}</div>`:""}
+   ${exPairs(w,"list")}${w.nt?`<details class="ntd"><summary>${LRN?LIC("bulb"):"💡"} ملاحظة</summary>${noteHTML(w)}</details>`:""}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
   $("litems").querySelectorAll(".pager button").forEach(b=>b.onclick=()=>{LPAGE=+b.dataset.pg;renderList();$("list").scrollIntoView({block:"start"});scrollBy(0,-130)});
 }
 
@@ -2736,7 +2770,9 @@ function LIC(k){const d={
   repeat:'<path d="M4 12V9a3 3 0 0 1 3-3h13"/><path d="M17 3l3 3-3 3"/><path d="M20 12v3a3 3 0 0 1-3 3H4"/><path d="M7 21l-3-3 3-3"/>',
   check:'<path d="M5 12l5 5L20 7"/>',
   alert:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
-  flag:'<path d="M5 5a5 5 0 0 1 7 0 5 5 0 0 0 7 0v9a5 5 0 0 1-7 0 5 5 0 0 0-7 0V5"/><path d="M5 21v-7"/>'}[k]||"";
+  flag:'<path d="M5 5a5 5 0 0 1 7 0 5 5 0 0 0 7 0v9a5 5 0 0 1-7 0 5 5 0 0 0-7 0V5"/><path d="M5 21v-7"/>',
+  bulb:'<path d="M3 12h1m8-9v1m8 8h1M5.6 5.6l.7.7m12.1-.7-.7.7"/><path d="M9 16a5 5 0 1 1 6 0 3.5 3.5 0 0 0-1 3 2 2 0 0 1-4 0 3.5 3.5 0 0 0-1-3"/><path d="M9.7 17h4.6"/>',
+  search:'<circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>'}[k]||"";
   return `<svg class="i3 svi lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`}
 const GAMES=[
  {id:"cloze",ic:I3("pencil"),li:"pencil",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
