@@ -1132,6 +1132,51 @@ body:not(.adm) #segBar button.on{background:var(--ds-cream);color:var(--ds-navy)
 [data-dark] body:not(.adm) #mainNav button.on i svg{color:#FFC36B}
 [data-dark] body:not(.adm) #mainNav button:after{color:#9AA0B2}[data-dark] body:not(.adm) #mainNav button.on:after{color:#FFC36B}
 
+/* ---------- صفحة التمارين (هوية design) ---------- */
+body:not(.adm):has(#games.on){background:var(--ds-bg)}
+body:not(.adm) #games .frcard{background:var(--ds-navy);background-image:radial-gradient(120% 140% at 0% 0%,rgba(244,161,38,.28),transparent 55%);border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4);gap:var(--sp-3);margin-bottom:var(--sp-4)}
+[data-dark] body:not(.adm) #games .frcard{background-color:#25305A;color:#fff}
+body:not(.adm) #games .frcard .gic{flex:none;width:48px;height:48px;border-radius:var(--r-md);background:rgba(255,255,255,.14);display:grid;place-items:center;color:#fff}
+body:not(.adm) #games .frcard .gic .svi{width:26px;height:26px}
+body:not(.adm) #games .frcard b{font-size:var(--fs-md);font-weight:800}
+body:not(.adm) #games .frcard small{font-size:var(--fs-sm);opacity:.9;font-weight:600}
+body:not(.adm) #games .gcards{gap:var(--sp-3)}
+body:not(.adm) #games .gcard{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4) var(--sp-3);gap:6px}
+body:not(.adm) #games .gcard .gic{width:52px;height:52px;border-radius:var(--r-md);background:var(--ds-cream);color:var(--ds-acc-dd);display:grid;place-items:center;margin-bottom:4px;font-size:1rem}
+body:not(.adm) #games .gcard .gic .svi{width:28px;height:28px}
+body:not(.adm) #games .gcard b{font-size:var(--fs-md);font-weight:800;color:var(--ds-navy);line-height:1.35}
+body:not(.adm) #games .gcard small{font-size:var(--fs-xs);color:var(--ds-muted);font-weight:600;line-height:1.5}
+body:not(.adm) #games .gcard em{margin-top:6px;background:var(--ds-bg);color:var(--ds-ok);font-weight:800;font-size:var(--fs-xs);padding:2px 10px;border-radius:var(--r-pill)}
+[data-dark] body:not(.adm) #games .gcard em{color:#6FD39A}
+body:not(.adm) #games .gcard em .i3{width:16px;height:16px;vertical-align:-3px}
+body:not(.adm) #games .gcard:disabled{opacity:.55}body:not(.adm) #games .gcard:disabled em{color:var(--ds-muted)}
+body:not(.adm) #games .gcard:not(:disabled):active{transform:translateY(2px);box-shadow:var(--sh-1)}
+body:not(.adm) #games>.rnote{color:var(--ds-muted);font-size:var(--fs-sm);font-weight:600;margin-top:var(--sp-4)!important}
+/* اللعب */
+body:not(.adm) #games .sess{color:var(--ds-muted);font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #games .sess .svi{width:18px;height:18px;vertical-align:-4px}
+body:not(.adm) #games .sbar{height:12px;background:var(--ds-line);border-radius:var(--r-pill)}
+body:not(.adm) #games .sbar i{background:var(--ds-acc);border-radius:var(--r-pill)}
+body:not(.adm) #games .ghint{color:var(--ds-muted);font-weight:700;font-size:var(--fs-sm)}
+body:not(.adm) #games .qword,body:not(.adm) #games .ordar,body:not(.adm) #games .cloze{color:var(--ds-navy)}
+body:not(.adm) #games .blank{border:2px dashed var(--ds-acc);border-radius:var(--r-sm);background:var(--ds-cream);color:var(--ds-navy)}
+body:not(.adm) #games .gopt,body:not(.adm) #games .mt,body:not(.adm) #games .otile,body:not(.adm) #games .artb{background:var(--ds-card);color:var(--ds-navy);border:2px solid var(--ds-line);border-bottom-width:4px;border-radius:var(--r-md);box-shadow:none;font-weight:800}
+body:not(.adm) #games .gopt{padding:13px var(--sp-4);margin-bottom:var(--sp-2)}
+body:not(.adm) #games .gopt:active,body:not(.adm) #games .mt:active,body:not(.adm) #games .otile:active{transform:translateY(2px);border-bottom-width:2px}
+body:not(.adm) #games .mt.on{border-color:var(--ds-acc);background:var(--ds-cream)}
+body:not(.adm) #games .otile.ghost{background:var(--ds-line);border-color:var(--ds-line);color:transparent}
+body:not(.adm) #games .oline{border-color:var(--ds-line)}
+body:not(.adm) #games .btn.next:not(.blue){background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 4px 0 var(--ds-acc-d);border-radius:var(--r-md);font-size:var(--fs-lg);font-weight:800}
+body:not(.adm) #games .btn.next:disabled{background:var(--ds-line);color:var(--ds-muted);box-shadow:0 4px 0 var(--ds-lock-d)}
+body:not(.adm) #games .thints button,body:not(.adm) #games .arshow{background:var(--ds-cream);color:var(--ds-acc-dd);border:0;font-weight:800;display:inline-flex;align-items:center;gap:4px}
+body:not(.adm) #games .thints .svi{width:16px;height:16px}
+body:not(.adm) #games .ukeys button{background:var(--ds-card);border:2px solid var(--ds-line);border-bottom-width:3px;color:var(--ds-navy);font-weight:800;border-radius:var(--r-sm)}
+body:not(.adm) #games .hear{background:var(--ds-navy);color:#fff}
+body:not(.adm) #games .hear.slow{background:var(--ds-cream);color:var(--ds-acc-dd)}
+body:not(.adm) #games .hear .svi{width:22px;height:22px}
+[data-dark] body:not(.adm) #games .hear:not(.slow){background:#2F3B6B}
+body:not(.adm) #games #gQuit{color:var(--ds-muted)}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2472,14 +2517,31 @@ function pickWords(list,n){
   for(const w of [...rest,...hard])if(out.length<n&&!out.includes(w))out.push(w);
   return shuffle(out);
 }
+// أيقونات خطّية موحّدة للعناصر الوظيفية في واجهة المتعلّم (هوية design)
+function LIC(k){const d={
+  pencil:'<path d="M4 20h4l10.5-10.5a2.83 2.83 0 1 0-4-4L4 16v4"/><path d="M13.5 6.5l4 4"/>',
+  target:'<circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9"/>',
+  keyboard:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/>',
+  headphones:'<rect x="4" y="13" width="5" height="7" rx="2"/><rect x="15" y="13" width="5" height="7" rx="2"/><path d="M4 15v-3a8 8 0 0 1 16 0v3"/>',
+  puzzle:'<path d="M4 7h3a1 1 0 0 0 1-1v-1a2 2 0 0 1 4 0v1a1 1 0 0 0 1 1h3a1 1 0 0 1 1 1v3a1 1 0 0 0 1 1h1a2 2 0 0 1 0 4h-1a1 1 0 0 0-1 1v3a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-1a2 2 0 0 0-4 0v1a1 1 0 0 1-1 1h-3a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h1a2 2 0 0 0 0-4h-1a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1"/>',
+  order:'<path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h13"/><path d="M18 15l3 3-3 3"/>',
+  stopwatch:'<circle cx="12" cy="13" r="7"/><path d="M12 10v3l2 1.5"/><path d="M10 3h4"/><path d="M17.5 7.5l1.2-1.2"/>',
+  users:'<circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0-3-3.85"/>',
+  letter:'<path d="M7 20V9a5 5 0 0 1 10 0v11"/><path d="M7 13h10"/>',
+  speaker:'<path d="M15 8a5 5 0 0 1 0 8"/><path d="M17.7 5a9 9 0 0 1 0 14"/><path d="M6 15H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1h2l3.5-4.5A.8.8 0 0 1 11 5v14a.8.8 0 0 1-1.5.5L6 15"/>',
+  text:'<path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/>',
+  shuffle:'<path d="M18 4l3 3-3 3"/><path d="M18 20l3-3-3-3"/><path d="M3 7h3a5 5 0 0 1 5 5 5 5 0 0 0 5 5h5"/><path d="M21 7h-5a5 5 0 0 0-3 1m-4 8a5 5 0 0 1-3 1H3"/>',
+  slow:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
+  medal:'<circle cx="12" cy="15" r="5"/><path d="M8.5 11 6 3h4l2 5 2-5h4l-2.5 8"/>'}[k]||"";
+  return `<svg class="i3 svi lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`}
 const GAMES=[
- {id:"cloze",ic:I3("pencil"),n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
- {id:"art",ic:I3("target"),n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
- {id:"type",ic:I3("keyboard"),n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
- {id:"listen",ic:I3("headphones"),n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
- {id:"match",ic:I3("puzzle"),n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
- {id:"order",ic:I3("books"),n:"رتّب الجملة",d:"ترى معنى الجملة بالعربية فتبني جملتها الألمانية بترتيب الكلمات"},
- {id:"s5",ic:I3("stopwatch"),n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
+ {id:"cloze",ic:I3("pencil"),li:"pencil",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
+ {id:"art",ic:I3("target"),li:"target",n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
+ {id:"type",ic:I3("keyboard"),li:"keyboard",n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
+ {id:"listen",ic:I3("headphones"),li:"headphones",n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
+ {id:"match",ic:I3("puzzle"),li:"puzzle",n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
+ {id:"order",ic:I3("books"),li:"order",n:"رتّب الجملة",d:"ترى معنى الجملة بالعربية فتبني جملتها الألمانية بترتيب الكلمات"},
+ {id:"s5",ic:I3("stopwatch"),li:"stopwatch",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
  {id:"chal",ic:I3("trophy"),n:"تحدي اليوم",d:"أسئلة منوّعة على كلماتك بخبرة مضاعفة",hidden:1},
 ];
 // التحدي اليومي: أسئلة منوّعة، كلمات اليوم أولًا ثم ما تعلّمه قبلها
@@ -2530,9 +2592,9 @@ function renderGames(){
   if(GM){gameView();return}
   if(FRV){renderFriends();return}
   const bm=bestMatch();
-  el.innerHTML=`<button class="frcard" id="frOpen"><span class="gic">👫</span><span><b>الأصدقاء والتحدي</b><small>تحدَّ صديقًا متصلًا: 10 أسئلة، كلٌّ من كلماته</small></span>${FRN.nin?`<em class="mbadge on">${FRN.nin}</em>`:""}</button>
+  el.innerHTML=`<button class="frcard" id="frOpen"><span class="gic">${isAdmin()?"👫":LIC("users")}</span><span><b>الأصدقاء والتحدي</b><small>تحدَّ صديقًا متصلًا: 10 أسئلة، كلٌّ من كلماته</small></span>${FRN.nin?`<em class="mbadge on">${FRN.nin}</em>`:""}</button>
    <div class="gcards">${GAMES.filter(g=>!g.hidden).map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
-    return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${g.ic}</span><b>${g.n}</b><small>${g.d}</small>
+    return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${isAdmin()?g.ic:LIC(g.li)}</span><b>${g.n}</b><small>${g.d}</small>
      <em>${g.id==="listen"&&listenMuted()?"متوقف مؤقتًا: يعود بعد "+Math.ceil((+(localStorage.getItem("muf_nolisten")||0)-Date.now())/60000)+" دقيقة":g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
    <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
@@ -2577,8 +2639,8 @@ function gameHead(){
   if(GM.id!=="match")return comboHTML()+gameHead0();return gameHead0();
 }
 function gameHead0(){
-  if(GM.id==="s5")return `<div class="sess"><span class="gtime">⏱️ <b id="gTime">${clock(GM.end-Date.now())}</b></span><span>✓ ${GM.ok} من ${GM.n}</span><button class="link" id="gQuit">إنهاء</button></div>`;
-  if(GM.id==="match")return `<div class="sess"><span class="gtime">⏱️ <b id="gTime">0,0 ث</b></span><span>أخطاء: ${GM.miss}</span><button class="link" id="gQuit">إنهاء</button></div>`;
+  if(GM.id==="s5")return `<div class="sess"><span class="gtime">${isAdmin()?"⏱️":LIC("stopwatch")} <b id="gTime">${clock(GM.end-Date.now())}</b></span><span>✓ ${GM.ok} من ${GM.n}</span><button class="link" id="gQuit">إنهاء</button></div>`;
+  if(GM.id==="match")return `<div class="sess"><span class="gtime">${isAdmin()?"⏱️":LIC("stopwatch")} <b id="gTime">0,0 ث</b></span><span>أخطاء: ${GM.miss}</span><button class="link" id="gQuit">إنهاء</button></div>`;
   return `<div class="sess"><div class="sbar"><i style="width:${GM.i/GM.list.length*100}%"></i></div><span>${GM.i+1} من ${GM.list.length} · ✓ ${GM.ok}</span><button class="link" id="gQuit">إنهاء</button></div>`;
 }
 function gameView(){
@@ -2593,7 +2655,7 @@ function gameView(){
     body=`<p class="ghint">في أيّ جرّة يوضع هذا الاسم؟</p><div class="jcard"><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar">${esc(w.ar)}</div></div>
     <div class="arts jars">${["der","die","das"].map(a=>`<button class="btn artb jar art-${a}" data-a="${a}"><span class="jfill" style="height:${Math.min(100,(J[a]||0)*12)}%"></span><b>${a}</b><small>${J[a]||0}</small></button>`).join("")}</div>`}
   else if(q.kind==="lmc"||q.kind==="ltype")body=`<p class="ghint">${q.kind==="lmc"?"استمع، ثم اختر المعنى:":"استمع، ثم اكتب ما سمعته بالألمانية:"}</p>
-    <div class="hears"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${SPK}استمع</button>${canSlow()?'<button type="button" class="hear slow" id="gSlow" aria-label="استمع ببطء"><span class="tt">🐢</span>ببطء</button>':""}</div>
+    <div class="hears"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${SPK}استمع</button>${canSlow()?`<button type="button" class="hear slow" id="gSlow" aria-label="استمع ببطء">${isAdmin()?'<span class="tt">🐢</span>':LIC("slow")}ببطء</button>`:""}</div>
     ${q.kind==="lmc"?q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join(""):
     `<input id="gIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا">
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
@@ -2607,7 +2669,7 @@ function gameView(){
     ${nounOf(w)?`<div class="tarts">${["der","die","das"].map(a=>`<button type="button" class="tart art-${a}${q.art===a?" on":""}" data-a="${a}">${a}</button>`).join("")}</div>`:""}
     <div class="wwrap"><div class="wslots de${T.replace(/ /g,"").length>16?" many":""}" id="tLen">${gBoxes(T,"",q.rev||0)}</div><input id="gIn" class="whid" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="${T.replace(/ /g,"").length}" aria-label="اكتب الكلمة"></div>
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
-    <div class="thints"><span>مساعدة:</span><button type="button" data-h="letter">🔤 حرف</button>${canSpeak()?'<button type="button" data-h="hear">🔊 استمع</button>':""}${cz?'<button type="button" data-h="sent">📝 جملة</button>':""}<button type="button" data-h="mix">🧩 الأحرف</button></div>
+    <div class="thints"><span>مساعدة:</span><button type="button" data-h="letter">${isAdmin()?"🔤":LIC("letter")} حرف</button>${canSpeak()?`<button type="button" data-h="hear">${isAdmin()?"🔊":LIC("speaker")} استمع</button>`:""}${cz?`<button type="button" data-h="sent">${isAdmin()?"📝":LIC("text")} جملة</button>`:""}<button type="button" data-h="mix">${isAdmin()?"🧩":LIC("shuffle")} الأحرف</button></div>
     <div id="tHelp"></div>
     <button class="btn next" id="gCheck">تحقّق</button>`}
   el.innerHTML=gameHead()+`<div class="box" id="gBox">${body}<div id="gFb"></div>${q.kind==="lmc"||q.kind==="ltype"?'<button type="button" class="link nolisten" id="gNoL">لا أستطيع الاستماع الآن</button>':""}</div>`;
