@@ -329,6 +329,7 @@ body.fbon main{padding-bottom:210px}
 .rep{background:none;border:0;font-size:1rem;padding:0 4px;cursor:pointer;opacity:.55;vertical-align:middle}.rep:hover{opacity:1}
 .stlearn .rep{display:block;margin:8px auto 0;font-size:.85rem}
 .fbflag{width:52px;height:52px;flex:none;border-radius:16px;border:2.5px solid rgba(0,0,0,.12);background:rgba(255,255,255,.5);font-size:1.3rem;opacity:.85}
+.sttag.stmiss{background:#fdecc8;color:#8a5a00}[data-dark] .sttag.stmiss{background:#3a2c14;color:#FAC775}.cardtag{position:absolute;top:12px;left:50%;transform:translateX(-50%);white-space:nowrap}
 .sttag{display:inline-flex;align-items:center;gap:4px;background:var(--soft);color:var(--hd);border-radius:10px;padding:2px 10px;font-weight:800;font-size:.8rem;margin-bottom:6px}.sttag .i3{width:18px;height:18px}
 .hears{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 16px}.hears .hear{margin:0}.hear.slow{background:var(--soft);color:var(--ink);box-shadow:0 4px 0 var(--line)}.hear .tt{font-size:22px}
 .nolisten{display:block;margin:10px auto 0;color:var(--muted);font-weight:700}
@@ -336,6 +337,27 @@ body.fbon main{padding-bottom:210px}
 .repbox .numpicks{justify-content:center}
 .ubar{margin:8px 0}.ubar .ul{display:flex;justify-content:space-between;gap:8px;font-size:.85rem}.ubar .ul span{color:var(--muted)}.ubar i{display:block;height:12px;border-radius:7px;background:var(--soft);overflow:hidden;margin-top:3px}.ubar i b{display:block;height:100%;border-radius:7px}
 .rep1{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}.rep1 small{display:block;color:var(--muted)}.rep1 p{margin:4px 0 0;background:var(--soft);border-radius:10px;padding:6px 8px}
+.qpill{display:inline-flex;align-items:center;gap:5px;margin-top:4px;border:0;background:var(--card);color:var(--acct);font-weight:700;font-size:.8rem;font-family:inherit;padding:3px 12px;border-radius:12px;cursor:pointer}.qpill .i3{width:16px;height:16px;display:inline-block!important}
+.qpill.ready{background:var(--acc);color:#412402;animation:qglow 1.6s ease-in-out infinite}@keyframes qglow{50%{box-shadow:0 0 0 5px var(--accl)}}
+body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
+.qrow{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid var(--line);border-radius:16px;margin-bottom:10px;text-align:right;background:var(--card)}
+.qrow.ok{border-color:var(--acc)}.qtx{flex:1;min-width:0}.qtx b{display:block;font-size:.95rem;margin-bottom:6px}
+.qbar{position:relative;height:18px;border-radius:9px;background:var(--soft);overflow:hidden}.qbar i{position:absolute;inset:0 auto 0 0;background:var(--acc);border-radius:9px}
+[dir=rtl] .qbar i,.qbar i{right:0;left:auto}.qbar span{position:relative;display:block;text-align:center;font-size:.72rem;font-weight:800;line-height:18px;color:var(--hd)}
+.qch .chest{width:46px;height:40px;filter:grayscale(.15)}.qrow:not(.ok) .qch .chest{opacity:.75}
+.qopen{width:auto!important;padding:8px 16px!important;margin:0!important;background:var(--acc)!important;color:#412402!important;box-shadow:0 4px 0 var(--accd)!important;font-weight:800}
+.qgot{font-weight:800;color:var(--acct);font-size:.85rem;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}.qgot .i3{width:18px;height:18px}
+.qbox{max-width:420px}.questfx .bcup .i3{width:84px;height:84px}.qbig{width:100%;margin-top:12px}
+.chscene{text-align:center;padding:10px 0}.chlab{font-weight:800;color:var(--hd)}.chbox{display:inline-block;cursor:pointer}.chbox .chest{width:170px;height:142px}
+.chbox.shake{animation:chsh 1.3s ease-in-out infinite}@keyframes chsh{0%,60%,100%{transform:rotate(0)}66%{transform:rotate(-7deg)}74%{transform:rotate(7deg)}82%{transform:rotate(-5deg)}90%{transform:rotate(4deg)}}
+.chest .lid{transform-origin:14px 46px;transition:transform .45s cubic-bezier(.3,1.6,.5,1)}.chbox{position:relative}.chbox.open .lid{transform:translateY(-14px) rotate(-9deg)}
+.chbox>i{position:absolute;left:50%;top:40%;font-style:normal;font-size:1.4rem;opacity:0;animation:chgem 1s ease-out forwards}
+.chbox>.chg0{--x:-60px;--y:-70px}.chbox>.chg1{--x:-25px;--y:-95px;animation-delay:.05s}.chbox>.chg2{--x:5px;--y:-105px;animation-delay:.1s}.chbox>.chg3{--x:35px;--y:-90px;animation-delay:.15s}.chbox>.chg4{--x:65px;--y:-65px;animation-delay:.2s}
+@keyframes chgem{0%{opacity:0;transform:translate(-50%,0) scale(.4)}25%{opacity:1}100%{opacity:0;transform:translate(calc(-50% + var(--x)),var(--y)) scale(1.1)}}
+.chhint{color:var(--muted);font-weight:700}.chgot{font-size:1.6rem;font-weight:900;color:#1cb0f6;animation:chg .5s ease-out}@keyframes chg{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.15)}100%{transform:scale(1);opacity:1}}
+.trde{display:flex;align-items:center;gap:10px;justify-content:center;font-size:1.2rem;font-weight:700;line-height:1.5;margin:6px 0 14px;flex-direction:row-reverse}
+.trsay{flex:none;width:44px;height:44px;border-radius:50%;padding:0;display:inline-grid;place-items:center;background:var(--accl);border:0}.trsay .i3{width:24px;height:24px}
+.oline.trline,.obank.trbank{direction:rtl}
 .ordar{font-size:1.15rem;font-weight:700;text-align:center;margin:6px 0 12px}
 .oline{min-height:58px;border-bottom:2px solid var(--line);border-top:2px solid var(--line);padding:8px 2px;display:flex;flex-wrap:wrap;gap:8px;direction:ltr;margin-bottom:14px}
 .oline.good{border-color:var(--green);background:#22c55e14}.oline.bad{border-color:var(--red);background:#ef444414}
@@ -346,6 +368,11 @@ body.fbon main{padding-bottom:210px}
 @keyframes cpop{40%{transform:scale(1.35)}}
 .spop{position:fixed;top:34%;left:50%;z-index:96;transform:translate(-50%,-50%);background:linear-gradient(#2ec5ff,#1899d6);color:#fff;font-weight:800;font-size:1.45rem;padding:14px 24px;border-radius:20px;box-shadow:0 6px 0 #1478ab,0 12px 30px rgba(0,0,0,.25);white-space:nowrap;pointer-events:none;animation:spop 1.5s ease-out forwards;text-align:center}
 .spop small{display:block;font-size:.95rem;opacity:.9}
+.enpop{position:fixed;top:40%;left:50%;z-index:96;transform:translate(-50%,-50%);text-align:center;pointer-events:none;animation:enpop 1.8s ease-out forwards}
+.enbat{display:inline-flex;align-items:center;gap:8px;background:var(--card);border:2px solid var(--line);border-bottom-width:5px;border-radius:22px;padding:12px 22px}
+.enbat .i3{width:40px;height:40px}.enbat b{font-size:2rem;font-weight:900;color:#58a700}
+.enpop small{display:block;margin-top:8px;font-weight:800;font-size:.85rem;color:var(--muted)}
+@keyframes enpop{0%{opacity:0;transform:translate(-50%,-30%) scale(.6)}15%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1;transform:translate(-50%,-50%)}100%{opacity:0;transform:translate(-50%,-95%) scale(.85)}}
 @keyframes spop{0%{transform:translate(-50%,-50%) scale(.4);opacity:0}15%{transform:translate(-50%,-50%) scale(1.12);opacity:1}25%{transform:translate(-50%,-50%) scale(1)}80%{opacity:1}100%{transform:translate(-50%,-70%) scale(.95);opacity:0}}
 .result{text-align:center;padding:10px 4px}.result h2{font-size:1.45rem;color:#58a700;margin:6px 0 2px}[data-dark] .result h2{color:#8ee05a}.result>p{color:var(--muted);margin:0}
 .rcards{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0 18px}
@@ -1432,7 +1459,7 @@ function stationSteps1(words){
   // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
   // الترتيب عشوائي في كل مرة: ترتيب الكلمات، ونوع التمرين الثالث، وأيّ تمرين جاهز يأتي أولًا
   const out=[],pend=[];words=shuffle([...words]);
-  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>({t:writeOk(w)&&Math.random()<.4?"write":Math.random()<.5?"rev":"mc",w});
+  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>{const r=Math.random();return {t:trOf(w)&&r<.35?"tr":writeOk(w)&&r<.6?"write":r<.8?"rev":"mc",w}};
   const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:-1;
   const take=force=>{
     const last=out.length?out[out.length-1].w:null;
@@ -1487,6 +1514,18 @@ function gBoxes(T,v,rev,mark){const tv=[...String(v||"").replace(/\s+/g,"")];let
     const cls=mark?(c!=null&&c.toLowerCase()===ch.toLowerCase()?"rv":"wr"):i<rev?"rv":i===tv.length?"cur":"";
     return `<b class="${cls}">${c!=null?esc(c):""}</b>`}).join("")}
 // يعيد المسافات إلى ما كُتب في الخانات بحسب مكانها في الكلمة الصحيحة
+// «ترجم الجملة»: جملة المثال الألمانية، وتُبنى ترجمتها العربية من بطاقات (وبينها بطاقات زائدة)
+function trOf(w){
+  const o=orderOf(w);if(!o)return null;
+  const toks=o.ar.replace(/[.،,؛;:!?؟«»"“”…()\[\]]/g," ").split(/\s+/).filter(Boolean);
+  return toks.length>=2&&toks.length<=10?{de:o.de,ar:o.ar,toks}:null;
+}
+function trQ(w,pool){
+  const o=trOf(w),have=new Set(o.toks),extra=[];
+  for(const x of shuffle(pool)){if(x.k===w.k)continue;const ox=trOf(x);if(!ox)continue;
+    for(const tk of shuffle(ox.toks))if(!have.has(tk)&&extra.length<3){extra.push(tk);have.add(tk)}if(extra.length>=3)break}
+  return {o,tiles:shuffle([...o.toks,...extra]),picked:[]};
+}
 function withSpaces(T,v){const tv=[...String(v||"").replace(/\s+/g,"")];let j=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(j>=tv.length)break;out+=tv[j++]}return out+tv.slice(j).join("")}
 // صنف لون الجنس لبطاقة الاسم (g-der / g-die / g-das)
 const gCls=w=>{const n=w&&w.t==="n"&&String(w.de).match(/^(der|die|das)\s/i);return n?"g-"+n[1].toLowerCase():""};
@@ -1547,9 +1586,24 @@ function stationView(){
     $("stNext").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
     $("idk").onclick=()=>{if(S_.ans)return;inp.disabled=true;inp.blur();$("stNext").style.display="none";$("wLen").innerHTML=wBoxes(T,T,2);judge(false,null,sub,()=>speak(w.de))};
   }
+  else if(st.t==="tr"){
+    if(!st.q)st.q=trQ(w,[...S_.words,...uniq(W)]);const q=st.q;
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} ترجم الجملة</span><p class="ghint">رتّب البطاقات لتكوّن ترجمة الجملة:</p>
+     <div class="trde"><button type="button" class="say trsay" id="trSay" aria-label="استمع">${I3("speaker")}</button><span class="de" dir="ltr">${esc(q.o.de)}</span></div>
+     <div id="trT"></div>${IDK}</div><button class="btn next" id="stNext">تحقّق</button>`;
+    const draw=()=>{$("trT").innerHTML=`<div class="oline trline" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
+      <div class="obank trbank">${q.tiles.map((x,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(x)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(x)}</button>`).join("")}</div>`;
+      $("trT").querySelectorAll(".otile[data-t]").forEach(b=>b.onclick=()=>{if(S_.ans)return;q.picked.push(+b.dataset.t);fx("tap");draw()});
+      $("trT").querySelectorAll(".otile[data-p]").forEach(b=>b.onclick=()=>{if(S_.ans)return;q.picked.splice(+b.dataset.p,1);draw()})};
+    draw();speak(q.o.de);$("trSay").onclick=()=>speak(q.o.de);
+    const sub=`<span class="de" dir="ltr">${esc(q.o.de)}</span><br>${esc(q.o.ar)}`;
+    const end=ok=>{$("stNext").style.display="none";$("trT").querySelectorAll(".otile").forEach(x=>x.disabled=true);$("oLine").classList.add(ok?"good":"bad");judge(ok,$("oLine"),sub)};
+    $("stNext").onclick=()=>{if(S_.ans||!q.picked.length)return;end(q.picked.map(i=>q.tiles[i]).join(" ")===q.o.toks.join(" "))};
+    $("idk").onclick=()=>{if(S_.ans)return;end(false)};
+  }
   else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
     if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
-    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("target")} ${st.retry?"مراجعة":"تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag${st.retry?" stmiss":""}">${st.retry?I3("repeat")+" خطأ سابق":I3("target")+" تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
      ${rev?`<div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>`:`<div class="qword de">${bigDe(w.de)}</div>`}
      ${st.o.map(o=>`<button class="btn gopt${rev?" de":""}" ${rev?'style="text-align:left"':""} data-k="${esc(o.k)}">${rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}${IDK}</div>`;
     if(!rev)speak(w.de);
@@ -1615,9 +1669,12 @@ let CMB=0;   // الإجابات الصحيحة على التوالي في ال�
 const comboHTML=()=>`<div class="combo" id="combo">${CMB>=2?CMB+" على التوالي":""}</div>`;
 function comboHit(ok){
   if(!ok){CMB=0;fx("no")}
-  else{CMB++;if(CMB%5===0){fx("streak");streakPop(CMB);confetti(40)}else fx("ok")}
+  else{CMB++;if(CMB%5===0){fx("streak");streakPop(CMB);confetti(40);
+    // كل 5 إجابات صحيحة متتالية في المحطة أو التدريب أو التمرين: طاقة إضافية (بحدّ أقصى في اليوم)
+    if((STS||DRL||GM)&&ev({type:"combo"})===true){setTimeout(()=>enPop(CFG.energy.combo),900);renderEnergy()}}else fx("ok")}
   const c=$("combo");if(c){c.textContent=CMB>=2?CMB+" على التوالي":"";c.classList.remove("pop");void c.offsetWidth;if(ok&&CMB>=2)c.classList.add("pop")}
 }
+function enPop(n){const d=document.createElement("div");d.className="enpop";d.innerHTML=`<div class="enbat">${I3("battery")}<b dir="ltr">+${n}</b></div><small>طاقة إضافية للإجابات المتتالية</small>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1900)}
 function streakPop(n){const d=document.createElement("div");d.className="spop";d.innerHTML=`${n>=15?"مذهل":n>=10?"ممتاز":"رائع"}! ${n} على التوالي<small>واصل هكذا</small>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1600)}
 let RES=null;   // شاشة نتيجة الدرس
 const mmss=ms=>{const s_=Math.max(1,Math.round(ms/1000));return Math.floor(s_/60)+":"+String(s_%60).padStart(2,"0")};
@@ -1800,7 +1857,7 @@ function reviewHome(){
   const pose2=pose1==="thumbs"?"cheer":"thumbs";
   const html=msg+`
   ${MY_COURSES.filter(c=>COURSES[c]).length>1&&!isAdmin()?`<button type="button" class="crsbtn" id="crsBtn">📘 ${esc((COURSES[COURSE]||{}).name||"")} <span>تغيير ▾</span></button>`:""}
-  ${kidsRow()}<div class="unitw"><div class="unit"><div><small>${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"المحطة "+(done+1)+" من "+N}</b></div>${I3("cap")}</div></div>
+  ${kidsRow()}<div class="unitw"><div class="unit"><div><small>${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small><b>${pend&&(dl||done>=N)?(FREEU?"الدراسة الحرّة: ":"")+"تدريب المحطة "+(PB+done)+(FREEU?"":" من "+N):FREEU?"الدراسة الحرّة: المحطة "+(PB+done+1):done>=N?"اكتمل مسار اليوم ✓":"المحطة "+(done+1)+" من "+N}</b>${questPill()}</div>${I3("cap")}</div></div>
   ${N<2?`<div class="coach">${mascot(pose1)}<div class="bub">${coach}</div></div>`:""}
   <div class="rvbox" style="margin-bottom:14px">
    <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+44+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+44+80}px"><div class="flip">${mascot(pose2)}</div></div>`:""}${[...Array(N)].map((_,i)=>node(i)).join("")}${chNode()}</div>
@@ -1820,6 +1877,7 @@ function reviewHome(){
   // لا نعيد كتابة الشاشة إن كانت هي نفسها معروضة (يمنع الارتجاف والقفز أثناء التمرير)
   if(!(REVH.h===html&&el.firstElementChild===REVH.n&&REVH.n)){const y=scrollY;el.innerHTML=html;REVH={h:html,n:el.firstElementChild};if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
   bindSettings();
+  const qb=$("qBtn");if(qb)qb.onclick=questModal;
   const sb=$("stStart");if(sb)sb.onclick=()=>{if(dailyN&&!low){startReview("due",dailyN);DAILY=1}else startStation()};const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
   const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
@@ -1838,6 +1896,49 @@ function reviewPills(){
   const u=uniq(filtered()),now=Date.now();
   return `<div class="pills"><span class="pill">${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length}</span><span class="pill">للمراجعة ${u.filter(w=>isDue(P[w.k])).length}</span><span class="pill">محفوظة ${u.filter(w=>P[w.k]&&P[w.k].box>=4).length}</span></div>`;
 }
+// آخر إجابة على الكلمة كانت خطأ: «نسيت» في المراجعة، أو خطأ في محطتها، أو خطأ في تمرين بعدها
+/* ================= مهام اليوم: ثلاث مهام، ولكل مهمة مكتملة صندوق جواهر ================= */
+const questOn=()=>!!(UID&&!isAdmin()&&!FREEU);
+function questList(){const d=today();EC=EC||econ();return QUESTS.map((q,i)=>{const v=q.f(d);return {...q,i,v:Math.min(v,q.goal),done:v>=q.goal,got:questGot(d,q.id),g:CFG.gems.quest[i]||0}}).filter(q=>q.g)}
+function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got);
+  return `<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${I3("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`}
+const CHEST=`<svg class="chest" viewBox="0 0 120 100" aria-hidden="true"><ellipse cx="60" cy="94" rx="44" ry="5" fill="rgba(0,0,0,.12)"/>
+ <rect x="14" y="44" width="92" height="46" rx="8" fill="#e8962a"/><rect x="14" y="44" width="92" height="12" fill="#c97a16"/><rect x="24" y="56" width="10" height="34" fill="#c97a16"/><rect x="86" y="56" width="10" height="34" fill="#c97a16"/>
+ <g class="lid"><path d="M14 46 V34 Q14 14 60 14 Q106 14 106 34 V46 Z" fill="#f2a93b"/><rect x="24" y="17" width="10" height="29" fill="#d88a1f"/><rect x="86" y="17" width="10" height="29" fill="#d88a1f"/></g>
+ <rect x="50" y="38" width="20" height="22" rx="5" fill="#fff4d6"/><circle cx="60" cy="47" r="3.5" fill="#c97a16"/><rect x="58.5" y="49" width="3" height="6" rx="1.5" fill="#c97a16"/></svg>`;
+function questRows(L){return L.map(q=>`<div class="qrow${q.done?" ok":""}"><div class="qtx"><b>${q.n}</b><div class="qbar"><i style="width:${q.v/q.goal*100}%"></i><span dir="ltr">${q.v} / ${q.goal}</span></div></div>
+  ${q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> 💎</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
+// فتح صندوق مهمة: يهتزّ ثم ينفتح وتخرج الجواهر
+function openChest(id,host,done){
+  const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;
+  host.innerHTML=`<div class="chscene"><p class="chlab">صندوق «${q.n}»</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
+  host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
+    if(ev({type:"quest",id})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
+    b.classList.remove("shake");b.classList.add("open");b.insertAdjacentHTML("beforeend",[0,1,2,3,4].map(i=>`<i class="chg${i}">💎</i>`).join(""));fx("done");confetti(60);renderHeader();
+    host.querySelector(".chhint").outerHTML=`<p class="chgot"><bdi dir="ltr">+${q.g}</bdi> جواهر 💎</p><button class="btn next" id="chOk">رائع!</button>`;
+    host.querySelector("#chOk").onclick=done};
+}
+function questModal(){
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML="";if($("review").classList.contains("on")&&!STS&&!DRL&&!RES)reviewHome()};
+  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${I3("target")} مهام اليوم</h1><p class="rnote">لكل مهمة تكملها صندوق فيه جواهر. تتجدّد المهام كل يوم.</p>
+    <div id="qList">${questRows(L)}</div><button class="link" id="qNo">إغلاق</button></div>`;
+    $("qNo").onclick=close;m.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,$("qList"),draw))};
+  m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};draw();
+}
+// بعد إكمال مهمة: شاشة تعرض المهام وصندوقها، بعد أن يضغط «متابعة» في شاشة النتيجة
+function questWatch(){
+  if(!questOn())return;const d=today(),k=K("qann"),seen=jget(k,{});if(seen.d!==d){seen.d=d;seen.ids=[]}
+  const fresh=questList().filter(q=>q.done&&!q.got&&!seen.ids.includes(q.id));if(!fresh.length)return;
+  seen.ids.push(...fresh.map(q=>q.id));st(k,JSON.stringify(seen));
+  bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${fresh.length>1?"أكملت "+arN(fresh.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+fresh[0].n+"!"}</h2><div class="qbig" id="qBig">${questRows(questList())}</div>`,"questfx",d_=>{
+    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=questRows(questList());wire()}));wire()});
+}
+function lastMiss(k){
+  let l=null;for(let i=LOG.length-1;i>=0;i--)if(LOG[i][1]===k){l=LOG[i];break}
+  let q=null;for(let i=QA.length-1;i>=0;i--)if(QA[i][1]===k){q=QA[i];break}
+  if(q&&(!l||q[0]>l[0]))return !q[2];
+  return !!l&&(l[2]===0||(isNewF(l)&&l[2]===1));
+}
 function showCard(){
   const el=$("review");
   if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
@@ -1847,7 +1948,7 @@ function showCard(){
       RES={daily:DAILY,title:(DAILY?"أنهيت مراجعة اليوم! ":"أحسنت! ")+"راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
     reviewHome();if(ended)toCur();return}
   cur=queue[0];flipped=false;
-  const isNew=!P[cur.k],tc="t-"+cur.t,stk="";
+  const isNew=!P[cur.k],tc="t-"+cur.t,stk=isNew?`<span class="sttag cardtag">${I3("sparkles")} كلمة جديدة</span>`:lastMiss(cur.k)?`<span class="sttag cardtag stmiss">${I3("repeat")} خطأ سابق</span>`:"";
   const front=S.dir==="de"?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
   el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
@@ -2783,7 +2884,8 @@ const API="https://mufradati-api.afunogrv.workers.dev";
 function ev(e){
   syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
-  EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);return true;
+  EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);
+  if(e.type==="stDone"||e.type==="rate")setTimeout(questWatch,50);return true;
 }
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
 function applyServer(j){
@@ -3208,7 +3310,7 @@ function renderCfg(){
    <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
-   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}${n("e_dl",C.energy.daily,"هدية طاقة كل يوم جديد (0 = لا شيء)")}
+   ${n("e_rf",C.energy.refund,"ما يُستعاد عند الخروج من المحطة")}${n("e_pr",C.energy.perReviews,"وحدة طاقة لكل كم مراجعة (0 = لا شيء)")}<label>أول محطة في اليوم مجانية<input type="checkbox" id="e_ff" ${C.energy.firstFree?"checked":""}></label>${n("e_g",C.energy.game,"طاقة كل تمرين مكتمل")}${n("e_gm",C.energy.gameMax,"عدد التمارين التي تعطي طاقة في اليوم")}${n("e_cb",C.energy.combo,"طاقة كل 5 إجابات صحيحة متتالية")}${n("e_cbm",C.energy.comboMax,"أقصى عدد لمكافأة التوالي في اليوم")}${n("e_dr",C.energy.drill,"تكلفة المحطة التدريبية بعد كل محطة")}${n("e_dl",C.energy.daily,"هدية طاقة كل يوم جديد (0 = لا شيء)")}
    ${n("s_w",C.station.words,"كلمات المحطة")}${n("s_d",C.station.perDay,"عدد المحطات في اليوم")}<label>التدريب بعد كل محطة شرط لفتح التالية<input type="checkbox" id="s_dr" ${C.station.drillReq?"checked":""}></label></div>
   <div class="rsec"><h3>⚔️ التحدي مع الأصدقاء</h3>${n("d_qt",C.duel.qt,"ثواني كل سؤال (من 5 إلى 120)")}${n("d_gem",C.duel.gem,"جواهر الفائز (0 = لا شيء)")}</div>
   <div class="rsec"><h3>${I3("freeze")} تجميد السلسلة</h3>${n("f_p",C.freeze.price,"السعر")}${n("f_m",C.freeze.max,"الحدّ الأقصى")}${n("f_s",C.freeze.start,"يبدأ به كل متعلّم")}</div>
@@ -3219,9 +3321,9 @@ function renderCfg(){
   $("cfgSave").onclick=async()=>{
     const c=JSON.parse(JSON.stringify(CFG));
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
-    c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
+    c.gems={quest:C.gems.quest,station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
     c.league={group:v("l_g"),promoMin:v("l_pm"),bots:v("l_bt"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
-    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr"),daily:v("e_dl")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
+    c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),combo:v("e_cb"),comboMax:v("e_cbm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr"),daily:v("e_dl")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};c.duel={qt:v("d_qt"),gem:v("d_gem")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
     if(await saveCfg(c)){applyCfg(c);cfgCss();renderCfg()}

@@ -8,9 +8,9 @@ const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
   duel:{qt:15,gem:1},   // ثواني كل سؤال في التحدي، وجواهر الفائز
-  gems:{station:1,level:5,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
+  gems:{station:1,level:5,quest:[2,3,5],streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
   league:{group:15,promoMin:60,bots:100,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
-  energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5,daily:10},
+  energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5,daily:10,combo:2,comboMax:3},
   station:{words:5,perDay:4,drillReq:1},
   freeze:{price:25,max:3,start:3},
   shop:{},     // تعديل الأغراض: {"cat:id":{price,hidden,tier}}
@@ -31,9 +31,9 @@ function applyCfg(c){
   CFG={
     xp:{review:arr(xp.review,D.xp.review,0,1000),stOk:_num(xp.stOk,3,0,1000),stMiss:_num(xp.stMiss,2,0,1000),mem:_num(xp.mem,15,0,10000),solid:_num(xp.solid,40,0,10000),
       dayN:_num(xp.dayN,20,1,1000),dayXp:_num(xp.dayXp,10,0,10000),quiz:_num(xp.quiz,1,0,1000),level:_num(xp.level,80,1,100000)},
-    gems:{station:_num(gm.station,1,0,10000),level:_num(gm.level,5,0,100000),streak:pairs(gm.streak,D.gems.streak),prize:arr(gm.prize,D.gems.prize,0,100000)},
+    gems:{station:_num(gm.station,1,0,10000),quest:arr(gm.quest,D.gems.quest,0,1000),level:_num(gm.level,5,0,100000),streak:pairs(gm.streak,D.gems.streak),prize:arr(gm.prize,D.gems.prize,0,100000)},
     league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),bots:_num(lg.bots,100,0,300),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
-    energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000),daily:_num(en.daily,10,0,1000)},
+    energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000),combo:_num(en.combo,2,0,100),comboMax:_num(en.comboMax,3,0,50),daily:_num(en.daily,10,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
     duel:{qt:_num(dl.qt,15,5,120),gem:_num(dl.gem,1,0,100)},
     freeze:{price:_num(fz.price,25,0,100000),max:_num(fz.max,3,0,50),start:_num(fz.start,3,0,50)},
@@ -277,6 +277,7 @@ function econ(){
   gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
   gems+=giftSum();                                      // هدايا المشرف
   gems+=(Array.isArray(R.dw)?R.dw:[]).reduce((a,x)=>a+(+x[1]||0),0);   // الفوز في تحدّيات الأصدقاء
+  gems+=(Array.isArray(R.qd)?R.qd:[]).reduce((a,x)=>a+(+x[2]||0),0);   // صناديق مهام اليوم
   // الملصقات أُلغيت: ما اشتُري منها لا يُحسب من الجواهر، فيعود ثمنه إلى الرصيد (ويبقى في السجلّ لإنجاز «جامع التحف»)
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");if(GONE_CATS.includes(c))return a;const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
@@ -388,6 +389,17 @@ function tableFor(uid,w,docs,prevDocs,prog){
 
 /* --- تطبيق الأحداث: الهاتف يطبّقها فورًا للعرض، والخادم يطبّقها ويتحقّق منها ويحفظها --- */
 // ctx: {server:true|false, admin:bool, words:Set|null}. يعيد true عند القبول، أو سبب الرفض
+/* مهام اليوم: تُحسب من سجلّ اليوم نفسه، ولكل مهمة مكتملة صندوق جواهر يُفتح مرة واحدة في اليوم */
+function stPerfectAt(d){   // محطات اليوم التي لم يُخطأ فيها في أي كلمة
+  const lg=LOG.filter(x=>isNewF(x)&&dkey(x[0])===d);
+  return STN.filter(s=>dkey(s[0])===d).filter(s=>{const e=lg.filter(x=>x[0]>=s[0]&&x[0]<s[0]+(s[1]||5));return e.length&&e.every(x=>x[2]===2)}).length;
+}
+const QUESTS=[
+  {id:"st1",n:"أكمل محطة واحدة",goal:1,f:d=>STN.filter(x=>dkey(x[0])===d).length},
+  {id:"rv15",n:"راجع 15 كلمة",goal:15,f:d=>LOG.filter(x=>!isNewF(x)&&dkey(x[0])===d).length},
+  {id:"perf",n:"أكمل محطة بلا أي خطأ",goal:1,f:stPerfectAt}
+];
+const questGot=(d,id)=>(Array.isArray(R.qd)?R.qd:[]).some(x=>x[0]===d&&x[1]===id);
 function applyEv(ev,now,ctx){
   ctx=ctx||{};const T=ev&&ev.type;
   // وقت الحدث: وقت الهاتف، لكن الخادم لا يقبل وقتًا في المستقبل ولا أقدم من أسبوع ولا أقدم من آخر حدث
@@ -466,6 +478,19 @@ function applyAt(ev,T,now,ctx){
     R.ug=R.ug||[];if(R.ug.includes(id))return "used";
     R.ug.push(id);if(R.ug.length>300)R.ug=R.ug.slice(-300);
     EN.u=Math.max(EN.u||0,now)+Math.min(Math.max(g.g|0,1),7*1440)*60000;return true;
+  }
+  // صندوق مهمة مكتملة من مهام اليوم
+  if(T==="quest"){
+    if(FREEU)return "free";const i=QUESTS.findIndex(q=>q.id===ev.id),d=dkey(now);if(i<0)return "id";
+    const g=CFG.gems.quest[i]||0;if(!g)return "off";if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
+    R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);if(R.qd.length>600)R.qd=R.qd.slice(-600);return true;
+  }
+  // طاقة الإجابات المتتالية: كل 5 إجابات صحيحة متتالية في الدرس، بحدّ أقصى في اليوم
+  if(T==="combo"){
+    if(FREEU||unlAt(now))return "free";const c=CFG.energy.combo,m=CFG.energy.comboMax;if(!c||!m)return "off";
+    const d=dkey(now),cb=Array.isArray(R.cb)&&R.cb[0]===d?R.cb:[d,0,0];
+    if(cb[1]>=m)return "cap";if(ctx.server&&now-cb[2]<10000)return "time";if(enAt(now)>=EN_MAX)return "full";
+    R.cb=[d,cb[1]+1,now];enAdd(c,now);return true;
   }
   if(T==="reset"){
     // تصفير الكلمات فقط: تعود كل الكلمات جديدة، وتبقى السلسلة والخبرة (المستوى) والدوري والجواهر والمشتريات والإنجازات
