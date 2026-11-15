@@ -2546,8 +2546,11 @@ function renderReport(){
   const recN=wks.map(a=>L.filter(x=>isRevF(x)&&x[0]>=a&&x[0]<a+7*DAY).length);
   const wl=wks.map((a,i)=>i===5?"الحالي":new Date(a+12*36e5).getDate()+"/"+(new Date(a+12*36e5).getMonth()+1));
   // الكلمات التي ينساها أكثر: النسيان في المراجعة والخطأ في الاختبار والتمارين
-  const err={};L.forEach(x=>{if(x[2]===0)err[x[1]]=(err[x[1]]||0)+1});QA.forEach(x=>{if(!x[2]&&fk.has(x[1]))err[x[1]]=(err[x[1]]||0)+1});
-  const hard=f.filter(w=>P[w.k]&&err[w.k]).sort((a,b)=>err[b.k]-err[a.k]).slice(0,8);
+  // لا تبقى فيها كلمة صار يعرفها: تدخل عند النسيان أو الخطأ، وتخرج حين يعرفها مرتين متتاليتين بعده، وتعود إن نسيها ثانية.
+  // تتبع أزرار المناهج (كل المناهج أو منهج واحد). والعدد بجانبها كل مرات نسيانها.
+  const err={},still={},run={},lastE={},evs=[...LOG.map(x=>[x[0],x[1],x[2]===0?0:1]),...QA.map(x=>[x[0],x[1],x[2]?1:0])].sort((a,b)=>a[0]-b[0]);
+  for(const [t,k,ok] of evs){if(!ok){err[k]=(err[k]||0)+1;still[k]=1;run[k]=0;lastE[k]=t}else if(still[k]&&++run[k]>=2)delete still[k]}
+  const hard=uniq(studyPool()).filter(w=>P[w.k]&&still[w.k]).sort((a,b)=>err[b.k]-err[a.k]||lastE[b.k]-lastE[a.k]).slice(0,8);
   const sod=weekStart(now)+((now-weekStart(now))/DAY|0)*DAY,dueT=f.filter(w=>P[w.k]&&P[w.k].due<sod+DAY).length,dueM=f.filter(w=>P[w.k]&&P[w.k].due>=sod+DAY&&P[w.k].due<sod+2*DAY).length;
   el.innerHTML=crsCountHTML()+`<div class="kpis">
    <div class="kpi"><b>${learned}</b><span>كلمة تعلّمتها</span></div>
@@ -2560,7 +2563,7 @@ function renderReport(){
    <p class="rnote">الكلمة ترسخ حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع.</p></div>
   <div class="rsec"><h3>🧠 نسبة تذكّرك في المراجعة</h3>${recN.some(n=>n)?colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
   <div class="rsec"><h3>🔁 مواعيد المراجعة</h3><div class="kpis" style="margin:0"><div class="kpi o"><b>${dueT}</b><span>مستحقّة اليوم</span></div><div class="kpi"><b>${dueM}</b><span>مستحقّة غدًا</span></div></div></div>
-  <div class="rsec"><h3>${I3("warning")} الكلمات التي تنساها أكثر</h3>${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا توجد بعد. تظهر هنا الكلمات التي تنساها أو تخطئ فيها أكثر من غيرها.</div>'}</div>
+  <div class="rsec"><h3>${I3("warning")} الكلمات التي تنساها أكثر</h3>${scopeHTML()}${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا كلمات صعبة الآن. تظهر هنا الكلمة حين تنساها أو تخطئ فيها، وتخرج حين تعرفها مرتين متتاليتين.</div>'}</div>
   ${isAdmin()?`<details class="rsec"><summary><b>تفاصيل أكثر (للمشرف)</b></summary>${reportDetailsHTML()}</details>`:""}`;
   const hg=$("hardGo");if(hg)hg.onclick=()=>{startReviewList(hard);goTab("review");showCard();scrollTo(0,0)};
 }
