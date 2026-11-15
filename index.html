@@ -1387,6 +1387,45 @@ body:not(.adm) #list .pager .btn{background:var(--ds-card);color:var(--ds-navy);
 body:not(.adm) #list .pager .btn:disabled{opacity:.45}
 @media (max-width:380px){body:not(.adm) #list .item{padding:var(--sp-3)}body:not(.adm) #list .item .w{font-size:1.05rem}}
 
+/* ---------- صفحة التقارير (هوية design) ---------- */
+body:not(.adm):has(#report.on){background:var(--ds-bg)}
+body:not(.adm) #report .rsec,body:not(.adm) #report .ccount{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4);margin-bottom:var(--sp-3)}
+body:not(.adm) #report h3{display:flex;align-items:center;gap:8px;color:var(--ds-navy);font-size:var(--fs-md);font-weight:800;margin:0 0 var(--sp-3)}
+body:not(.adm) #report h3 .svi,body:not(.adm) #report h3 .i3{display:inline-block!important;width:22px;height:22px;color:var(--ds-acc-dd);flex:none}
+body:not(.adm) #report .rnote{color:var(--ds-muted);font-weight:600;font-size:var(--fs-xs);line-height:1.6}
+/* عدد كلمات كل منهج: الاسم، والعدد، وشريط صغير بالنسبة نفسها */
+body:not(.adm) #report .ccrow{display:grid;grid-template-columns:1fr auto;row-gap:6px;border-color:var(--ds-line);padding:var(--sp-2) 0}
+body:not(.adm) #report .ccrow b{color:var(--ds-navy)}
+body:not(.adm) #report .ccrow span{color:var(--ds-muted);font-size:var(--fs-sm)}
+body:not(.adm) #report .ccrow em{color:var(--ds-acc-dd)}
+body:not(.adm) #report .ccbar{grid-column:1/-1;display:block;height:6px;border-radius:var(--r-pill);background:var(--ds-line);overflow:hidden}
+body:not(.adm) #report .ccbar i{display:block;height:100%;background:var(--ds-acc);border-radius:var(--r-pill);margin-inline-start:0}
+body:not(.adm) #report .ccrow.tot{border-color:var(--ds-line)}
+/* البطاقات الرقمية */
+body:not(.adm) #report .kpis{gap:var(--sp-3);margin-bottom:var(--sp-3)}
+body:not(.adm) #report .kpi{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-3)}
+body:not(.adm) #report .rsec .kpi{background:var(--ds-bg);box-shadow:none}
+body:not(.adm) #report .kpi b{color:var(--ds-navy);font-size:1.7rem;font-weight:900}
+body:not(.adm) #report .kpi span{color:var(--ds-muted);font-weight:700}
+body:not(.adm) #report .kpi.g b{color:var(--ds-ok)}body:not(.adm) #report .kpi.o b{color:var(--ds-acc-dd)}
+[data-dark] body:not(.adm) #report .kpi.g b{color:#6FD39A}
+/* جدول «ماذا تعلّمت» */
+body:not(.adm) #report .rtab b{color:var(--ds-muted);font-weight:800}
+body:not(.adm) #report .rtab span{color:var(--ds-ink);font-weight:700}
+body:not(.adm) #report .rtab em{color:var(--ds-navy);font-weight:900}
+/* مخطط نسبة التذكّر */
+body:not(.adm) #report .cols{border-color:var(--ds-line);gap:8px}
+body:not(.adm) #report .col .bar{background:var(--ds-acc);border-radius:8px 8px 3px 3px;max-width:30px}
+body:not(.adm) #report .col .bar.bad{background:#E5484D}
+body:not(.adm) #report .col em{color:var(--ds-muted);font-weight:800}
+body:not(.adm) #report .lbls span{color:var(--ds-muted);font-weight:700}
+/* الكلمات التي تنساها أكثر */
+body:not(.adm) #report .hw{border-color:var(--ds-line);align-items:center;padding:var(--sp-2) 0}
+body:not(.adm) #report .hw .m{color:var(--ds-navy);font-weight:700}
+body:not(.adm) #report .hw small{background:#FDECEC;color:#A3262B;border-radius:var(--r-pill);padding:1px 8px;font-weight:800;flex:none}
+[data-dark] body:not(.adm) #report .hw small{background:#3B1D20;color:#FFB3B5}
+body:not(.adm) #report .btn.next{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 4px 0 var(--ds-acc-d);border-radius:var(--r-md);font-weight:800}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2772,7 +2811,10 @@ function LIC(k){const d={
   alert:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
   flag:'<path d="M5 5a5 5 0 0 1 7 0 5 5 0 0 0 7 0v9a5 5 0 0 1-7 0 5 5 0 0 0-7 0V5"/><path d="M5 21v-7"/>',
   bulb:'<path d="M3 12h1m8-9v1m8 8h1M5.6 5.6l.7.7m12.1-.7-.7.7"/><path d="M9 16a5 5 0 1 1 6 0 3.5 3.5 0 0 0-1 3 2 2 0 0 1-4 0 3.5 3.5 0 0 0-1-3"/><path d="M9.7 17h4.6"/>',
-  search:'<circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>'}[k]||"";
+  search:'<circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>',
+  trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
+  brain:'<path d="M15.5 13a3.5 3.5 0 0 0-3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"/><path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1-7 0v-1.8"/><path d="M17.5 16a3.5 3.5 0 0 0 0-7H17"/><path d="M19 9.3V6.5a3.5 3.5 0 0 0-7 0"/><path d="M6.5 16a3.5 3.5 0 0 1 0-7H7"/><path d="M5 9.3V6.5a3.5 3.5 0 0 1 7 0v10"/>',
+  calendar:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><path d="M8 15h2v2H8z"/>'}[k]||"";
   return `<svg class="i3 svi lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`}
 const GAMES=[
  {id:"cloze",ic:I3("pencil"),li:"pencil",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
@@ -3235,9 +3277,9 @@ function heatmap(per){
 function crsCountHTML(){
   const cs=myCrs();if(!cs.length)return "";let T=0,Ln=0;const all=new Set;
   const rows=cs.map(c=>{const ws=uniq(poolOf(c)),l=ws.filter(w=>P[w.k]).length;ws.forEach(w=>all.add(w.k));
-    return `<div class="ccrow"><b>${esc(COURSES[c].name)}</b><span><em>${l}</em> من ${ws.length}</span></div>`}).join("");
+    return `<div class="ccrow"><b>${esc(COURSES[c].name)}</b><span><em>${l}</em> من ${ws.length}</span>${isAdmin()?"":`<i class="ccbar"><i style="width:${ws.length?Math.max(l?2:0,l/ws.length*100):0}%"></i></i>`}</div>`}).join("");
   for(const k of all){T++;if(P[k])Ln++}
-  return `<div class="box ccount"><h3>${I3("books")} كلماتك في كل منهج</h3>${rows}${cs.length>1?`<div class="ccrow tot"><b>كل المناهج</b><span><em>${Ln}</em> من ${T}</span></div>`:""}<p class="rnote">العدد الأول: الكلمات التي تعلّمتها (ظهرت لك في المحطات ولو مرة). والثاني: كل كلمات المنهج.</p></div>`;
+  return `<div class="box ccount"><h3>${isAdmin()?I3("books"):LIC("book")} كلماتك في كل منهج</h3>${rows}${cs.length>1?`<div class="ccrow tot"><b>كل المناهج</b><span><em>${Ln}</em> من ${T}</span></div>`:""}<p class="rnote">العدد الأول: الكلمات التي تعلّمتها (ظهرت لك في المحطات ولو مرة). والثاني: كل كلمات المنهج.</p></div>`;
 }
 function renderReport(){
   const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k)),L=LOG.filter(x=>fk.has(x[1]));
@@ -3264,14 +3306,14 @@ function renderReport(){
    <div class="kpi"><b>${learned}</b><span>كلمة تعلّمتها</span></div>
    <div class="kpi g"><b>${mem}</b><span>كلمة رسخت في ذاكرتك</span></div>
   </div>
-  <div class="rsec"><h3>📈 ماذا تعلّمت فعلًا</h3>
+  <div class="rsec"><h3>${isAdmin()?"📈":LIC("trend")} ماذا تعلّمت فعلًا</h3>
    <div class="rtab"><span></span><b>هذا الأسبوع</b><b>آخر 30 يومًا</b>
     <span>كلمات جديدة</span><em>${wk.nw}</em><em>${mo.nw}</em>
     <span>كلمات رسخت</span><em>${wk.mem}</em><em>${mo.mem}</em></div>
    <p class="rnote">الكلمة ترسخ حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع.</p></div>
-  <div class="rsec"><h3>🧠 نسبة تذكّرك في المراجعة</h3>${recN.some(n=>n)?colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
-  <div class="rsec"><h3>🔁 مواعيد المراجعة</h3><div class="kpis" style="margin:0"><div class="kpi o"><b>${dueT}</b><span>مستحقّة اليوم</span></div><div class="kpi"><b>${dueM}</b><span>مستحقّة غدًا</span></div></div></div>
-  <div class="rsec"><h3>${I3("warning")} الكلمات التي تنساها أكثر</h3>${scopeHTML()}${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا كلمات صعبة الآن. تظهر هنا الكلمة حين تنساها أو تخطئ فيها، وتخرج حين تعرفها مرتين متتاليتين.</div>'}</div>
+  <div class="rsec"><h3>${isAdmin()?"🧠":LIC("brain")} نسبة تذكّرك في المراجعة</h3>${recN.some(n=>n)?colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
+  <div class="rsec"><h3>${isAdmin()?"🔁":LIC("calendar")} مواعيد المراجعة</h3><div class="kpis" style="margin:0"><div class="kpi o"><b>${dueT}</b><span>مستحقّة اليوم</span></div><div class="kpi"><b>${dueM}</b><span>مستحقّة غدًا</span></div></div></div>
+  <div class="rsec"><h3>${isAdmin()?I3("warning"):LIC("alert")} الكلمات التي تنساها أكثر</h3>${scopeHTML()}${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا كلمات صعبة الآن. تظهر هنا الكلمة حين تنساها أو تخطئ فيها، وتخرج حين تعرفها مرتين متتاليتين.</div>'}</div>
   ${isAdmin()?`<details class="rsec"><summary><b>تفاصيل أكثر (للمشرف)</b></summary>${reportDetailsHTML()}</details>`:""}`;
   const hg=$("hardGo");if(hg)hg.onclick=()=>{startReviewList(hard);goTab("review");showCard();scrollTo(0,0)};
 }
