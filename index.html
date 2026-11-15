@@ -898,6 +898,10 @@ body:not(.adm) #list .item.mq3{border-color:var(--acc);box-shadow:inset 4px 0 0 
 /* ظهور الصفحة بالشفافية فقط بلا إزاحة: الإزاحة (transform) كانت تجعل الأزرار الثابتة تلحق الصفحة فتظهر متأخرة وتنزلق إلى مكانها */
 @keyframes fadeo{from{opacity:0}to{opacity:1}}
 body:not(.adm) .panel{animation:fadeo .2s}
+/* التقارير: عدد كلمات كل منهج وكم تعلّمت منه */
+.ccount h3{margin:0 0 10px}.ccrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
+.ccrow b{font-weight:800}.ccrow span{white-space:nowrap;color:var(--muted);font-weight:700}.ccrow em{font-style:normal;font-size:1.15rem;font-weight:900;color:var(--acct,var(--hd))}
+.ccrow.tot{border-bottom:0;border-top:2px solid var(--line);margin-top:2px}.ccount .rnote{margin:8px 0 0;font-size:.78rem}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
@@ -2519,6 +2523,14 @@ function heatmap(per){
   return `<div class="heat">${h}</div><div class="legend" style="margin-top:6px"><span>أقل</span><span><i style="background:var(--soft)"></i><i style="background:#9be9a8"></i><i style="background:#40c463"></i><i style="background:#30a14e"></i><i style="background:#216e39"></i></span><span>أكثر</span></div>`;
 }
 // تقرير المتعلّم: ما تعلّمه فعلًا، ومدى تذكّره، والكلمات التي ينساها
+// عدد كلمات كل منهج من مناهج المتعلّم، وكم كلمة تعلّم منه (كل كلمة ظهرت له في المحطات ولو مرة واحدة)
+function crsCountHTML(){
+  const cs=myCrs();if(!cs.length)return "";let T=0,Ln=0;const all=new Set;
+  const rows=cs.map(c=>{const ws=uniq(poolOf(c)),l=ws.filter(w=>P[w.k]).length;ws.forEach(w=>all.add(w.k));
+    return `<div class="ccrow"><b>${esc(COURSES[c].name)}</b><span><em>${l}</em> من ${ws.length}</span></div>`}).join("");
+  for(const k of all){T++;if(P[k])Ln++}
+  return `<div class="box ccount"><h3>${I3("books")} كلماتك في كل منهج</h3>${rows}${cs.length>1?`<div class="ccrow tot"><b>كل المناهج</b><span><em>${Ln}</em> من ${T}</span></div>`:""}<p class="rnote">العدد الأول: الكلمات التي تعلّمتها (ظهرت لك في المحطات ولو مرة). والثاني: كل كلمات المنهج.</p></div>`;
+}
 function renderReport(){
   const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k)),L=LOG.filter(x=>fk.has(x[1]));
   const learned=f.filter(w=>P[w.k]).length,mem=f.filter(w=>P[w.k]&&P[w.k].box>=4).length;
@@ -2537,7 +2549,7 @@ function renderReport(){
   const err={};L.forEach(x=>{if(x[2]===0)err[x[1]]=(err[x[1]]||0)+1});QA.forEach(x=>{if(!x[2]&&fk.has(x[1]))err[x[1]]=(err[x[1]]||0)+1});
   const hard=f.filter(w=>P[w.k]&&err[w.k]).sort((a,b)=>err[b.k]-err[a.k]).slice(0,8);
   const sod=weekStart(now)+((now-weekStart(now))/DAY|0)*DAY,dueT=f.filter(w=>P[w.k]&&P[w.k].due<sod+DAY).length,dueM=f.filter(w=>P[w.k]&&P[w.k].due>=sod+DAY&&P[w.k].due<sod+2*DAY).length;
-  el.innerHTML=`<div class="kpis">
+  el.innerHTML=crsCountHTML()+`<div class="kpis">
    <div class="kpi"><b>${learned}</b><span>كلمة تعلّمتها</span></div>
    <div class="kpi g"><b>${mem}</b><span>كلمة رسخت في ذاكرتك</span></div>
   </div>
