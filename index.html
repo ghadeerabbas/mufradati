@@ -902,6 +902,15 @@ body:not(.adm) .panel{animation:fadeo .2s}
 .ccount h3{margin:0 0 10px}.ccrow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid var(--line)}
 .ccrow b{font-weight:800}.ccrow span{white-space:nowrap;color:var(--muted);font-weight:700}.ccrow em{font-style:normal;font-size:1.15rem;font-weight:900;color:var(--acct,var(--hd))}
 .ccrow.tot{border-bottom:0;border-top:2px solid var(--line);margin-top:2px}.ccount .rnote{margin:8px 0 0;font-size:.78rem}
+.wwrap{position:relative}
+.whid{position:absolute;inset:0;width:100%;height:100%;opacity:0;border:0;padding:0;font-size:16px;color:transparent;caret-color:transparent;background:transparent;cursor:text}
+.wslots b.cur{border-color:var(--line)}.wslots.foc b.cur{border-color:var(--accd,#BA7517);animation:wblink 1s steps(1) infinite}
+@keyframes wblink{50%{border-color:var(--line)}}
+.wslots b.wr{border-color:#f19a9a;background:#ffe9e9;color:#a32d2d}
+.tarts{display:flex;gap:8px;justify-content:center;margin:12px 0 0}
+.tart{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:6px 14px;font:inherit;font-weight:900;font-size:1rem;cursor:pointer}
+.tart.on{border-color:currentColor;background:var(--soft)}
+#games .wslots b{width:26px;height:36px;font-size:1.1rem;line-height:30px}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
@@ -1454,6 +1463,17 @@ function stOpts(w,de){   // أربعة خيارات من النوع نفسه
 // زر «لا أعرف» تحت الخيارات: يُحسب خطأً (فتعود الكلمة في آخر المحطة) ويُظهر الجواب الصحيح، بدل التخمين
 // تمرين الكتابة في المحطة: لكلمة قصيرة واحدة (بلا مسافات، حتى 14 حرفًا) تُكتب بحروفها في خانات
 const writeOk=w=>{const T=typeTarget(w);return !!T&&!/\s/.test(T)&&/^[A-Za-zÄÖÜäöüß-]+$/.test(T)&&T.length<=14};
+// خانات الكتابة: حرف في كل خانة، والخانة التالية مؤشّرة. mark=1 بعد التحقّق: كل حرف أخضر إن طابق أو أحمر، mark=2: الكلمة مكشوفة
+function wBoxes(T,v,mark){const L=[...T],tv=[...String(v||"")];
+  return L.map((ch,i)=>{const c=tv[i],cls=mark===2?"rv":mark?(c!=null&&c.toLowerCase()===ch.toLowerCase()?"rv":"wr"):i===tv.length?"cur":"";
+    return `<b class="${cls}">${mark===2?esc(ch):c!=null?esc(c):""}</b>`}).join("")}
+// خانات لعبة «اكتبها»: مثل خانات المحطة، مع مسافات العبارة في مكانها، والأحرف المكشوفة بالمساعدة خضراء
+function gBoxes(T,v,rev,mark){const tv=[...String(v||"").replace(/\s+/g,"")];let j=0;
+  return [...T].map(ch=>{if(ch===" ")return '<i class="sp"></i>';const i=j++,c=tv[i];
+    const cls=mark?(c!=null&&c.toLowerCase()===ch.toLowerCase()?"rv":"wr"):i<rev?"rv":i===tv.length?"cur":"";
+    return `<b class="${cls}">${c!=null?esc(c):""}</b>`}).join("")}
+// يعيد المسافات إلى ما كُتب في الخانات بحسب مكانها في الكلمة الصحيحة
+function withSpaces(T,v){const tv=[...String(v||"").replace(/\s+/g,"")];let j=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(j>=tv.length)break;out+=tv[j++]}return out+tv.slice(j).join("")}
 // صنف لون الجنس لبطاقة الاسم (g-der / g-die / g-das)
 const gCls=w=>{const n=w&&w.t==="n"&&String(w.de).match(/^(der|die|das)\s/i);return n?"g-"+n[1].toLowerCase():""};
 const IDK=`<button type="button" class="link idk" id="idk">لا أعرف</button>`;
@@ -1497,17 +1517,21 @@ function stationView(){
     const T=typeTarget(w),nn=nounOf(w);
     el.innerHTML=comboHTML()+head+`<div class="box ${gCls(w)}"><span class="sttag">${I3("keyboard")} اكتبها</span><p class="ghint">اكتب الكلمة بالألمانية:</p>
      <div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>${nn?`<div style="text-align:center;margin:-6px 0 6px"><b class="art art-${nn.art}" style="font-size:1.2rem">${nn.art}</b></div>`:""}
-     <div class="wslots de" id="wLen">${lenHTML(T,"",0)}</div>
-     <input id="wIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا" dir="ltr">
+     <div class="wwrap"><div class="wslots de" id="wLen">${wBoxes(T,"")}</div>
+     <input id="wIn" class="whid" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="${T.length}" aria-label="اكتب الكلمة"></div>
      <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>${IDK}</div>
      <button class="btn next" id="stNext">تحقّق</button>`;
-    const inp=$("wIn"),upd=()=>{$("wLen").innerHTML=lenHTML(T,inp.value,0)};inp.addEventListener("input",upd);setTimeout(()=>inp.focus(),60);
-    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const a=inp.selectionStart??inp.value.length,e=inp.selectionEnd??a;inp.value=inp.value.slice(0,a)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(a+1,a+1);upd()});
+    // الكتابة مباشرة في الخانات: حقل كتابة شفاف فوقها يستقبل لوحة المفاتيح، والمسافات تُحذف لأن الكلمة بلا مسافات
+    const inp=$("wIn"),upd=()=>{const v=inp.value.replace(/\s+/g,"").slice(0,T.length);if(v!==inp.value)inp.value=v;$("wLen").innerHTML=wBoxes(T,v)};
+    inp.addEventListener("input",upd);inp.addEventListener("focus",()=>$("wLen").classList.add("foc"));inp.addEventListener("blur",()=>$("wLen").classList.remove("foc"));setTimeout(()=>inp.focus(),60);
+    el.querySelectorAll(".ukeys button").forEach(k=>k.onmousedown=e=>e.preventDefault());
+    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{if(inp.disabled)return;inp.value=(inp.value+k.dataset.c).slice(0,T.length);inp.focus();upd()});
     const sub=`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`;
-    const go=()=>{if(S_.ans)return;if(!inp.value.trim()){inp.focus();return}const r=checkTyped(w,inp.value);inp.disabled=true;inp.classList.add(r.ok?"good":"bad");$("stNext").style.display="none";
+    const go=()=>{if(S_.ans)return;if(!inp.value.trim()){inp.focus();return}const r=checkTyped(w,inp.value);inp.disabled=true;inp.blur();$("stNext").style.display="none";
+      $("wLen").innerHTML=wBoxes(T,inp.value,1);
       judge(!!r.ok,inp,r.ok&&r.note?esc(r.note):sub,()=>speak(w.de))};
     $("stNext").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
-    $("idk").onclick=()=>{if(S_.ans)return;inp.disabled=true;$("stNext").style.display="none";$("wLen").innerHTML=lenHTML(T,T,T.length);judge(false,null,sub,()=>speak(w.de))};
+    $("idk").onclick=()=>{if(S_.ans)return;inp.disabled=true;inp.blur();$("stNext").style.display="none";$("wLen").innerHTML=wBoxes(T,T,2);judge(false,null,sub,()=>speak(w.de))};
   }
   else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
     if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
@@ -2229,7 +2253,8 @@ function gameView(){
     <button class="btn next" id="gCheck" ${q.picked.length?"":"disabled"}>تحقّق</button>`;
   else if(q.kind==="type"){const T=typeTarget(w),cz=clozeOf(w);
     body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
-    <div class="tbox"><input id="gIn" class="gin de tin" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا"><div class="tlen de" id="tLen">${lenHTML(T,"",q.rev||0)}</div></div>
+    ${nounOf(w)?`<div class="tarts">${["der","die","das"].map(a=>`<button type="button" class="tart art-${a}${q.art===a?" on":""}" data-a="${a}">${a}</button>`).join("")}</div>`:""}
+    <div class="wwrap"><div class="wslots de" id="tLen">${gBoxes(T,"",q.rev||0)}</div><input id="gIn" class="whid" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="${T.replace(/ /g,"").length}" aria-label="اكتب الكلمة"></div>
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <div class="thints"><span>مساعدة:</span><button type="button" data-h="letter">🔤 حرف</button>${canSpeak()?'<button type="button" data-h="hear">🔊 استمع</button>':""}${cz?'<button type="button" data-h="sent">📝 جملة</button>':""}<button type="button" data-h="mix">🧩 الأحرف</button></div>
     <div id="tHelp"></div>
@@ -2261,8 +2286,11 @@ function gameView(){
     const inp=$("gIn");setTimeout(()=>inp.focus(),50);
     el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1);inp.dispatchEvent(new Event("input"))});
     const go=()=>{if(GM.answered)return;if(!inp.value.trim()){inp.focus();return}
-      const r=checkTyped(w,inp.value);inp.disabled=true;inp.classList.add(r.ok?"good":"bad");$("gCheck").style.display="none";
-      GM.typed={r,v:normT(inp.value)};answered(!!r.ok,inp)};
+      // «اكتبها»: الأحرف من الخانات، وتُعاد المسافات في مكانها من الكلمة، وتُضاف الأداة إن اختارها
+      const T=q.kind==="type"?typeTarget(w):"",val=q.kind==="type"?(q.art?q.art+" ":"")+withSpaces(T,inp.value):inp.value;
+      const r=checkTyped(w,val);inp.disabled=true;inp.blur();inp.classList.add(r.ok?"good":"bad");$("gCheck").style.display="none";
+      if(q.kind==="type")$("tLen").innerHTML=gBoxes(T,inp.value,q.rev||0,1);
+      GM.typed={r,v:normT(val)};answered(!!r.ok,inp)};
     $("gCheck").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
     if(q.kind==="type")bindTypeHints(q,w,inp);
   }
@@ -2273,8 +2301,12 @@ const typeTarget=w=>coreOf(answersOf(w)[0]||w.de)||lemmaOf(w);
 function lenHTML(T,typed,k){const tv=[...String(typed||"").replace(ART,"").replace(/\s+/g,"")];let i=0;
   return [...T].map(ch=>{if(ch===" ")return '<i class="sp"></i>';const j=i++;return `<b class="${j<k?"rv":""}">${tv[j]!=null?esc(tv[j]):""}</b>`}).join("")}
 function bindTypeHints(q,w,inp){
-  const T=typeTarget(w),help=$("tHelp"),used=()=>{q.hint=1},upd=()=>{const l=$("tLen");if(l)l.innerHTML=lenHTML(T,inp.value,q.rev||0)};
+  const T=typeTarget(w),help=$("tHelp"),used=()=>{q.hint=1},N=T.replace(/ /g,"").length,
+    upd=()=>{const v=inp.value.replace(/\s+/g,"").slice(0,N);if(v!==inp.value)inp.value=v;const l=$("tLen");if(l)l.innerHTML=gBoxes(T,v,q.rev||0)};
   inp.addEventListener("input",upd);upd();
+  inp.addEventListener("focus",()=>$("tLen").classList.add("foc"));inp.addEventListener("blur",()=>{const l=$("tLen");if(l)l.classList.remove("foc")});
+  document.querySelectorAll(".ukeys button").forEach(k=>k.onmousedown=e=>e.preventDefault());
+  document.querySelectorAll(".tart").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.art=q.art===b.dataset.a?null:b.dataset.a;document.querySelectorAll(".tart").forEach(x=>x.classList.toggle("on",x.dataset.a===q.art));inp.focus()});
   const INFO={letter:"🔤 حرف: يُكتب لك الحرف التالي من الكلمة. ويمكنك الضغط مرة أخرى لحرفٍ آخر.",hear:"🔊 استمع: تسمع نطق الكلمة الألمانية.",
     sent:"📝 جملة: يظهر مثال الكلمة، وفيه فراغ مكانها.",mix:"🧩 الأحرف: تظهر أحرف الكلمة مخلوطة، فترتّبها بالضغط عليها."};
   const asked=q.asked=q.asked||{};
@@ -2283,7 +2315,7 @@ function bindTypeHints(q,w,inp){
     if(GM.answered)return;used();
     if(h==="letter"){const L=[...T.replace(/ /g,"")],tv=[...inp.value.replace(ART,"").replace(/\s+/g,"")];let ok=0;while(ok<tv.length&&ok<L.length&&tv[ok].toLowerCase()===L[ok].toLowerCase())ok++;   // ما كتبه صحيحًا من أول الكلمة يبقى، ويُضاف الحرف الذي بعده
       q.rev=Math.min(Math.max((q.rev||0),ok)+1,L.length);let n=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(n++<q.rev)out+=ch;else break}
-      const nn=nounOf(w);inp.value=(nn?nn.art+" ":"")+out;upd();inp.focus()}
+      const nn=nounOf(w);inp.value=out.replace(/ /g,"");if(nn){q.art=nn.art;document.querySelectorAll(".tart").forEach(x=>x.classList.toggle("on",x.dataset.a===q.art))}upd();inp.focus()}
     else if(h==="hear")speak(lemmaOf(w));
     else if(h==="sent"){const c=clozeOf(w);if(c)help.innerHTML=`<div class="cloze de thelp">${esc(c.pre)}<span class="blank">_____</span>${esc(c.post)}</div>`;b.disabled=true}
     else if(h==="mix"){const ls=shuffle([...T.replace(/ /g,"")].slice(q.rev||0));   // الأحرف الباقية بعد ما كُشف
