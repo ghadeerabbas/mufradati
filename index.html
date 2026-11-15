@@ -4421,10 +4421,11 @@ const HIC=k=>{const B=n=>SVGI('<rect x="3" y="7" width="16" height="10" rx="2"/>
 /* ================= الواجهة الهادئة: خمس أيقونات، وأقسام فرعية، وصفحة «أنا» ================= */
 const NAVG={review:["review"],list:["list","report"],games:["games","quiz"],rewards:["rewards","shop"],me:["me","profile","settings","messages","helper","reading","math"]};
 const SEGN={list:"كلماتي",report:"التقارير",games:"التمارين",quiz:"الاختبار",rewards:"الدوري",shop:"المتجر"};
-let HOMETAB="path";   // آخر قسم اختاره في الرئيسية: يعود إليه بعد انتهاء الجلسة
+let HOMETAB="path",NAVLAST="";   // آخر قسم اختاره في الرئيسية: يعود إليه بعد انتهاء الجلسة
 function navSync(){
   if(document.body.classList.contains("adm"))return;
   const on=document.querySelector("main>.panel.on");if(!on)return;const id=on.id;
+  if(NAVLAST!==id){NAVLAST=id;SEGSKIP=Date.now()+600;SEGY=scrollY;document.body.classList.remove("seghide","segmove")}   // صفحة جديدة: الشريط ظاهر وفي مكانه فورًا
   const g=Object.keys(NAVG).find(k=>NAVG[k].includes(id))||"review";
   document.querySelectorAll("#mainNav button").forEach(b=>b.classList.toggle("on",b.dataset.p===g));
   const sb=$("segBar"),items=NAVG[g].filter(x=>SEGN[x]);
@@ -4473,7 +4474,9 @@ function renderMe(){
 }
 
 // إخفاء شريط الأقسام عند النزول في الصفحة، وإظهاره عند الصعود أو في أعلاها
-let SEGY=0;addEventListener("scroll",()=>{const y=scrollY,d=y-SEGY;if(Math.abs(d)<6)return;
+let SEGY=0,SEGSKIP=0;addEventListener("scroll",()=>{const y=scrollY,d=y-SEGY;
+  if(Date.now()<SEGSKIP){SEGY=y;return}   // تمرير بسبب الانتقال بين الصفحات: لا إخفاء ولا حركة
+  if(Math.abs(d)<6)return;
   const h=d>0&&y>40;if(h!==document.body.classList.contains("seghide")){   // الحركة فقط عند الإخفاء والإظهار بالتمرير، لا عند فتح الصفحة
     document.body.classList.add("segmove");clearTimeout(SEGT);SEGT=setTimeout(()=>document.body.classList.remove("segmove"),400)}
   document.body.classList.toggle("seghide",h);SEGY=y},{passive:true});let SEGT=0;
