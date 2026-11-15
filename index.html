@@ -1739,7 +1739,12 @@ let HOMEY=null,LASTHOME=0;
 // آخر موضع للصفحة الرئيسية للدراسة (خارج المحطات والتمارين)، يُحفظ مع كل تمرير
 addEventListener("scroll",()=>{const r=$("review");if(r&&r.classList.contains("on")&&!document.body.classList.contains("lesson")&&!r.querySelector(".sess"))LASTHOME=scrollY},{passive:true});
 function toCur(){if(STS||DRL||RES){scrollTo(0,0);return}   // شاشة النتيجة أو جلسة: الموضع يُستعاد عند العودة الفعلية إلى المسار
-  const y=HOMEY;HOMEY=null;if(y==null){scrollTo(0,0);return}
+  const y=HOMEY;HOMEY=null;
+  // العودة إلى المسار بعد محطة أو تدريب أو تحدٍّ: تُعرض المحطة الحالية في وسط الشاشة، أينما كان الموضع قبل البدء
+  if(!document.body.classList.contains("rvtab")&&document.querySelector("#review .zn.cur")){
+    const go=()=>{const c=document.querySelector("#review .zn.cur");if(!c)return;const r=c.getBoundingClientRect();scrollTo(0,Math.max(0,scrollY+r.top+r.height/2-innerHeight*.42))};
+    go();requestAnimationFrame(()=>requestAnimationFrame(go));return}
+  if(y==null){scrollTo(0,0);return}
   scrollTo(0,y);requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,y)))}
 function reviewHome(){
   if(!document.body.classList.contains("lesson"))document.body.classList.toggle("rvtab",HOMETAB==="rv");   // القسم يُطبَّق قبل الرسم، فلا يقفز الزر من مكانه
