@@ -1043,7 +1043,7 @@ body:not(.adm){
 [data-dark] body:not(.adm){
   --ds-acc:#F4A126;--ds-acc-d:#B9700B;--ds-acc-dd:#FFC36B;--ds-acc-ink:#2A1A03;
   --ds-cream:#3A2D17;--ds-cream-2:#2A2317;
-  --ds-navy:#E3E8FA;--ds-bg:#12151E;--ds-muted:#9AA0B2;--ds-card:#1B1F2C;--ds-ink:#E9EBF2;--ds-line:#2A2F40;
+  --ds-navy:#E3E8FA;--ds-bg:#12151E;--ds-muted:#B0B6C6;--ds-card:#1B1F2C;--ds-ink:#E9EBF2;--ds-line:#2A2F40;
   --ds-lock:#272C3C;--ds-lock-d:#1C2030;
   --sh-1:0 1px 2px rgba(0,0,0,.35);--sh-2:0 2px 6px rgba(0,0,0,.3),0 8px 22px rgba(0,0,0,.28);--sh-3:0 12px 32px rgba(0,0,0,.45);
 }
@@ -1060,12 +1060,7 @@ body:not(.adm) .hcrs{background:var(--ds-cream);color:var(--ds-navy);padding:7px
 body:not(.adm) .hcrs:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);opacity:.7}
 body:not(.adm) .hflt{width:38px;height:38px;background:var(--ds-bg);color:var(--ds-navy)}
 body:not(.adm) .hflt svg{width:19px;height:19px}
-body:not(.adm) .chips{gap:var(--sp-3)}
-body:not(.adm) .chip{font-size:1.05rem;gap:4px;color:var(--ds-ink)}
-body:not(.adm) .chip .i3{width:24px;height:24px;object-fit:contain}
-body:not(.adm) .chip.fire{color:var(--ds-fire)}body:not(.adm) .chip.fire.dim{color:var(--ds-muted)}body:not(.adm) .chip.fire.dim .i3{filter:grayscale(1);opacity:.55}
-body:not(.adm) #hGem{color:var(--ds-gem)}
-body:not(.adm) .chip.bat{color:var(--ds-ok)}body:not(.adm) .chip.bat.mid{color:#D99A06}body:not(.adm) .chip.bat.low{color:#D9483B}body:not(.adm) .chip.bat.unl{color:var(--ds-unl)}
+/* مؤشرات الطاقة والجواهر والسلسلة: الأيقونات المسطّحة الأصلية بأحجامها وألوانها (HIC)، بلا تغيير */
 
 /* ---------- بطاقة المسار (أعلى الشاشة): ثلاثة أسطر مدمجة ---------- */
 body:not(.adm) .unitw{padding:var(--sp-2) var(--mp,16px) var(--sp-1)}
@@ -1089,6 +1084,14 @@ body:not(.adm) .dsh .qpill.ready{background:var(--ds-acc);color:var(--ds-acc-ink
 [data-dark] body:not(.adm) .dsh .qpill{background:rgba(244,161,38,.14);color:#FFC36B;box-shadow:inset 0 0 0 1px rgba(244,161,38,.35)}
 [data-dark] body:not(.adm) .dsh .uh-p i.h{background:repeating-linear-gradient(-45deg,var(--ds-acc) 0 4px,#4A3A1E 4px 7px)}
 @media (max-width:380px){body:not(.adm) .unit.dsh{padding:10px 12px}.dsh .uh-t{font-size:1.05rem}.dsh .uh-pr{margin:6px 0}}
+/* وضوح النصوص الصغيرة: حدّ أدنى للحجم ووزن أثقل */
+body:not(.adm){--fs-xs:.78rem}
+.dsh .uh-f small,.dsh .uh-n{font-weight:800}
+body:not(.adm) .dsh .qpill .svi{width:16px;height:16px;stroke-width:2.4}
+body:not(.adm) #review .stsub{font-weight:700;line-height:1.55}
+[data-dark] body:not(.adm) #review .stsub{color:#C3C8D6}
+[data-dark] body:not(.adm) .dsh .uh-f small{color:#BAC0CF}
+[data-dark] body:not(.adm) .zn.chal .tl{color:#FFC36B}
 
 /* ---------- المسار ---------- */
 body:not(.adm) .zpath .bg{stroke:var(--ds-line);stroke-width:6;stroke-dasharray:1 13}
@@ -1132,7 +1135,7 @@ body:not(.adm) #segBar button.on{background:var(--ds-cream);color:var(--ds-navy)
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
-body:not(.adm) #mainNav button:after{content:attr(aria-label);font-size:.68rem;font-weight:800;color:var(--ds-muted);line-height:1.2}
+body:not(.adm) #mainNav button:after{content:attr(aria-label);font-size:.72rem;font-weight:800;color:var(--ds-muted);line-height:1.2}
 body:not(.adm) #mainNav button.on:after{color:var(--ds-navy)}
 body:not(.adm) #mainNav button i{width:52px;height:32px;border-radius:var(--r-pill)}
 body:not(.adm) #mainNav button i svg{width:24px;height:24px;color:var(--ds-muted);stroke-width:1.9}
@@ -2029,7 +2032,7 @@ function reviewHome(){
    <div class="zz" style="height:${N*SP+TOP+6+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+TOP+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+TOP+80}px"><div class="flip">${mascot(pose2)}</div></div>`:""}${[...Array(N)].map((_,i)=>node(i)).join("")}${chNode()}</div>
    <div class="stgo">${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?(isAdmin()?"🪫 ":I3("lowbat")+" "):""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?(isAdmin()?" ⚡":" "+I3("battery")):""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:coach?`<p class="stsub">${coach}</p>`:""}</div>
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?(isAdmin()?"🪫 ":HIC("lowbat")+" "):""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?(isAdmin()?" ⚡":" "+HIC("battery")):""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:coach?`<p class="stsub">${coach}</p>`:""}</div>
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
@@ -2109,7 +2112,7 @@ function monthsModal(){
   $("mnNo").onclick=close;
 }
 function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&(q.g||q.pz));
-  return `<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${I3("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`}
+  return `<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${isAdmin()?I3("target"):NIC("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`}
 const CHEST=`<svg class="chest" viewBox="0 0 120 100" aria-hidden="true"><ellipse cx="60" cy="94" rx="44" ry="5" fill="rgba(0,0,0,.12)"/>
  <rect x="14" y="44" width="92" height="46" rx="8" fill="#e8962a"/><rect x="14" y="44" width="92" height="12" fill="#c97a16"/><rect x="24" y="56" width="10" height="34" fill="#c97a16"/><rect x="86" y="56" width="10" height="34" fill="#c97a16"/>
  <g class="lid"><path d="M14 46 V34 Q14 14 60 14 Q106 14 106 34 V46 Z" fill="#f2a93b"/><rect x="24" y="17" width="10" height="29" fill="#d88a1f"/><rect x="86" y="17" width="10" height="29" fill="#d88a1f"/></g>
@@ -4821,8 +4824,7 @@ const NIC=k=>SVGI({check:'<path d="M5 12l5 5l10 -10"/>',lock:'<rect x="5" y="11"
   target:'<path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M12 7a5 5 0 1 0 5 5"/><path d="M13 3.055a9 9 0 1 0 7.941 7.945"/><path d="M15 6v3h3l3 -3h-3v-3z"/><path d="M15 9l-3 3"/>',
   play:'<path d="M7 4v16l13 -8z"/>'}[k]||"");
 // أيقونات الرأس: الشعلة والجوهرة والبطارية بخطوط بسيطة
-const HIC=k=>{if(!isAdmin())return I3(k);   // المتعلّم: أيقونات مجسّمة للسلسلة والجواهر والطاقة (هوية design)
-  const B=n=>SVGI('<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3"/>'+[...Array(n)].map((_,i)=>`<path d="M${6+i*3.4} 10v4" stroke-width="2.4"/>`).join(""));
+const HIC=k=>{const B=n=>SVGI('<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M21 10.5v3"/>'+[...Array(n)].map((_,i)=>`<path d="M${6+i*3.4} 10v4" stroke-width="2.4"/>`).join(""));
   return k==="fire"?SVGI('<path d="M12 10.941c2.333 -3.308 .167 -7.823 -1 -8.941c0 3.395 -2.235 5.299 -3.667 6.706c-1.43 1.408 -2.333 3.621 -2.333 5.588c0 3.704 3.134 6.706 7 6.706s7 -3.002 7 -6.706c0 -1.712 -1.232 -4.403 -2.333 -5.588c-2.084 3.353 -3.257 3.353 -4.667 2.235"/>')
    :k==="gem"?SVGI('<path d="M6 5h12l3 5l-8.5 9.5a.7 .7 0 0 1 -1 0l-8.5 -9.5l3 -5"/><path d="M10 12l-2 -2.2l.6 -1"/>')
    :k==="battery"?B(4):k==="bat3"?B(3):k==="bat2"?B(2):k==="lowbat"?B(1):I3(k)};
