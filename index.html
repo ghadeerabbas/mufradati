@@ -1179,9 +1179,10 @@ body:not(.adm) #games #gQuit{color:var(--ds-muted)}
 
 /* شاشات اللعب: المحتوى يبدأ من الأعلى بمسافة مريحة بدل التوسيط */
 body.lesson:not(.adm) #games>.box{justify-content:flex-start;padding-top:clamp(12px,5vh,40px)}
-body:not(.adm) #games .gopt,body:not(.adm) #games .mt,body:not(.adm) #games .otile,body:not(.adm) #games .cloze,body:not(.adm) #games .qword,body:not(.adm) #games .ordar{overflow-wrap:anywhere;word-break:normal;hyphens:auto}
+body:not(.adm) #games .gopt,body:not(.adm) #games .mt,body:not(.adm) #games .otile,body:not(.adm) #games .cloze,body:not(.adm) #games .qword,body:not(.adm) #games .ordar{overflow-wrap:break-word;word-break:normal;-webkit-hyphens:auto;hyphens:auto}
+body:not(.adm) .de,body:not(.adm) .gopt.de{direction:ltr}
 body:not(.adm) #games .gopt{min-height:52px;line-height:1.35}
-body:not(.adm) #games .gopt.long{font-size:.86rem;letter-spacing:-.1px}
+body:not(.adm) #games .gopt.long{font-size:.95rem}
 body:not(.adm) #games .cloze{line-height:2.1}
 body:not(.adm) #games .otile{max-width:100%}
 @media (max-width:380px){body:not(.adm) #games .gopt,body:not(.adm) #games .mt{font-size:.95rem}body:not(.adm) #games .cloze{font-size:1.05rem}body:not(.adm) #games .qword{font-size:1.3rem}}
@@ -1225,6 +1226,73 @@ body:not(.adm) #games .gres{display:flex;flex-direction:column;align-items:cente
 .gres .gr-btns{width:100%;display:flex;flex-direction:column;gap:var(--sp-2)}
 body:not(.adm) #games .gres .btn.next{width:100%;margin:0}
 body:not(.adm) #games .gres .gr-sec{width:100%;margin:0;background:var(--ds-cream);color:var(--ds-acc-dd);box-shadow:none;border-radius:var(--r-md);font-weight:800;border:0}
+
+/* ---------- المحطة والتدريب (هوية design): نفس مكوّنات صفحة التمارين ---------- */
+body.lesson:not(.adm){background:var(--ds-bg)}
+body.lesson:not(.adm) #review>.box{justify-content:flex-start;padding-top:clamp(12px,5vh,40px)}
+body:not(.adm) #review .sess{color:var(--ds-muted);font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #review .sess .svi{width:18px;height:18px;vertical-align:-4px;color:var(--ds-acc-dd)}
+body:not(.adm) #review .sbar{height:12px;background:var(--ds-line);border-radius:var(--r-pill)}
+body:not(.adm) #review .sbar i{background:var(--ds-acc);border-radius:var(--r-pill)}
+body:not(.adm) #review #stQuit,body:not(.adm) #review #dQuit{color:var(--ds-muted)}
+body:not(.adm) .sttag{background:var(--ds-cream);color:var(--ds-acc-dd);font-weight:800;border-radius:var(--r-pill);gap:5px}
+body:not(.adm) .sttag .svi{width:16px;height:16px;stroke-width:2.2}
+body:not(.adm) .sttag.stmiss{background:#FDECEC;color:#A3262B}
+[data-dark] body:not(.adm) .sttag{background:rgba(244,161,38,.16);color:#FFC36B}
+[data-dark] body:not(.adm) .sttag.stmiss{background:#3B1D20;color:#FFB3B5}
+body:not(.adm) #review .ghint{color:var(--ds-muted);font-weight:700;font-size:var(--fs-sm)}
+body:not(.adm) #review .qword,body:not(.adm) #review .ordar,body:not(.adm) #review .cloze{color:var(--ds-navy)}
+body:not(.adm) #review .stlearn .ar{color:var(--ds-navy)}
+body:not(.adm) #review .stlearn .typedot{color:var(--ds-muted);font-weight:800}
+body:not(.adm) #review .say{background:var(--ds-card);color:var(--ds-navy);box-shadow:var(--sh-1);font-weight:800}
+body:not(.adm) #review .exp{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2)}
+body:not(.adm) #review .exa{color:var(--ds-muted)}
+body:not(.adm) #review .blank{border:2px dashed var(--ds-acc);border-radius:var(--r-sm);background:var(--ds-cream);color:var(--ds-navy)}
+body:not(.adm) #review .gopt,body:not(.adm) #review .mt,body:not(.adm) #review .otile{background:var(--ds-card);color:var(--ds-navy);border:2px solid var(--ds-line);border-bottom-width:4px;border-radius:var(--r-md);box-shadow:none;font-weight:800;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+body:not(.adm) #review .gopt{min-height:52px;line-height:1.35;padding:13px var(--sp-4);margin-bottom:var(--sp-2)}
+body:not(.adm) #review .gopt.long{font-size:.95rem}
+body:not(.adm) #review .gopt:active,body:not(.adm) #review .mt:active,body:not(.adm) #review .otile:active{transform:translateY(2px);border-bottom-width:2px}
+body:not(.adm) #review .mt.on{background:var(--ds-cream);border-color:var(--ds-acc);color:var(--ds-navy)}
+body:not(.adm) #review .gopt:disabled,body:not(.adm) #review .otile:disabled{background:var(--ds-bg);color:var(--ds-muted);border-color:var(--ds-line);border-bottom-width:2px}
+body:not(.adm) #review .gopt.ok,body:not(.adm) #review .mt.ok{background:#E6F6EC;border-color:#3BA55C;color:#1E6B3A}
+body:not(.adm) #review .gopt.no,body:not(.adm) #review .mt.no{background:#FDECEC;border-color:#E5484D;color:#A3262B}
+[data-dark] body:not(.adm) #review .gopt.ok,[data-dark] body:not(.adm) #review .mt.ok{background:#173726;border-color:#3BA55C;color:#8EE2AE}
+[data-dark] body:not(.adm) #review .gopt.no,[data-dark] body:not(.adm) #review .mt.no{background:#3B1D20;border-color:#E5484D;color:#FFB3B5}
+body:not(.adm) #review .mt.ok{opacity:.6}
+body:not(.adm) #review .otile.ghost{background:var(--ds-line);border-color:var(--ds-line);color:transparent}
+body:not(.adm) #review .oline{border-color:var(--ds-line)}
+body:not(.adm) #review .ukeys button{background:var(--ds-card);border:2px solid var(--ds-line);border-bottom-width:3px;color:var(--ds-navy);font-weight:800;border-radius:var(--r-sm)}
+body:not(.adm) #review .idk{color:var(--ds-muted);font-weight:800}
+body.lesson:not(.adm) #review .btn.next:not(.blue){background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 4px 0 var(--ds-acc-d);border-radius:var(--r-md);font-size:var(--fs-lg);font-weight:800}
+body:not(.adm) #review .trsay{background:var(--ds-cream);color:var(--ds-acc-dd)}
+@media (max-width:380px){body:not(.adm) #review .gopt,body:not(.adm) #review .mt{font-size:.95rem}}
+/* لوحة الجواب (المحطات والتمارين) */
+body:not(.adm) .fbar{background:var(--ds-card)!important;border:0;border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -10px 30px rgba(37,51,99,.16)}
+body:not(.adm) .fbar h4{font-size:var(--fs-lg)}
+body:not(.adm) .fbar .fbic{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;flex:none}
+body:not(.adm) .fbar .fbic .svi{width:20px;height:20px;stroke-width:2.6}
+body:not(.adm) .fbar.ok h4{color:#1E7A43}body:not(.adm) .fbar.ok .fbic{background:#E6F6EC;color:#2F9E57}
+body:not(.adm) .fbar.no h4{color:#C2373C}body:not(.adm) .fbar.no .fbic{background:#FDECEC;color:#D9483B}
+body:not(.adm) .fbar.ok p,body:not(.adm) .fbar.no p{color:var(--ds-ink);font-weight:700}
+[data-dark] body:not(.adm) .fbar{box-shadow:0 -10px 30px rgba(0,0,0,.5)}
+[data-dark] body:not(.adm) .fbar.ok h4{color:#8EE2AE}[data-dark] body:not(.adm) .fbar.ok .fbic{background:#173726;color:#8EE2AE}
+[data-dark] body:not(.adm) .fbar.no h4{color:#FFB3B5}[data-dark] body:not(.adm) .fbar.no .fbic{background:#3B1D20;color:#FFB3B5}
+body:not(.adm) .fbar .fbgo,body:not(.adm) .fbar.no .fbgo{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 4px 0 var(--ds-acc-d);border-radius:var(--r-md)}
+body:not(.adm) .fbar .fbflag{background:var(--ds-cream);border:0;color:var(--ds-acc-dd);display:grid;place-items:center;opacity:1;border-radius:var(--r-md)}
+body:not(.adm) .fbar .fbflag .svi{width:22px;height:22px}
+body:not(.adm) .fbar .say{background:var(--ds-bg);color:var(--ds-navy);box-shadow:none}
+/* نتيجة المحطة والتدريب */
+body:not(.adm) #review .gres .btn.next{width:100%;margin:0}
+body:not(.adm) #review .gres .gr-sec{width:100%;margin:0;background:var(--ds-cream);color:var(--ds-acc-dd);box-shadow:none;border-radius:var(--r-md);font-weight:800;border:0;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+body:not(.adm) #review .gres .gr-sec .svi{width:20px;height:20px}
+.gres.sres .sr-t{display:block;text-align:center;line-height:1.45}
+.gres .sr-gem{display:inline-flex;align-items:center;gap:2px;white-space:nowrap;vertical-align:-4px;color:#1cb0f6}.gres .sr-gem .svi{width:22px;height:22px}
+body:not(.adm) #review .rep{color:var(--ds-muted);background:none;border:0}body:not(.adm) #review .rep .svi{width:18px;height:18px}
+body:not(.adm) #review .say .svi{width:18px;height:18px}body:not(.adm) #review .trsay .svi{width:22px;height:22px}
+.gres .sr-sub{color:var(--ds-muted);font-weight:700;font-size:var(--fs-sm);margin:0}
+.gres .gr-stats b{display:flex;align-items:center;justify-content:center;gap:4px}
+.gres .sr-ic{display:inline-flex;color:var(--ds-acc-dd)}.gres .sr-ic .svi{width:18px;height:18px}
+body:not(.adm) #review .gres{padding-top:var(--sp-5)}
 
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
@@ -1775,11 +1843,13 @@ function withSpaces(T,v){const tv=[...String(v||"").replace(/\s+/g,"")];let j=0,
 // صنف لون الجنس لبطاقة الاسم (g-der / g-die / g-das)
 const gCls=w=>{const n=w&&w.t==="n"&&String(w.de).match(/^(der|die|das)\s/i);return n?"g-"+n[1].toLowerCase():""};
 const IDK=`<button type="button" class="link idk" id="idk">لا أعرف</button>`;
+// أيقونة الوسوم في المحطة والتدريب: خطّية للمتعلّم (هوية design)، والمجسّمة للمشرف
+const TI=k=>isAdmin()?I3(k):LIC({books:"book"}[k]||k);
 function stationView(){
   const el=$("review"),S_=STS;
   if(!S_.steps){S_.steps=stationSteps(S_.words);S_.i=0}
   const st=S_.steps[S_.i],w=st.w,T=S_.steps.length;
-  const head=`<div class="sess"><div class="sbar"><i style="width:${S_.i/T*100}%"></i></div><span>🛤️ المحطة ${S_.n} · ${S_.i+1} من ${T}</span><button class="link" id="stQuit">خروج</button></div>`;
+  const head=`<div class="sess"><div class="sbar"><i style="width:${S_.i/T*100}%"></i></div><span>${isAdmin()?"🛤️ ":""}المحطة ${S_.n} · ${S_.i+1} من ${T}</span><button class="link" id="stQuit">خروج</button></div>`;
   const next=()=>{S_.i++;if(S_.i<S_.steps.length){stationView();scrollTo(0,0)}else finishStation()};
   const wordLine=`<div class="word de">${bigDe(w.de,1)}</div>`;
   // أجب عن سؤال: يُسجَّل الخطأ من المحاولة الأولى، وتعود الكلمة في آخر المحطة
@@ -1791,20 +1861,20 @@ function stationView(){
   };
   S_.ans=0;
   if(st.t==="intro"){
-    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t} ${gCls(w)}"><span class="sttag">${I3("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}${enLine(w)}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t} ${gCls(w)}"><span class="sttag">${TI("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}${enLine(w)}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
      <button class="btn next" id="stNext">التالي</button>`;
     speak(w.de);$("stNext").onclick=next;
   }
   else if(st.t==="ex"){
-    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t} ${gCls(w)}"><span class="sttag">${I3("books")} في جملة</span>${wordLine}${enLine(w)}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}${noteHTML(w)}</div>
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t} ${gCls(w)}"><span class="sttag">${TI("books")} في جملة</span>${wordLine}${enLine(w)}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}${noteHTML(w)}</div>
      <button class="btn next" id="stNext">التالي</button>`;
     speak(String(w.ex).split("\n")[0]);$("stNext").onclick=next;
   }
   else if(st.t==="cloze"){
     if(!st.q)st.q=makeQ("cloze",w);const q=st.q,full=q.c.pre+q.c.word+q.c.post;
-    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} أكمل الجملة</span><p class="ghint">اختر الكلمة التي تملأ الفراغ:</p>
-     <div class="cloze de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
-     ${q.opts.map(o=>`<button class="btn gopt de${String(o.label).length>22?" long":""}" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}${IDK}</div>`;
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${TI("books")} أكمل الجملة</span><p class="ghint">اختر الكلمة التي تملأ الفراغ:</p>
+     <div class="cloze de" lang="de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
+     ${q.opts.map(o=>`<button class="btn gopt de${String(o.label).length>22?" long":""}" lang="de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}${IDK}</div>`;
     const ansC=b=>{if(S_.ans)return;const ok=!!b&&b.dataset.k===w.k;
       el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(b&&!ok)b.classList.add("no");
       const bl=$("stBlank");bl.textContent=q.c.word;bl.classList.add("good");   // الجواب الصحيح يظهر في الفراغ بالأخضر دائمًا
@@ -1813,7 +1883,7 @@ function stationView(){
   }
   else if(st.t==="write"){   // اكتب الكلمة: ترى المعنى، وتكتب الكلمة في خانات بعدد أحرفها، ومعك أزرار ä ö ü ß
     const T=typeTarget(w),nn=nounOf(w);
-    el.innerHTML=comboHTML()+head+`<div class="box ${gCls(w)}"><span class="sttag">${I3("keyboard")} اكتبها</span><p class="ghint">اكتب الكلمة بالألمانية:</p>
+    el.innerHTML=comboHTML()+head+`<div class="box ${gCls(w)}"><span class="sttag">${TI("keyboard")} اكتبها</span><p class="ghint">اكتب الكلمة بالألمانية:</p>
      <div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>${nn?`<div style="text-align:center;margin:-6px 0 6px"><b class="art art-${nn.art}" style="font-size:1.2rem">${nn.art}</b></div>`:""}
      <div class="wwrap"><div class="wslots de" id="wLen">${wBoxes(T,"")}</div>
      <input id="wIn" class="whid" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="${T.length}" aria-label="اكتب الكلمة"></div>
@@ -1833,8 +1903,8 @@ function stationView(){
   }
   else if(st.t==="tr"){
     if(!st.q)st.q=trQ(w,[...S_.words,...uniq(W)]);const q=st.q;
-    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} ترجم الجملة</span><p class="ghint">رتّب البطاقات لتكوّن ترجمة الجملة:</p>
-     <div class="trde"><button type="button" class="say trsay" id="trSay" aria-label="استمع">${I3("speaker")}</button><span class="de" dir="ltr">${esc(q.o.de)}</span></div>
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${TI("books")} ترجم الجملة</span><p class="ghint">رتّب البطاقات لتكوّن ترجمة الجملة:</p>
+     <div class="trde"><button type="button" class="say trsay" id="trSay" aria-label="استمع">${isAdmin()?I3("speaker"):LIC("speaker")}</button><span class="de" dir="ltr">${esc(q.o.de)}</span></div>
      <div id="trT"></div>${IDK}</div><button class="btn next" id="stNext">تحقّق</button>`;
     const draw=()=>{$("trT").innerHTML=`<div class="oline trline" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
       <div class="obank trbank">${q.tiles.map((x,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(x)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(x)}</button>`).join("")}</div>`;
@@ -1848,7 +1918,7 @@ function stationView(){
   }
   else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
     if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
-    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag${st.retry?" stmiss":""}">${st.retry?I3("repeat")+" خطأ سابق":I3("target")+" تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
+    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag${st.retry?" stmiss":""}">${st.retry?TI("repeat")+" خطأ سابق":TI("target")+" تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
      ${rev?`<div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>`:`<div class="qword de">${bigDe(w.de)}</div>`}
      ${st.o.map(o=>`<button class="btn gopt${rev?" de":""}" ${rev?'style="text-align:left"':""} data-k="${esc(o.k)}">${rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}${IDK}</div>`;
     if(!rev)speak(w.de);
@@ -1887,13 +1957,13 @@ const PRAISE=["أحسنت!","رائع!","ممتاز!","صحيح!","عمل رائ
 function showFb(ok,sub,next,w){
   let b=$("fbar");if(!b){b=document.createElement("div");b.id="fbar";b.className="fbar";document.body.appendChild(b)}
   b.className="fbar "+(ok?"ok":"no");
-  b.innerHTML=`<h4>${I3(ok?"check":"warning")} ${ok?PRAISE[Math.floor(Math.random()*PRAISE.length)]:"الجواب الصحيح:"}</h4>${sub?`<p>${sub}</p>`:""}<div class="fbrow">${w?`<button type="button" class="fbflag rep" data-k="${esc(w.k)}" aria-label="أبلغ عن خطأ">🚩</button>`:""}<button type="button" class="fbgo">المتابعة</button></div>`;
+  b.innerHTML=`<h4>${isAdmin()?I3(ok?"check":"warning"):`<span class="fbic">${LIC(ok?"check":"alert")}</span>`} ${ok?PRAISE[Math.floor(Math.random()*PRAISE.length)]:"الجواب الصحيح:"}</h4>${sub?`<p>${sub}</p>`:""}<div class="fbrow">${w?`<button type="button" class="fbflag rep" data-k="${esc(w.k)}" aria-label="أبلغ عن خطأ">${isAdmin()?"🚩":LIC("flag")}</button>`:""}<button type="button" class="fbgo">المتابعة</button></div>`;
   document.body.classList.add("fbon");requestAnimationFrame(()=>b.classList.add("on"));
   b.querySelector(".fbgo").onclick=()=>{hideFb();next()};
 }
 function hideFb(){const b=$("fbar");if(b)b.classList.remove("on");document.body.classList.remove("fbon")}
 /* الإبلاغ عن خطأ في كلمة: يصل إلى المشرف في صفحة الرسائل */
-const repBtn=w=>isAdmin()?"":`<button type="button" class="rep" data-k="${esc(w.k)}" aria-label="أبلغ عن خطأ في هذه الكلمة">🚩</button>`;
+const repBtn=w=>isAdmin()?"":`<button type="button" class="rep" data-k="${esc(w.k)}" aria-label="أبلغ عن خطأ في هذه الكلمة">${LIC("flag")}</button>`;
 const REP_KINDS=[["ar","الترجمة العربية خاطئة"],["de","الكلمة الألمانية خاطئة"],["ex","المثال خاطئ"],["audio","النطق خاطئ"],["other","شيء آخر"]];
 async function apiPost(path,body){const r=await fetch(API+path,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+await auth.currentUser.getIdToken()},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw j;return j}
 function reportWord(k){
@@ -1923,8 +1993,21 @@ function enPop(n){const d=document.createElement("div");d.className="enpop";d.in
 function streakPop(n){const d=document.createElement("div");d.className="spop";d.innerHTML=`${n>=15?"مذهل":n>=10?"ممتاز":"رائع"}! ${n} على التوالي<small>واصل هكذا</small>`;document.body.appendChild(d);setTimeout(()=>d.remove(),1600)}
 let RES=null;   // شاشة نتيجة الدرس
 const mmss=ms=>{const s_=Math.max(1,Math.round(ms/1000));return Math.floor(s_/60)+":"+String(s_%60).padStart(2,"0")};
+// شاشة نتيجة بهوية design (المحطة والتدريب والمراجعة): حلقة، ثم العنوان، ثم بطاقات الأرقام، ثم الأزرار — بنفس تصميم نتيجة التمرين
+function resDS(o){const R_=52,C=2*Math.PI*R_,pct=Math.max(0,Math.min(1,o.pct));
+  const ring=`<svg class="gr-ring" viewBox="0 0 128 128" aria-hidden="true"><circle cx="64" cy="64" r="${R_}" class="tr"/><circle cx="64" cy="64" r="${R_}" class="fl${pct===1?" full":""}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct)).toFixed(1)}" transform="rotate(-90 64 64)"/></svg>`;
+  return `<div class="gres sres"><div class="gr-top"><img class="jmp" src="img/m/${o.img}.svg" alt=""><div class="gr-rw">${ring}<div class="gr-mid">${o.mid}</div></div></div>
+   <h2 class="gr-t sr-t">${o.title}</h2>${o.sub?`<p class="sr-sub">${o.sub}</p>`:""}
+   <div class="gr-stats">${o.stats.map(([k,v,ic])=>`<div><small>${k}</small><b>${ic?`<span class="sr-ic">${ic}</span>`:""}<bdi>${v}</bdi></b></div>`).join("")}</div>
+   <div class="gr-btns">${o.btns}</div></div>`}
 function resultView(){
   const el=$("review"),R_=RES,acc=Math.round(R_.acc*100);
+  if(!isAdmin()){
+    el.innerHTML=resDS({img:acc===100?"trophy":acc>=60?"jump":"thumbs",pct:R_.acc,mid:`<b class="sm"><bdi>${acc}٪</bdi></b><small>الدقّة</small>`,
+      title:String(R_.title).replace(/\+(\d+) 💎/g,(_,n)=>`<span class="sr-gem"><bdi dir="ltr">+${n}</bdi>${HIC("gem")}</span>`).replace(/💎/g,`<span class="sr-gem">${HIC("gem")}</span>`),sub:acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان",
+      stats:[["الخبرة","+"+R_.xp,LIC("star")],["الدقة",acc+"٪",LIC("target")],["الوقت",mmss(R_.ms),LIC("stopwatch")]],
+      btns:`<button class="btn next" id="resGo">${R_.daily?"تابع إلى الكلمات الجديدة":"متابعة"}</button>${R_.drill&&drillsToday()<stToday()?`<button class="btn gr-sec" id="resDrill">${LIC("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}`});
+  }else
   el.innerHTML=`<div class="box result"><img class="jmp" src="img/m/${acc===100?"trophy":acc>=60?"jump":"thumbs"}.svg" alt="">
    <h2>${R_.title}</h2><p>${acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان"}</p>
    <div class="rcards"><div class="rcard"><small>الخبرة</small><b>${I3("sparkles")}${R_.xp}</b></div><div class="rcard acc"><small>الدقة</small><b>${I3("target")}${acc}%</b></div><div class="rcard tm"><small>الوقت</small><b>${I3("stopwatch")}${mmss(R_.ms)}</b></div></div>
@@ -1976,10 +2059,12 @@ async function startDrill(){
 }
 function drillView(){
   const el=$("review"),D=DRL,N=D.words.length;
-  const head=`<div class="sess"><div class="sbar"><i style="width:${D.done.size/N*100}%"></i></div><span>${I3("puzzle")} تدريب المحطة ${D.j+1} · ${D.done.size} من ${N}</span>${D.fin?"":'<button class="link" id="dQuit">خروج</button>'}</div>`;
+  const head=`<div class="sess"><div class="sbar"><i style="width:${D.done.size/N*100}%"></i></div><span>${TI("puzzle")} تدريب المحطة ${D.j+1} · ${D.done.size} من ${N}</span>${D.fin?"":'<button class="link" id="dQuit">خروج</button>'}</div>`;
   if(D.fin){
     const ok=N-D.wrong.size;
-    el.innerHTML=head+`<div class="box done"><img class="jmp" src="img/m/${ok===N?"trophy":ok>=N*.6?"cheer":"thumbs"}.svg" alt=""><h2>${ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب"}</h2><p class="rnote">${ok} من ${N} من المحاولة الأولى · +${ok*CFG.xp.quiz} خبرة</p><button class="btn next" id="dBack">متابعة</button></div>`;
+    el.innerHTML=head+(isAdmin()?`<div class="box done"><img class="jmp" src="img/m/${ok===N?"trophy":ok>=N*.6?"cheer":"thumbs"}.svg" alt=""><h2>${ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب"}</h2><p class="rnote">${ok} من ${N} من المحاولة الأولى · +${ok*CFG.xp.quiz} خبرة</p><button class="btn next" id="dBack">متابعة</button></div>`
+      :resDS({img:ok===N?"trophy":ok>=N*.6?"cheer":"thumbs",pct:ok/N,mid:`<b><bdi>${ok}</bdi></b><small>من ${N}</small>`,title:ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب",sub:`${ok} من ${N} من المحاولة الأولى`,
+        stats:[["الخبرة","+"+ok*CFG.xp.quiz,LIC("star")],["من المحاولة الأولى",ok+" من "+N,LIC("target")]],btns:`<button class="btn next" id="dBack">متابعة</button>`}));
     $("dBack").onclick=()=>{DRL=null;reviewHome();toCur()};return;
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
@@ -2450,7 +2535,7 @@ function ttsSpeak(t,slow){
 const listenMuted=()=>{try{return +(localStorage.getItem("muf_nolisten")||0)>Date.now()}catch(e){return false}};
 const canSlow=()=>!!(AUD&&AUD.size)||(hasNative()?!!(window.MufApp&&MufApp.speakRate):("speechSynthesis" in window));
 const SPK='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 9v6h4l5 4V5L7 9H3z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
-const slowBtn=t=>canSpeak()&&canSlow()?`<button type="button" class="say slow" data-say="${esc(t)}" data-slow="1" aria-label="استمع ببطء"><span class="tt">🐢</span>ببطء</button>`:"";
+const slowBtn=t=>canSpeak()&&canSlow()?`<button type="button" class="say slow" data-say="${esc(t)}" data-slow="1" aria-label="استمع ببطء">${isAdmin()?'<span class="tt">🐢</span>':LIC("slow")}ببطء</button>`:"";
 const sayBtn=t=>canSpeak()?`<button type="button" class="say" data-say="${esc(t)}" aria-label="استمع">${SPK}استمع</button>`:"";
 // يعمل قبل أي ضغطة أخرى، فلا يقلب البطاقة ولا يختار جوابًا
 document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".say");if(!b)return;e.stopPropagation();e.preventDefault();speak(b.dataset.say,b.dataset.slow==="1")},true);
@@ -2582,7 +2667,13 @@ function LIC(k){const d={
   shuffle:'<path d="M18 4l3 3-3 3"/><path d="M18 20l3-3-3-3"/><path d="M3 7h3a5 5 0 0 1 5 5 5 5 0 0 0 5 5h5"/><path d="M21 7h-5a5 5 0 0 0-3 1m-4 8a5 5 0 0 1-3 1H3"/>',
   slow:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>',
   medal:'<circle cx="12" cy="15" r="5"/><path d="M8.5 11 6 3h4l2 5 2-5h4l-2.5 8"/>',
-  star:'<path d="M12 17.75l-6.17 3.24 1.18-6.87-5-4.86 6.9-1 3.09-6.26 3.09 6.26 6.9 1-5 4.86 1.18 6.87z"/>'}[k]||"";
+  star:'<path d="M12 17.75l-6.17 3.24 1.18-6.87-5-4.86 6.9-1 3.09-6.26 3.09 6.26 6.9 1-5 4.86 1.18 6.87z"/>',
+  sparkles:'<path d="M16 18a2 2 0 0 1 2 2 2 2 0 0 1 2-2 2 2 0 0 1-2-2 2 2 0 0 1-2 2z"/><path d="M16 6a2 2 0 0 1 2 2 2 2 0 0 1 2-2 2 2 0 0 1-2-2 2 2 0 0 1-2 2z"/><path d="M9 18a6 6 0 0 1 6-6 6 6 0 0 1-6-6 6 6 0 0 1-6 6 6 6 0 0 1 6 6z"/>',
+  book:'<path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0 9 9 0 0 1 9 0"/><path d="M3 6v13"/><path d="M12 6v13"/><path d="M21 6v13"/>',
+  repeat:'<path d="M4 12V9a3 3 0 0 1 3-3h13"/><path d="M17 3l3 3-3 3"/><path d="M20 12v3a3 3 0 0 1-3 3H4"/><path d="M7 21l-3-3 3-3"/>',
+  check:'<path d="M5 12l5 5L20 7"/>',
+  alert:'<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+  flag:'<path d="M5 5a5 5 0 0 1 7 0 5 5 0 0 0 7 0v9a5 5 0 0 1-7 0 5 5 0 0 0-7 0V5"/><path d="M5 21v-7"/>'}[k]||"";
   return `<svg class="i3 svi lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`}
 const GAMES=[
  {id:"cloze",ic:I3("pencil"),li:"pencil",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
@@ -2699,8 +2790,8 @@ function gameView(){
   if(GM.id==="match"){matchView();return}
   const q=GM.q,w=q.w;let body="";
   if(q.kind==="mc")body=`<div class="qword de">${bigDe(w.de)}</div>${q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}`;
-  else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
-    ${q.opts.map(o=>`<button class="btn gopt de${String(o.label).length>22?" long":""}" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}`;
+  else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de" lang="de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
+    ${q.opts.map(o=>`<button class="btn gopt de${String(o.label).length>22?" long":""}" lang="de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}`;
   else if(q.kind==="art"){const nn=nounOf(w),J=GM.jars||{};   // لعبة الجرار: ضع الاسم في جرّة أداته، والجرّة تمتلئ بما وضعته فيها صحيحًا
     body=`<p class="ghint">في أيّ جرّة يوضع هذا الاسم؟</p><div class="jcard"><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar">${esc(w.ar)}</div></div>
     <div class="arts jars">${["der","die","das"].map(a=>`<button class="btn artb jar art-${a}" data-a="${a}"><span class="jfill" style="height:${Math.min(100,(J[a]||0)*12)}%"></span><b>${a}</b><small>${J[a]||0}</small></button>`).join("")}</div>`}
@@ -2711,8 +2802,8 @@ function gameView(){
     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
     <button class="btn next" id="gCheck">تحقّق</button>`}`;
   else if(q.kind==="order")body=`<p class="ghint">رتّب الكلمات لتكوّن هذه الجملة بالألمانية:</p><div class="ordar">${esc(q.o.ar)}</div>
-    <div class="oline de" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
-    <div class="obank de">${q.tiles.map((t,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(t)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(t)}</button>`).join("")}</div>
+    <div class="oline de" lang="de" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
+    <div class="obank de" lang="de">${q.tiles.map((t,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(t)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(t)}</button>`).join("")}</div>
     <button class="btn next" id="gCheck" ${q.picked.length?"":"disabled"}>تحقّق</button>`;
   else if(q.kind==="type"){const T=typeTarget(w),cz=clozeOf(w);
     body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
