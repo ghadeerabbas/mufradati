@@ -1702,6 +1702,7 @@ function toCur(){if(STS||DRL||RES){scrollTo(0,0);return}   // شاشة النت�
   const y=HOMEY;HOMEY=null;if(y==null){scrollTo(0,0);return}
   scrollTo(0,y);requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,y)))}
 function reviewHome(){
+  if(!document.body.classList.contains("lesson"))document.body.classList.toggle("rvtab",HOMETAB==="rv");   // القسم يُطبَّق قبل الرسم، فلا يقفز الزر من مكانه
   if(STS)return stationView();
   if(DRL)return drillView();
   if(RES)return resultView();
@@ -4506,6 +4507,8 @@ function init(){
     hideFb();b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=()=>{refresh();navSync()});
   $("hCrs").onclick=coursePicker;
+  // الضغط على أيقونة الرئيسية من قسم آخر يعيدك دائمًا إلى «المسار»
+  document.querySelectorAll('#mainNav button[data-p="review"]').forEach(b=>b.addEventListener("click",()=>{if(!$("review").classList.contains("on"))HOMETAB="path"},true));
   $("hFlt").onclick=()=>{document.body.classList.toggle("fopen");if(document.body.classList.contains("fopen"))scrollTo(0,0)};
   try{const mo=new MutationObserver(()=>navSync());document.querySelectorAll("main>.panel").forEach(x=>mo.observe(x,{attributes:true,attributeFilter:["class"]}));mo.observe($("review"),{childList:true})}catch(e){}
   try{const nv=$("mainNav"),sn=()=>document.documentElement.style.setProperty("--navH",nv.offsetHeight+"px");sn();new ResizeObserver(sn).observe(nv)}catch(e){}
