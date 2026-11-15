@@ -1985,9 +1985,10 @@ function showQ(){
 /* ================= النطق ================= */
 // يُنطق النص الألماني: في تطبيق أندرويد عبر محرّك النطق في الهاتف، وفي المتصفح عبر نطق المتصفح
 function speakable(s){
-  s=String(s||"");const pi=s.indexOf("+");if(pi>0)s=s.slice(0,pi);   // ما بعد «+» ملاحظة لا تُقرأ
-  return s.replace(/\([^)]*\)/g," ").split(",").map(p=>p.trim())
+  s=String(s||"");const s0=s,pi=s.indexOf("+");if(pi>0)s=s.slice(0,pi);   // ما بعد «+» ملاحظة لا تُقرأ
+  const out=s.replace(/\([^)]*\)/g," ").replace(/\s*[↔→]\s*/g,", ").split(",").map(p=>p.trim())   // الأسهم لا تُقرأ
     .filter((p,i)=>i===0||(!/^[-–]/.test(p)&&p.replace(/[^A-Za-zÄÖÜäöüß]/g,"").length>=3)).join(", ").replace(/\s+/g," ").trim();
+  return /[↔→]/.test(s0)?out.replace(/^[,\s]+|[,\s]+$/g,""):out;
 }
 let DE_VOICE=null;
 function pickVoice(){try{const v=speechSynthesis.getVoices();DE_VOICE=v.find(x=>/^de([-_]|$)/i.test(x.lang))||null}catch(e){}}
