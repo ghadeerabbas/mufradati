@@ -1649,6 +1649,47 @@ body:not(.adm) #fbModal .pcard>.logo{width:76px;height:76px;margin:0 auto;border
 body:not(.adm) #fbModal .engift h1{color:var(--ds-navy)}
 body:not(.adm) #fbModal .engift .logo .i3{filter:none}
 
+/* ---------- صفحة الاختبار (هوية design): البداية والأسئلة والنتيجة ---------- */
+body:not(.adm):has(#quiz.on){background:var(--ds-bg)}
+body:not(.adm) #quiz .qintro{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-5) var(--sp-4);display:flex;flex-direction:column;align-items:center;gap:var(--sp-3);text-align:center}
+body:not(.adm) #quiz .qzic{width:72px;height:72px;border-radius:var(--r-lg);background:var(--ds-cream);color:var(--ds-acc-dd);display:grid;place-items:center}
+body:not(.adm) #quiz .qzic .svi{width:40px;height:40px;stroke-width:1.8}
+body:not(.adm) #quiz .qintro h2{color:var(--ds-navy);font-weight:900;font-size:var(--fs-xl);margin:0}
+body:not(.adm) #quiz .qintro .rnote{color:var(--ds-muted);font-weight:600;font-size:var(--fs-sm);line-height:1.7;margin:0}
+body:not(.adm) #quiz .qintro .ppills{display:flex;justify-content:center;gap:var(--sp-2);flex-wrap:wrap;margin:0}
+body:not(.adm) #quiz .qintro .ppills span{display:inline-flex;align-items:center;gap:5px;background:var(--ds-bg);color:var(--ds-ink);border-radius:var(--r-pill);padding:6px 12px;font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #quiz .qintro .ppills .svi{width:18px;height:18px;color:var(--ds-acc-dd)}
+body:not(.adm) #quiz .qintro .ppills .i3{width:20px;height:20px}
+body:not(.adm) #quiz .qzlast{display:inline-flex;align-items:center;gap:6px;background:var(--ds-cream);color:var(--ds-acc-dd);border-radius:var(--r-pill);padding:6px 14px;font-weight:800;font-size:var(--fs-sm);margin:0}
+body:not(.adm) #quiz .qzlast .svi{width:18px;height:18px}
+body:not(.adm) #quiz .qzneed{display:flex;align-items:flex-start;gap:8px;text-align:right;background:var(--ds-bg);border-radius:var(--r-md);padding:var(--sp-3);color:var(--ds-ink)!important}
+body:not(.adm) #quiz .qzneed .svi{flex:none;width:20px;height:20px;color:var(--ds-acc-dd);margin-top:2px}
+body:not(.adm) #quiz .qintro #qStart{width:100%;margin:0;background:var(--ds-acc);color:var(--ds-acc-ink);border-radius:var(--r-md);box-shadow:0 4px 0 var(--ds-acc-d);font-weight:900}
+/* الأسئلة */
+body:not(.adm) #quiz .sess{color:var(--ds-muted);font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #quiz .sess .svi{width:16px;height:16px;vertical-align:-3px}
+body:not(.adm) #quiz .sbar{height:12px;background:var(--ds-line);border-radius:var(--r-pill)}
+body:not(.adm) #quiz .sbar i{background:var(--ds-acc);border-radius:var(--r-pill)}
+body:not(.adm) #quiz .qword{color:var(--ds-navy);font-weight:900;overflow-wrap:break-word;-webkit-hyphens:auto;hyphens:auto}
+body:not(.adm) #quiz .tag.rep{background:var(--ds-cream);color:var(--ds-acc-dd);border:0;border-radius:var(--r-pill);font-weight:800;padding:3px 12px}
+body:not(.adm) #quiz .say{background:var(--ds-card);color:var(--ds-navy);box-shadow:var(--sh-1);font-weight:800}
+body:not(.adm) #quiz .opt{display:block;width:100%;background:var(--ds-card);color:var(--ds-navy);border:2px solid var(--ds-line);border-bottom-width:4px;border-radius:var(--r-md);box-shadow:none;font-weight:800;padding:13px var(--sp-4);margin-bottom:var(--sp-2);min-height:52px;line-height:1.35;text-align:right;overflow-wrap:break-word}
+body:not(.adm) #quiz .opt:active{transform:translateY(2px);border-bottom-width:2px}
+body:not(.adm) #quiz .opt.ok{background:#E6F6EC;border-color:#3BA55C;color:#1E6B3A}
+body:not(.adm) #quiz .opt.no{background:#FDECEC;border-color:#E5484D;color:#A3262B}
+[data-dark] body:not(.adm) #quiz .opt.ok{background:#173726;border-color:#3BA55C;color:#8EE2AE}
+[data-dark] body:not(.adm) #quiz .opt.no{background:#3B1D20;border-color:#E5484D;color:#FFB3B5}
+body:not(.adm) #quiz .exs{background:var(--ds-card);border:0;border-radius:var(--r-md);box-shadow:var(--sh-1)}
+body:not(.adm) #quiz .exs .say{background:var(--ds-bg);box-shadow:none}
+body:not(.adm) #quiz .exa{color:var(--ds-muted)}
+body:not(.adm) #quiz #nx{background:var(--ds-acc);color:var(--ds-acc-ink);border-radius:var(--r-md);box-shadow:0 4px 0 var(--ds-acc-d);font-weight:900}
+@media (max-width:380px){body:not(.adm) #quiz .opt{font-size:.95rem}body:not(.adm) #quiz .qword{font-size:1.3rem}}
+/* النتيجة */
+body:not(.adm) #quiz .box.qzres{background:none;border:0;box-shadow:none;padding:0}
+body:not(.adm) #quiz .gres{padding-top:var(--sp-5)}
+body:not(.adm) #quiz .gres .btn.next{width:100%;margin:0;background:var(--ds-acc);color:var(--ds-acc-ink);border-radius:var(--r-md);box-shadow:0 4px 0 var(--ds-acc-d);font-weight:900}
+body:not(.adm) #quiz .gres .gr-sec{width:100%;margin:0;background:var(--ds-cream);color:var(--ds-acc-dd);box-shadow:none;border-radius:var(--r-md);font-weight:800;border:0}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2822,11 +2863,12 @@ const quizOn=()=>qz.length>0&&qi<qz.length&&!qz.done;
 function quizIntro(){
   qz=[];qi=0;
   const n=learnedList().length,hard=Object.keys(hardScores()).length,last=QLOG.filter(q=>q[3]==="quiz").slice(-1)[0];
-  $("quiz").innerHTML=`<div class="box qintro">${I3("quiz")}<h2>الاختبار</h2>
+  const AD=isAdmin();
+  $("quiz").innerHTML=`<div class="box qintro">${AD?I3("quiz"):`<span class="qzic">${LIC("brain")}</span>`}<h2>الاختبار</h2>
    <p class="rnote">${arN(Math.max(4,Math.min(10,n)),"سؤال","سؤالان","أسئلة")} على الكلمات التي تعلّمتها: ترى الكلمة الألمانية وتختار معناها. أغلب الأسئلة من الكلمات التي تخطئ فيها أو تجدها صعبة.</p>
    <div class="ppills"><span>${isAdmin()?I3("sparkles"):LIC("sparkles")} حتى ${Math.max(4,Math.min(10,n))*CFG.xp.quiz} خبرة</span><span>${I3("gift")} بلا طاقة</span></div>
-   ${last?`<p class="rnote">آخر نتيجة: ${last[1]} من ${last[2]}</p>`:""}
-   ${n<4?'<p class="rnote">يحتاج الاختبار 4 كلمات متعلّمة على الأقل. تعلّم كلمات جديدة في المحطات أولًا.</p>':`<button class="btn next" id="qStart">ابدأ الاختبار</button>`}</div>`;
+   ${last?(AD?`<p class="rnote">آخر نتيجة: ${last[1]} من ${last[2]}</p>`:`<p class="qzlast">${LIC("medal")} آخر نتيجة: ${last[1]} من ${last[2]}</p>`):""}
+   ${n<4?`<p class="rnote${AD?"":" qzneed"}">${AD?"":LIC("lock")}<span>يحتاج الاختبار 4 كلمات متعلّمة على الأقل. تعلّم كلمات جديدة في المحطات أولًا.</span></p>`:`<button class="btn next" id="qStart">ابدأ الاختبار</button>`}</div>`;
   const b=$("qStart");if(b)b.onclick=startQuiz;
 }
 function startQuiz(){
@@ -2843,13 +2885,18 @@ function showQ(){
   const el=$("quiz");
   if(qz.length<4){el.innerHTML='<div class="box done">يعمل الاختبار على الكلمات التي تعلّمتها، ويحتاج 4 كلمات على الأقل.<br>تعلّم كلمات جديدة في المحطات من تبويب الدراسة.</div>';return}
   if(qi>=qz.length){
-    const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA})}celebrate(prev);
+    const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA});const e2=EC||econ();qz.gain={xp:Math.max(0,e2.xp-prev.xp),gem:Math.max(0,e2.gems-prev.gems)}}celebrate(prev);   // المكاسب للعرض فقط
     const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
-    el.innerHTML=`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.svg" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`;
+    const pc=qs/qz.length;
+    el.innerHTML=isAdmin()?`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.svg" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`
+      :`<div class="box done qzres">${resDS({img:qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs",pct:pc,mid:`<b><bdi>${qs}</bdi></b><small>من ${qz.length}</small>`,
+        title:"الاختبار",sub:pc===1?"كل الإجابات صحيحة، أداء مثالي!":pc>=.6?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان",
+        stats:[["النتيجة",qs+" من "+qz.length],["الدقّة",Math.round(pc*100)+"٪"]],gains:qz.gain,
+        btns:`<button class="btn next" id="again">اختبار جديد</button><button class="btn gr-sec" id="qBack">رجوع</button>`})}</div>`;
     if(qs===qz.length)confetti(150);
     $("again").onclick=startQuiz;$("qBack").onclick=()=>{qz=[];quizIntro()};return}
   const w=qz[qi],opts=pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar));
-  el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ✓ ${qs}${streakQ>=3?" · 🔥"+streakQ:""}</span><button class="link" id="qQuit">إنهاء</button></div>
+  el.innerHTML=`<div class="sess"><div class="sbar"><i style="width:${qi/qz.length*100}%"></i></div><span>السؤال ${qi+1} من ${qz.length} · ${isAdmin()?"✓":LIC("check")} ${qs}${streakQ>=3?" · "+(isAdmin()?"🔥":HIC("fire"))+streakQ:""}</span><button class="link" id="qQuit">إنهاء</button></div>
    <div class="box">${hardScores()[w.k]>0?'<div style="text-align:center"><span class="tag rep">كلمة صعبة عليك</span></div>':""}<div class="qword de">${bigDe(w.de)}</div>${opts.map(o=>`<button class="btn opt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}<div id="qnext"></div></div>`;
   $("qQuit").onclick=()=>{qz=[];quizIntro();scrollTo(0,0)};
   document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{
