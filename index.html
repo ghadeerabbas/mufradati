@@ -46,7 +46,7 @@ function appReady(){bootDone();try{if(window.MufApp&&MufApp.ready)setTimeout(()=
 @font-face{font-family:Baloo;src:url(fonts/baloo-bhaijaan-2-latin-700-normal.woff2) format("woff2");font-weight:600 700;unicode-range:U+0000-024F;font-display:swap}
 @font-face{font-family:Baloo;src:url(fonts/baloo-bhaijaan-2-latin-800-normal.woff2) format("woff2");font-weight:800 900;unicode-range:U+0000-024F;font-display:swap}
 :root{--navy:#1f2a5a;--navy2:#33407a;--red:#a01f26;--gold:#c9a84a;--paper:#f7f5ef;--card:#fff;--ink:#20242e;--muted:#6b7180;--line:#e2ddd0;--green:#2a6b3a;--orange:#c2541b;
- --hd:var(--navy);--rd:var(--red);--soft:#eef0f7;--der:#2563eb;--die:#dc2626;--das:#16a34a;
+ --hd:var(--navy);--rd:var(--red);--soft:#eef0f7;--der:#2563eb;--die:#db2777;--das:#16a34a;
  --tn:#4f46e5;--tv:#ea580c;--ta:#0d9488;--te:#9333ea}
 [data-theme=emerald]{--navy:#0f4c3a;--navy2:#1d6b54;--red:#b5452f;--gold:#d4af37}
 [data-theme=royal]{--navy:#3b1f6b;--navy2:#5a3596;--red:#c2185b;--gold:#f0c14b}
@@ -54,7 +54,7 @@ function appReady(){bootDone();try{if(window.MufApp&&MufApp.ready)setTimeout(()=
 [data-theme=sunset]{--navy:#7a2e1f;--navy2:#a3472f;--red:#b8326a;--gold:#f4a261}
 [data-theme=lux]{--navy:#241b12;--navy2:#43352a;--red:#8c1c13;--gold:#e0b84f}
 [data-dark]{--paper:#13151d;--card:#1d2030;--ink:#e8e9f0;--muted:#9aa0b4;--line:#2e3245;--soft:#262a3d;--hd:#c9d1ff;--rd:#ff8a8a;--green:#4ade80;--orange:#fb923c;
- --der:#60a5fa;--die:#f87171;--das:#4ade80;--tn:#818cf8;--tv:#fb923c;--ta:#2dd4bf;--te:#c084fc}
+ --der:#60a5fa;--die:#f472b6;--das:#4ade80;--tn:#818cf8;--tv:#fb923c;--ta:#2dd4bf;--te:#c084fc}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:Baloo,"Segoe UI","Noto Sans Arabic",Tahoma,sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;min-height:100dvh;transition:background .3s}
 .de{direction:ltr;unicode-bidi:isolate}
@@ -414,7 +414,7 @@ body.fbon main{padding-bottom:210px}
 .cloze{font-size:1.15rem;line-height:1.9;text-align:left;margin:6px 0}.arwrap{margin-bottom:12px}.arwrap .cloze-ar{margin-bottom:0}.arshow{background:none;border:1px dashed var(--line);border-radius:999px;padding:4px 12px;font:inherit;font-size:.82rem;color:var(--muted);cursor:pointer}.cloze-ar{font-size:.9rem;color:var(--muted);margin-bottom:12px}.cloze-ar .arb{text-decoration:underline;text-decoration-color:var(--green);text-decoration-thickness:2px;text-underline-offset:6px;color:var(--ink);font-weight:700}
 .blank{display:inline-block;min-width:70px;border-bottom:2px solid var(--gold);text-align:center;font-weight:700;color:var(--hd)}.blank.good{color:var(--green);border-color:var(--green)}.blank.bad{color:var(--rd);border-color:var(--red)}
 .arts{display:flex;gap:8px;margin-top:10px}.artb{flex:1;font-size:1.2rem;font-weight:800;background:var(--card);border:2px solid var(--line)}
-.artb.art-der{color:#2563eb}.artb.art-die{color:#dc2626}.artb.art-das{color:#16a34a}.artb.ok{background:#22c55e33;border-color:var(--green)}.artb.no{background:#ef444433;border-color:var(--red)}
+.artb.art-der{color:var(--der)}.artb.art-die{color:var(--die)}.artb.art-das{color:var(--das)}.artb.ok{background:#22c55e33;border-color:var(--green)}.artb.no{background:#ef444433;border-color:var(--red)}
 .gin{width:100%;font:inherit;font-size:1.2rem;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);text-align:left;margin-top:8px}
 .gin.good{border-color:var(--green)}.gin.bad{border-color:var(--red)}
 .tbox{position:relative}.tbox .tin{padding-bottom:40px}.tlen{position:absolute;left:12px;right:12px;bottom:9px;display:flex;gap:4px;justify-content:center;flex-wrap:wrap;direction:ltr;pointer-events:none}.tlen b{width:18px;height:22px;border-bottom:2.5px solid var(--line);text-align:center;font-weight:700;font-size:.95rem;line-height:22px;color:var(--muted)}.tlen b.rv{color:var(--green)}.tlen .sp{width:10px}
@@ -862,6 +862,33 @@ body:not(.adm) .bigfx #bfGo{position:fixed;left:50%;transform:translateX(-50%);w
 [data-dark] body:not(.adm) .zn:not(.mini):not(.chal) .go{background:#2c3352;color:#dfe3f7}
 [data-dark] body:not(.adm) .zpath .bg{opacity:.6}
 [data-dark] body:not(.adm) .result h2,[data-dark] body:not(.adm) .done h2,[data-dark] body:not(.adm) .rcard b,[data-dark] body:not(.adm) .zn.chal .tl{color:#FAC775}
+.idk{display:block;margin:14px auto 0;font-weight:800;color:var(--muted);text-decoration:none;font-size:.95rem;padding:8px 16px;border-radius:12px}
+.idk:active{background:var(--soft)}
+/* ألوان الأجناس على البطاقات: إطار بلون الجنس وشارة ملوّنة */
+body:not(.adm) .stlearn.g-der{border:2px solid var(--der);border-bottom-width:5px}
+body:not(.adm) .stlearn.g-die{border:2px solid var(--die);border-bottom-width:5px}
+body:not(.adm) .stlearn.g-das{border:2px solid var(--das);border-bottom-width:5px}
+.nw{font-weight:inherit}
+/* خانات الكتابة: مربعات كبيرة فوق حقل الكتابة، تمتلئ بما تكتبه */
+.wslots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;direction:ltr;margin:14px 0 12px}
+.wslots b{width:30px;height:40px;border:2px solid var(--line);border-bottom-width:4px;border-radius:9px;text-align:center;font-weight:800;font-size:1.25rem;line-height:34px;color:var(--ink);background:var(--card)}
+.wslots b:not(:empty){border-color:var(--acc,#EF9F27);background:var(--accl,#FAEEDA);color:var(--acct,#633806)}.wslots b.rv{border-color:#7cc644;background:#e8f8d8;color:#2f6b0a}.wslots .sp{width:12px}
+body:not(.adm) .tlen b{border:2px solid var(--line);border-radius:6px;height:26px;line-height:22px}body:not(.adm) .tlen b:not(:empty){border-color:var(--acc);color:var(--acct);background:var(--accl)}
+/* لعبة الجرار (der · die · das) */
+.jcard{background:var(--card);border:2px solid var(--line);border-bottom-width:4px;border-radius:18px;padding:14px;text-align:center;margin:6px auto 16px;max-width:320px;animation:jdrop .35s ease-out}
+.jcard .qword{margin:0}.jcard .cloze-ar{color:var(--muted);margin-top:4px}
+@keyframes jdrop{from{transform:translateY(-24px);opacity:0}to{transform:none;opacity:1}}
+.arts.jars{display:flex;gap:10px;justify-content:center}
+.btn.jar{position:relative;overflow:hidden;flex:1;max-width:110px;height:140px;border-radius:18px 18px 26px 26px;border:3px solid currentColor;border-top-width:6px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:0 0 12px;font-size:1.3rem}
+.btn.jar .jfill{position:absolute;left:0;right:0;bottom:0;background:currentColor;opacity:.18;transition:height .4s}
+.btn.jar b{position:relative;font-weight:900}.btn.jar small{position:relative;font-size:.85rem;opacity:.75}
+.btn.jar.pop{animation:jpop .35s}@keyframes jpop{50%{transform:scale(1.08)}}
+.btn.jar.ok{background:var(--card);border-color:currentColor}.btn.jar.no{background:#ffe9e9}
+/* «كلماتي»: الكلمة تتلوّن بالإتقان — رمادية قبل تعلّمها، باهتة وهي قيد التعلّم، وبلونها الكامل حين تُحفظ */
+body:not(.adm) #list .item.mq0 .w{filter:grayscale(1);opacity:.45}
+body:not(.adm) #list .item.mq0 .m{opacity:.55}
+body:not(.adm) #list .item.mq1 .w{filter:saturate(.45);opacity:.8}
+body:not(.adm) #list .item.mq3{border-color:var(--acc);box-shadow:inset 4px 0 0 var(--acc)}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
@@ -1179,8 +1206,8 @@ function artHTML(de){
   if(m2)return `<b class="art art-${m2[1].toLowerCase()}">${esc(m2[1])}</b>/<b class="art art-${m2[2].toLowerCase()}">${esc(m2[2])}</b>`+(PH_RE.test(de)?phHTML(de.slice(m2[0].length-1),null):esc(de.slice(m2[0].length-1)));
   const m=de.match(/^(der|die|das)\s/i);
   if(PH_RE.test(de))return phHTML(de,m);
-  // اللون للأداة وحدها (der أزرق، die أحمر، das أخضر)، والكلمة بلون النص الثابت
-  return m?`<b class="art art-${m[1].toLowerCase()}">${esc(de.slice(0,m[1].length))}</b>${esc(de.slice(m[1].length))}`:esc(de);
+  // الأداة والاسم كلاهما بلون الجنس (der أزرق، die زهري، das أخضر)، والأداة بخط أعرض
+  return m?`<b class="art art-${m[1].toLowerCase()}">${esc(de.slice(0,m[1].length))}</b><span class="nw art-${m[1].toLowerCase()}">${esc(de.slice(m[1].length))}</span>`:esc(de);
 }
 // كلّ جملة ألمانية وتحتها ترجمتها مباشرة
 function exPairs(w,mode){
@@ -1356,7 +1383,7 @@ function stationSteps1(words){
   // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
   // الترتيب عشوائي في كل مرة: ترتيب الكلمات، ونوع التمرين الثالث، وأيّ تمرين جاهز يأتي أولًا
   const out=[],pend=[];words=shuffle([...words]);
-  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>({t:Math.random()<.5?"rev":"mc",w});
+  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>({t:writeOk(w)&&Math.random()<.4?"write":Math.random()<.5?"rev":"mc",w});
   const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:-1;
   const take=force=>{
     const last=out.length?out[out.length-1].w:null;
@@ -1398,6 +1425,12 @@ function pickOpts(w,pool){   // الصحيحة + ثلاثة بعيدة المع�
 function stOpts(w,de){   // أربعة خيارات من النوع نفسه
   return pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de));
 }
+// زر «لا أعرف» تحت الخيارات: يُحسب خطأً (فتعود الكلمة في آخر المحطة) ويُظهر الجواب الصحيح، بدل التخمين
+// تمرين الكتابة في المحطة: لكلمة قصيرة واحدة (بلا مسافات، حتى 14 حرفًا) تُكتب بحروفها في خانات
+const writeOk=w=>{const T=typeTarget(w);return !!T&&!/\s/.test(T)&&/^[A-Za-zÄÖÜäöüß-]+$/.test(T)&&T.length<=14};
+// صنف لون الجنس لبطاقة الاسم (g-der / g-die / g-das)
+const gCls=w=>{const n=w&&w.t==="n"&&String(w.de).match(/^(der|die|das)\s/i);return n?"g-"+n[1].toLowerCase():""};
+const IDK=`<button type="button" class="link idk" id="idk">لا أعرف</button>`;
 function stationView(){
   const el=$("review"),S_=STS;
   if(!S_.steps){S_.steps=stationSteps(S_.words);S_.i=0}
@@ -1414,12 +1447,12 @@ function stationView(){
   };
   S_.ans=0;
   if(st.t==="intro"){
-    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}${enLine(w)}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t} ${gCls(w)}"><span class="sttag">${I3("sparkles")} كلمة جديدة</span><span class="typedot">● ${TYPE[w.t]||""}</span>${wordLine}${enLine(w)}<div class="ar">${esc(w.ar)}</div>${repBtn(w)}</div>
      <button class="btn next" id="stNext">التالي</button>`;
     speak(w.de);$("stNext").onclick=next;
   }
   else if(st.t==="ex"){
-    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t}"><span class="sttag">${I3("books")} في جملة</span>${wordLine}${enLine(w)}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}${noteHTML(w)}</div>
+    el.innerHTML=comboHTML()+head+`<div class="box stlearn t-${w.t} ${gCls(w)}"><span class="sttag">${I3("books")} في جملة</span>${wordLine}${enLine(w)}<div class="ar" style="font-size:1rem">${esc(w.ar)}</div>${exPairs(w)}${noteHTML(w)}</div>
      <button class="btn next" id="stNext">التالي</button>`;
     speak(String(w.ex).split("\n")[0]);$("stNext").onclick=next;
   }
@@ -1427,21 +1460,39 @@ function stationView(){
     if(!st.q)st.q=makeQ("cloze",w);const q=st.q,full=q.c.pre+q.c.word+q.c.post;
     el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} أكمل الجملة</span><p class="ghint">اختر الكلمة التي تملأ الفراغ:</p>
      <div class="cloze de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
-     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}</div>`;
-    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{if(S_.ans)return;const ok=b.dataset.k===w.k;
-      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
-      const bl=$("stBlank");bl.textContent=q.c.word;bl.classList.add(ok?"good":"bad");
-      judge(ok,b,`<span dir="ltr">${esc(full)}</span>`,()=>speak(full))});
+     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}${IDK}</div>`;
+    const ansC=b=>{if(S_.ans)return;const ok=!!b&&b.dataset.k===w.k;
+      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(b&&!ok)b.classList.add("no");
+      const bl=$("stBlank");bl.textContent=q.c.word;bl.classList.add("good");   // الجواب الصحيح يظهر في الفراغ بالأخضر دائمًا
+      judge(ok,b,`<span dir="ltr">${esc(full)}</span>`,()=>speak(full))};
+    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>ansC(b));$("idk").onclick=()=>ansC(null);
+  }
+  else if(st.t==="write"){   // اكتب الكلمة: ترى المعنى، وتكتب الكلمة في خانات بعدد أحرفها، ومعك أزرار ä ö ü ß
+    const T=typeTarget(w),nn=nounOf(w);
+    el.innerHTML=comboHTML()+head+`<div class="box ${gCls(w)}"><span class="sttag">${I3("keyboard")} اكتبها</span><p class="ghint">اكتب الكلمة بالألمانية:</p>
+     <div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>${nn?`<div style="text-align:center;margin:-6px 0 6px"><b class="art art-${nn.art}" style="font-size:1.2rem">${nn.art}</b></div>`:""}
+     <div class="wslots de" id="wLen">${lenHTML(T,"",0)}</div>
+     <input id="wIn" class="gin de" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="اكتب هنا" dir="ltr">
+     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>${IDK}</div>
+     <button class="btn next" id="stNext">تحقّق</button>`;
+    const inp=$("wIn"),upd=()=>{$("wLen").innerHTML=lenHTML(T,inp.value,0)};inp.addEventListener("input",upd);setTimeout(()=>inp.focus(),60);
+    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const a=inp.selectionStart??inp.value.length,e=inp.selectionEnd??a;inp.value=inp.value.slice(0,a)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(a+1,a+1);upd()});
+    const sub=`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`;
+    const go=()=>{if(S_.ans)return;if(!inp.value.trim()){inp.focus();return}const r=checkTyped(w,inp.value);inp.disabled=true;inp.classList.add(r.ok?"good":"bad");$("stNext").style.display="none";
+      judge(!!r.ok,inp,r.ok&&r.note?esc(r.note):sub,()=>speak(w.de))};
+    $("stNext").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
+    $("idk").onclick=()=>{if(S_.ans)return;inp.disabled=true;$("stNext").style.display="none";$("wLen").innerHTML=lenHTML(T,T,T.length);judge(false,null,sub,()=>speak(w.de))};
   }
   else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
     if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
     el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("target")} ${st.retry?"مراجعة":"تمرين"}</span><p class="ghint">${rev?"اختر الكلمة الألمانية:":"ما معنى هذه الكلمة؟"}</p>
      ${rev?`<div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>`:`<div class="qword de">${bigDe(w.de)}</div>`}
-     ${st.o.map(o=>`<button class="btn gopt${rev?" de":""}" ${rev?'style="text-align:left"':""} data-k="${esc(o.k)}">${rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}</div>`;
+     ${st.o.map(o=>`<button class="btn gopt${rev?" de":""}" ${rev?'style="text-align:left"':""} data-k="${esc(o.k)}">${rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}${IDK}</div>`;
     if(!rev)speak(w.de);
-    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{if(S_.ans)return;const ok=b.dataset.k===w.k;
-      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
-      judge(ok,b,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>{if(rev)speak(w.de)})});
+    const ansM=b=>{if(S_.ans)return;const ok=!!b&&b.dataset.k===w.k;
+      el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(b&&!ok)b.classList.add("no");
+      judge(ok,b,`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`,()=>{if(rev||!b)speak(w.de)})};
+    el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>ansM(b));$("idk").onclick=()=>ansM(null);
   }
   $("stQuit").onclick=quitStation;
 }
@@ -1512,9 +1563,9 @@ function resultView(){
    <h2>${R_.title}</h2><p>${acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان"}</p>
    <div class="rcards"><div class="rcard"><small>الخبرة</small><b>${I3("sparkles")}${R_.xp}</b></div><div class="rcard acc"><small>الدقة</small><b>${I3("target")}${acc}%</b></div><div class="rcard tm"><small>الوقت</small><b>${I3("stopwatch")}${mmss(R_.ms)}</b></div></div>
    ${R_.drill&&drillsToday()<stToday()?`<button class="btn next blue" id="resDrill">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}
-   <button class="btn next" id="resGo">متابعة</button></div>`;
+   <button class="btn next" id="resGo">${R_.daily?"تابع إلى الكلمات الجديدة":"متابعة"}</button></div>`;
   if(!R_.shown){R_.shown=1;fx("done");confetti(acc===100?150:80)}
-  $("resGo").onclick=()=>{RES=null;reviewHome();toCur()};
+  $("resGo").onclick=()=>{const d=R_.daily;RES=null;DAILY=0;if(d){HOMETAB="path";startStation();if(!STS||STS.t0<Date.now()-2000){reviewHome();toCur()}return}reviewHome();toCur()};
   const d=$("resDrill");if(d)d.onclick=()=>{RES=null;startDrill()};
 }
 // نافذة قبل البدء: اسم الدرس وما يكسبه وما يكلّفه
@@ -1607,8 +1658,10 @@ function finishStation(){
 function startReviewList(list){
   queue=[...list];sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length,t0:Date.now(),xp0:econ().xp,fail:new Set};STS=null;
 }
+// «جلسة اليوم»: زر واحد يبدأ بالمراجعات المستحقّة (حتى 10)، ثم ينتقل مباشرة إلى كلمات المحطة الجديدة
+let DAILY=0;const DAILY_MAX=10;
 function startReview(state,n){
-  let list=stateList(state);
+  DAILY=0;let list=stateList(state);
   list=state==="due"?list.sort((a,b)=>P[a.k].due-P[b.k].due):shuffle(list);
   queue=list.slice(0,n);sessTotal=queue.length;sessDone=0;rvRated=0;RVDONE={mode:"review",n:queue.length,t0:Date.now(),xp0:econ().xp,fail:new Set};showCard();scrollTo(0,0);
 }
@@ -1658,6 +1711,7 @@ function reviewHome(){
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
+  const dailyN=Math.min(dueN,DAILY_MAX,stateList("due").length);   // «جلسة اليوم»: مراجعات قبل الكلمات الجديدة
   const coach=!pend&&done>=N&&chOpen?"أحسنت! بقي تحدي اليوم: أسئلة سريعة بلا طاقة وبخبرة مضاعفة "+I3("trophy")
     :!pend&&done>=N&&chOk?"أنهيت مسار اليوم وتحدّيه! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
     :pend&&(dl||done>=N)?"أحسنت! تدريب سريع على كلمات المحطة "+(PB+done)+(done<N?" يفتح لك المحطة التالية":" يكمل مسار اليوم")+" "+I3("puzzle")
@@ -1679,7 +1733,7 @@ function reviewHome(){
    <div class="zz" style="height:${N*SP+50+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+44+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+44+80}px"><div class="flip">${mascot(pose2)}</div></div>`:""}${[...Array(N)].map((_,i)=>node(i)+dnode(i)).join("")}${chNode()}</div>
    <div class="stgo">${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}ابدأ المحطة ${PB+done+1}${UN?" ⚡":""}</button>`}${coach?`<p class="stsub">${coach}</p>`:""}</div>
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?"🪫 ":""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?" ⚡":""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:coach?`<p class="stsub">${coach}</p>`:""}</div>
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
@@ -1693,7 +1747,7 @@ function reviewHome(){
   // لا نعيد كتابة الشاشة إن كانت هي نفسها معروضة (يمنع الارتجاف والقفز أثناء التمرير)
   if(!(REVH.h===html&&el.firstElementChild===REVH.n&&REVH.n)){const y=scrollY;el.innerHTML=html;REVH={h:html,n:el.firstElementChild};if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
   bindSettings();
-  const sb=$("stStart");if(sb)sb.onclick=startStation;const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
+  const sb=$("stStart");if(sb)sb.onclick=()=>{if(dailyN&&!low){startReview("due",dailyN);DAILY=1}else startStation()};const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
   const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const cb=$("crsBtn");if(cb)cb.onclick=coursePicker;
@@ -1717,7 +1771,7 @@ function showCard(){
   if(!queue.length){
     const ended=!!(sessTotal&&RVDONE);
     if(RVDONE&&RVDONE.mode==="review"&&sessTotal&&sessDone>=sessTotal){const D=RVDONE,n=D.n||1;
-      RES={title:"أحسنت! راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
+      RES={daily:DAILY,title:(DAILY?"أنهيت مراجعة اليوم! ":"أحسنت! ")+"راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
     reviewHome();if(ended)toCur();return}
   cur=queue[0];flipped=false;
   const isNew=!P[cur.k],tc="t-"+cur.t,stk="";
@@ -1805,7 +1859,8 @@ function renderList(){
   const from=LPAGE*LSIZE,part=r.slice(from,from+LSIZE);
   $("lcount").textContent=r.length?`تعلّمت ${arN(r.length,"كلمة واحدة","كلمتين","كلمات")} · ${from+1}–${from+part.length}`:q||t!=="all"?"لا كلمات":"لم تتعلّم كلمات بعد. ابدأ أول محطة لتظهر كلماتك هنا";
   $("litems").innerHTML=part.map(w=>{const p=P[w.k],stg=!p?"":p.box>=7?" 💎":p.box>=4?" ✅":" 🔸";
-   return `<div class="item t-${w.t}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>${w.en?`<div class="men" dir="ltr">${esc(w.en)}</div>`:""}
+   const mq=!p?0:p.box>=7?3:p.box>=4?2:1;   // الإتقان: لم تُتعلّم (رمادية) ← قيد التعلّم ← محفوظة ← راسخة (بألوانها كاملة)
+   return `<div class="item t-${w.t} mq${mq}"><div class="top"><span class="w de">${artHTML(w.de)}${stg} ${sayBtn(w.de)}</span><span class="m">${esc(w.ar)}</span></div>${w.en?`<div class="men" dir="ltr">${esc(w.en)}</div>`:""}
    ${exPairs(w,"list")}${w.nt?`<details class="ntd"><summary>💡 ملاحظة</summary>${noteHTML(w)}</details>`:""}<div class="tags">${tags(w)}</div></div>`}).join("")+pagerHTML(pages);
   $("litems").querySelectorAll(".pager button").forEach(b=>b.onclick=()=>{LPAGE=+b.dataset.pg;renderList();$("list").scrollIntoView({block:"start"});scrollBy(0,-130)});
 }
@@ -2131,8 +2186,9 @@ function gameView(){
   if(q.kind==="mc")body=`<div class="qword de">${bigDe(w.de)}</div>${q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join("")}`;
   else if(q.kind==="cloze")body=`<p class="ghint">اختر الكلمة التي تملأ الفراغ:</p><div class="cloze de">${esc(q.c.pre)}<span class="blank" id="gBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
     ${q.opts.map(o=>`<button class="btn gopt de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}`;
-  else if(q.kind==="art"){const nn=nounOf(w);body=`<p class="ghint">ما أداة هذا الاسم؟</p><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar" style="text-align:center">${esc(w.ar)}</div>
-    <div class="arts">${["der","die","das"].map(a=>`<button class="btn artb art-${a}" data-a="${a}">${a}</button>`).join("")}</div>`}
+  else if(q.kind==="art"){const nn=nounOf(w),J=GM.jars||{};   // لعبة الجرار: ضع الاسم في جرّة أداته، والجرّة تمتلئ بما وضعته فيها صحيحًا
+    body=`<p class="ghint">في أيّ جرّة يوضع هذا الاسم؟</p><div class="jcard"><div class="qword de">${esc(nn.noun)}</div><div class="cloze-ar">${esc(w.ar)}</div></div>
+    <div class="arts jars">${["der","die","das"].map(a=>`<button class="btn artb jar art-${a}" data-a="${a}"><span class="jfill" style="height:${Math.min(100,(J[a]||0)*12)}%"></span><b>${a}</b><small>${J[a]||0}</small></button>`).join("")}</div>`}
   else if(q.kind==="lmc"||q.kind==="ltype")body=`<p class="ghint">${q.kind==="lmc"?"استمع، ثم اختر المعنى:":"استمع، ثم اكتب ما سمعته بالألمانية:"}</p>
     <div class="hears"><button type="button" class="hear" id="gHear" aria-label="استمع مرة أخرى">${SPK}استمع</button>${canSlow()?'<button type="button" class="hear slow" id="gSlow" aria-label="استمع ببطء"><span class="tt">🐢</span>ببطء</button>':""}</div>
     ${q.kind==="lmc"?q.opts.map(o=>`<button class="btn gopt" data-k="${esc(o.k)}">${esc(o.ar)}</button>`).join(""):
@@ -2158,11 +2214,12 @@ function gameView(){
   if(q.kind==="mc"||q.kind==="cloze"||q.kind==="lmc")el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>{
     if(GM.answered)return;const ok=b.dataset.k===w.k;
     el.querySelectorAll(".gopt").forEach(x=>{if(x.dataset.k===w.k)x.classList.add("ok")});if(!ok)b.classList.add("no");
-    if(q.kind==="cloze"){const bl=$("gBlank");bl.textContent=q.c.word;bl.classList.add(ok?"good":"bad")}
+    if(q.kind==="cloze"){const bl=$("gBlank");bl.textContent=q.c.word;bl.classList.add("good")}
     answered(ok,b);
   });
   if(q.kind==="art")el.querySelectorAll(".artb").forEach(b=>b.onclick=()=>{
     if(GM.answered)return;const nn=nounOf(w),ok=b.dataset.a===nn.art;
+    if(ok){GM.jars=GM.jars||{};GM.jars[nn.art]=(GM.jars[nn.art]||0)+1;const f=b.querySelector(".jfill"),c=b.querySelector("small");if(f)f.style.height=Math.min(100,GM.jars[nn.art]*12)+"%";if(c)c.textContent=GM.jars[nn.art];b.classList.add("pop")}
     el.querySelectorAll(".artb").forEach(x=>{if(x.dataset.a===nn.art)x.classList.add("ok");else if(x===b)x.classList.add("no")});
     answered(ok,b);   // لا انتقال تلقائي: يقرأ المتعلّم المثال ثم يضغط «التالي»
   });
