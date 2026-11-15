@@ -889,6 +889,11 @@ body:not(.adm) #list .item.mq0 .w{filter:grayscale(1);opacity:.45}
 body:not(.adm) #list .item.mq0 .m{opacity:.55}
 body:not(.adm) #list .item.mq1 .w{filter:saturate(.45);opacity:.8}
 body:not(.adm) #list .item.mq3{border-color:var(--acc);box-shadow:inset 4px 0 0 var(--acc)}
+/* أزرار المناهج (كل المناهج / منهج واحد) فوق المراجعة و«كلماتي» */
+.scopes{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 8px;margin:0 0 12px;scrollbar-width:none}.scopes::-webkit-scrollbar{display:none}
+.scopes button{flex:none;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-weight:800;font-size:.88rem;white-space:nowrap;cursor:pointer}
+.scopes button small{display:inline-block;background:var(--soft);color:var(--muted);border-radius:9px;padding:0 7px;margin-inline-start:4px;font-size:.75rem}
+.scopes button.on{border-color:var(--acc,#EF9F27);background:var(--accl,#FAEEDA);color:var(--acct,#633806)}.scopes button.on small{background:var(--acc,#EF9F27);color:#412402}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
@@ -998,7 +1003,7 @@ body.lesson #stNext,body.lesson #gCheck,body.lesson #gNext,body.lesson #quiz #nx
       <input type="search" id="q" placeholder="ابحث بالألمانية أو العربية">
       <select id="fType"><option value="all">كل الأنواع</option><option value="n">اسم</option><option value="v">فعل</option><option value="a">صفة/ظرف</option><option value="p">أداة/ضمير</option><option value="e">تعبير</option></select>
     </div>
-    <div class="count" id="lcount"></div>
+    <div id="lScope"></div><div class="count" id="lcount"></div>
     <div id="litems"></div>
   </section>
 
@@ -1149,8 +1154,21 @@ async function loadOtherWords(){
   const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES&&!queue.length)reviewHome();
 }
 const noFilter=()=>["fDay","fLvl","fCore","fSubj"].every(id=>!$(id)||$(id).value==="all");
-// مجموعة المراجعة والتمارين والاختبار: كل مناهجه (إلا إذا اختار تصفية معيّنة)
-const studyPool=()=>noFilter()?uniq([...W,...Object.values(OTHERC).flat(),...ORPH]):filtered();
+// مجموعة المراجعة والتمارين والاختبار و«كلماتي»: كل مناهجه، أو منهج واحد يختاره من أزرار المناهج (SCOPE)، إلا إذا اختار تصفية معيّنة
+let SCOPE=null;
+const myCrs=()=>MY_COURSES.filter(c=>COURSES[c]);
+const scopeGet=()=>{if(SCOPE==null)SCOPE=(UID&&st(K("scope")))||"all";if(SCOPE!=="all"&&!myCrs().includes(SCOPE))SCOPE="all";return SCOPE};
+const poolOf=c=>c===COURSE?W:(OTHERC[c]||[]);
+const studyPool=()=>{if(!noFilter())return filtered();const sc=scopeGet();
+  return sc==="all"?uniq([...W,...Object.values(OTHERC).flat(),...ORPH]):uniq(poolOf(sc))};
+// أزرار المناهج فوق «المراجعة» و«كلماتي»: «كل المناهج» أو منهج واحد، ومع كلٍّ عدد ما تعلّمه فيه
+function scopeHTML(){
+  const cs=myCrs();if(cs.length<2||!noFilter())return "";const sc=scopeGet();
+  const n=c=>uniq(c==="all"?[...W,...Object.values(OTHERC).flat(),...ORPH]:poolOf(c)).filter(w=>P[w.k]).length;
+  return `<div class="scopes">${["all",...cs].map(c=>`<button type="button" data-sc="${c}" class="${c===sc?"on":""}">${c==="all"?"كل المناهج":esc(COURSES[c].name)} <small>${n(c)}</small></button>`).join("")}</div>`;
+}
+document.addEventListener("click",e=>{const b=e.target.closest(".scopes button");if(!b)return;SCOPE=b.dataset.sc;if(UID)st(K("scope"),SCOPE);
+  const on=document.querySelector(".panel.on");if(on&&on.id==="list"){LPAGE=0;renderList()}else if(on&&on.id==="review")reviewHome();else refresh()});
 function renderCourseSel(){mtUI();if(UID)hdrExtra();const on=document.querySelector(".panel.on");if(on&&on.id==="settings")renderSettings()}
 async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
@@ -1737,7 +1755,7 @@ function reviewHome(){
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
-  ${learned?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>
+  ${learned||scopeGet()!=="all"?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>${scopeHTML()}
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}><small>${counts[id]}</small>${n}</button>`).join("")}</div>
    ${RVSTATE!=="due"&&cnt?'<p class="rnote">ما لم يحن موعده يُراجَع للتدريب فقط، بلا خبرة ولا طاقة.</p>':""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
@@ -1850,6 +1868,7 @@ function pagerHTML(pages){
   return `<div class="pager"><button class="btn" data-pg="${LPAGE-1}" ${LPAGE<=0?"disabled":""}>→ السابق</button><span>صفحة ${LPAGE+1} من ${pages}</span><button class="btn" data-pg="${LPAGE+1}" ${LPAGE>=pages-1?"disabled":""}>التالي ←</button></div>`;
 }
 function renderList(){
+  $("lScope").innerHTML=scopeHTML();
   const q=$("q").value.trim().toLowerCase(),t=$("fType").value;
   const r=uniq(studyPool()).filter(w=>P[w.k]&&(t==="all"||w.t===t)&&(!q||w.de.toLowerCase().includes(q)||w.ar.includes(q)));   // الكلمات التي تعلّمها فقط
   // الأحدث أولًا: بحسب وقت أول تعلّم لكل كلمة (أول ظهور لها في السجلّ)
