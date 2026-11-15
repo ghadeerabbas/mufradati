@@ -1426,6 +1426,36 @@ body:not(.adm) #report .hw small{background:#FDECEC;color:#A3262B;border-radius:
 [data-dark] body:not(.adm) #report .hw small{background:#3B1D20;color:#FFB3B5}
 body:not(.adm) #report .btn.next{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 4px 0 var(--ds-acc-d);border-radius:var(--r-md);font-weight:800}
 
+/* ---------- صفحة الدوري (هوية design) ---------- */
+body:not(.adm):has(#rewards.on){background:var(--ds-bg)}
+body:not(.adm) #rewards .lgsec{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4)}
+body:not(.adm) #rewards .lghead{gap:var(--sp-3)}
+body:not(.adm) #rewards .lghead b{color:var(--ds-navy);font-size:var(--fs-lg);font-weight:800}
+body:not(.adm) #rewards .lghead small{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px;color:var(--ds-muted);font-weight:700;font-size:var(--fs-xs);margin-top:2px}
+body:not(.adm) #rewards .lghead small .svi{width:15px;height:15px;color:var(--ds-acc-dd)}
+body:not(.adm) #rewards .tiers{background:var(--ds-bg);border-radius:var(--r-md);padding:8px 10px;margin:var(--sp-3) 0}
+body:not(.adm) #rewards .tiers .on{transform:scale(1.35)}
+body:not(.adm) #rewards .tiers .lock{opacity:.45;filter:grayscale(.6)}
+body:not(.adm) #rewards .lgrow{grid-template-columns:28px 28px minmax(0,1fr) auto;padding:8px 10px;border:0;border-radius:var(--r-md);margin-bottom:2px;font-size:var(--fs-sm)}
+body:not(.adm) #rewards .lgrow:nth-child(odd of .lgrow){background:transparent}
+body:not(.adm) #rewards .lgrow>b{color:var(--ds-ink);font-weight:800}
+body:not(.adm) #rewards .lgrow .rk{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--ds-bg);color:var(--ds-muted);font-weight:800;font-size:var(--fs-xs)}
+body:not(.adm) #rewards .lgrow .rk:has(.i3){background:none}
+body:not(.adm) #rewards .lgrow .rk .i3{width:26px;height:26px}
+body:not(.adm) #rewards .lgrow .xp{color:var(--ds-muted);font-weight:700;font-size:var(--fs-xs)}
+body:not(.adm) #rewards .lgrow .xp b{color:var(--ds-navy);font-size:var(--fs-sm);font-weight:900}
+body:not(.adm) #rewards .lgrow .botl{background:var(--ds-bg);color:var(--ds-muted);border-radius:var(--r-pill);padding:1px 8px;font-size:.68rem;font-weight:800}
+body:not(.adm) #rewards .lgrow.me{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #rewards .lgrow.me .rk{background:var(--ds-acc);color:var(--ds-acc-ink)}
+body:not(.adm) #rewards .lgline{display:flex;align-items:center;justify-content:center;gap:6px;margin:var(--sp-2) 0;font-size:var(--fs-xs);font-weight:800}
+body:not(.adm) #rewards .lgline:before,body:not(.adm) #rewards .lgline:after{content:"";flex:1;height:0;border-top:2px dashed currentColor;opacity:.35}
+body:not(.adm) #rewards .lgline .svi{width:15px;height:15px}
+body:not(.adm) #rewards .lgline.up{color:#2F9E57}body:not(.adm) #rewards .lgline.down{color:#D9483B}
+[data-dark] body:not(.adm) #rewards .lgline.up{color:#6FD39A}[data-dark] body:not(.adm) #rewards .lgline.down{color:#FF9EA0}
+body:not(.adm) #rewards .rnote{color:var(--ds-muted);font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap}
+body:not(.adm) #rewards .rnote .svi{width:15px;height:15px}
+body:not(.adm) #rewards .empty{color:var(--ds-muted);font-weight:700}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2814,7 +2844,9 @@ function LIC(k){const d={
   search:'<circle cx="10" cy="10" r="7"/><path d="M21 21l-6-6"/>',
   trend:'<path d="M3 17l6-6 4 4 8-8"/><path d="M14 7h7v7"/>',
   brain:'<path d="M15.5 13a3.5 3.5 0 0 0-3.5 3.5v1a3.5 3.5 0 0 0 7 0v-1.8"/><path d="M8.5 13a3.5 3.5 0 0 1 3.5 3.5v1a3.5 3.5 0 0 1-7 0v-1.8"/><path d="M17.5 16a3.5 3.5 0 0 0 0-7H17"/><path d="M19 9.3V6.5a3.5 3.5 0 0 0-7 0"/><path d="M6.5 16a3.5 3.5 0 0 1 0-7H7"/><path d="M5 9.3V6.5a3.5 3.5 0 0 1 7 0v10"/>',
-  calendar:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><path d="M8 15h2v2H8z"/>'}[k]||"";
+  calendar:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><path d="M8 15h2v2H8z"/>',
+  up:'<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>',
+  down:'<path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/>'}[k]||"";
   return `<svg class="i3 svi lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`}
 const GAMES=[
  {id:"cloze",ic:I3("pencil"),li:"pencil",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
@@ -3244,12 +3276,12 @@ function drawLeague(rows){
   const t=LG.tier??0,ws=weekStart(Date.now()),left=Math.max(1,Math.ceil((ws+7*DAY-Date.now())/DAY)),myXP=weekXP(ws),n=rows.length,{up,down}=zones(n,t);
   const lastRes=(LG.hist||[]).slice(-1)[0];
   const row=(r,i)=>{const rt=r.tier??t,zr=zones(n,rt),z=i<zr.up&&r.xp>=PROMO_MIN&&rt<9?"up":zr.down&&i>=n-zr.down&&rt>0?"down":"";
-    return `${i===n-down&&down?'<div class="lgline down">⬇️ منطقة التراجع</div>':""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="xp">${r.xp} خبرة</span></div>${i===up-1&&n>up?'<div class="lgline up">⬆️ منطقة التقدّم</div>':""}`};
+    return `${i===n-down&&down?`<div class="lgline down">${isAdmin()?"⬇️":LIC("down")} منطقة التراجع</div>`:""}<div class="lgrow ${r.id===UID?"me":""} ${r.fr&&r.fr!=="none"&&itemOf("frame",r.fr)?"fr-"+r.fr:""}" data-u="${esc(r.id)}" data-bot="${r.bot?1:""}" data-n="${esc(r.name||"")}" data-x="${r.xp}"><span class="rk">${i<3?I3(["gold1","silver","bronze"][i]):i+1}</span><span class="av">${stkH(r.av||"🎓")}</span><b class="${r.nc&&NCOL[r.nc]?"nc-"+r.nc:""}">${esc(r.name||"مستخدم")}${r.id===UID?" (أنت)":""}${r.bot?' <small class="botl">منافس آلي</small>':rt!==t?` <small title="${esc(tierName(rt))}">${TIERS[rt][1]}</small>`:""}</b><span class="xp">${isAdmin()?r.xp+" خبرة":`<b>${r.xp}</b> خبرة`}</span></div>${i===up-1&&n>up?`<div class="lgline up">${isAdmin()?"⬆️":LIC("up")} منطقة التقدّم</div>`:""}`};
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
-  const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع <span id="lgLeft">${lgLeftTxt()}</span> · خبرتك هذا الأسبوع ${myXP}</small></div></div>
+  const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>${isAdmin()?"":LIC("stopwatch")}ينتهي الأسبوع <span id="lgLeft">${lgLeftTxt()}</span> · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
    ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
-   ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
+   ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت "+(isAdmin()?"⬆️":LIC("up")):lastRes.mv<0?"نزلت "+(isAdmin()?"⬇️":LIC("down")):"بقيت"}${lastRes.g?" · +"+lastRes.g+" "+(isAdmin()?"💎":HIC("gem")):""}</p>`:""}
 `;
   if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}
 }
