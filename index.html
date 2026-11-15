@@ -621,6 +621,8 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .dlres{font-size:3.5rem;margin:20px 0 6px}.dlx{position:absolute;top:12px;left:14px;background:none;border:0;color:var(--red);font-size:.9rem}
 .dltime{position:absolute;top:12px;right:14px;font-weight:700;font-size:.95rem;font-variant-numeric:tabular-nums}.dltime.low{color:var(--red)}
 /* الحماية */
+.erbtns{display:flex;gap:8px;margin:6px 0}.erbtns .btn{flex:1;margin:0;background:var(--soft);font-size:.85rem}#erAll{color:var(--red)}
+.errwrap{display:flex;gap:6px;align-items:flex-start}.errwrap .errrow{flex:1;min-width:0}.ercp{flex:none;width:42px;height:42px;border-radius:12px;border:2px solid var(--line);background:var(--card);font-size:1.1rem;cursor:pointer;margin-top:2px}
 .bkrow{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line)}.bkrow small{display:block;color:var(--muted);font-size:.75rem}
 .bkbtns{display:flex;gap:4px;flex-shrink:0}.bkbtns .btn{padding:6px 10px;font-size:.8rem;background:var(--soft);color:var(--hd)}.bkbtns .bkR{color:var(--red)}
 .errrow{border-top:1px solid var(--line);padding:8px 0}.errrow summary{cursor:pointer;list-style:none}.errrow summary b{display:block;font-size:.88rem;direction:ltr;text-align:left;overflow-wrap:anywhere}.errrow small{color:var(--muted);font-size:.75rem}
@@ -4198,6 +4200,9 @@ async function duelEnd(final){
 }
 
 /* ================= الحماية (للمشرف): النسخ الاحتياطية وتتبّع الأخطاء ================= */
+// نصّ الخطأ كاملًا للنسخ (لإرساله لمن يصلحه)
+const errTxt=(x,body)=>(body?"":x.msg+"\n"+(x.src==="server"?"الخادم":"التطبيق")+" · "+x.n+" مرّة · آخرها "+fmt(x.last)+" · "+x.users.length+" مستخدم\n")+(x.where?"المكان: "+x.where+"\n":"")+(x.ua?"الجهاز: "+x.ua+"\n":"")+(x.ver?"النسخة: "+x.ver+"\n":"")+"أول مرّة: "+fmt(x.first)+"\n\n"+(x.stack||"");
+async function copyTxt(s,what){try{await navigator.clipboard.writeText(s)}catch(e){const a=document.createElement("textarea");a.value=s;a.style.position="fixed";a.style.opacity="0";document.body.appendChild(a);a.select();try{document.execCommand("copy")}catch(_){}a.remove()}toast("📋","نُسخ "+what,"")}
 const kb=n=>n>1048576?(n/1048576).toFixed(1)+" م.ب":Math.max(1,Math.round(n/1024))+" ك.ب";
 const BAKWHY={auto:"تلقائية",manual:"يدوية","before-restore":"قبل الاسترجاع"};
 let ERRS=[];
@@ -4216,12 +4221,14 @@ async function renderSafe(){
     <button class="btn" id="bkNow" style="width:100%;margin:6px 0;background:var(--navy);color:#fff">نسخة الآن</button><div class="stmsg" id="bkMsg"></div>
     ${!ok?'<div class="err">تعذّر تحميل النسخ.</div>':B.length?B.map(x=>`<div class="bkrow"><div><b>${fmt(x.at)}</b><small>${BAKWHY[x.why]||x.why||""} · ${x.n||0} وثيقة · ${x.users||0} مستخدم · ${kb(x.size||0)}</small></div><div class="bkbtns"><button class="btn bkT" data-k="${esc(x.key)}">تجربة</button><button class="btn bkR" data-k="${esc(x.key)}">استرجاع</button></div></div>`).join(""):'<div class="empty">لا نسخ بعد. أول نسخة تلقائية الليلة، أو اضغط «نسخة الآن».</div>'}</div>
    <div class="rsec"><h3>⚠️ الأخطاء</h3><p class="rnote">كل خطأ يحدث في التطبيق عند أي مستخدم، أو في الخادم، يظهر هنا مع عدد مرّاته وآخر وقت. اضغط على الخطأ لترى تفاصيله.</p>
-    ${ERRS.length?`<button class="btn" id="erAll" style="width:100%;margin:6px 0;background:var(--soft);color:var(--red)">${I3("trash")} حذف كل الأخطاء</button>`+ERRS.map(x=>`<details class="errrow"><summary><b>${esc(x.msg)}</b><small>${x.src==="server"?"الخادم":"التطبيق"} · ${x.n} مرّة · آخرها ${fmt(x.last)} · ${x.users.length} مستخدم</small></summary>
-      <pre>${esc((x.where?"المكان: "+x.where+"\n":"")+(x.ua?"الجهاز: "+x.ua+"\n":"")+(x.ver?"النسخة: "+x.ver+"\n":"")+"أول مرّة: "+fmt(x.first)+"\n\n"+(x.stack||""))}</pre><button class="btn erDel" data-id="${x.id}">${I3("trash")} حذف</button></details>`).join(""):'<div class="empty">لا أخطاء 👍</div>'}</div>`;
+    ${ERRS.length?`<div class="erbtns"><button class="btn" id="erCpAll">📋 نسخ كل الأخطاء</button><button class="btn" id="erAll">${I3("trash")} حذف كل الأخطاء</button></div>`+ERRS.map((x,i)=>`<div class="errwrap"><details class="errrow"><summary><b>${esc(x.msg)}</b><small>${x.src==="server"?"الخادم":"التطبيق"} · ${x.n} مرّة · آخرها ${fmt(x.last)} · ${x.users.length} مستخدم</small></summary>
+      <pre>${esc(errTxt(x,1))}</pre><button class="btn erDel" data-id="${x.id}">${I3("trash")} حذف</button></details><button type="button" class="ercp" data-i="${i}" aria-label="نسخ الخطأ">📋</button></div>`).join(""):'<div class="empty">لا أخطاء 👍</div>'}</div>`;
   const msg=(t,c)=>{const m=$("bkMsg");m.textContent=t;m.className="stmsg "+(c||"")};
   $("bkNow").onclick=async e=>{e.target.disabled=true;msg("جارٍ النسخ…");try{const r=await apiPost("/backup",{op:"now"});toast("🗄️","حُفظت نسخة",r.n+" وثيقة");renderSafe()}catch(err){e.target.disabled=false;msg("تعذّر النسخ: "+(err.detail||err.error||"تحقّق من الاتصال"),"bad")}};
   el.onclick=async e=>{
-    const t=e.target.closest(".bkT"),r=e.target.closest(".bkR"),d=e.target.closest(".erDel"),all=e.target.closest("#erAll");
+    const t=e.target.closest(".bkT"),r=e.target.closest(".bkR"),d=e.target.closest(".erDel"),all=e.target.closest("#erAll"),cp=e.target.closest(".ercp");
+    if(cp){copyTxt(errTxt(ERRS[+cp.dataset.i]),"الخطأ");return}
+    if(e.target.closest("#erCpAll")){copyTxt(ERRS.map(x=>errTxt(x)).join("\n\n————————\n\n"),"كل الأخطاء");return}
     if(t){t.disabled=true;msg("جارٍ فحص النسخة…");try{const j=await apiPost("/backup",{op:"test",key:t.dataset.k});
       msg(j.ok?`✓ النسخة سليمة وقابلة للاسترجاع: ${j.n} وثيقة — `+Object.entries(j.per).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+" "+v).join("، "):"✗ في النسخة "+j.bad+" وثيقة تالفة",j.ok?"ok":"bad")}catch(err){msg("تعذّر فحص النسخة: "+(err.detail||err.error||""),"bad")}t.disabled=false;return}
     if(r){if(!await uiConfirm("استرجاع هذه النسخة؟ تعود بيانات كل المستخدمين كما كانت وقتها، ويضيع ما تغيّر بعدها."))return;
