@@ -1323,6 +1323,24 @@ body:not(.adm) #review .face .cardtag{position:static;transform:none;align-self:
 body:not(.adm) #review .face .typedot{color:var(--ds-muted);font-weight:800}
 body:not(.adm) #review .face .ar{color:var(--ds-navy)}
 body:not(.adm) #review .face .hint{color:var(--ds-muted);font-weight:700}
+/* الوجه الأمامي: الكلمة ووسومها في وسط البطاقة، و«اضغط لإظهار الجواب» في أسفلها، فلا يبقى فراغ كبير تحت المحتوى */
+body:not(.adm) #review .face.front{justify-content:center;gap:var(--sp-3);padding:var(--sp-5) var(--sp-4) var(--sp-4);background:linear-gradient(180deg,color-mix(in srgb,var(--tc,var(--ds-acc)) 8%,var(--ds-card)) 0%,var(--ds-card) 60%)}
+body:not(.adm) #review .face.front .cardtag{margin:auto 0 var(--sp-1)}
+body:not(.adm) #review .face.front .word{font-size:clamp(2rem,9vw,2.5rem);margin:0;line-height:1.3}
+body:not(.adm) #review .face.front .say{height:38px;padding:0 16px;font-size:.95rem}
+body:not(.adm) #review .face.front>.ar{font-size:clamp(1.4rem,6vw,1.8rem);margin:0}
+body:not(.adm) #review .face.front .tags{margin:var(--sp-1) 0 0}
+body:not(.adm) #review .face.front .hint{margin-top:auto;padding-top:var(--sp-3);display:inline-flex;align-items:center;gap:6px;background:var(--ds-bg);border-radius:var(--r-pill);padding:6px 14px}
+/* الشاشات الصغيرة: مسافات أصغر قليلًا في صفحة المراجعة، ومسافة مريحة فوق زر «ابدأ المراجعة» الثابت */
+body.rvtab:not(.adm) #review{padding-bottom:calc(var(--sp-6) + 84px)}
+@media (max-width:380px){
+ body.rvtab:not(.adm) #review>.rsec h3{padding:10px var(--sp-3);margin-bottom:var(--sp-3);font-size:1.05rem}
+ body.rvtab:not(.adm) .scopes{margin-bottom:var(--sp-2)}
+ body.rvtab:not(.adm) #rvState{gap:10px}
+ body.rvtab:not(.adm) #rvState .numpick{padding:11px var(--sp-3)}
+ body.rvtab:not(.adm) .rvslide{margin-top:var(--sp-3);padding:10px var(--sp-4) 6px}
+ body.rvtab:not(.adm) #review>.settings{margin-top:var(--sp-3)}
+}
 body:not(.adm) #review .face .tags span,body:not(.adm) #review .face .tag{background:var(--ds-bg);color:var(--ds-muted);border:0;font-weight:800}
 body:not(.adm) #review .face .exp{box-shadow:none;background:var(--ds-bg)}
 body:not(.adm) #review .pracnote{color:var(--ds-muted);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
