@@ -9,7 +9,7 @@ const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
   duel:{qt:15,gem:1},   // ثواني كل سؤال في التحدي، وجواهر الفائز
   gems:{station:1,level:5,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
-  league:{group:15,promoMin:60,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
+  league:{group:15,promoMin:60,bots:100,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
   energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5,daily:10},
   station:{words:5,perDay:4,drillReq:1},
   freeze:{price:25,max:3,start:3},
@@ -32,7 +32,7 @@ function applyCfg(c){
     xp:{review:arr(xp.review,D.xp.review,0,1000),stOk:_num(xp.stOk,3,0,1000),stMiss:_num(xp.stMiss,2,0,1000),mem:_num(xp.mem,15,0,10000),solid:_num(xp.solid,40,0,10000),
       dayN:_num(xp.dayN,20,1,1000),dayXp:_num(xp.dayXp,10,0,10000),quiz:_num(xp.quiz,1,0,1000),level:_num(xp.level,80,1,100000)},
     gems:{station:_num(gm.station,1,0,10000),level:_num(gm.level,5,0,100000),streak:pairs(gm.streak,D.gems.streak),prize:arr(gm.prize,D.gems.prize,0,100000)},
-    league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
+    league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),bots:_num(lg.bots,100,0,300),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
     energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000),daily:_num(en.daily,10,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
     duel:{qt:_num(dl.qt,15,5,120),gem:_num(dl.gem,1,0,100)},
@@ -360,13 +360,13 @@ function clusters(members){
 function rngOf(seed){let h=2166136261;for(const c of String(seed))h=Math.imul(h^c.charCodeAt(0),16777619);
   return()=>{h=h+0x6D2B79F5|0;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 const BOTN=["Lena","Jonas","Mia","Paul","Emma","Felix","Hannah","Lukas","Sophie","Elias","Lea","Noah","Marie","Ben","Clara","Finn","Anna","Leon"];
-// منافسون آليّون ثابتون طوال الأسبوع: خبرتهم حول متوسط خبرة المجموعة، وتزداد يومًا بعد يوم
+// منافسون آليّون ثابتون طوال الأسبوع: هدف كلٍّ منهم بين 20% و100% من متوسط خبرة المجموعة، مضروبًا في «قوة الروبوتات» من لوحة المدير (CFG.league.bots٪)، ويزداد يومًا بعد يوم
 function makeBots(w,cl,base,prog){
   const r=rngOf(w+"|"+cl.key),names=[...BOTN];
   for(let i=names.length-1;i>0;i--){const j=r()*(i+1)|0;[names[i],names[j]]=[names[j],names[i]]}
   const out=[],n=Math.max(0,TARGET-cl.m.length),tier=Math.min(...cl.m.map(m=>m.tier||0));
   for(let i=0;i<n;i++){
-    const target=base*(.35+r()*1.3),wts=[...Array(7)].map(()=>{const a=r(),b=r();return a<.2?0:.3+b});
+    const target=base*(.2+r()*.8)*(CFG.league.bots??100)/100,wts=[...Array(7)].map(()=>{const a=r(),b=r();return a<.2?0:.3+b});
     const tot=wts.reduce((a,b)=>a+b,0)||1,days=prog*7;let xp=0;
     for(let d=0;d<7;d++)xp+=target*wts[d]/tot*Math.max(0,Math.min(1,days-d));
     out.push({id:"bot"+i,bot:1,name:names[i],av:"🤖",tier,xp:Math.round(xp)});

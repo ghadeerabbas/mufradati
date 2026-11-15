@@ -3142,7 +3142,7 @@ function renderCfg(){
    <b class="lkh">مراحل السلسلة (الأيام ← الجواهر)</b><div id="g_sk">${C.gems.streak.map(([d,g])=>`<label><span><input type="number" class="skd" value="${d}" min="1"> يومًا</span><span><input type="number" class="skg" value="${g}" min="0"> 💎 <button type="button" class="link skx">حذف</button></span></label>`).join("")}</div>
    <button type="button" class="btn" id="g_skAdd" style="width:100%;margin-top:6px">+ مرحلة</button></div>
   <div class="rsec"><h3>🏆 الدوري</h3>
-   ${n("l_g",C.league.group,"عدد اللاعبين في المجموعة")}${n("l_pm",C.league.promoMin,"أقل خبرة أسبوعية للتقدّم والجائزة")}
+   ${n("l_g",C.league.group,"عدد اللاعبين في المجموعة")}${n("l_pm",C.league.promoMin,"أقل خبرة أسبوعية للتقدّم والجائزة")}${n("l_bt",C.league.bots??100,"قوة الروبوتات ٪ (100 = عادية، 50 = نصفها)")}
    <div class="grid"><b>الدوري</b><b>يتقدّم</b><b>يتراجع</b><span></span>${TN.map((t,i)=>`<span>${t}</span><input type="number" class="lup" value="${C.league.up[i]}" min="0"><input type="number" class="ldn" value="${C.league.down[i]}" min="0"><span></span>`).join("")}</div></div>
   <div class="rsec"><h3>🔋 الطاقة والمحطات</h3>
    ${n("e_m",C.energy.max,"الحدّ الأقصى للطاقة")}${n("e_min",C.energy.minutes,"دقائق كل وحدة طاقة")}${n("e_c",C.energy.stCost,"كلفة المحطة")}
@@ -3158,7 +3158,7 @@ function renderCfg(){
     const c=JSON.parse(JSON.stringify(CFG));
     c.xp={review:[v("x_r0"),v("x_r1"),v("x_r2"),v("x_r3")],stOk:v("x_st"),stMiss:v("x_sm"),quiz:v("x_q"),mem:v("x_mem"),solid:v("x_sol"),dayN:v("x_dn"),dayXp:v("x_dx"),level:v("x_lv")};
     c.gems={station:v("g_st"),level:v("g_lv"),prize:[v("g_p1"),v("g_p2"),v("g_p3")],streak:[...sk.querySelectorAll("label")].map(l=>[+l.querySelector(".skd").value,+l.querySelector(".skg").value])};
-    c.league={group:v("l_g"),promoMin:v("l_pm"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
+    c.league={group:v("l_g"),promoMin:v("l_pm"),bots:v("l_bt"),up:[...document.querySelectorAll(".lup")].map(x=>+x.value),down:[...document.querySelectorAll(".ldn")].map(x=>+x.value)};
     c.energy={max:v("e_m"),minutes:v("e_min"),stCost:v("e_c"),refund:v("e_rf"),perReviews:v("e_pr"),game:v("e_g"),gameMax:v("e_gm"),firstFree:$("e_ff").checked?1:0,drill:v("e_dr"),daily:v("e_dl")};c.station={words:v("s_w"),perDay:v("s_d"),drillReq:$("s_dr").checked?1:0};
     c.freeze={price:v("f_p"),max:v("f_m"),start:v("f_s")};c.duel={qt:v("d_qt"),gem:v("d_gem")};
     if(!await uiConfirm("حفظ الإعدادات؟ تتغيّر الأرقام عند كل المتعلّمين."))return;
