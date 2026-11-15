@@ -744,7 +744,7 @@ body:not(.adm) .zn.ok{--base:var(--acc);--depth:var(--accd)}
 body:not(.adm) .zn.cur{--base:var(--acc);--depth:var(--accd);--rim:var(--accl)}
 body:not(.adm) .zn.cur .c{transform:scale(1.22);outline:7px solid var(--accl)}
 .qring{position:absolute;left:-20px;top:-20px;width:116px;height:116px;pointer-events:none;z-index:0}
-.qring path{fill:none;stroke-width:9;stroke-linecap:round}.qring .bk{fill:var(--paper)}.qring .e{stroke:var(--line)}.qring .f{stroke:var(--acc)}
+.qring path{fill:none;stroke-width:6;stroke-linecap:round}.qring .bk{fill:var(--paper)}.qring .e{stroke:var(--line)}.qring .f{stroke:var(--acc)}
 .zn:has(.qring) .c,body:not(.adm) .zn:has(.qring) .c{transform:none!important;outline:0!important}
 .zn:has(.qring):before,.zn:has(.qring):after{display:none!important}
 .zn.part{--hi:#fff1a6;--base:#ffcb1f;--lo:#f5a400;--depth:#cf8a00;--rim:transparent}
@@ -1769,9 +1769,9 @@ function reviewHome(){
   const CH=!FREEU,chOk=CH&&chalDoneAt(Date.now()),chOpen=CH&&chalOpenAt(Date.now());
   const dl=drillLock(),pend=dn<done;
   // المحطة وتدريبها في عقدة واحدة: حولها دائرة من أربعة أرباع، ثلاثة للمحطة والرابع للتدريب
-  const ring=q=>{const r=50,o=58,P_=a=>(o+r*Math.cos(a*Math.PI/180)).toFixed(1)+" "+(o+r*Math.sin(a*Math.PI/180)).toFixed(1);
+  const ring=q=>{const r=46,o=58,P_=a=>(o+r*Math.cos(a*Math.PI/180)).toFixed(1)+" "+(o+r*Math.sin(a*Math.PI/180)).toFixed(1);
     const arc=(a,b,f,L)=>`<path class="${f?"f":"e"}" d="M${P_(a)}A${r} ${r} 0 ${L} 1 ${P_(b)}"/>`;   // المحطة: ثلاثة أرباع بشحطة واحدة، والتدريب ربع وحده
-    return `<svg class="qring" viewBox="0 0 116 116" aria-hidden="true"><circle class="bk" cx="58" cy="58" r="55"/>${arc(-84,174,q>=3,1)}${arc(186,264,q>=4,0)}</svg>`};
+    return `<svg class="qring" viewBox="0 0 116 116" aria-hidden="true"><circle class="bk" cx="58" cy="58" r="50"/>${arc(-84,174,q>=3,1)}${arc(186,264,q>=4,0)}</svg>`};
   const node=i=>{const dp=i<done&&i>=dn;   // انتهت المحطة وبقي تدريبها
     const c=i<done&&!dp?"ok":dp?(i===dn?"cur dcur"+(dlow?" lowen":""):"part"):i===done&&fresh&&done<N&&!dl?"cur"+(low?" lowen":""):"lock";
     const id=c.startsWith("cur dcur")?'id="dNode"':c.startsWith("cur")?'id="stNode"':"";
@@ -2475,7 +2475,9 @@ async function groupTable(w,prog,fresh){
 let BIGQ=Promise.resolve();
 function bigScreen(html,cls,after){
   BIGQ=BIGQ.then(()=>new Promise(res=>{
-    const show=()=>{if(document.body.classList.contains("lesson")){setTimeout(show,1200);return}
+    // تنتظر أيضًا شاشة نتيجة المحطة أو المراجعة أو التدريب أو التمرين حتى يضغط المتعلّم «متابعة»
+    const busy=()=>document.body.classList.contains("lesson")||($("review").classList.contains("on")&&RES)||($("games").classList.contains("on")&&!!$("games").querySelector(".box.done"));
+    const show=()=>{if(busy()){setTimeout(show,700);return}
       const d=document.createElement("div");d.className="bigfx "+(cls||"");d.innerHTML=`<div class="bfin">${html}<button class="btn next" id="bfGo">متابعة</button></div>`;
       document.body.appendChild(d);requestAnimationFrame(()=>d.classList.add("on"));if(after)after(d);
       d.querySelector("#bfGo").onclick=()=>{d.classList.remove("on");setTimeout(()=>{d.remove();res()},260)}};
