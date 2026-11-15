@@ -353,6 +353,9 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .moncard.ok .monbadge,.monit.ok .monbadge,.monbadge.big,.monbadge.sm{filter:none;opacity:1;border-color:var(--acc)}.monbadge.big{width:120px;height:120px;font-size:4.2rem;border-width:6px;box-shadow:0 6px 0 var(--accd)}
 .monbadge.sm{width:34px;height:34px;font-size:1.2rem;border-width:2px;font-style:normal}
 .mongrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}.monit{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--soft)}.monit b{font-size:.75rem;line-height:1.3}.monit small{font-size:.7rem;color:var(--muted);font-weight:700}
+.pzcard{padding:12px;border-radius:16px;background:var(--soft);margin:4px 0 10px;text-align:center}.pzcard>b{display:flex;justify-content:space-between;margin-bottom:8px}.pzcard small{display:block;margin-top:8px;font-size:.75rem;color:var(--muted);font-weight:700}
+.pzboard{width:min(100%,260px);height:auto;display:block;overflow:visible;margin:0 auto}.pzsh{fill:none;stroke:rgba(0,0,0,.45);stroke-width:2;stroke-linejoin:round}.pzlt{fill:none;stroke:rgba(255,255,255,.75);stroke-width:1.4;stroke-linejoin:round}.pzghost{filter:grayscale(1);opacity:.18}.pzmiss{fill:none;stroke:var(--muted);stroke-opacity:.5;stroke-width:1.6;stroke-dasharray:5 4;stroke-linejoin:round}.pzq{fill:var(--muted)}.pzhl{fill:none;stroke:#ffd34d;stroke-width:3.5;stroke-linejoin:round;animation:pzhl 1.2s ease-in-out infinite}@keyframes pzhl{50%{stroke:#fff}}@keyframes pzhl{50%{stroke:#ffd34d}}
+.qgot .i3,.qmon .i3{width:24px;height:24px}
 .qbox{max-width:420px}.questfx .bcup .i3{width:84px;height:84px}.qbig{width:100%;margin-top:12px}
 .chscene{text-align:center;padding:10px 0}.chlab{font-weight:800;color:var(--hd)}.chbox{display:inline-block;cursor:pointer}.chbox .chest{width:170px;height:142px}
 .chbox.shake{animation:chsh 1.3s ease-in-out infinite}@keyframes chsh{0%,60%,100%{transform:rotate(0)}66%{transform:rotate(-7deg)}74%{transform:rotate(7deg)}82%{transform:rotate(-5deg)}90%{transform:rotate(4deg)}}
@@ -1913,7 +1916,35 @@ function reviewPills(){
 // آخر إجابة على الكلمة كانت خطأ: «نسيت» في المراجعة، أو خطأ في محطتها، أو خطأ في تمرين بعدها
 /* ================= مهام اليوم: ثلاث مهام، ولكل مهمة مكتملة صندوق جواهر ================= */
 const questOn=()=>!!(UID&&!isAdmin()&&!FREEU);
-function questList(){const d=today();EC=EC||econ();return QUESTS.map((q,i)=>{const v=q.f(d);return {...q,i,v:Math.min(v,q.goal),done:v>=q.goal,got:questGot(d,q.id),g:CFG.gems.quest[i]||0}}).filter(q=>q.g||q.id==="st1")}
+function questList(){const d=today();EC=EC||econ();return QUESTS.map((q,i)=>{const v=q.f(d);return {...q,i,v:Math.min(v,q.goal),done:v>=q.goal,got:questGot(d,q.id),g:CFG.gems.quest[i]||0}}).filter(q=>q.g||q.pz||q.id==="st1")}
+// بازل الشهر: صورة من 10 قطع (5×2)، القطع التي لم تُجمع رمادية، والقطعة الجديدة تتوهّج
+let PZN=0;
+// صورة بازل كل شهر (صور حقيقية بلا قيود حقوق CC0)؛ الشهر بلا صورة يأخذ آخر صورة متاحة
+// صورة البازل لكل شهر: رسومات اختارها غدير (مربّعة)، ثم صورة فنجان قهوة حقيقية CC0؛ تُقصّ مربّعة لتملأ اللوح
+const PZ_IMG={"2026-11":"img/pz/2026-11.jpg","2026-12":"img/pz/2026-12.jpg","2027-01":"img/pz/2027-01.jpg","2027-02":"img/pz/2027-02.jpg","2027-03":"img/pz/2027-03.jpg"};
+const PZ_FILL={"2027-03":1};
+const PZ_BG={"2026-11":"#d6eec9","2026-12":"#d6eafa","2027-01":"#dff3d6","2027-02":"#fbeccd"};   // لون خلفية الرسمة يملأ جانبي اللوح
+const pzImg=m=>PZ_IMG[m]||PZ_IMG[Object.keys(PZ_IMG).filter(k=>k<=m).sort().pop()]||PZ_IMG["2026-11"];
+// قطع بازل حقيقية (3×3 مربّعة) فوق صورة الشهر مقصوصة مربّعة: لكل حدّ داخلي نتوء يخرج من قطعة ويدخل في جارتها، وحوافّ بارزة.
+// القطع التي لم تُجمع: ظلّ باهت رمادي للصورة بإطار متقطع، والقطعة الجديدة تتوهّج
+function pzBoard(have,hl,m){
+  const N_=3,W_=60,S_=N_*W_,id="pz"+(++PZN),f=n=>n.toFixed(1),mm=m||curMon(),src=pzImg(mm),fk=Object.keys(PZ_IMG).filter(k=>k<=mm).sort().pop()||"2026-11";
+  const H=[[1,-1,1],[-1,1,-1]],V=[[-1,1],[1,-1],[-1,1]];   // H[r][c]: الحدّ تحت الصف r، V[r][c]: الحدّ يمين العمود c (1 = النتوء للقطعة العليا/اليسرى)
+  const seg=(ax,ay,bx,by,out,cx,cy)=>{if(!out)return `L${f(bx)} ${f(by)}`;
+    const L=Math.hypot(bx-ax,by-ay),dx=(bx-ax)/L,dy=(by-ay)/L,mx=(ax+bx)/2,my=(ay+by)/2;let nx=-dy,ny=dx;
+    if((nx*(mx-cx)+ny*(my-cy)>0)!==(out>0)){nx=-nx;ny=-ny}
+    const h=15,P=(t_,n_,d_)=>`${f(mx+dx*L*(t_-.5)+nx*n_+dx*d_)} ${f(my+dy*L*(t_-.5)+ny*n_+dy*d_)}`,a=7/L;
+    return `L${P(.5-a,0,0)}C${P(.5-a,h*.15,3.6)} ${P(.5,h,-12)} ${P(.5,h,0)}C${P(.5,h,12)} ${P(.5+a,h*.15,-3.6)} ${P(.5+a,0,0)}L${f(bx)} ${f(by)}`};
+  const piece=i=>{const c=i%N_,r=Math.floor(i/N_),x=c*W_,y=r*W_,cx=x+W_/2,cy=y+W_/2;
+    const top=r>0?-H[r-1][c]:0,bot=r<N_-1?H[r][c]:0,lft=c>0?-V[r][c-1]:0,rgt=c<N_-1?V[r][c]:0;
+    return `M${x} ${y}`+seg(x,y,x+W_,y,top,cx,cy)+seg(x+W_,y,x+W_,y+W_,rgt,cx,cy)+seg(x+W_,y+W_,x,y+W_,bot,cx,cy)+seg(x,y+W_,x,y,lft,cx,cy)+"Z"};
+  const tiles=[...Array(PZ_N).keys()].sort((a,b)=>have.has(a)-have.has(b)).map(i=>{const d=piece(i),c=i%N_,r=Math.floor(i/N_);
+    return have.has(i)?`<clipPath id="${id}c${i}"><path d="${d}"/></clipPath><use href="#${id}p" clip-path="url(#${id}c${i})"/>
+      <path d="${d}" class="pzsh" transform="translate(.8 .8)"/><path d="${d}" class="pzlt" transform="translate(-.6 -.6)"/>${i===hl?`<path d="${d}" class="pzhl"/>`:""}`
+      :`<clipPath id="${id}c${i}"><path d="${d}"/></clipPath><use href="#${id}p" clip-path="url(#${id}c${i})" class="pzghost"/><path d="${d}" class="pzmiss"/><text x="${c*W_+W_/2}" y="${r*W_+W_/2+8}" text-anchor="middle" font-size="22" font-weight="800" class="pzq">?</text>`}).join("");
+  return `<svg class="pzboard" viewBox="-2 -2 ${S_+4} ${S_+4}" aria-hidden="true"><defs><g id="${id}p"><rect width="${S_}" height="${S_}" fill="${PZ_BG[fk]||"#fff"}"/><image href="${src}" width="${S_}" height="${S_}" preserveAspectRatio="xMidYMid slice"/></g></defs>${tiles}</svg>`}
+function pzCard(hl){const m=curMon(),{have}=pzMonth(m),s=monStat(m);
+  return `<div class="pzcard"><b>بازل ${s.name} <span dir="ltr">${have.size} / ${PZ_N}</span></b>${pzBoard(have,hl)}<small>${have.size>=PZ_N?"اكتمل بازل هذا الشهر! 🎉":"اجمع القطع التسع هذا الشهر لتربح "+CFG.gems.puzzle+" جوهرة. القطعة المكرّرة تعطيك "+CFG.gems.pdup+" جواهر."}</small></div>`}
 const curMon=()=>today().slice(0,7);
 // بطاقة ملصق الشهر: الملصق (رمادي حتى يُكسب)، وعدد الأيام من المطلوب
 function monCard(){const s=monStat(curMon());
@@ -1927,17 +1958,30 @@ function monthsModal(){
    <div class="mongrid">${ms.map(s=>`<div class="monit${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><b>${s.name}</b><small dir="ltr">${s.n} / ${s.need}</small></div>`).join("")}</div><button class="link" id="mnNo">إغلاق</button></div>`;
   $("mnNo").onclick=close;
 }
-function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&q.g);
+function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&(q.g||q.pz));
   return `<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${I3("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`}
 const CHEST=`<svg class="chest" viewBox="0 0 120 100" aria-hidden="true"><ellipse cx="60" cy="94" rx="44" ry="5" fill="rgba(0,0,0,.12)"/>
  <rect x="14" y="44" width="92" height="46" rx="8" fill="#e8962a"/><rect x="14" y="44" width="92" height="12" fill="#c97a16"/><rect x="24" y="56" width="10" height="34" fill="#c97a16"/><rect x="86" y="56" width="10" height="34" fill="#c97a16"/>
  <g class="lid"><path d="M14 46 V34 Q14 14 60 14 Q106 14 106 34 V46 Z" fill="#f2a93b"/><rect x="24" y="17" width="10" height="29" fill="#d88a1f"/><rect x="86" y="17" width="10" height="29" fill="#d88a1f"/></g>
  <rect x="50" y="38" width="20" height="22" rx="5" fill="#fff4d6"/><circle cx="60" cy="47" r="3.5" fill="#c97a16"/><rect x="58.5" y="49" width="3" height="6" rx="1.5" fill="#c97a16"/></svg>`;
 function questRows(L){return L.map(q=>`<div class="qrow${q.done?" ok":""}"><div class="qtx"><b>${q.n}</b><div class="qbar"><i style="width:${q.v/q.goal*100}%"></i><span dir="ltr">${q.v} / ${q.goal}</span></div></div>
-  ${!q.g?`<span class="qmon">${monStat(curMon()).ic}<small>ملصق الشهر</small></span>`:q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> 💎</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
+  ${!q.g&&!q.pz?`<span class="qmon">${monStat(curMon()).ic}<small>ملصق الشهر</small></span>`:q.got&&q.pz?`<span class="qgot">${I3("puzzle")} ${pzGotTxt()}</span>`:!q.done&&q.pz?`<span class="qmon">${I3("puzzle")}<small>قطعة بازل</small></span>`:q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> 💎</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
 // فتح صندوق مهمة: يهتزّ ثم ينفتح وتخرج الجواهر
+// ما ربحه من بازل اليوم: قطعة جديدة، أو جواهر قطعة مكرّرة، أو جائزة اكتمال البازل
+function pzToday(){const d=today(),e=(Array.isArray(R.qd)?R.qd:[]).find(x=>x[0]===d&&x[1]==="perf"),p=(Array.isArray(R.pz)?R.pz:[]).filter(x=>x[0]===d).pop();return {g:e?+e[2]||0:0,p:p?p[1]:-1}}
+function pzGotTxt(){const r=pzToday();return r.g>=CFG.gems.puzzle&&r.g>CFG.gems.pdup?`<bdi dir="ltr">+${r.g}</bdi> 💎`:r.g?`مكرّرة <bdi dir="ltr">+${r.g}</bdi> 💎`:"قطعة جديدة"}
+function openPuzzle(host,done){
+  host.innerHTML=`<div class="chscene"><p class="chlab">قطعة بازل اليوم</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
+  host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
+    if(ev({type:"quest",id:"perf"})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
+    b.classList.remove("shake");b.classList.add("open");fx("done");renderHeader();
+    const r=pzToday(),full=r.g>=CFG.gems.puzzle&&r.g>CFG.gems.pdup,n=pzMonth(curMon()).have.size;
+    if(full)confetti(160);else confetti(50);
+    host.querySelector(".chhint").outerHTML=(r.g&&!full?`<p class="chgot">قطعة مكرّرة: <bdi dir="ltr">+${r.g}</bdi> جواهر 💎</p>`:full?`<p class="chgot">اكتمل البازل! <bdi dir="ltr">+${r.g}</bdi> جوهرة 💎</p>`:`<p class="chgot">قطعة جديدة! ${n} من ${PZ_N}</p>`)+pzCard(r.g&&!full?-1:r.p)+`<button class="btn next" id="chOk">رائع!</button>`;
+    host.querySelector("#chOk").onclick=done};
+}
 function openChest(id,host,done){
-  const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;
+  const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;if(q.pz)return openPuzzle(host,done);
   host.innerHTML=`<div class="chscene"><p class="chlab">صندوق «${q.n}»</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
   host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
     if(ev({type:"quest",id})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
@@ -1947,8 +1991,8 @@ function openChest(id,host,done){
 }
 function questModal(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML="";if($("review").classList.contains("on")&&!STS&&!DRL&&!RES)reviewHome()};
-  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${I3("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: صندوق جواهر، أو يوم يُحسب لك في ملصق الشهر. تتجدّد المهام كل يوم.</p>
-    <div id="qList">${questRows(L)}</div>${monCard()}<button class="link" id="qNo">إغلاق</button></div>`;
+  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${I3("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: يوم في ملصق الشهر، أو صندوق جواهر، أو قطعة بازل. تتجدّد المهام كل يوم.</p>
+    <div id="qList">${questRows(L)}${monCard()}${pzCard()}</div><button class="link" id="qNo">إغلاق</button></div>`;
     $("qNo").onclick=close;m.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,$("qList"),draw))};
   m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};draw();
 }
@@ -1960,8 +2004,8 @@ function questWatch(){
   const mk=K("monann"),ma=jget(mk,[]),s=monStat(curMon());
   if(fresh.some(q=>q.id==="st1")&&s.ok&&!ma.includes(s.m)){ma.push(s.m);st(mk,JSON.stringify(ma.slice(-40)));
     bigScreen(`<div class="monbadge big">${s.ic}</div><h2 class="btit">حصلت على ملصق ${s.name}!</h2><p class="bsub">أكملت محطة مع تدريبها في ${s.need} يومًا من هذا الشهر. تجد ملصقاتك في صفحة «أنا».</p>`,"questfx",()=>{fx("done");confetti(140)})}
-  bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${fresh.length>1?"أكملت "+arN(fresh.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+fresh[0].n+"!"}</h2><div class="qbig" id="qBig">${questRows(questList())}${monCard()}</div>`,"questfx",d_=>{
-    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=questRows(questList())+monCard();wire()}));wire()});
+  bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${fresh.length>1?"أكملت "+arN(fresh.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+fresh[0].n+"!"}</h2><div class="qbig" id="qBig">${questRows(questList())}${monCard()}${pzCard()}</div>`,"questfx",d_=>{
+    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=questRows(questList())+monCard()+pzCard();wire()}));wire()});
 }
 function lastMiss(k){
   let l=null;for(let i=LOG.length-1;i>=0;i--)if(LOG[i][1]===k){l=LOG[i];break}

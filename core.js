@@ -8,7 +8,7 @@ const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
   duel:{qt:15,gem:1},   // ثواني كل سؤال في التحدي، وجواهر الفائز
-  gems:{station:1,level:5,quest:[0,3,5],streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
+  gems:{station:1,level:5,quest:[0,3,0],puzzle:100,pdup:3,streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
   league:{group:15,promoMin:60,bots:100,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
   energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5,daily:10,combo:2,comboMax:3},
   station:{words:5,perDay:4,drillReq:1},
@@ -31,7 +31,7 @@ function applyCfg(c){
   CFG={
     xp:{review:arr(xp.review,D.xp.review,0,1000),stOk:_num(xp.stOk,3,0,1000),stMiss:_num(xp.stMiss,2,0,1000),mem:_num(xp.mem,15,0,10000),solid:_num(xp.solid,40,0,10000),
       dayN:_num(xp.dayN,20,1,1000),dayXp:_num(xp.dayXp,10,0,10000),quiz:_num(xp.quiz,1,0,1000),level:_num(xp.level,80,1,100000)},
-    gems:{station:_num(gm.station,1,0,10000),quest:arr(gm.quest,D.gems.quest,0,1000),level:_num(gm.level,5,0,100000),streak:pairs(gm.streak,D.gems.streak),prize:arr(gm.prize,D.gems.prize,0,100000)},
+    gems:{station:_num(gm.station,1,0,10000),quest:arr(gm.quest,D.gems.quest,0,1000),puzzle:_num(gm.puzzle,100,0,100000),pdup:_num(gm.pdup,3,0,1000),level:_num(gm.level,5,0,100000),streak:pairs(gm.streak,D.gems.streak),prize:arr(gm.prize,D.gems.prize,0,100000)},
     league:{group:_num(lg.group,15,5,50),promoMin:_num(lg.promoMin,60,0,100000),bots:_num(lg.bots,100,0,300),up:arr(lg.up,D.league.up,0,50),down:arr(lg.down,D.league.down,0,50)},
     energy:{max:_num(en.max,30,1,1000),minutes:_num(en.minutes,48,1,10000),stCost:_num(en.stCost,10,0,1000),refund:_num(en.refund,5,0,1000),perReviews:_num(en.perReviews,5,0,1000),game:_num(en.game,2,0,1000),gameMax:_num(en.gameMax,3,0,100),firstFree:en.firstFree?1:0,drill:_num(en.drill,5,0,1000),combo:_num(en.combo,2,0,100),comboMax:_num(en.comboMax,3,0,50),daily:_num(en.daily,10,0,1000)},
     station:{words:_num(st.words,5,1,20),perDay:_num(st.perDay,4,1,50),drillReq:st.drillReq===0?0:1},
@@ -409,8 +409,19 @@ function monStat(m,md){md=md||monDays();const mo=+m.slice(5,7)-1,n=md[m]||0,need
 const QUESTS=[
   {id:"st1",n:"أكمل محطة مع تدريبها",goal:1,f:drillsOn},
   {id:"rv15",n:"راجع 15 كلمة",goal:15,f:d=>LOG.filter(x=>!isNewF(x)&&dkey(x[0])===d).length},
-  {id:"perf",n:"أكمل محطة بلا أي خطأ مع تدريبها",goal:1,f:stPerfectAt}
+  {id:"perf",n:"أكمل محطة بلا أي خطأ مع تدريبها",goal:1,f:stPerfectAt,pz:1}
 ];
+/* بازل الشهر: 9 قطع (3×3)، وجائزة مهمة «بلا أي خطأ» قطعة منها. اكتمالها في الشهر = 100 جوهرة، والقطعة المكررة = 3 جواهر.
+   كل قطعة جديدة باحتمال 50%، ومن تكرّرت له 11 قطعة في الشهر تأتيه بعدها قطع جديدة فقط: فمن أكمل المهمة 20 يومًا جمعها كلها حتمًا.
+   القطع بأوزان مختلفة (الأخيرة أندر)، والسحب محدّد بالتاريخ وعدد مرات الشهر، فيحسبه التطبيق والخادم بالنتيجة نفسها */
+const PZ_W=[10,10,10,10,8,6,6,4,3],PZ_N=PZ_W.length;
+const hrand=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967296};
+function pzMonth(m){const L=(Array.isArray(R.pz)?R.pz:[]).filter(x=>String(x[0]).slice(0,7)===m);return {claims:L.length,have:new Set(L.map(x=>x[1]).filter(x=>x>=0))}}
+function pzDraw(d){
+  const {claims,have}=pzMonth(d.slice(0,7)),miss=PZ_W.map((_,i)=>i).filter(i=>!have.has(i));if(!miss.length)return -1;
+  let pool=hrand(d+":"+claims)<.5||claims-have.size>=20-PZ_N?miss:[...have];if(!pool.length)pool=miss;
+  let x=hrand(d+":"+claims+":p")*pool.reduce((a,i)=>a+PZ_W[i],0);for(const i of pool){x-=PZ_W[i];if(x<0)return i}return pool[pool.length-1];
+}
 const questGot=(d,id)=>(Array.isArray(R.qd)?R.qd:[]).some(x=>x[0]===d&&x[1]===id);
 function applyEv(ev,now,ctx){
   ctx=ctx||{};const T=ev&&ev.type;
@@ -494,6 +505,10 @@ function applyAt(ev,T,now,ctx){
   // صندوق مهمة مكتملة من مهام اليوم
   if(T==="quest"){
     if(FREEU)return "free";const i=QUESTS.findIndex(q=>q.id===ev.id),d=dkey(now);if(i<0)return "id";
+    if(QUESTS[i].pz){if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
+      const m=d.slice(0,7),p=pzDraw(d),had=pzMonth(m).have;R.pz=Array.isArray(R.pz)?R.pz:[];R.pz.push([d,p]);if(R.pz.length>800)R.pz=R.pz.slice(-800);
+      const g=p<0||had.has(p)?CFG.gems.pdup:had.size===PZ_N-1?CFG.gems.puzzle:0;
+      R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);if(R.qd.length>600)R.qd=R.qd.slice(-600);return true}
     const g=CFG.gems.quest[i]||0;if(!g)return "off";if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
     R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);if(R.qd.length>600)R.qd=R.qd.slice(-600);return true;
   }
