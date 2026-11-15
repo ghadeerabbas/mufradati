@@ -356,13 +356,14 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .pzcard{padding:12px;border-radius:16px;background:var(--soft);margin:4px 0 10px;text-align:center}.pzcard>b{display:flex;justify-content:space-between;margin-bottom:8px}.pzcard small{display:block;margin-top:8px;font-size:.75rem;color:var(--muted);font-weight:700}
 .pzboard{position:relative;width:min(100%,260px);aspect-ratio:1;margin:0 auto;border-radius:10px;background:rgba(0,0,0,.05);box-shadow:inset 0 1px 3px rgba(0,0,0,.12)}
 [data-dark] .pzboard{background:rgba(255,255,255,.05)}
-.pzp{position:absolute;display:block;filter:drop-shadow(0 1px 1.2px rgba(0,0,0,.4))}
+.pzp{position:absolute;display:block}
 .pzm{position:absolute;inset:0;display:block;overflow:hidden;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
 .pzm img{position:absolute;max-width:none;height:auto;display:block}
 .pzp.miss{filter:drop-shadow(0 0 .6px rgba(0,0,0,.55))}.pzp.miss .pzm{opacity:.2}.pzp.miss img{filter:grayscale(1)}
 .pzp.miss b{position:absolute;transform:translate(-50%,-50%);font-size:1.25rem;font-weight:900;color:var(--muted);opacity:.75}
 .pzp.hl{animation:pzhl 1.3s ease-in-out infinite;z-index:2}@keyframes pzhl{0%,100%{filter:drop-shadow(0 0 2px #ffd34d) drop-shadow(0 0 5px #ffb800)}50%{filter:drop-shadow(0 0 4px #fff3b0) drop-shadow(0 0 10px #ffc83d)}}
 .chscene:has(.pzstage) .chbox .chest{width:96px;height:80px;transition:width .4s,height .4s}.chscene:has(.pzstage) .chlab{margin:0}
+@media (prefers-reduced-motion:reduce){.pzp.hl{animation:none;filter:drop-shadow(0 0 3px #ffd34d) drop-shadow(0 0 6px #ffb800)}}
 .pzstage{position:relative}.pzfly{position:absolute;inset:0;pointer-events:none;z-index:5}.pzfly .pzp{filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
 .pzwait{visibility:hidden}
 .qgot .i3,.qmon .i3{width:24px;height:24px}
@@ -2666,10 +2667,11 @@ let PZN=0;
 // صورة البازل لكل شهر: رسومات الحيوانات المعتمدة (أسد، فيل، غزال، عصفور) تتناوب على الأشهر بالترتيب
 const PZ_ART=["lion","elephant","deer","bird"];
 const pzImg=m=>{const [y,mo]=String(m||"2026-11").split("-").map(Number),k=((y-2026)*12+mo-11)%PZ_ART.length;return "img/pz/"+PZ_ART[(k+PZ_ART.length)%PZ_ART.length]+".webp"};
-// قطع بازل حقيقية مقصوصة مسبقًا (3×3 بنتوءات متداخلة): موضع كل قطعة وحجمها في صورة 1200×1200، وقناعها img/pz/m1..9.png مشترك بين الرسومات
+// قطع بازل حقيقية مقصوصة مسبقًا (3×3 بنتوءات متداخلة): موضع كل قطعة وحجمها في صورة 1200×1200، وقناعها img/pz/m1..9.png مشترك بين الرسومات.
+// القطع المجموعة تأخذ قناعًا أعرض قليلًا (g1..9) فتتداخل مع جاراتها بلا فاصل، لأن الصورة نفسها تحتها
 const PZ_POS=[[0,0,400,400],[348,0,504,452],[800,0,400,400],[0,348,452,504],[400,400,400,400],[748,348,452,504],[0,800,400,400],[348,748,504,452],[800,800,400,400]];
 const pzPiece=(i,src,cls)=>{const [x,y,w,h]=PZ_POS[i],c=i%3,r=Math.floor(i/3);
-  return `<i class="pzp ${cls}" data-i="${i}" style="left:${x/12}%;top:${y/12}%;width:${w/12}%;height:${h/12}%"><i class="pzm" style="-webkit-mask-image:url(img/pz/m${i+1}.png);mask-image:url(img/pz/m${i+1}.png)"><img src="${src}" alt="" style="width:${1200/w*100}%;left:${-x/w*100}%;top:${-y/h*100}%"></i>${cls.includes("miss")?`<b style="left:${(c*400+200-x)/w*100}%;top:${(r*400+200-y)/h*100}%">?</b>`:""}</i>`};
+  return `<i class="pzp ${cls}" data-i="${i}" style="left:${x/12}%;top:${y/12}%;width:${w/12}%;height:${h/12}%"><i class="pzm" style="${(k=>`-webkit-mask-image:url(img/pz/${k}${i+1}.png);mask-image:url(img/pz/${k}${i+1}.png)`)(cls.includes("got")?"g":"m")}"><img src="${src}" alt="" style="width:${1200/w*100}%;left:${-x/w*100}%;top:${-y/h*100}%"></i>${cls.includes("miss")?`<b style="left:${(c*400+200-x)/w*100}%;top:${(r*400+200-y)/h*100}%">?</b>`:""}</i>`};
 // اللوح: القطع التي لم تُجمع ظلّ باهت مع علامة استفهام، والمجموعة ملوّنة فوقها، والقطعة الجديدة تتوهّج. hide: قطعة تُعرض فارغة إلى أن تصل إليها الحركة
 function pzBoard(have,hl,m,hide){
   const src=pzImg(m||curMon()),got=i=>have.has(i)&&i!==hide;
@@ -2718,7 +2720,7 @@ function pzFly(host,i,n){
   const st=host.querySelector(".pzstage"),card=st&&st.querySelector(".pzcard"),slot=st&&st.querySelector(`.pzp[data-i="${i}"]`),ok=host.querySelector("#chOk"),bf=document.querySelector(".bigfx.on #bfGo");
   if(!st||!slot)return;
   const wait=on=>{[ok,bf].forEach(x=>{if(x)x.classList.toggle("pzwait",on)})};
-  const settle=()=>{const g=card.querySelector(".pzn");if(g)g.textContent=n+" / "+PZ_N;slot.className="pzp got hl";slot.parentNode.appendChild(slot)};   // فوق القطع الأخرى
+  const settle=()=>{const g=card.querySelector(".pzn");if(g)g.textContent=n+" / "+PZ_N;const bd=slot.parentNode;slot.remove();bd.insertAdjacentHTML("beforeend",pzPiece(i,pzImg(curMon()),"got hl"))};   // القطعة بقناع المجموعة، في آخر اللوح فتكون فوق جاراتها
   if(matchMedia("(prefers-reduced-motion: reduce)").matches||!slot.animate){settle();return}
   wait(true);
   const sr=st.getBoundingClientRect(),pr=slot.getBoundingClientRect();
