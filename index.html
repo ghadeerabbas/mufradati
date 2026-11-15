@@ -2,6 +2,8 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
+<script>/* النسخة التجريبية (mufradati1): الواجهة من فرع design، والبيانات المشتركة (المناهج والكلمات والأصوات) تُقرأ من الموقع الأساسي فتبقى محدّثة دائمًا. في الموقع الأساسي DP فارغ فلا يتغيّر شيء */
+var DP=/\/mufradati1\//.test(location.pathname)?location.pathname.replace(/\/mufradati1\/.*$/,"/mufradati/"):"";</script>
 <script>/* تتبّع الأخطاء: كل خطأ جديد في التطبيق يُرسل إلى الخادم ليراه المشرف (8 على الأكثر في الجلسة، بلا تكرار) */
 (function(){var seen={},n=0;window.repErr=function(msg,stack,where){try{msg=String(msg||"").slice(0,300);if(!msg||/^Script error|ResizeObserver loop/.test(msg)||seen[msg]||n>=8)return;seen[msg]=1;n++;
   var send=function(tok){var h={"Content-Type":"application/json"};if(tok)h.Authorization="Bearer "+tok;fetch("https://mufradati-api.afunogrv.workers.dev/err",{method:"POST",headers:h,body:JSON.stringify({msg:msg,stack:String(stack||"").slice(0,1500),where:String(where||location.hash||"").slice(0,200),ua:navigator.userAgent.slice(0,200),ver:(window.MufApp?"apk":"web")})}).catch(function(){})};
@@ -1900,7 +1902,7 @@ const useSubj=()=>!!(COURSES[COURSE]&&COURSES[COURSE].subjects);   // تصنيف
 // المناهج والكلمات تُحفظ في الهاتف: يفتح التطبيق فورًا منها، ثم تُحدَّث من الإنترنت في الخلفية
 function setCourses(d){COURSES={};d.courses.forEach(c=>COURSES[c.id]=c);DEF_COURSES=(d.default||[]).filter(id=>COURSES[id]);if(!DEF_COURSES.length)DEF_COURSES=[Object.keys(COURSES)[0]]}
 async function loadCourses(){
-  const fresh=fetch("courses.json",{cache:"no-cache"}).then(r=>r.text()).then(t=>{const d=JSON.parse(t);if(t!==st("muf_courses")){st("muf_courses",t);setCourses(d)}return true}).catch(()=>false);
+  const fresh=fetch(DP+"courses.json",{cache:"no-cache"}).then(r=>r.text()).then(t=>{const d=JSON.parse(t);if(t!==st("muf_courses")){st("muf_courses",t);setCourses(d)}return true}).catch(()=>false);
   const c=jget("muf_courses",null);if(c&&c.courses){setCourses(c);return}
   await fresh;
 }
@@ -1927,7 +1929,7 @@ let OTHERC={},ORPH=[];
 async function loadOtherWords(){
   const o={};
   for(const c of MY_COURSES){if(c===COURSE||!COURSES[c])continue;const f=COURSES[c].file,ck="muf_w_"+f;
-    let t=st(ck);if(!t){try{const q=await fetch(f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
+    let t=st(ck);if(!t){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
     try{const d=JSON.parse(t||"{}");o[c]=uniq((d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
   OTHERC=o;
   // كلمات تعلّمها من منهجٍ لم يعد من مناهجه: تبقى في قائمته ومراجعاته
@@ -1958,7 +1960,7 @@ async function switchCourse(c,silent){
 }
 async function loadWords(c){
   COURSE=c;const f=COURSES[c].file,ck="muf_w_"+f;
-  const net=fetch(f,{cache:"no-cache"}).then(r=>r.ok?r.text():null).catch(()=>null);
+  const net=fetch(DP+f,{cache:"no-cache"}).then(r=>r.ok?r.text():null).catch(()=>null);
   let txt=st(ck);
   if(txt){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){st(ck,t);applyWords(JSON.parse(t));if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
   else{txt=await net;if(txt)st(ck,txt)}
@@ -2454,7 +2456,7 @@ let EXTRAW=[];
 async function loadAllCourseWords(){
   const have=new Set([COURSE,...Object.keys(OTHERC)]),o=[];
   for(const c of Object.keys(COURSES)){if(have.has(c))continue;const f=COURSES[c].file,ck="muf_w_"+f;
-    let t=st(ck);if(!t){try{const q=await fetch(f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
+    let t=st(ck);if(!t){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
     try{const d=JSON.parse(t||"{}");o.push(...(d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
   EXTRAW=uniq(o);
 }
@@ -2949,11 +2951,11 @@ const canSpeak=()=>!!(AUD&&AUD.size)||hasNative()||("speechSynthesis" in window)
 // أصوات جاهزة بصوت عصبي واضح (تُصنع مرة واحدة في GitHub Actions)؛ وإن لم يوجد ملف للنص نعود إلى نطق الجهاز
 let AUD=null,AUDEL=null;
 const fnvH=s=>{let h=0x811c9dc5;for(const b of new TextEncoder().encode(s)){h^=b;h=Math.imul(h,0x01000193)>>>0}return h.toString(16).padStart(8,"0")};
-fetch("audio/index.json").then(r=>r.ok?r.json():null).then(j=>{if(j&&j.h)AUD=new Set(j.h.split(" "))}).catch(()=>{});
+fetch(DP+"audio/index.json").then(r=>r.ok?r.json():null).then(j=>{if(j&&j.h)AUD=new Set(j.h.split(" "))}).catch(()=>{});
 function playFile(t,slow){
   if(!AUD)return false;const h=fnvH(t);if(!AUD.has(h))return false;
   try{if("speechSynthesis" in window)speechSynthesis.cancel()}catch(e){}
-  try{if(AUDEL)AUDEL.pause();const a=new Audio("audio/"+h+".mp3");AUDEL=a;a.playbackRate=slow?.7:1;a.preservesPitch=true;
+  try{if(AUDEL)AUDEL.pause();const a=new Audio(DP+"audio/"+h+".mp3");AUDEL=a;a.playbackRate=slow?.7:1;a.preservesPitch=true;
     a.play().catch(()=>{if(AUDEL===a){AUDEL=null;ttsSpeak(t,slow)}});return true}catch(e){return false}
 }
 function speak(t,slow){
@@ -5136,7 +5138,7 @@ function rdStop(){RDTOK++;clearInterval(RDTM);try{if(RDEL){RDEL.pause();RDEL=nul
 // معاني كلمات القراءة: يكتبها Claude يدويًّا في rdgloss.json (كلمات فقط، لا جمل)، ولكل كلمة صوت جاهز (tts.py)
 let RDG=null;
 function rdGloss(){if(RDG)return Promise.resolve(RDG);const c=st("muf_rdgloss");if(c){try{RDG=JSON.parse(c)}catch(e){}}
-  const net=fetch("rdgloss.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(t){st("muf_rdgloss",t);try{RDG=JSON.parse(t)}catch(e){}}return RDG||{}}).catch(()=>RDG||{});
+  const net=fetch(DP+"rdgloss.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(t){st("muf_rdgloss",t);try{RDG=JSON.parse(t)}catch(e){}}return RDG||{}}).catch(()=>RDG||{});
   return RDG?Promise.resolve(RDG):net}
 const rdCore=x=>x.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu,"");
 // المعنى بحسب النص أولًا (t: معاني كل عنوان في سياقه)، ثم المعاني العامة (w)
@@ -5333,7 +5335,7 @@ let MTS=[],MTO=null,MTGL={},MTGLL=null;
 // معاني كلمات الأجوبة والخيارات (gl في math.json): الكلمة كما هي، ثم بلا اعتبار لحالة الحروف
 const mtGl=w=>{w=String(w||"").trim();if(!w)return"";if(MTGL[w])return MTGL[w];if(!MTGLL){MTGLL={};for(const k in MTGL)MTGLL[k.toLowerCase()]=MTGL[k]}return MTGLL[w.toLowerCase()]||""};
 function mtLoad(){const c=st("muf_math");if(c){try{const j=JSON.parse(c);MTS=j.sets||[];MTGL=j.gl||{};MTGLL=null}catch(e){}}mtUI();
-  fetch("math.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_math"))return;st("muf_math",t);try{const j=JSON.parse(t);MTS=j.sets||[];MTGL=j.gl||{};MTGLL=null}catch(e){}mtUI();
+  fetch(DP+"math.json",{cache:"no-cache"}).then(r=>r.ok?r.text():null).then(t=>{if(!t||t===st("muf_math"))return;st("muf_math",t);try{const j=JSON.parse(t);MTS=j.sets||[];MTGL=j.gl||{};MTGLL=null}catch(e){}mtUI();
     const on=document.querySelector(".panel.on");if(on&&on.id==="math"&&!MTO)renderMath()}).catch(()=>{})}
 // الأوراق التي أخفاها المشرف عن هذا المتعلّم (من الخادم، وتُحفظ في الجهاز)
 // والورقة التي فيها hide في math.json مخفية حتى يُظهرها المشرف (shw)
