@@ -1294,6 +1294,49 @@ body:not(.adm) #review .say .svi{width:18px;height:18px}body:not(.adm) #review .
 .gres .sr-ic{display:inline-flex;color:var(--ds-acc-dd)}.gres .sr-ic .svi{width:18px;height:18px}
 body:not(.adm) #review .gres{padding-top:var(--sp-5)}
 
+/* ---------- صفحة المراجعة (هوية design) ---------- */
+body.rvtab:not(.adm){background:var(--ds-bg)}
+body.rvtab:not(.adm) #review>.rsec h3{background:var(--ds-card);color:var(--ds-navy);box-shadow:var(--sh-2);border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-4);font-size:var(--fs-lg);font-weight:800;gap:8px;align-items:center;margin-bottom:var(--sp-4)}
+body.rvtab:not(.adm) #review>.rsec h3 .svi{display:inline-block!important;width:22px;height:22px;color:var(--ds-acc-dd);filter:none!important;opacity:1!important}
+body:not(.adm) .scopes button{border:0;background:var(--ds-card);color:var(--ds-navy);box-shadow:var(--sh-1);font-size:var(--fs-sm)}
+body:not(.adm) .scopes button small{background:var(--ds-bg);color:var(--ds-muted);font-weight:800}
+body:not(.adm) .scopes button.on{background:var(--ds-cream);color:var(--ds-navy);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) .scopes button.on small{background:var(--ds-acc);color:var(--ds-acc-ink)}
+body.rvtab:not(.adm) #rvState{gap:var(--sp-3)}
+body.rvtab:not(.adm) #rvState .numpick{background:var(--ds-card);border:0;box-shadow:var(--sh-1);border-radius:var(--r-md);color:var(--ds-navy);font-weight:800;padding:14px var(--sp-4)}
+body.rvtab:not(.adm) #rvState .numpick small{background:var(--ds-bg);color:var(--ds-muted);border-radius:var(--r-pill);padding:1px 9px;font-weight:800}
+body.rvtab:not(.adm) #rvState .numpick.on{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body.rvtab:not(.adm) #rvState .numpick.on small{background:var(--ds-acc);color:var(--ds-acc-ink)}
+body.rvtab:not(.adm) #rvState .numpick:disabled{opacity:.5;box-shadow:none;background:var(--ds-bg)}
+body.rvtab:not(.adm) .rvslide{background:var(--ds-card);border:0;box-shadow:var(--sh-2);border-radius:var(--r-lg);margin-top:var(--sp-4)}
+body.rvtab:not(.adm) .rvslide .rvn{color:var(--ds-muted);font-weight:800}body.rvtab:not(.adm) .rvslide .rvn b{color:var(--ds-navy)}
+body.rvtab:not(.adm) #rvRange{background:var(--ds-line)}
+body.rvtab:not(.adm) #rvRange::-webkit-slider-thumb{background:var(--ds-acc);border-color:var(--ds-card)}
+body.rvtab:not(.adm) #rvRange::-moz-range-thumb{background:var(--ds-acc);border-color:var(--ds-card)}
+body.rvtab:not(.adm) #review>.settings{color:var(--ds-muted);font-weight:700}
+body.rvtab:not(.adm) #review>.settings select{background:var(--ds-card);color:var(--ds-navy);border:0;box-shadow:var(--sh-1);border-radius:var(--r-sm);font-weight:800}
+body.rvtab:not(.adm) #rvGo{background:var(--ds-acc)!important;color:var(--ds-acc-ink)!important;box-shadow:0 4px 0 var(--ds-acc-d),0 10px 22px -10px rgba(215,134,15,.6)!important;border-radius:var(--r-md);font-size:var(--fs-lg);font-weight:800}
+body:not(.adm) #review .rsec .rnote{color:var(--ds-muted);font-weight:600}
+/* بطاقة المراجعة */
+body:not(.adm) #review .face{background:var(--ds-card);border:0;border-top:5px solid var(--tc,var(--ds-navy));border-radius:var(--r-lg);box-shadow:var(--sh-2);display:flex;flex-direction:column;align-items:center}
+body:not(.adm) #review .face .cardtag{position:static;transform:none;align-self:center;margin:0 0 var(--sp-2)}
+body:not(.adm) #review .face .typedot{color:var(--ds-muted);font-weight:800}
+body:not(.adm) #review .face .ar{color:var(--ds-navy)}
+body:not(.adm) #review .face .hint{color:var(--ds-muted);font-weight:700}
+body:not(.adm) #review .face .tags span,body:not(.adm) #review .face .tag{background:var(--ds-bg);color:var(--ds-muted);border:0;font-weight:800}
+body:not(.adm) #review .face .exp{box-shadow:none;background:var(--ds-bg)}
+body:not(.adm) #review .pracnote{color:var(--ds-muted);font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
+body:not(.adm) #review .pracnote .svi{width:18px;height:18px;flex:none}
+/* أزرار التقييم: ألوانها الدلالية نفسها بدرجات الهوية، وحافة سفلية */
+body:not(.adm) #review .rate{gap:var(--sp-2)}
+body:not(.adm) #review .rate .btn{border-radius:var(--r-md);font-weight:800;font-size:var(--fs-md);padding:10px 4px;border:0;line-height:1.3}
+body:not(.adm) #review .rate .btn small{display:block;font-size:var(--fs-xs);font-weight:700;opacity:.9}
+body:not(.adm) #review .rate .r0{background:#E5484D;color:#fff;box-shadow:0 4px 0 #B8353A}
+body:not(.adm) #review .rate .r1{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 4px 0 var(--ds-acc-d)}
+body:not(.adm) #review .rate .r2{background:#3BA55C;color:#fff;box-shadow:0 4px 0 #2B7D45}
+body:not(.adm) #review .rate .r3{background:#1E9FE0;color:#fff;box-shadow:0 4px 0 #1579AB}
+body:not(.adm) #review .rate .btn:active{transform:translateY(3px);box-shadow:none}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -1994,18 +2037,20 @@ function streakPop(n){const d=document.createElement("div");d.className="spop";d
 let RES=null;   // شاشة نتيجة الدرس
 const mmss=ms=>{const s_=Math.max(1,Math.round(ms/1000));return Math.floor(s_/60)+":"+String(s_%60).padStart(2,"0")};
 // شاشة نتيجة بهوية design (المحطة والتدريب والمراجعة): حلقة، ثم العنوان، ثم بطاقات الأرقام، ثم الأزرار — بنفس تصميم نتيجة التمرين
+// ما ربحه المتعلّم: شارات موحّدة في كل شاشات النتيجة (خبرة، طاقة، جواهر)
+const gainsHTML=g=>{g=g||{};const a=[g.xp?`<span class="gr-g xp">${LIC("star")}<b dir="ltr">+${g.xp}</b> خبرة</span>`:"",g.en?`<span class="gr-g en">${HIC("battery")}<b dir="ltr">+${g.en}</b> طاقة</span>`:"",g.gem?`<span class="gr-g gem">${HIC("gem")}<b dir="ltr">+${g.gem}</b> جواهر</span>`:""].join("");return a?`<div class="gr-gains">${a}</div>`:""};
 function resDS(o){const R_=52,C=2*Math.PI*R_,pct=Math.max(0,Math.min(1,o.pct));
   const ring=`<svg class="gr-ring" viewBox="0 0 128 128" aria-hidden="true"><circle cx="64" cy="64" r="${R_}" class="tr"/><circle cx="64" cy="64" r="${R_}" class="fl${pct===1?" full":""}" stroke-dasharray="${C.toFixed(1)}" stroke-dashoffset="${(C*(1-pct)).toFixed(1)}" transform="rotate(-90 64 64)"/></svg>`;
   return `<div class="gres sres"><div class="gr-top"><img class="jmp" src="img/m/${o.img}.svg" alt=""><div class="gr-rw">${ring}<div class="gr-mid">${o.mid}</div></div></div>
    <h2 class="gr-t sr-t">${o.title}</h2>${o.sub?`<p class="sr-sub">${o.sub}</p>`:""}
-   <div class="gr-stats">${o.stats.map(([k,v,ic])=>`<div><small>${k}</small><b>${ic?`<span class="sr-ic">${ic}</span>`:""}<bdi>${v}</bdi></b></div>`).join("")}</div>
-   <div class="gr-btns">${o.btns}</div></div>`}
+   <div class="gr-stats">${o.stats.map(([k,v])=>`<div><small>${k}</small><b><bdi>${v}</bdi></b></div>`).join("")}</div>
+   ${gainsHTML(o.gains)}<div class="gr-btns">${o.btns}</div></div>`}
 function resultView(){
   const el=$("review"),R_=RES,acc=Math.round(R_.acc*100);
   if(!isAdmin()){
     el.innerHTML=resDS({img:acc===100?"trophy":acc>=60?"jump":"thumbs",pct:R_.acc,mid:`<b class="sm"><bdi>${acc}٪</bdi></b><small>الدقّة</small>`,
       title:String(R_.title).replace(/\+(\d+) 💎/g,(_,n)=>`<span class="sr-gem"><bdi dir="ltr">+${n}</bdi>${HIC("gem")}</span>`).replace(/💎/g,`<span class="sr-gem">${HIC("gem")}</span>`),sub:acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان",
-      stats:[["الخبرة","+"+R_.xp,LIC("star")],["الدقة",acc+"٪",LIC("target")],["الوقت",mmss(R_.ms),LIC("stopwatch")]],
+      stats:[["الدقّة",acc+"٪"],["الوقت",mmss(R_.ms)]],gains:{xp:R_.xp},
       btns:`<button class="btn next" id="resGo">${R_.daily?"تابع إلى الكلمات الجديدة":"متابعة"}</button>${R_.drill&&drillsToday()<stToday()?`<button class="btn gr-sec" id="resDrill">${LIC("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}`});
   }else
   el.innerHTML=`<div class="box result"><img class="jmp" src="img/m/${acc===100?"trophy":acc>=60?"jump":"thumbs"}.svg" alt="">
@@ -2064,7 +2109,7 @@ function drillView(){
     const ok=N-D.wrong.size;
     el.innerHTML=head+(isAdmin()?`<div class="box done"><img class="jmp" src="img/m/${ok===N?"trophy":ok>=N*.6?"cheer":"thumbs"}.svg" alt=""><h2>${ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب"}</h2><p class="rnote">${ok} من ${N} من المحاولة الأولى · +${ok*CFG.xp.quiz} خبرة</p><button class="btn next" id="dBack">متابعة</button></div>`
       :resDS({img:ok===N?"trophy":ok>=N*.6?"cheer":"thumbs",pct:ok/N,mid:`<b><bdi>${ok}</bdi></b><small>من ${N}</small>`,title:ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب",sub:`${ok} من ${N} من المحاولة الأولى`,
-        stats:[["الخبرة","+"+ok*CFG.xp.quiz,LIC("star")],["من المحاولة الأولى",ok+" من "+N,LIC("target")]],btns:`<button class="btn next" id="dBack">متابعة</button>`}));
+        stats:[["من المحاولة الأولى",ok+" من "+N],["الدقّة",Math.round(ok/N*100)+"٪"]],gains:{xp:ok*CFG.xp.quiz},btns:`<button class="btn next" id="dBack">متابعة</button>`}));
     $("dBack").onclick=()=>{DRL=null;reviewHome();toCur()};return;
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
@@ -2215,13 +2260,13 @@ function reviewHome(){
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
-  ${learned||scopeGet()!=="all"?`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة: ما تعلّمته (${learned})</h3>${scopeHTML()}
+  ${learned||scopeGet()!=="all"?`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة: ما تعلّمته (${learned})</h3>${scopeHTML()}
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}><small>${counts[id]}</small>${n}</button>`).join("")}</div>
    ${RVSTATE!=="due"&&cnt?'<p class="rnote">ما لم يحن موعده يُراجَع للتدريب فقط، بلا خبرة ولا طاقة.</p>':""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
-  </div>`:`<div class="rsec rvbox"><h3>${I3("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
+  </div>`:`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   // لا نعيد كتابة الشاشة إن كانت هي نفسها معروضة (يمنع الارتجاف والقفز أثناء التمرير)
   if(!(REVH.h===html&&el.firstElementChild===REVH.n&&REVH.n)){const y=scrollY;el.innerHTML=html;REVH={h:html,n:el.firstElementChild};if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
   bindSettings();
@@ -2354,10 +2399,10 @@ function showCard(){
       RES={daily:DAILY,title:(DAILY?"أنهيت مراجعة اليوم! ":"أحسنت! ")+"راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
     reviewHome();if(ended)toCur();return}
   cur=queue[0];flipped=false;
-  const isNew=!P[cur.k],tc="t-"+cur.t,stk=isNew?`<span class="sttag cardtag">${I3("sparkles")} كلمة جديدة</span>`:lastMiss(cur.k)?`<span class="sttag cardtag stmiss">${I3("repeat")} خطأ سابق</span>`:"";
+  const isNew=!P[cur.k],tc="t-"+cur.t,stk=isNew?`<span class="sttag cardtag">${TI("sparkles")} كلمة جديدة</span>`:lastMiss(cur.k)?`<span class="sttag cardtag stmiss">${TI("repeat")} خطأ سابق</span>`:"";
   const front=S.dir==="de"?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
   const pct=sessTotal?sessDone/sessTotal*100:0;
-  el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isNew?"🆕 جديدة":"🔁 مراجعة"} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
+  el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isAdmin()?(isNew?"🆕 جديدة":"🔁 مراجعة"):(isNew?LIC("sparkles")+" جديدة":LIC("repeat")+" مراجعة")} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
   <div class="scene fr-${E.frame}"><div class="flip" id="flip">
    <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
    <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${bigDe(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
@@ -2370,7 +2415,7 @@ function flip(){
   const b=(P[cur.k]||{box:0}).box,d0=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
   // مراجعة قبل موعدها: تدريب لا يغيّر موعد الكلمة، فلا نعرض مواعيد تحت الأزرار
   const prac=!!(P[cur.k]&&P[cur.k].box>0&&!rewarded(P[cur.k],cur.k,Date.now(),LOG)),d=n=>prac?"تدريب":d0(n);
-  $("rate").innerHTML=`${prac?'<p class="rnote pracnote">🔁 تدريب: لم يحن موعد هذه الكلمة، فمراجعتها الآن لا تغيّر موعدها ولا تعطي خبرة.</p>':""}<div class="rate">
+  $("rate").innerHTML=`${prac?'<p class="rnote pracnote">'+(isAdmin()?"🔁":LIC("repeat"))+' تدريب: لم يحن موعد هذه الكلمة، فمراجعتها الآن لا تغيّر موعدها ولا تعطي خبرة.</p>':""}<div class="rate">
    <button class="btn r0" data-r="0">نسيت<small>${prac?"تدريب":"الآن"}</small></button>
    <button class="btn r1" data-r="1">صعبة<small>${d(IV[Math.max(1,b)])}</small></button>
    <button class="btn r2" data-r="2">عرفتها<small>${d(IV[Math.min(b+1,8)])}</small></button>
@@ -2948,12 +2993,12 @@ function gameResultDS(g,pct,rec){
   const mid=GM.id==="match"?`<b class="sm"><bdi>${secs(GM.ms)}</bdi></b><small>الوقت</small>`:`<b><bdi>${GM.ok}</bdi></b><small>من ${GM.n}</small>`;
   const stats=GM.id==="match"?[["الوقت",secs(GM.ms)],["أخطاء",GM.miss],...(GM.best&&!rec?[["أفضل وقت لك",secs(GM.best)]]:[])]
     :[["النتيجة",GM.ok+" من "+GM.n],["الدقّة",Math.round(pct*100)+"٪"],...(GM.helped?[["بمساعدة",GM.helped]]:[])];
-  const gains=[gn.xp?`<span class="gr-g xp">${LIC("star")||""}<b dir="ltr">+${gn.xp}</b> خبرة</span>`:"",gn.en?`<span class="gr-g en">${HIC("battery")}<b dir="ltr">+${gn.en}</b> طاقة</span>`:"",gn.gem?`<span class="gr-g gem">${HIC("gem")}<b dir="ltr">+${gn.gem}</b> جواهر</span>`:""].join("");
+  const gains=gainsHTML(gn);
   return `<div class="gres"><div class="gr-top"><img class="jmp" src="img/m/${rec||full?"trophy":pct>=.6?"cheer":"thumbs"}.svg" alt=""><div class="gr-rw">${ring}<div class="gr-mid">${mid}</div></div></div>
    <h2 class="gr-t"><span class="gic">${LIC(g.li||"puzzle")}</span>${g.n}</h2>
    ${rec?`<p class="gr-rec">${I3("medal")} رقم قياسي جديد!</p>`:""}
    <div class="gr-stats">${stats.map(([k,v])=>`<div><small>${k}</small><b>${v}</b></div>`).join("")}</div>
-   ${gains?`<div class="gr-gains">${gains}</div>`:""}
+   ${gains}
    <div class="gr-btns"><button class="btn next" id="gAgain">مرة أخرى</button><button class="btn gr-sec" id="gBack">كل التمارين</button></div></div>`}
 function gameResult(){
   const g=GAMES.find(x=>x.id===GM.id),pct=GM.n?GM.ok/GM.n:0;
