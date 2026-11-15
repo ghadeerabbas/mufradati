@@ -8,7 +8,7 @@ const DAY=864e5, IV=[0,1,2,4,7,15,30,60,120];
 const DEF_CFG={
   xp:{review:[1,2,4,4],stOk:3,stMiss:2,mem:15,solid:40,dayN:20,dayXp:10,quiz:1,level:80},
   duel:{qt:15,gem:1},   // ثواني كل سؤال في التحدي، وجواهر الفائز
-  gems:{station:1,level:5,quest:[2,3,5],streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
+  gems:{station:1,level:5,quest:[0,3,5],streak:[[7,10],[14,15],[30,30],[60,50],[100,75],[200,100],[365,150]],prize:[50,40,30]},
   league:{group:15,promoMin:60,bots:100,up:[10,9,8,7,6,5,4,3,1,0],down:[0,2,3,3,3,4,4,5,5,5]},
   energy:{max:30,minutes:48,stCost:10,refund:5,perReviews:5,game:2,gameMax:3,firstFree:1,drill:5,daily:10,combo:2,comboMax:3},
   station:{words:5,perDay:4,drillReq:1},
@@ -260,6 +260,7 @@ function econ(){
       else if(d!==end){gap++;
         if(s.streak>=3&&gap<=2&&avail>0){avail--;gapUsed++}
         else{s.streak=0;avail+=gapUsed;gapUsed=0}}
+      if(d==="2026-11-14"||d==="2026-11-15")s.g15=Math.max(s.g15||0,s.streak);   // هدية بداية ملصق تشرين الثاني 2026 (انظر monDays)
       s.best=Math.max(s.best,s.streak);if(d>=end)break}
   }
   while(fi<fz.length){avail++;fi++}
@@ -390,14 +391,25 @@ function tableFor(uid,w,docs,prevDocs,prog){
 /* --- تطبيق الأحداث: الهاتف يطبّقها فورًا للعرض، والخادم يطبّقها ويتحقّق منها ويحفظها --- */
 // ctx: {server:true|false, admin:bool, words:Set|null}. يعيد true عند القبول، أو سبب الرفض
 /* مهام اليوم: تُحسب من سجلّ اليوم نفسه، ولكل مهمة مكتملة صندوق جواهر يُفتح مرة واحدة في اليوم */
-function stPerfectAt(d){   // محطات اليوم التي لم يُخطأ فيها في أي كلمة
-  const lg=LOG.filter(x=>isNewF(x)&&dkey(x[0])===d);
-  return STN.filter(s=>dkey(s[0])===d).filter(s=>{const e=lg.filter(x=>x[0]>=s[0]&&x[0]<s[0]+(s[1]||5));return e.length&&e.every(x=>x[2]===2)}).length;
+// المحطة تُحسب مكتملة في المهام مع تدريبها: محطات اليوم بالترتيب، والمحطة رقم j مكتملة إن أُنهي j+1 تدريب في اليوم
+const drillsOn=d=>QLOG.filter(q=>q[3]==="drill"&&dkey(q[0])===d).length;
+function stPerfectAt(d){   // محطات اليوم المكتملة مع تدريبها التي لم يُخطأ فيها في أي كلمة
+  const lg=LOG.filter(x=>isNewF(x)&&dkey(x[0])===d),nd=drillsOn(d);
+  return STN.filter(s=>dkey(s[0])===d).sort((a,b)=>a[0]-b[0]).slice(0,nd).filter(s=>{const e=lg.filter(x=>x[0]>=s[0]&&x[0]<s[0]+(s[1]||5));return e.length&&e.every(x=>x[2]===2)}).length;
 }
+/* ملصق الشهر: يُكسب بإكمال محطة مع تدريبها في (أيام الشهر − 7) يومًا من ذلك الشهر (30 يومًا ← 23، وشباط 28 ← 21) */
+const MON_AR=["كانون الثاني","شباط","آذار","نيسان","أيار","حزيران","تموز","آب","أيلول","تشرين الأول","تشرين الثاني","كانون الأول"];
+const MON_IC=["⛄","💝","🌷","🐣","🌼","🍓","🍉","⛵","🍎","🍁","🍂","❄️"];
+const monNeed=m=>{const[y,mo]=m.split("-").map(Number);return new Date(y,mo,0).getDate()-7};
+function monDays(){const o={};for(const q of QLOG)if(q[3]==="drill"){const d=dkey(q[0]),m=d.slice(0,7);(o[m]=o[m]||new Set).add(d)}
+  // أول ملصق (تشرين الثاني 2026) بدأ في منتصف الشهر: من كانت سلسلته 15 يومًا فأكثر يوم 15 تُحسب له أيام 1–15 كلها
+  if(((EC||econ()).s.g15||0)>=15){const s=o["2026-11"]=o["2026-11"]||new Set;for(let i=1;i<=15;i++)s.add("2026-11-"+String(i).padStart(2,"0"))}
+  return Object.fromEntries(Object.entries(o).map(([m,s])=>[m,s.size]))}
+function monStat(m,md){md=md||monDays();const mo=+m.slice(5,7)-1,n=md[m]||0,need=monNeed(m);return {m,n:Math.min(n,need),need,ok:n>=need,name:MON_AR[mo]+" "+m.slice(0,4),ic:MON_IC[mo]}}
 const QUESTS=[
-  {id:"st1",n:"أكمل محطة واحدة",goal:1,f:d=>STN.filter(x=>dkey(x[0])===d).length},
+  {id:"st1",n:"أكمل محطة مع تدريبها",goal:1,f:drillsOn},
   {id:"rv15",n:"راجع 15 كلمة",goal:15,f:d=>LOG.filter(x=>!isNewF(x)&&dkey(x[0])===d).length},
-  {id:"perf",n:"أكمل محطة بلا أي خطأ",goal:1,f:stPerfectAt}
+  {id:"perf",n:"أكمل محطة بلا أي خطأ مع تدريبها",goal:1,f:stPerfectAt}
 ];
 const questGot=(d,id)=>(Array.isArray(R.qd)?R.qd:[]).some(x=>x[0]===d&&x[1]===id);
 function applyEv(ev,now,ctx){

@@ -347,6 +347,12 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .qch .chest{width:46px;height:40px;filter:grayscale(.15)}.qrow:not(.ok) .qch .chest{opacity:.75}
 .qopen{width:auto!important;padding:8px 16px!important;margin:0!important;background:var(--acc)!important;color:#412402!important;box-shadow:0 4px 0 var(--accd)!important;font-weight:800}
 .qgot{font-weight:800;color:var(--acct);font-size:.85rem;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}.qgot .i3{width:18px;height:18px}
+.qmon{display:flex;flex-direction:column;align-items:center;font-size:1.7rem;line-height:1.1}.qmon small{font-size:.62rem;font-weight:800;color:var(--muted);white-space:nowrap}
+.moncard{display:flex;align-items:center;gap:12px;padding:12px;border-radius:16px;background:var(--accl);margin:4px 0 10px;text-align:right}.montx{flex:1;min-width:0}.montx b{display:block;margin-bottom:6px}.montx small{display:block;margin-top:6px;font-size:.75rem;color:var(--acct);font-weight:700}
+.monbadge{width:56px;height:56px;flex:none;border-radius:50%;display:grid;place-items:center;font-size:1.9rem;background:var(--card);border:3px solid var(--line);filter:grayscale(1);opacity:.55}
+.moncard.ok .monbadge,.monit.ok .monbadge,.monbadge.big,.monbadge.sm{filter:none;opacity:1;border-color:var(--acc)}.monbadge.big{width:120px;height:120px;font-size:4.2rem;border-width:6px;box-shadow:0 6px 0 var(--accd)}
+.monbadge.sm{width:34px;height:34px;font-size:1.2rem;border-width:2px;font-style:normal}
+.mongrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}.monit{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--soft)}.monit b{font-size:.75rem;line-height:1.3}.monit small{font-size:.7rem;color:var(--muted);font-weight:700}
 .qbox{max-width:420px}.questfx .bcup .i3{width:84px;height:84px}.qbig{width:100%;margin-top:12px}
 .chscene{text-align:center;padding:10px 0}.chlab{font-weight:800;color:var(--hd)}.chbox{display:inline-block;cursor:pointer}.chbox .chest{width:170px;height:142px}
 .chbox.shake{animation:chsh 1.3s ease-in-out infinite}@keyframes chsh{0%,60%,100%{transform:rotate(0)}66%{transform:rotate(-7deg)}74%{transform:rotate(7deg)}82%{transform:rotate(-5deg)}90%{transform:rotate(4deg)}}
@@ -1907,15 +1913,28 @@ function reviewPills(){
 // آخر إجابة على الكلمة كانت خطأ: «نسيت» في المراجعة، أو خطأ في محطتها، أو خطأ في تمرين بعدها
 /* ================= مهام اليوم: ثلاث مهام، ولكل مهمة مكتملة صندوق جواهر ================= */
 const questOn=()=>!!(UID&&!isAdmin()&&!FREEU);
-function questList(){const d=today();EC=EC||econ();return QUESTS.map((q,i)=>{const v=q.f(d);return {...q,i,v:Math.min(v,q.goal),done:v>=q.goal,got:questGot(d,q.id),g:CFG.gems.quest[i]||0}}).filter(q=>q.g)}
-function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got);
+function questList(){const d=today();EC=EC||econ();return QUESTS.map((q,i)=>{const v=q.f(d);return {...q,i,v:Math.min(v,q.goal),done:v>=q.goal,got:questGot(d,q.id),g:CFG.gems.quest[i]||0}}).filter(q=>q.g||q.id==="st1")}
+const curMon=()=>today().slice(0,7);
+// بطاقة ملصق الشهر: الملصق (رمادي حتى يُكسب)، وعدد الأيام من المطلوب
+function monCard(){const s=monStat(curMon());
+  return `<div class="moncard${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><div class="montx"><b>ملصق ${s.name}</b><div class="qbar"><i style="width:${s.n/s.need*100}%"></i><span dir="ltr">${s.n} / ${s.need}</span></div>
+   <small>${s.ok?"حصلت على ملصق هذا الشهر! 🎉":"أكمل محطة مع تدريبها في "+s.need+" يومًا من هذا الشهر لتحصل عليه"}</small></div></div>`}
+// ملصقات الأشهر: كل الأشهر منذ أول تدريب، ما كُسب منها ملوّن
+function monthsModal(){
+  const md=monDays(),ms=[...new Set([...Object.keys(md),curMon()])].filter(m=>m>="2026-11"&&m<=curMon()).sort().reverse().map(m=>monStat(m,md)),got=ms.filter(s=>s.ok).length;
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};
+  m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">ملصقات الأشهر</h1><p class="rnote">لكل شهر ملصق: تكسبه بإكمال محطة مع تدريبها في كل أيام الشهر إلا 7 أيام.${got?" معك "+arN(got,"ملصق واحد","ملصقان","ملصقات")+".":""}</p>
+   <div class="mongrid">${ms.map(s=>`<div class="monit${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><b>${s.name}</b><small dir="ltr">${s.n} / ${s.need}</small></div>`).join("")}</div><button class="link" id="mnNo">إغلاق</button></div>`;
+  $("mnNo").onclick=close;
+}
+function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&q.g);
   return `<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${I3("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`}
 const CHEST=`<svg class="chest" viewBox="0 0 120 100" aria-hidden="true"><ellipse cx="60" cy="94" rx="44" ry="5" fill="rgba(0,0,0,.12)"/>
  <rect x="14" y="44" width="92" height="46" rx="8" fill="#e8962a"/><rect x="14" y="44" width="92" height="12" fill="#c97a16"/><rect x="24" y="56" width="10" height="34" fill="#c97a16"/><rect x="86" y="56" width="10" height="34" fill="#c97a16"/>
  <g class="lid"><path d="M14 46 V34 Q14 14 60 14 Q106 14 106 34 V46 Z" fill="#f2a93b"/><rect x="24" y="17" width="10" height="29" fill="#d88a1f"/><rect x="86" y="17" width="10" height="29" fill="#d88a1f"/></g>
  <rect x="50" y="38" width="20" height="22" rx="5" fill="#fff4d6"/><circle cx="60" cy="47" r="3.5" fill="#c97a16"/><rect x="58.5" y="49" width="3" height="6" rx="1.5" fill="#c97a16"/></svg>`;
 function questRows(L){return L.map(q=>`<div class="qrow${q.done?" ok":""}"><div class="qtx"><b>${q.n}</b><div class="qbar"><i style="width:${q.v/q.goal*100}%"></i><span dir="ltr">${q.v} / ${q.goal}</span></div></div>
-  ${q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> 💎</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
+  ${!q.g?`<span class="qmon">${monStat(curMon()).ic}<small>ملصق الشهر</small></span>`:q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> 💎</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
 // فتح صندوق مهمة: يهتزّ ثم ينفتح وتخرج الجواهر
 function openChest(id,host,done){
   const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;
@@ -1928,8 +1947,8 @@ function openChest(id,host,done){
 }
 function questModal(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML="";if($("review").classList.contains("on")&&!STS&&!DRL&&!RES)reviewHome()};
-  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${I3("target")} مهام اليوم</h1><p class="rnote">لكل مهمة تكملها صندوق فيه جواهر. تتجدّد المهام كل يوم.</p>
-    <div id="qList">${questRows(L)}</div><button class="link" id="qNo">إغلاق</button></div>`;
+  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${I3("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: صندوق جواهر، أو يوم يُحسب لك في ملصق الشهر. تتجدّد المهام كل يوم.</p>
+    <div id="qList">${questRows(L)}</div>${monCard()}<button class="link" id="qNo">إغلاق</button></div>`;
     $("qNo").onclick=close;m.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,$("qList"),draw))};
   m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};draw();
 }
@@ -1938,8 +1957,11 @@ function questWatch(){
   if(!questOn())return;const d=today(),k=K("qann"),seen=jget(k,{});if(seen.d!==d){seen.d=d;seen.ids=[]}
   const fresh=questList().filter(q=>q.done&&!q.got&&!seen.ids.includes(q.id));if(!fresh.length)return;
   seen.ids.push(...fresh.map(q=>q.id));st(k,JSON.stringify(seen));
-  bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${fresh.length>1?"أكملت "+arN(fresh.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+fresh[0].n+"!"}</h2><div class="qbig" id="qBig">${questRows(questList())}</div>`,"questfx",d_=>{
-    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=questRows(questList());wire()}));wire()});
+  const mk=K("monann"),ma=jget(mk,[]),s=monStat(curMon());
+  if(fresh.some(q=>q.id==="st1")&&s.ok&&!ma.includes(s.m)){ma.push(s.m);st(mk,JSON.stringify(ma.slice(-40)));
+    bigScreen(`<div class="monbadge big">${s.ic}</div><h2 class="btit">حصلت على ملصق ${s.name}!</h2><p class="bsub">أكملت محطة مع تدريبها في ${s.need} يومًا من هذا الشهر. تجد ملصقاتك في صفحة «أنا».</p>`,"questfx",()=>{fx("done");confetti(140)})}
+  bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${fresh.length>1?"أكملت "+arN(fresh.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+fresh[0].n+"!"}</h2><div class="qbig" id="qBig">${questRows(questList())}${monCard()}</div>`,"questfx",d_=>{
+    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=questRows(questList())+monCard();wire()}));wire()});
 }
 function lastMiss(k){
   let l=null;for(let i=LOG.length-1;i>=0;i--)if(LOG[i][1]===k){l=LOG[i];break}
@@ -2893,7 +2915,7 @@ function ev(e){
   syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
   EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);
-  if(e.type==="stDone"||e.type==="rate")setTimeout(questWatch,50);return true;
+  if(e.type==="stDone"||e.type==="rate"||e.type==="quiz")setTimeout(questWatch,50);return true;
 }
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
 function applyServer(j){
@@ -4645,13 +4667,14 @@ function kidsRow(){
   const r=btnVis("rdBtn"),m=btnVis("mtBtn");if(!r&&!m)return "";
   return `<div class="kidrow">${r?`<button type="button" data-b="rdBtn">${I3("book")} القراءة</button>`:""}${m?`<button type="button" data-b="mtBtn"><span class="mtIco">✏️</span> التمارين</button>`:""}</div>`;
 }
-document.addEventListener("click",e=>{const k=e.target.closest(".kidrow button,.meit");if(k&&$(k.dataset.b))$(k.dataset.b).click()});
+document.addEventListener("click",e=>{const k=e.target.closest(".kidrow button,.meit");if(k&&k.dataset.b==="monBtn"){monthsModal();return}if(k&&$(k.dataset.b))$(k.dataset.b).click()});
 function renderMe(){
   const e=EC||econ(),mb=$("mBadge"),bd=mb.classList.contains("on")?`<span class="mbadge on">${esc(mb.textContent)}</span>`:"";
   const it=(id,ic,t,s,x)=>`<button type="button" class="meit" data-b="${id}">${ic}<span><b>${t}</b>${s?`<small>${s}</small>`:""}</span>${x||""}<em>‹</em></button>`;
   $("me").innerHTML=`<div class="mehd"><div class="stkav">${stkH(E.avatar||"🎓")}</div><div><b><bdi>${esc(UNAME)}</bdi></b><small>المستوى ${e.lv}</small><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div><small>${I3("sparkles")} ${e.rest}/${e.need}</small></div></div>
   <div class="melist">
    ${it("hAv",I3("medal"),"ملفي","إنجازاتك وإحصاءاتك")}
+   ${isAdmin()?"":it("monBtn",`<i class="monbadge sm">${monStat(curMon()).ic}</i>`,"ملصقات الأشهر",(()=>{const s=monStat(curMon());return s.ok?"حصلت على ملصق "+s.name:s.name+": "+s.n+" من "+s.need+" يومًا"})())}
    ${btnVis("rdBtn")?it("rdBtn",I3("book"),"القراءة",""):""}
    ${btnVis("mtBtn")?it("mtBtn",'<span class="mtIco">✏️</span>',"تمارين المدرسة",""):""}
    ${btnVis("aiBtn")?it("aiBtn",I3("owl"),"مساعد الوظيفة","يساعدك خطوة خطوة"):""}
