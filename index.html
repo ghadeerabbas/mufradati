@@ -354,7 +354,17 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .monbadge.sm{width:34px;height:34px;font-size:1.2rem;border-width:2px;font-style:normal}
 .mongrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}.monit{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:14px;background:var(--soft)}.monit b{font-size:.75rem;line-height:1.3}.monit small{font-size:.7rem;color:var(--muted);font-weight:700}
 .pzcard{padding:12px;border-radius:16px;background:var(--soft);margin:4px 0 10px;text-align:center}.pzcard>b{display:flex;justify-content:space-between;margin-bottom:8px}.pzcard small{display:block;margin-top:8px;font-size:.75rem;color:var(--muted);font-weight:700}
-.pzboard{width:min(100%,260px);height:auto;display:block;overflow:visible;margin:0 auto}.pzsh{fill:none;stroke:rgba(0,0,0,.45);stroke-width:2;stroke-linejoin:round}.pzlt{fill:none;stroke:rgba(255,255,255,.75);stroke-width:1.4;stroke-linejoin:round}.pzghost{filter:grayscale(1);opacity:.18}.pzmiss{fill:none;stroke:var(--muted);stroke-opacity:.5;stroke-width:1.6;stroke-dasharray:5 4;stroke-linejoin:round}.pzq{fill:var(--muted)}.pzhl{fill:none;stroke:#ffd34d;stroke-width:3.5;stroke-linejoin:round;animation:pzhl 1.2s ease-in-out infinite}@keyframes pzhl{50%{stroke:#fff}}@keyframes pzhl{50%{stroke:#ffd34d}}
+.pzboard{position:relative;width:min(100%,260px);aspect-ratio:1;margin:0 auto;border-radius:10px;background:rgba(0,0,0,.05);box-shadow:inset 0 1px 3px rgba(0,0,0,.12)}
+[data-dark] .pzboard{background:rgba(255,255,255,.05)}
+.pzp{position:absolute;display:block;filter:drop-shadow(0 1px 1.2px rgba(0,0,0,.4))}
+.pzm{position:absolute;inset:0;display:block;overflow:hidden;-webkit-mask-size:100% 100%;mask-size:100% 100%;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat}
+.pzm img{position:absolute;max-width:none;height:auto;display:block}
+.pzp.miss{filter:drop-shadow(0 0 .6px rgba(0,0,0,.55))}.pzp.miss .pzm{opacity:.2}.pzp.miss img{filter:grayscale(1)}
+.pzp.miss b{position:absolute;transform:translate(-50%,-50%);font-size:1.25rem;font-weight:900;color:var(--muted);opacity:.75}
+.pzp.hl{animation:pzhl 1.3s ease-in-out infinite;z-index:2}@keyframes pzhl{0%,100%{filter:drop-shadow(0 0 2px #ffd34d) drop-shadow(0 0 5px #ffb800)}50%{filter:drop-shadow(0 0 4px #fff3b0) drop-shadow(0 0 10px #ffc83d)}}
+.chscene:has(.pzstage) .chbox .chest{width:96px;height:80px;transition:width .4s,height .4s}.chscene:has(.pzstage) .chlab{margin:0}
+.pzstage{position:relative}.pzfly{position:absolute;inset:0;pointer-events:none;z-index:5}.pzfly .pzp{filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
+.pzwait{visibility:hidden}
 .qgot .i3,.qmon .i3{width:24px;height:24px}
 .qbox{max-width:420px}.questfx .bcup .i3{width:84px;height:84px}.qbig{width:100%;margin-top:12px}
 .chscene{text-align:center;padding:10px 0}.chlab{font-weight:800;color:var(--hd)}.chbox{display:inline-block;cursor:pointer}.chbox .chest{width:170px;height:142px}
@@ -2653,32 +2663,19 @@ const questOn=()=>!!(UID&&!isAdmin()&&!FREEU);
 function questList(){const d=today();EC=EC||econ();return QUESTS.map((q,i)=>{const v=q.f(d);return {...q,i,v:Math.min(v,q.goal),done:v>=q.goal,got:questGot(d,q.id),g:CFG.gems.quest[i]||0}}).filter(q=>q.g||q.pz||q.id==="st1")}
 // بازل الشهر: صورة من 10 قطع (5×2)، القطع التي لم تُجمع رمادية، والقطعة الجديدة تتوهّج
 let PZN=0;
-// صورة بازل كل شهر (صور حقيقية بلا قيود حقوق CC0)؛ الشهر بلا صورة يأخذ آخر صورة متاحة
-// صورة البازل لكل شهر: رسومات اختارها غدير (مربّعة)، ثم صورة فنجان قهوة حقيقية CC0؛ تُقصّ مربّعة لتملأ اللوح
-const PZ_IMG={"2026-11":"img/pz/2026-11.jpg","2026-12":"img/pz/2026-12.jpg","2027-01":"img/pz/2027-01.jpg","2027-02":"img/pz/2027-02.jpg","2027-03":"img/pz/2027-03.jpg"};
-const PZ_FILL={"2027-03":1};
-const PZ_BG={"2026-11":"#d6eec9","2026-12":"#d6eafa","2027-01":"#dff3d6","2027-02":"#fbeccd"};   // لون خلفية الرسمة يملأ جانبي اللوح
-const pzImg=m=>PZ_IMG[m]||PZ_IMG[Object.keys(PZ_IMG).filter(k=>k<=m).sort().pop()]||PZ_IMG["2026-11"];
-// قطع بازل حقيقية (3×3 مربّعة) فوق صورة الشهر مقصوصة مربّعة: لكل حدّ داخلي نتوء يخرج من قطعة ويدخل في جارتها، وحوافّ بارزة.
-// القطع التي لم تُجمع: ظلّ باهت رمادي للصورة بإطار متقطع، والقطعة الجديدة تتوهّج
-function pzBoard(have,hl,m){
-  const N_=3,W_=60,S_=N_*W_,id="pz"+(++PZN),f=n=>n.toFixed(1),mm=m||curMon(),src=pzImg(mm),fk=Object.keys(PZ_IMG).filter(k=>k<=mm).sort().pop()||"2026-11";
-  const H=[[1,-1,1],[-1,1,-1]],V=[[-1,1],[1,-1],[-1,1]];   // H[r][c]: الحدّ تحت الصف r، V[r][c]: الحدّ يمين العمود c (1 = النتوء للقطعة العليا/اليسرى)
-  const seg=(ax,ay,bx,by,out,cx,cy)=>{if(!out)return `L${f(bx)} ${f(by)}`;
-    const L=Math.hypot(bx-ax,by-ay),dx=(bx-ax)/L,dy=(by-ay)/L,mx=(ax+bx)/2,my=(ay+by)/2;let nx=-dy,ny=dx;
-    if((nx*(mx-cx)+ny*(my-cy)>0)!==(out>0)){nx=-nx;ny=-ny}
-    const h=15,P=(t_,n_,d_)=>`${f(mx+dx*L*(t_-.5)+nx*n_+dx*d_)} ${f(my+dy*L*(t_-.5)+ny*n_+dy*d_)}`,a=7/L;
-    return `L${P(.5-a,0,0)}C${P(.5-a,h*.15,3.6)} ${P(.5,h,-12)} ${P(.5,h,0)}C${P(.5,h,12)} ${P(.5+a,h*.15,-3.6)} ${P(.5+a,0,0)}L${f(bx)} ${f(by)}`};
-  const piece=i=>{const c=i%N_,r=Math.floor(i/N_),x=c*W_,y=r*W_,cx=x+W_/2,cy=y+W_/2;
-    const top=r>0?-H[r-1][c]:0,bot=r<N_-1?H[r][c]:0,lft=c>0?-V[r][c-1]:0,rgt=c<N_-1?V[r][c]:0;
-    return `M${x} ${y}`+seg(x,y,x+W_,y,top,cx,cy)+seg(x+W_,y,x+W_,y+W_,rgt,cx,cy)+seg(x+W_,y+W_,x,y+W_,bot,cx,cy)+seg(x,y+W_,x,y,lft,cx,cy)+"Z"};
-  const tiles=[...Array(PZ_N).keys()].sort((a,b)=>have.has(a)-have.has(b)).map(i=>{const d=piece(i),c=i%N_,r=Math.floor(i/N_);
-    return have.has(i)?`<clipPath id="${id}c${i}"><path d="${d}"/></clipPath><use href="#${id}p" clip-path="url(#${id}c${i})"/>
-      <path d="${d}" class="pzsh" transform="translate(.8 .8)"/><path d="${d}" class="pzlt" transform="translate(-.6 -.6)"/>${i===hl?`<path d="${d}" class="pzhl"/>`:""}`
-      :`<clipPath id="${id}c${i}"><path d="${d}"/></clipPath><use href="#${id}p" clip-path="url(#${id}c${i})" class="pzghost"/><path d="${d}" class="pzmiss"/><text x="${c*W_+W_/2}" y="${r*W_+W_/2+8}" text-anchor="middle" font-size="22" font-weight="800" class="pzq">?</text>`}).join("");
-  return `<svg class="pzboard" viewBox="-2 -2 ${S_+4} ${S_+4}" aria-hidden="true"><defs><g id="${id}p"><rect width="${S_}" height="${S_}" fill="${PZ_BG[fk]||"#fff"}"/><image href="${src}" width="${S_}" height="${S_}" preserveAspectRatio="xMidYMid slice"/></g></defs>${tiles}</svg>`}
-function pzCard(hl){const m=curMon(),{have}=pzMonth(m),s=monStat(m);
-  return `<div class="pzcard"><b>بازل ${s.name} <span dir="ltr">${have.size} / ${PZ_N}</span></b>${pzBoard(have,hl)}<small>${have.size>=PZ_N?"اكتمل بازل هذا الشهر! 🎉":"اجمع القطع التسع هذا الشهر لتربح "+CFG.gems.puzzle+" جوهرة. القطعة المكرّرة تعطيك "+CFG.gems.pdup+" جواهر."}</small></div>`}
+// صورة البازل لكل شهر: رسومات الحيوانات المعتمدة (أسد، فيل، غزال، عصفور) تتناوب على الأشهر بالترتيب
+const PZ_ART=["lion","elephant","deer","bird"];
+const pzImg=m=>{const [y,mo]=String(m||"2026-11").split("-").map(Number),k=((y-2026)*12+mo-11)%PZ_ART.length;return "img/pz/"+PZ_ART[(k+PZ_ART.length)%PZ_ART.length]+".webp"};
+// قطع بازل حقيقية مقصوصة مسبقًا (3×3 بنتوءات متداخلة): موضع كل قطعة وحجمها في صورة 1200×1200، وقناعها img/pz/m1..9.png مشترك بين الرسومات
+const PZ_POS=[[0,0,400,400],[348,0,504,452],[800,0,400,400],[0,348,452,504],[400,400,400,400],[748,348,452,504],[0,800,400,400],[348,748,504,452],[800,800,400,400]];
+const pzPiece=(i,src,cls)=>{const [x,y,w,h]=PZ_POS[i],c=i%3,r=Math.floor(i/3);
+  return `<i class="pzp ${cls}" data-i="${i}" style="left:${x/12}%;top:${y/12}%;width:${w/12}%;height:${h/12}%"><i class="pzm" style="-webkit-mask-image:url(img/pz/m${i+1}.png);mask-image:url(img/pz/m${i+1}.png)"><img src="${src}" alt="" style="width:${1200/w*100}%;left:${-x/w*100}%;top:${-y/h*100}%"></i>${cls.includes("miss")?`<b style="left:${(c*400+200-x)/w*100}%;top:${(r*400+200-y)/h*100}%">?</b>`:""}</i>`};
+// اللوح: القطع التي لم تُجمع ظلّ باهت مع علامة استفهام، والمجموعة ملوّنة فوقها، والقطعة الجديدة تتوهّج. hide: قطعة تُعرض فارغة إلى أن تصل إليها الحركة
+function pzBoard(have,hl,m,hide){
+  const src=pzImg(m||curMon()),got=i=>have.has(i)&&i!==hide;
+  return `<div class="pzboard">${[...Array(PZ_N).keys()].sort((a,b)=>got(a)-got(b)).map(i=>pzPiece(i,src,got(i)?"got"+(i===hl?" hl":""):"miss")).join("")}</div>`}
+function pzCard(hl,hide){const m=curMon(),{have}=pzMonth(m),s=monStat(m),n=have.size-(hide!=null&&have.has(hide)?1:0);
+  return `<div class="pzcard"><b>بازل ${s.name} <span dir="ltr" class="pzn">${n} / ${PZ_N}</span></b>${pzBoard(have,hl,m,hide)}<small>${have.size>=PZ_N?"اكتمل بازل هذا الشهر! 🎉":"اجمع القطع التسع هذا الشهر لتربح "+CFG.gems.puzzle+" جوهرة. القطعة المكرّرة تعطيك "+CFG.gems.pdup+" جواهر."}</small></div>`}
 const curMon=()=>today().slice(0,7);
 // بطاقة ملصق الشهر: الملصق (رمادي حتى يُكسب)، وعدد الأيام من المطلوب
 function monCard(){const s=monStat(curMon());
@@ -2711,8 +2708,34 @@ function openPuzzle(host,done){
     b.classList.remove("shake");b.classList.add("open");fx("done");renderHeader();
     const r=pzToday(),full=r.g>=CFG.gems.puzzle&&r.g>CFG.gems.pdup,n=pzMonth(curMon()).have.size;
     if(full)confetti(160);else confetti(50);
-    host.querySelector(".chhint").outerHTML=(r.g&&!full?`<p class="chgot">قطعة مكرّرة: <bdi dir="ltr">+${r.g}</bdi> جواهر 💎</p>`:full?`<p class="chgot">اكتمل البازل! <bdi dir="ltr">+${r.g}</bdi> جوهرة 💎</p>`:`<p class="chgot">قطعة جديدة! ${n} من ${PZ_N}</p>`)+pzCard(r.g&&!full?-1:r.p)+`<button class="btn next" id="chOk">رائع!</button>`;
-    host.querySelector("#chOk").onclick=done};
+    const fresh=(!r.g||full)&&r.p>=0;   // قطعة جديدة فعلًا (لا مكرّرة): لها الحركة، مرة واحدة عند فتح الصندوق فقط
+    host.querySelector(".chhint").outerHTML=(r.g&&!full?`<p class="chgot">قطعة مكرّرة: <bdi dir="ltr">+${r.g}</bdi> جواهر 💎</p>`:full?`<p class="chgot">اكتمل البازل! <bdi dir="ltr">+${r.g}</bdi> جوهرة 💎</p>`:`<p class="chgot">قطعة جديدة! ${n} من ${PZ_N}</p>`)+(fresh?`<div class="pzstage">${pzCard(r.p,r.p)}</div>`:pzCard(-1))+`<button class="btn next" id="chOk">رائع!</button>`;
+    host.querySelector("#chOk").onclick=done;
+    if(fresh)pzFly(host,r.p,n)};
+}
+// حركة القطعة الجديدة: تظهر وتدور في الوسط، ثم يظهر اللوح، ثم تنتقل إلى مكانها وتستقر، ويبقى اللوح لحظة قبل زر المتابعة
+function pzFly(host,i,n){
+  const st=host.querySelector(".pzstage"),card=st&&st.querySelector(".pzcard"),slot=st&&st.querySelector(`.pzp[data-i="${i}"]`),ok=host.querySelector("#chOk"),bf=document.querySelector(".bigfx.on #bfGo");
+  if(!st||!slot)return;
+  const wait=on=>{[ok,bf].forEach(x=>{if(x)x.classList.toggle("pzwait",on)})};
+  const settle=()=>{const g=card.querySelector(".pzn");if(g)g.textContent=n+" / "+PZ_N;slot.className="pzp got hl";slot.parentNode.appendChild(slot)};   // فوق القطع الأخرى
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!slot.animate){settle();return}
+  wait(true);
+  const sr=st.getBoundingClientRect(),pr=slot.getBoundingClientRect();
+  const fly=document.createElement("div");fly.className="pzfly";fly.innerHTML=pzPiece(i,pzImg(curMon()),"got");
+  const f=fly.firstChild;f.style.cssText+=`;left:${pr.left-sr.left}px;top:${pr.top-sr.top}px;width:${pr.width}px;height:${pr.height}px`;
+  st.appendChild(fly);
+  const cx=sr.width/2-(pr.left-sr.left+pr.width/2),cy=Math.min(sr.height/2,150)-(pr.top-sr.top+pr.height/2),big=Math.min(2.1,(sr.width*.5)/pr.width);
+  const C=(sc,rot)=>`translate(${cx}px,${cy}px) scale(${sc}) rotate(${rot}deg)`;
+  card.animate([{opacity:0,transform:"scale(.96)"},{opacity:0,transform:"scale(.96)",offset:.36},{opacity:1,transform:"scale(1)",offset:.5},{opacity:1,transform:"scale(1)"}],{duration:3200,easing:"ease-out",fill:"both"});
+  const a=f.animate([
+    {transform:C(.15,-300),opacity:0},
+    {transform:C(big*1.08,-20),opacity:1,offset:.24,easing:"ease-out"},
+    {transform:C(big,0),offset:.34,easing:"ease-in-out"},
+    {transform:C(big,0),offset:.58,easing:"cubic-bezier(.55,0,.25,1)"},
+    {transform:"translate(0,0) scale(1.1) rotate(0deg)",offset:.9,easing:"ease-out"},
+    {transform:"translate(0,0) scale(1) rotate(0deg)"}],{duration:3200,fill:"forwards"});
+  a.onfinish=()=>{fly.remove();settle();fx("ok");setTimeout(()=>wait(false),1300)};   // يبقى اللوح ظاهرًا لحظة قبل زر المتابعة
 }
 function openChest(id,host,done){
   const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;if(q.pz)return openPuzzle(host,done);
