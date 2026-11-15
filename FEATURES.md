@@ -11,7 +11,7 @@
 |---|---|---|
 | التطبيق | `index.html` | صفحة واحدة: الواجهة والمنطق، ومقسومة بعناوين `/* ===== … ===== */` |
 | المنطق المشترك | `core.js` | يعمل في الهاتف والخادم معًا: الإعدادات، الاقتصاد، الطاقة، الدوري، تطبيق الأحداث. عند تعديله ارفع `core.js?v=N` في `index.html` |
-| الخادم | `server/worker.src.js` | على Cloudflare Workers. يُبنى بـ`server/build.py` (يدمج `core.js`) إلى `server/worker.js`، وينشره `worker.yml` تلقائيًا عند الدفع |
+| الخادم | `server/worker.src.js` | على Cloudflare Workers. يُبنى بـ`server/build.py` (يدمج `core.js`) إلى `server/worker.js`، ويضع بصمة محتوى `core.js` رقمًا لنسخته في `index.html` (`core.js?v=…`) حتى لا يبقى عند أحد `core.js` قديم محفوظ (شغّله بعد أي تعديل على `core.js`)، وينشره `worker.yml` تلقائيًا عند الدفع |
 | إعداد الخادم | `server/wrangler.toml` | ربط الذكاء الصناعي `AI`، والتخزين `BAK`، وجدول ليلي `17 2 * * *` |
 | بوت تيليغرام | `bot/worker.js` | `@mufradati_de_bot` لطلبات الحسابات. **يُنشر يدويًا من غدير**، وليس من المستودع |
 | أندرويد | `android/` | WebView يحمّل الموقع. `MainActivity` (الكاميرا والاستوديو)، و`PhotoProvider`، و`Reminder` (التذكير؛ يُحكم على «هل درس اليوم» بيوم موعد المنبّه لا بيوم وصوله، ولا يُعرض تذكير نهاية اليوم إن وصل بعد منتصف الليل). يُبنى بـ`apk.yml` إلى إصدار `apk-latest` (الملفان `mufradati.apk` و`mufradati1.apk`) |
