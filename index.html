@@ -854,6 +854,14 @@ body:not(.adm):not(.lesson) #review .result #resGo{position:fixed;left:50%;trans
 body:not(.adm):not(.lesson) #review .result #resDrill{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:calc(var(--navH,64px) + 76px);z-index:17;margin:0}
 body:not(.adm) #review .result{padding-bottom:16px}body:not(.adm) #review:has(.result){padding-bottom:150px}
 body:not(.adm) .bigfx #bfGo{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),420px);bottom:calc(20px + env(safe-area-inset-bottom));margin:0}
+/* المسار في الوضع الليلي: المحطات المقفلة أفتح من الخلفية بإطار واضح، وأيقوناتها فاتحة */
+[data-dark] body:not(.adm) .zn.lock,[data-dark] body:not(.adm) .zn.mini.wait,[data-dark] body:not(.adm) .zn.chal.lock{--base:#2c3352;--depth:#1b2036}
+[data-dark] body:not(.adm) .zn.lock .c,[data-dark] body:not(.adm) .zn.mini.wait .c,[data-dark] body:not(.adm) .zn.chal .c{border:2px solid #56608c}
+[data-dark] body:not(.adm) .zn.lock .svi,[data-dark] body:not(.adm) .zn.mini.wait .svi,[data-dark] body:not(.adm) .zn.lock .c small{color:#c9cfeb}
+[data-dark] body:not(.adm) .zn.cur .c{outline-color:#6b4f1c}
+[data-dark] body:not(.adm) .zn:not(.mini):not(.chal) .go{background:#2c3352;color:#dfe3f7}
+[data-dark] body:not(.adm) .zpath .bg{opacity:.6}
+[data-dark] body:not(.adm) .result h2,[data-dark] body:not(.adm) .done h2,[data-dark] body:not(.adm) .rcard b,[data-dark] body:not(.adm) .zn.chal .tl{color:#FAC775}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
@@ -1300,8 +1308,8 @@ function stateList(id){
 }
 // شخصية النرد بوضعياتها: يلوّح بيد ثم بالأخرى، أو وضعية ثابتة (كتاب، نوم، تفكير، تشجيع، فرح، كأس، قفز)
 function mascot(pose,cls){
-  if(pose==="idle")return `<div class="mz2 ${cls||""}"><img class="f1" src="img/m/wave.png" alt=""><img class="f2" src="img/m/wave2.png" alt=""></div>`;
-  return `<img class="${pose==="jump"||pose==="cheer"?"jmp sm":"pose"} ${cls||""}" src="img/m/${pose}.png" alt="">`;
+  if(pose==="idle")return `<div class="mz2 ${cls||""}"><img class="f1" src="img/m/wave.svg" alt=""><img class="f2" src="img/m/wave2.svg" alt=""></div>`;
+  return `<img class="${pose==="jump"||pose==="cheer"?"jmp sm":"pose"} ${cls||""}" src="img/m/${pose}.svg" alt="">`;
 }
 // أنهى كل كلمات منهجه: يطلب منهجًا جديدًا من المشرف برسالة
 function courseDoneHTML(){
@@ -1500,7 +1508,7 @@ let RES=null;   // شاشة نتيجة الدرس
 const mmss=ms=>{const s_=Math.max(1,Math.round(ms/1000));return Math.floor(s_/60)+":"+String(s_%60).padStart(2,"0")};
 function resultView(){
   const el=$("review"),R_=RES,acc=Math.round(R_.acc*100);
-  el.innerHTML=`<div class="box result"><img class="jmp" src="img/m/${acc===100?"trophy":acc>=60?"jump":"thumbs"}.png" alt="">
+  el.innerHTML=`<div class="box result"><img class="jmp" src="img/m/${acc===100?"trophy":acc>=60?"jump":"thumbs"}.svg" alt="">
    <h2>${R_.title}</h2><p>${acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان"}</p>
    <div class="rcards"><div class="rcard"><small>الخبرة</small><b>${I3("sparkles")}${R_.xp}</b></div><div class="rcard acc"><small>الدقة</small><b>${I3("target")}${acc}%</b></div><div class="rcard tm"><small>الوقت</small><b>${I3("stopwatch")}${mmss(R_.ms)}</b></div></div>
    ${R_.drill&&drillsToday()<stToday()?`<button class="btn next blue" id="resDrill">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}
@@ -1554,7 +1562,7 @@ function drillView(){
   const head=`<div class="sess"><div class="sbar"><i style="width:${D.done.size/N*100}%"></i></div><span>${I3("puzzle")} تدريب المحطة ${D.j+1} · ${D.done.size} من ${N}</span>${D.fin?"":'<button class="link" id="dQuit">خروج</button>'}</div>`;
   if(D.fin){
     const ok=N-D.wrong.size;
-    el.innerHTML=head+`<div class="box done"><img class="jmp" src="img/m/${ok===N?"trophy":ok>=N*.6?"cheer":"thumbs"}.png" alt=""><h2>${ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب"}</h2><p class="rnote">${ok} من ${N} من المحاولة الأولى · +${ok*CFG.xp.quiz} خبرة</p><button class="btn next" id="dBack">متابعة</button></div>`;
+    el.innerHTML=head+`<div class="box done"><img class="jmp" src="img/m/${ok===N?"trophy":ok>=N*.6?"cheer":"thumbs"}.svg" alt=""><h2>${ok===N?"مطابقة كاملة بلا خطأ!":"أنهيت التدريب"}</h2><p class="rnote">${ok} من ${N} من المحاولة الأولى · +${ok*CFG.xp.quiz} خبرة</p><button class="btn next" id="dBack">متابعة</button></div>`;
     $("dBack").onclick=()=>{DRL=null;reviewHome();toCur()};return;
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
@@ -1631,7 +1639,7 @@ function reviewHome(){
   syncFree();const PB=pathBase(),done=stToday()-PB,en=enNow(),cost=stCostAt(Date.now()),allDone=!uniq(W).some(w=>!P[w.k]),counts=Object.fromEntries(RSTATES.map(([id])=>[id,stateList(id).length]));
   if(!counts[RVSTATE])RVSTATE=RSTATES.find(([id])=>counts[id])?.[0]||"due";
   const cnt=counts[RVSTATE]||0,max=Math.min(100,Math.ceil(cnt/10)*10);RVN=Math.min(Math.max(RVN,10),max||10);
-  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.png" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}</div>`:"";
+  const msg=RVDONE&&RVDONE.finished?`<div class="box done" style="padding:16px"><img class="jmp" src="img/m/${RVDONE.mode==="station"?"jump":"cheer"}.svg" alt=""><h2>${RVDONE.mode==="station"?"أنهيت المحطة "+RVDONE.st+"! تعلّمت "+RVDONE.n+" كلمات · +1 💎":"أحسنت! راجعت "+RVDONE.n+" كلمة"}</h2>${RVDONE.mode==="station"&&drillsToday()<stToday()?`<button class="btn next blue" id="dGo" style="margin-top:8px">${I3("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}</div>`:"";
   // المسار المتعرّج: المكتملة ذهبية، والتالية خضراء تنبض، والمقفلة رمادية
   const N=stMax(),off=[0,-62,0,62],low=en<cost,SP=196,dn=drillsToday()-PB,dlow=en<drillCost(),UN=unlAt(Date.now());
   // التحدي اليومي في آخر المسار: مقفل حتى تنتهي المحطات وتدريباتها، ثم متاح مرة واحدة بلا طاقة وبخبرة مضاعفة
@@ -1838,7 +1846,7 @@ function showQ(){
   if(qi>=qz.length){
     const prev=EC||econ();if(!qz.done){qz.done=1;ev({type:"quiz",kind:"quiz",ok:qs,total:qz.length,qa:qzA})}celebrate(prev);
     const star=qs===qz.length?"🏆":qs>=8?"🥇":qs>=6?"🥈":"🥉";
-    el.innerHTML=`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.png" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`;
+    el.innerHTML=`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.svg" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`;
     if(qs===qz.length)confetti(150);
     $("again").onclick=startQuiz;$("qBack").onclick=()=>{qz=[];quizIntro()};return}
   const w=qz[qi],opts=pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar));
@@ -2261,7 +2269,7 @@ function finishGame(){
 function gameResult(){
   const g=GAMES.find(x=>x.id===GM.id),pct=GM.n?GM.ok/GM.n:0;
   const rec=GM.id==="match"&&GM.ok===6&&(!GM.best||GM.ms<GM.best);
-  $("games").innerHTML=`<div class="box done"><img class="jmp" src="img/m/${rec||pct===1?"trophy":pct>=.6?"cheer":"thumbs"}.png" alt=""><h2>${g.ic} ${g.n}</h2>
+  $("games").innerHTML=`<div class="box done"><img class="jmp" src="img/m/${rec||pct===1?"trophy":pct>=.6?"cheer":"thumbs"}.svg" alt=""><h2>${g.ic} ${g.n}</h2>
    <p style="font-size:1.1rem;margin:6px 0">${GM.id==="match"?`الوقت: <b>${secs(GM.ms)}</b> · أخطاء: ${GM.miss}`:`النتيجة: <b>${GM.ok}</b> من ${GM.n}${GM.helped?` · و${GM.helped} صحيحة بمساعدة`:""}`}</p>
    ${rec?'<p style="color:var(--green);font-weight:700">رقم قياسي جديد!</p>':GM.id==="match"&&GM.best?`<p class="rnote">أفضل وقت لك: ${secs(GM.best)}</p>`:""}
    <button class="btn next" id="gAgain">مرة أخرى</button><button class="btn" id="gBack" style="width:100%;margin-top:8px">كل التمارين</button></div>`;
