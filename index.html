@@ -716,12 +716,13 @@ body:not(.adm) #mainNav button.on i{background:var(--soft);box-shadow:inset 0 0 
 #meBadge{top:6px;left:auto;right:calc(50% - 30px)}
 #segBar{display:flex;gap:4px;background:var(--soft);border-radius:14px;padding:4px;margin-bottom:14px}
 /* شريط الأقسام في الأسفل، ثابت فوق الأيقونات، ويختفي عند النزول في الصفحة ويعود عند الصعود */
-body:not(.adm) #segBar{position:fixed;left:50%;bottom:calc(var(--navH,64px) + 8px);transform:translateX(-50%);width:min(calc(100% - 32px),688px);margin:0;z-index:18;background:var(--card);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.1);transition:transform .25s,opacity .25s}
+body:not(.adm) #segBar{position:fixed;left:50%;bottom:calc(var(--navH,64px) + 8px);transform:translateX(-50%);width:min(calc(100% - 32px),688px);margin:0;z-index:18;background:var(--card);border:1px solid var(--line);box-shadow:0 4px 14px rgba(0,0,0,.1)}
+body.segmove:not(.adm) #segBar{transition:transform .25s,opacity .25s}
 body:not(.adm) #segBar button.on{background:var(--accl);color:var(--acct);box-shadow:none}
 body.seghide:not(.adm) #segBar{transform:translate(-50%,calc(100% + 80px));opacity:0;pointer-events:none}
 body.hasseg:not(.lesson) main{padding-bottom:calc(150px + env(safe-area-inset-bottom))}
 body.hasseg:not(.seghide):not(.adm):not(.lesson) #review .stgo:has(.btn){bottom:calc(var(--navH,64px) + var(--segH,56px) + 8px)}
-body:not(.adm):not(.lesson) #review .stgo:has(.btn){transition:bottom .25s}
+body.segmove:not(.adm):not(.lesson) #review .stgo:has(.btn),body.segmove #rvGo{transition:bottom .25s}
 #segBar button{flex:1;border:0;background:none;border-radius:11px;padding:9px 6px;font:inherit;font-weight:800;font-size:.92rem;color:var(--muted);cursor:pointer}
 #segBar button.on{background:var(--card);color:var(--hd);box-shadow:0 1px 4px rgba(0,0,0,.1)}
 body.lesson #segBar,body.adm #segBar{display:none!important}
@@ -828,7 +829,7 @@ body.rvtab:not(.adm) #rvRange{-webkit-appearance:none;appearance:none;height:10p
 body.rvtab:not(.adm) #rvRange::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;border-radius:50%;background:var(--acc);border:4px solid var(--card);box-shadow:0 2px 6px rgba(0,0,0,.25)}
 body.rvtab:not(.adm) #rvRange::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--acc);border:4px solid var(--card)}
 body.rvtab:not(.adm) #review>.settings{display:flex;align-items:center;justify-content:center;gap:8px;text-align:center;margin-top:14px;color:var(--muted);font-size:.9rem}
-body.rvtab:not(.adm):not(.lesson) #rvGo{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:calc(var(--navH,64px) + 10px);z-index:17;margin:0;transition:bottom .25s}
+body.rvtab:not(.adm):not(.lesson) #rvGo{position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:calc(var(--navH,64px) + 10px);z-index:17;margin:0}
 body.rvtab.hasseg:not(.seghide):not(.adm):not(.lesson) #rvGo{bottom:calc(var(--navH,64px) + var(--segH,56px) + 18px)}
 body.rvtab:not(.adm) #review{padding-bottom:90px}
 #segBar .segn{display:inline-block;background:var(--acc);color:#412402;border-radius:9px;font-size:.72rem;padding:0 7px;margin-inline-start:4px;line-height:1.6}
@@ -4473,7 +4474,9 @@ function renderMe(){
 
 // إخفاء شريط الأقسام عند النزول في الصفحة، وإظهاره عند الصعود أو في أعلاها
 let SEGY=0;addEventListener("scroll",()=>{const y=scrollY,d=y-SEGY;if(Math.abs(d)<6)return;
-  document.body.classList.toggle("seghide",d>0&&y>40);SEGY=y},{passive:true});
+  const h=d>0&&y>40;if(h!==document.body.classList.contains("seghide")){   // الحركة فقط عند الإخفاء والإظهار بالتمرير، لا عند فتح الصفحة
+    document.body.classList.add("segmove");clearTimeout(SEGT);SEGT=setTimeout(()=>document.body.classList.remove("segmove"),400)}
+  document.body.classList.toggle("seghide",h);SEGY=y},{passive:true});let SEGT=0;
 
 /* ================= التشغيل ================= */
 function renderPanel(p){
