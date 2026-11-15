@@ -895,6 +895,9 @@ body:not(.adm) #list .item.mq3{border-color:var(--acc);box-shadow:inset 4px 0 0 
 .scopes button{flex:none;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-weight:800;font-size:.88rem;white-space:nowrap;cursor:pointer}
 .scopes button small{display:inline-block;background:var(--soft);color:var(--muted);border-radius:9px;padding:0 7px;margin-inline-start:4px;font-size:.75rem}
 .scopes button.on{border-color:var(--acc,#EF9F27);background:var(--accl,#FAEEDA);color:var(--acct,#633806)}.scopes button.on small{background:var(--acc,#EF9F27);color:#412402}
+/* ظهور الصفحة بالشفافية فقط بلا إزاحة: الإزاحة (transform) كانت تجعل الأزرار الثابتة تلحق الصفحة فتظهر متأخرة وتنزلق إلى مكانها */
+@keyframes fadeo{from{opacity:0}to{opacity:1}}
+body:not(.adm) .panel{animation:fadeo .2s}
 .stgo{margin-top:6px}
 /* زر البدء وسطره ثابتان دائمًا فوق الشريط السفلي، مهما نزلت في المسار */
 body:not(.adm):not(.lesson) #review .stgo:has(.btn){position:fixed;left:50%;transform:translateX(-50%);width:min(calc(100% - 32px),688px);bottom:var(--navH,64px);z-index:17;background:var(--paper);padding:10px 0 8px;margin:0;box-shadow:0 -12px 12px -6px var(--paper)}
