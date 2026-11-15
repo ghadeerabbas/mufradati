@@ -1693,7 +1693,7 @@ function resultView(){
 function lessonPop(o){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
   m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1><p class="rnote">${o.sub}</p>
-   <div class="ppills"><span>${I3("sparkles")} ${o.xp?"+"+o.xp+" خبرة":"بلا خبرة"}</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":"مجانية"}</span></div>
+   <div class="ppills"><span>${I3("sparkles")} ${o.xp?"+"+o.xp+" خبرة":"بلا خبرة"}</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":unlAt(Date.now())&&!FREEU?"طاقة بلا حدود":"مجانية"}</span></div>
    <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ${o.xp?" · +"+o.xp+" خبرة":""}</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
   m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();o.go()};
 }
@@ -1809,6 +1809,13 @@ function toCur(){if(STS||DRL||RES){scrollTo(0,0);return}   // شاشة النت�
     go();requestAnimationFrame(()=>requestAnimationFrame(go));return}
   if(y==null){scrollTo(0,0);return}
   scrollTo(0,y);requestAnimationFrame(()=>requestAnimationFrame(()=>scrollTo(0,y)))}
+// عبارة تشجيع بعد كل محطة: تتغيّر من محطة إلى أخرى ومن يوم إلى آخر، بلا ترتيب ثابت
+const CHEER=["أحسنت! كلماتك تزداد يومًا بعد يوم 🌱","رائع! خطوة أخرى نحو إتقان الألمانية 💪","ممتاز! عقلك يحبّ هذا التمرين 🧠","واصل هكذا، فالاستمرار سرّ النجاح 🔑",
+  "إنجاز جميل! كل محطة تقرّبك من هدفك 🎯","أنت في الطريق الصحيح، تابع! 🚀","عمل رائع! الكلمات الجديدة صارت لك ✨","قليل دائم خير من كثير منقطع 📚",
+  "تقدّمك اليوم يستحق التصفيق 👏","كلمة بعد كلمة تُبنى اللغة 🧱","مذهل! حافظ على هذا الإيقاع 🔥","كل محطة تنهيها تجعل الألمانية أسهل 😊",
+  "تركيزك اليوم رائع 👌","هكذا يتعلّم الأبطال 🏅","خطوة صغيرة اليوم، قفزة كبيرة غدًا 🌟","ألمانيتك تتحسّن، والفرق يظهر 📈"];
+function cheerMsg(n){const ix=k=>{let h=7;for(const c of today()+":"+k+":"+(UID||""))h=Math.imul(h,31)+c.charCodeAt(0)|0;return Math.abs(h)%CHEER.length};
+  let i=ix(n);if(n>1&&i===ix(n-1))i=(i+1)%CHEER.length;return CHEER[i]}
 function reviewHome(){
   if(!document.body.classList.contains("lesson"))document.body.classList.toggle("rvtab",HOMETAB==="rv");   // القسم يُطبَّق قبل الرسم، فلا يقفز الزر من مكانه
   if(STS)return stationView();
@@ -1849,8 +1856,9 @@ function reviewHome(){
     :!fresh?(allDone?"أنهيت كل كلمات منهجك! 🌟 اطلب منهجًا جديدًا.":"تعلّمت كل كلمات هذا الاختيار. غيّر الاختيار من الأعلى.")
     :low?(dueN?"طاقتك لا تكفي للمحطة. راجع الكلمات المستحقّة لتكسب طاقة 🔋":"استرح قليلًا، فالطاقة تمتلئ مع الوقت ⏳")
     :FREEU?"دراسة حرّة بلا حدود! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 📚"
-    :!cost?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
-    :done?"أحسنت! بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")+" اليوم 💪"
+    :UN&&!done?"طاقتك الآن بلا حدود! تعلّم ما شئت من المحطات ⚡"
+    :!cost&&!done?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
+    :done?cheerMsg(done)+" · بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
   // شكلان مختلفان للنرد: الأول بحسب الحال، والثاني غيره
   const pose1=pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle";
