@@ -1491,6 +1491,84 @@ body:not(.adm) #shop .eq{background:var(--ds-cream);color:var(--ds-acc-dd);box-s
 body:not(.adm) #shop .eqd{background:var(--ds-ok);color:#fff;box-shadow:0 3px 0 #23784A;opacity:1}
 body:not(.adm) #shop .si.mine{box-shadow:var(--sh-1),inset 0 0 0 2px var(--ds-ok)}
 
+/* ---------- صفحة «أنا» وملفي والإعدادات (هوية design) ---------- */
+body:not(.adm):has(#me.on),body:not(.adm):has(#profile.on),body:not(.adm):has(#settings.on){background:var(--ds-bg)}
+/* رأس «أنا» */
+body:not(.adm) #me .mehd{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4);margin-bottom:var(--sp-3)}
+body:not(.adm) #me .mehd .stkav,body:not(.adm) #profile .hero .av{background:var(--ds-cream);box-shadow:0 0 0 3px var(--ds-acc);border:0}
+body:not(.adm) #me .mehd b{color:var(--ds-navy);font-weight:900;font-size:var(--fs-lg)}
+body:not(.adm) #me .mehd small{display:flex;align-items:center;gap:4px;color:var(--ds-muted);font-weight:700;font-size:var(--fs-xs)}
+body:not(.adm) #me .mehd small:first-of-type{color:var(--ds-acc-dd);font-weight:800}
+body:not(.adm) #me .mehd .svi{width:15px;height:15px}
+body:not(.adm) #me .xpbar,body:not(.adm) #profile .xpbar{height:10px;background:var(--ds-bg);margin:6px 0 4px}
+body:not(.adm) #profile .xpbar{background:rgba(255,255,255,.18)}
+body:not(.adm) #me .xpbar i,body:not(.adm) #profile .xpbar i{background:var(--ds-acc);box-shadow:none}
+/* قائمة «أنا» */
+body:not(.adm) #me .melist{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2)}
+body:not(.adm) #me .meit{border-bottom:1px solid var(--ds-line);padding:12px var(--sp-4);gap:var(--sp-3)}
+body:not(.adm) #me .meit:last-child{border-bottom:0}
+body:not(.adm) #me .meit .meic{width:40px;height:40px;flex:none;border-radius:var(--r-sm);background:var(--ds-cream);color:var(--ds-acc-dd);display:grid;place-items:center}
+body:not(.adm) #me .meit .meic .svi{width:22px;height:22px}
+body:not(.adm) #me .meit .monbadge.sm{width:40px;height:40px;font-size:1.4rem}
+body:not(.adm) #me .meit b{color:var(--ds-ink);font-weight:800;font-size:var(--fs-md)}
+body:not(.adm) #me .meit small{color:var(--ds-muted);font-weight:600;font-size:var(--fs-xs)}
+body:not(.adm) #me .meit em{color:var(--ds-muted);opacity:.7}
+/* ملفي */
+body:not(.adm) #profile .hero{background:var(--ds-navy);border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4)}
+[data-dark] body:not(.adm) #profile .hero{background:var(--ds-card);color:var(--ds-ink);box-shadow:var(--sh-2),inset 0 0 0 1px var(--ds-line)}
+body:not(.adm) #profile .hero h2{font-weight:900;font-size:var(--fs-lg)}
+body:not(.adm) #profile .hero .plv{display:flex;align-items:center;gap:4px;color:var(--ds-acc)!important;font-weight:800!important;opacity:1}
+body:not(.adm) #profile .hero .svi{width:15px;height:15px}
+body:not(.adm) #profile .hero p{font-size:var(--fs-xs);font-weight:600}
+body:not(.adm) #profile .gstats{gap:var(--sp-2);margin-bottom:var(--sp-3)}
+body:not(.adm) #profile .gstat{background:var(--ds-card);border:0;border-radius:var(--r-md);box-shadow:var(--sh-1);padding:10px 6px}
+body:not(.adm) #profile .gstat b{display:flex;align-items:center;justify-content:center;gap:4px;color:var(--ds-navy);font-weight:900;font-size:var(--fs-lg)}
+body:not(.adm) #profile .gstat b .i3{width:22px;height:22px}
+body:not(.adm) #profile .gstat b .svi{width:20px;height:20px}
+body:not(.adm) #profile .gstat:nth-child(1) b .svi{color:var(--ds-fire)}
+body:not(.adm) #profile .gstat:nth-child(4) b .svi{color:var(--ds-gem)}
+body:not(.adm) #profile .gstat:nth-child(5) b .svi{color:var(--ds-acc)}
+body:not(.adm) #profile .gstat span{color:var(--ds-muted);font-weight:700;font-size:.7rem}
+/* الأقسام المشتركة في ملفي والإعدادات */
+body:not(.adm) #profile .rsec,body:not(.adm) #settings .rsec{background:var(--ds-card);border:0;border-radius:var(--r-lg);box-shadow:var(--sh-2);padding:var(--sp-4);margin-bottom:var(--sp-3)}
+body:not(.adm) #profile .rsec h3,body:not(.adm) #settings .rsec h3,body:not(.adm) #settings .sth{display:flex;align-items:center;gap:6px;color:var(--ds-navy);font-weight:900;font-size:var(--fs-md)}
+body:not(.adm) #settings .sth{font-size:var(--fs-lg);margin:var(--sp-1) var(--sp-1) var(--sp-3)}
+body:not(.adm) #profile .rsec h3 .svi,body:not(.adm) #settings .rsec h3 .svi,body:not(.adm) #settings .sth .svi{width:20px;height:20px;color:var(--ds-acc-dd)}
+body:not(.adm) #profile .rsec h3 .i3,body:not(.adm) #settings .rsec h3 .i3{display:inline-block!important}
+body:not(.adm) #profile .rnote,body:not(.adm) #settings .rnote,body:not(.adm) #profile .rsec p,body:not(.adm) #settings .rsec p{color:var(--ds-muted);font-weight:600;font-size:var(--fs-xs);line-height:1.7}
+body:not(.adm) #profile .rsec p b,body:not(.adm) #settings .rsec p b{color:var(--ds-ink)}
+/* الإنجازات */
+body:not(.adm) #profile .achs{gap:var(--sp-2)}
+body:not(.adm) #profile .ach{background:var(--ds-bg);border:0;border-radius:var(--r-md);padding:10px}
+body:not(.adm) #profile .ach.got{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #profile .ach.lock{opacity:.6}
+body:not(.adm) #profile .ach b{color:var(--ds-ink);font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #profile .ach small{display:flex;align-items:center;gap:3px;color:var(--ds-muted);font-weight:600}
+body:not(.adm) #profile .ach small .svi{width:13px;height:13px;color:var(--ds-ok)}
+body:not(.adm) #profile .alv{background:var(--ds-acc);color:var(--ds-acc-ink);font-weight:900}
+body:not(.adm) #profile .lvdots i{background:var(--ds-card);border-color:var(--ds-line)}
+body:not(.adm) #profile .lvdots i.on{background:var(--ds-acc);border-color:var(--ds-acc)}
+body:not(.adm) #profile .mini{background:var(--ds-card);height:6px;border-radius:var(--r-pill)}
+body:not(.adm) #profile .mini i{background:var(--ds-acc);border-radius:var(--r-pill)}
+body:not(.adm) #profile .lkh{display:block;color:var(--ds-ink);font-weight:800;font-size:var(--fs-sm);margin:var(--sp-3) 0 var(--sp-2)}
+/* الاختيارات */
+body:not(.adm) #profile .numpicks,body:not(.adm) #settings .numpicks{gap:var(--sp-2)}
+body:not(.adm) #profile .numpick,body:not(.adm) #settings .numpick{display:inline-flex;align-items:center;justify-content:center;gap:5px;border:0;background:var(--ds-bg);color:var(--ds-ink);border-radius:var(--r-pill);padding:8px 14px;font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #profile .numpick .svi,body:not(.adm) #settings .numpick .svi{width:16px;height:16px}
+body:not(.adm) #profile .numpick.on,body:not(.adm) #settings .numpick.on{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 2px 0 var(--ds-acc-d)}
+body:not(.adm) #profile .numpick.lkf{padding:6px 10px}
+body:not(.adm) #profile .hidepub input,body:not(.adm) #settings .hidepub input{accent-color:var(--ds-acc)}
+body:not(.adm) #profile .hidepub b,body:not(.adm) #settings .hidepub b{display:flex;align-items:center;gap:5px;color:var(--ds-ink);font-weight:800}
+body:not(.adm) #profile .hidepub b .svi{width:16px;height:16px;color:var(--ds-acc-dd)}
+body:not(.adm) #profile .hidepub small,body:not(.adm) #settings .hidepub small{color:var(--ds-muted);font-weight:600;line-height:1.6}
+/* الحقول والأزرار */
+body:not(.adm) #settings .stin{background:var(--ds-bg);border:0;border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--ds-line);color:var(--ds-ink);padding:12px 14px;font-weight:600}
+body:not(.adm) #settings .stin:focus{outline:0;box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #settings .stbtn,body:not(.adm) #profile .sync .btns .btn:not(.sec){background:var(--ds-acc);color:var(--ds-acc-ink);border-radius:var(--r-md);box-shadow:0 3px 0 var(--ds-acc-d);font-weight:900}
+body:not(.adm) #profile .sync .btns .btn.sec,body:not(.adm) #settings .btn.sec{background:var(--ds-cream);color:var(--ds-acc-dd);border-radius:var(--r-md);box-shadow:none;font-weight:900}
+body:not(.adm) #settings #stReset{border-radius:var(--r-md);box-shadow:0 3px 0 #8E1F1F;font-weight:900}
+body:not(.adm) #profile .sync .sstat{font-weight:700;font-size:var(--fs-xs)}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2882,7 +2960,18 @@ function LIC(k){const d={
   calendar:'<rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/><path d="M8 15h2v2H8z"/>',
   up:'<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>',
   down:'<path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/>',
-  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'}[k]||"";
+  lock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1"/>',
+  mail:'<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>',
+  gear:'<path d="M10.3 4.3a1.7 1.7 0 0 1 3.4 0 1.7 1.7 0 0 0 2.6 1.1 1.7 1.7 0 0 1 2.4 2.4 1.7 1.7 0 0 0 1 2.5 1.7 1.7 0 0 1 0 3.4 1.7 1.7 0 0 0-1 2.6 1.7 1.7 0 0 1-2.4 2.4 1.7 1.7 0 0 0-2.6 1 1.7 1.7 0 0 1-3.4 0 1.7 1.7 0 0 0-2.5-1 1.7 1.7 0 0 1-2.4-2.4 1.7 1.7 0 0 0-1.1-2.6 1.7 1.7 0 0 1 0-3.4 1.7 1.7 0 0 0 1.1-2.5 1.7 1.7 0 0 1 2.4-2.4 1.7 1.7 0 0 0 2.5-1.1"/><circle cx="12" cy="12" r="3"/>',
+  moon:'<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9"/>',
+  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  bell:'<path d="M10 5a2 2 0 1 1 4 0 7 7 0 0 1 4 6v3a4 4 0 0 0 2 3H4a4 4 0 0 0 2-3v-3a7 7 0 0 1 4-6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/>',
+  key:'<circle cx="8" cy="15" r="4"/><path d="M10.85 12.15L19 4"/><path d="M18 5l2 2"/><path d="M15 8l2 2"/>',
+  cloud:'<path d="M7 18a4.6 4.4 0 0 1 0-9 5 4.5 0 0 1 11 2h1a3.5 3.5 0 0 1 0 7z"/>',
+  palette:'<path d="M12 21a9 9 0 0 1 0-18c4.97 0 9 3.58 9 8 0 1.06-.47 2.08-1.32 2.83-.84.75-1.99 1.17-3.18 1.17H14a2 2 0 0 0-1 3.75A1.3 1.3 0 0 1 12 21"/><circle cx="7.5" cy="10.5" r="1"/><circle cx="12" cy="7.5" r="1"/><circle cx="16.5" cy="10.5" r="1"/>',
+  snow:'<path d="M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"/><path d="M10 4.5l2 1.5 2-1.5M10 19.5l2-1.5 2 1.5"/>',
+  mapbook:'<path d="M3 19a9 9 0 0 1 9 0 9 9 0 0 1 9 0V6a9 9 0 0 0-9 0 9 9 0 0 0-9 0z"/><path d="M12 6v13"/>'}[k]||"";
   return `<svg class="i3 svi lic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`}
 const GAMES=[
  {id:"cloze",ic:I3("pencil"),li:"pencil",n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
@@ -3434,7 +3523,7 @@ function looksHTML(){
   const cf=E.frame||"none",lf=E.lgFrame??cf,cs=stkVal(E.sticker),ls=stkVal(E.lgSticker??E.sticker);
   const frow=(id,cur)=>`<div class="numpicks lk" id="${id}">${frs.map(x=>`<button type="button" class="numpick lkf${x.id===cur?" on":""}" data-v="${x.id}" title="${esc(x.name)}"><i class="frmini fr-${x.id}"></i></button>`).join("")}</div>`;
   const srow=(id,cur)=>`<div class="numpicks lk" id="${id}"><button type="button" class="numpick${cur?"":" on"}" data-v="">بدون</button>${sts.map(x=>`<button type="button" class="numpick${x.val===cur?" on":""}" data-v="${esc(x.val)}">${stkH(x.val)}</button>`).join("")}</div>`;
-  return `<h3>${I3("palette")} مظهري</h3><p class="rnote">ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.</p>
+  return `<h3>${isAdmin()?I3("palette"):LIC("palette")} مظهري</h3><p class="rnote">ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.</p>
    <b class="lkh">بطاقة المراجعة</b>${frow("lkCF",cf)}${sts.length?srow("lkCS",cs):""}
    <b class="lkh">اسمي في الدوري</b>${frow("lkLF",lf)}${sts.length?srow("lkLS",ls):""}`;
 }
@@ -3449,23 +3538,23 @@ function renderProfile(){
   const e=econ(),t=itemOf("title",E.title),s=e.s;
   const stickers=SHOP.filter(x=>x.cat==="sticker"),al=achList(),maxL=al.reduce((a,x)=>a+x.L.length,0);
   $("profile").innerHTML=`<div class="hero"><div class="av">${stkH(E.avatar)}</div><div style="flex:1">
-   <h2>${esc(UNAME)}</h2><p style="color:var(--gold);font-weight:700">المستوى ${e.lv}${LG.tier!=null?" · "+TIERS[LG.tier][1]:""}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
+   <h2>${esc(UNAME)}</h2><p class="plv" style="color:var(--gold);font-weight:700">${LIC("star")}المستوى ${e.lv}${LG.tier!=null?" · "+TIERS[LG.tier][1]:""}</p><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div>
    <p>${e.rest} من ${e.need} نقطة خبرة للمستوى التالي · مجموع الخبرة ${e.xp}</p></div></div>
   <div class="gstats">
-   <div class="gstat"><b>🔥 ${s.streak}</b><span>السلسلة الحالية</span></div>
+   <div class="gstat"><b>${HIC("fire")} ${s.streak}</b><span>السلسلة الحالية</span></div>
    <div class="gstat"><b>${I3("medal")} ${s.best}</b><span>أفضل سلسلة</span></div>
    <div class="gstat"><b>${I3("freeze")} ${s.freezes}</b><span>تجميد متاح</span></div>
-   <div class="gstat"><b>💎 ${e.gems}</b><span>رصيد الجواهر</span></div>
-   <div class="gstat"><b>${I3("sparkles")} ${e.xp}</b><span>إجمالي الخبرة</span></div>
-   <div class="gstat"><b>🏆 ${e.got.size}/${maxL}</b><span>مستويات الإنجازات</span></div>
+   <div class="gstat"><b>${HIC("gem")} ${e.gems}</b><span>رصيد الجواهر</span></div>
+   <div class="gstat"><b>${LIC("sparkles")} ${e.xp}</b><span>إجمالي الخبرة</span></div>
+   <div class="gstat"><b>${I3("trophy")} ${e.got.size}/${maxL}</b><span>مستويات الإنجازات</span></div>
   </div>
-  <div class="rsec"><h3>الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];
+  <div class="rsec"><h3>${LIC("medal")} الإنجازات</h3><div class="achs">${al.map(a=>{const k=e.alv[a.id]||0,v=a.v(s),top=k>=a.L.length,from=k?a.L[k-1][0]:0,to=top?a.L[k-1][0]:a.L[k][0];
    return `<div class="ach ${k?"got":"lock"}"><span class="ic">${achIc(a)}</span><div style="flex:1;min-width:0"><b>${a.n}${k?` <span class="alv">${k}</span>`:""}</b>
     <div class="lvdots">${a.L.map((_,i)=>`<i class="${i<k?"on":""}"></i>`).join("")}</div>
-    <small>${top?`✓ أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u}`}</small>
+    <small>${top?`${LIC("check")} أعلى مستوى · ${v} ${a.u}`:`${Math.min(v,to)} / ${to} ${a.u}`}</small>
     ${top?"":`<div class="mini"><i style="width:${Math.max(0,Math.min(1,(v-from)/(to-from)))*100}%"></i></div>`}</div></div>`}).join("")}</div></div>
   <div class="rsec" id="looks">${looksHTML()}</div>
-  <div class="rsec"><label class="hidepub"><input type="checkbox" id="hidePub" ${E.hidePub?"checked":""}><span><b>🔒 إخفاء ملفي</b><small>لا يرى المتعلّمون الآخرون إنجازاتك ولا ملصقاتك ولا مستواك وسلسلتك؛ يظهر لهم اسمك ومظهرك ودوريك فقط.</small></span></label></div>
+  <div class="rsec"><label class="hidepub"><input type="checkbox" id="hidePub" ${E.hidePub?"checked":""}><span><b>${LIC("lock")} إخفاء ملفي</b><small>لا يرى المتعلّمون الآخرون إنجازاتك ولا ملصقاتك ولا مستواك وسلسلتك؛ يظهر لهم اسمك ومظهرك ودوريك فقط.</small></span></label></div>
 `+syncHTML();
   bindLooks();
   $("hidePub").onchange=ev=>{E.hidePub=ev.target.checked?1:0;E.ts=Date.now();save();schedSync(300);toast("🔒",E.hidePub?"ملفك مخفي الآن":"ملفك ظاهر الآن",E.hidePub?"يظهر للآخرين اسمك ومظهرك ودوريك فقط":"يرى الآخرون إنجازاتك وملصقاتك")};
@@ -3639,7 +3728,7 @@ function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTim
 function cloudMsg(){return syncErr?"✗ تعذّر الحفظ: "+syncErr:lastSync?"✓ محفوظ في حسابك · "+new Date(lastSync).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"}):"…"}
 function setCloud(m){const e=$("sStat");if(e){e.textContent=m||cloudMsg();e.className="sstat "+(m?"":syncErr?"bad":"ok")}}
 function syncHTML(){
-  return `<div class="rsec sync"><h3>${I3("cloud")} حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span>${MYNO!=null?` · رقمك: <b dir="ltr">${noTxt(MYNO)}</b>`:""}</p>
+  return `<div class="rsec sync"><h3>${isAdmin()?I3("cloud"):LIC("cloud")} حسابي</h3><p>${esc(UNAME)} · اسم المستخدم: <span dir="ltr">${esc(((auth.currentUser||{}).email||"").replace(DOMAIN,""))}</span>${MYNO!=null?` · رقمك: <b dir="ltr">${noTxt(MYNO)}</b>`:""}</p>
   <p>يُحفظ تقدّمك تلقائيًا في حسابك، وتجده على أي جهاز تسجّل الدخول منه.</p>
   <div class="btns"><button class="btn" id="syncBtn">حفظ الآن</button><button class="btn sec" id="outBtn">تسجيل الخروج</button></div>
   <div class="sstat ${syncErr?"bad":"ok"}" id="sStat">${esc(cloudMsg())}</div></div>`;
@@ -3653,20 +3742,21 @@ function bindSync(){
 function renderSettings(){
   const login=((auth.currentUser||{}).email||"").replace(DOMAIN,"");
   const courses=MY_COURSES.filter(id=>COURSES[id]);
-  $("settings").innerHTML=`<h2 class="sth">⚙️ الإعدادات</h2>
-  <div class="rsec"><h3>${I3("moon")} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${isDark()?"":" on"}" data-v="0">☀️ نهاري</button><button type="button" class="numpick${isDark()?" on":""}" data-v="1">🌙 ليلي</button></div></div>
-  <div class="rsec"><h3>${I3("speaker")} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div><p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p></div>
-  ${isAdmin()?"":`<div class="rsec"><h3>📘 المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
+  const AD=isAdmin(),L=(k,f)=>AD?f:LIC(k);
+  $("settings").innerHTML=`<h2 class="sth">${L("gear","⚙️")} الإعدادات</h2>
+  <div class="rsec"><h3>${L("moon",I3("moon"))} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${isDark()?"":" on"}" data-v="0">${L("sun","☀️")} نهاري</button><button type="button" class="numpick${isDark()?" on":""}" data-v="1">${L("moon","🌙")} ليلي</button></div></div>
+  <div class="rsec"><h3>${L("speaker",I3("speaker"))} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div><p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p></div>
+  ${isAdmin()?"":`<div class="rsec"><h3>${LIC("mapbook")} المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
-  <div class="rsec"><h3>${I3("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">تصل التذكيرات إن سمحت بإشعارات التطبيق في هاتفك. ويُعدّ اليوم مكتملًا بمحطة أو بعشر مراجعات أو بإنهاء تحدٍّ مع صديق.</p>'
+  <div class="rsec"><h3>${LIC("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">تصل التذكيرات إن سمحت بإشعارات التطبيق في هاتفك. ويُعدّ اليوم مكتملًا بمحطة أو بعشر مراجعات أو بإنهاء تحدٍّ مع صديق.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
   ${isAdmin()?"":`<div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>`}
-  <div class="rsec"><h3>🔑 تغيير كلمة المرور</h3>
+  <div class="rsec"><h3>${L("key","🔑")} تغيير كلمة المرور</h3>
    <input id="pwCur" class="stin" type="password" placeholder="كلمة المرور الحالية" autocomplete="current-password">
    <input id="pwNew" class="stin" type="password" placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)" autocomplete="new-password">
    <input id="pwNew2" class="stin" type="password" placeholder="أعد كتابة كلمة المرور الجديدة" autocomplete="new-password">
    <button class="btn stbtn" id="pwBtn" style="width:100%;margin-top:4px">تغيير كلمة المرور</button><div class="stmsg" id="pwMsg"></div></div>
-  ${isAdmin()?"":`<div class="rsec"><h3>${I3("warning")} تصفير التقدّم</h3><p class="rnote">تعود كل الكلمات جديدةً كأنك لم تتعلّمها، وتُحذف مراجعاتها. تبقى سلسلتك وخبرتك ومستواك ودوريك وجواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
+  ${isAdmin()?"":`<div class="rsec"><h3>${LIC("alert")} تصفير التقدّم</h3><p class="rnote">تعود كل الكلمات جديدةً كأنك لم تتعلّمها، وتُحذف مراجعاتها. تبقى سلسلتك وخبرتك ومستواك ودوريك وجواهرك ومشترياتك. لا يمكن التراجع عنه.</p>
    <button class="btn" id="stReset" style="width:100%;margin-top:6px;background:var(--red);color:#fff">تصفير التقدّم</button></div>`}
   ${isAdmin()?`<div class="rsec"><h3>🚪 الخروج</h3><p class="rnote">أنت مسجّل باسم المشرف: <span dir="ltr">${esc(login)}</span> · رقمك: <b dir="ltr">${noTxt(0)}</b></p><button class="btn" id="admOut" style="width:100%;margin-top:6px">تسجيل الخروج</button></div>`:""}`;
   {const ao=$("admOut");if(ao)ao.onclick=async()=>{if(!await uiConfirm("تسجيل الخروج من حساب المشرف على هذا الجهاز؟"))return;await signOutAll();location.reload()}}
@@ -3760,7 +3850,7 @@ function nameBoxHTML(login){
   else if(!isAdmin()&&okAt&&left>0)body=`<p class="rnote">تستطيع تغيير اسمك مرة أخرى بعد ${left} ${left===1?"يوم":left===2?"يومين":left<=10?"أيام":"يومًا"}.</p>`;
   else body=`<div class="strow"><input id="stName" class="stin" maxlength="${isAdmin()?40:NAME_MAX}" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">${isAdmin()?"حفظ":"إرسال"}</button></div>
    ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">من 6 إلى 16 خانة: حروف عربية أو إنجليزية وأرقام ومسافات فقط. يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل 7 أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
-  return `<h3>👤 الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
+  return `<h3>${isAdmin()?"👤":LIC("user")} الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
 }
 function bindNameBox(){
   const c=$("stNameCancel");if(c)c.onclick=async()=>{try{await nref(UID).set({pending:"",reqAt:firebase.firestore.FieldValue.serverTimestamp()},{merge:true})}catch(e){toast(I3("warning"),"تعذّر الإلغاء","")}};
@@ -5305,15 +5395,16 @@ document.addEventListener("click",e=>{const k=e.target.closest(".kidrow button,.
 function renderMe(){
   const e=EC||econ(),mb=$("mBadge"),bd=mb.classList.contains("on")?`<span class="mbadge on">${esc(mb.textContent)}</span>`:"";
   const it=(id,ic,t,s,x)=>`<button type="button" class="meit" data-b="${id}">${ic}<span><b>${t}</b>${s?`<small>${s}</small>`:""}</span>${x||""}<em>‹</em></button>`;
-  $("me").innerHTML=`<div class="mehd"><div class="stkav">${stkH(E.avatar||"🎓")}</div><div><b><bdi>${esc(UNAME)}</bdi></b><small>المستوى ${e.lv}</small><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div><small>${I3("sparkles")} ${e.rest}/${e.need}</small></div></div>
+  const AD=isAdmin(),LI=(k,f)=>AD?f:`<i class="meic">${LIC(k)}</i>`;
+  $("me").innerHTML=`<div class="mehd"><div class="stkav">${stkH(E.avatar||"🎓")}</div><div><b><bdi>${esc(UNAME)}</bdi></b><small>${AD?"":LIC("star")}المستوى ${e.lv}</small><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div><small>${AD?I3("sparkles"):LIC("sparkles")} ${e.rest}/${e.need}${AD?"":" خبرة"}</small></div></div>
   <div class="melist">
-   ${it("hAv",I3("medal"),"ملفي","إنجازاتك وإحصاءاتك")}
+   ${it("hAv",LI("medal",I3("medal")),"ملفي","إنجازاتك وإحصاءاتك")}
    ${isAdmin()?"":it("monBtn",`<i class="monbadge sm">${monStat(curMon()).ic}</i>`,"ملصقات الأشهر",(()=>{const s=monStat(curMon());return s.ok?"حصلت على ملصق "+s.name:s.name+": "+s.n+" من "+s.need+" يومًا"})())}
-   ${btnVis("rdBtn")?it("rdBtn",I3("book"),"القراءة",""):""}
-   ${btnVis("mtBtn")?it("mtBtn",'<span class="mtIco">✏️</span>',"تمارين المدرسة",""):""}
-   ${btnVis("aiBtn")?it("aiBtn",I3("owl"),"مساعد الوظيفة","يساعدك خطوة خطوة"):""}
-   ${it("msgBtn",I3("mail"),"الرسائل","راسل المشرف",bd)}
-   ${it("setBtn",I3("gear"),"الإعدادات","الحساب والمظهر والتذكير")}
+   ${btnVis("rdBtn")?it("rdBtn",LI("book",I3("book")),"القراءة",""):""}
+   ${btnVis("mtBtn")?it("mtBtn",LI("pencil",'<span class="mtIco">✏️</span>'),"تمارين المدرسة",""):""}
+   ${btnVis("aiBtn")?it("aiBtn",LI("sparkles",I3("owl")),"مساعد الوظيفة","يساعدك خطوة خطوة"):""}
+   ${it("msgBtn",LI("mail",I3("mail")),"الرسائل","راسل المشرف",bd)}
+   ${it("setBtn",LI("gear",I3("gear")),"الإعدادات","الحساب والمظهر والتذكير")}
   </div>`;
 }
 
