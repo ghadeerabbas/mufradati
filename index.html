@@ -1569,6 +1569,86 @@ body:not(.adm) #profile .sync .btns .btn.sec,body:not(.adm) #settings .btn.sec{b
 body:not(.adm) #settings #stReset{border-radius:var(--r-md);box-shadow:0 3px 0 #8E1F1F;font-weight:900}
 body:not(.adm) #profile .sync .sstat{font-weight:700;font-size:var(--fs-xs)}
 
+/* ---------- النوافذ المنبثقة (هوية design) — نافذة «ما رأيك» تبقى كما هي ---------- */
+body:not(.adm) .uidlg,body:not(.adm) #fbModal:not(:has(#fbStars)){background:rgba(16,20,36,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px)}
+/* نوافذ التأكيد والإدخال والتنبيه */
+body:not(.adm) .uibox{background:var(--ds-card);color:var(--ds-ink);border-radius:var(--r-lg);box-shadow:var(--sh-3);padding:var(--sp-5) var(--sp-4) var(--sp-4);text-align:center;animation:uiin .18s ease-out}
+@keyframes uiin{from{transform:translateY(8px) scale(.97);opacity:0}}
+body:not(.adm) .uihd{width:52px;height:52px;margin:0 auto var(--sp-3);border-radius:50%;display:grid;place-items:center;background:var(--ds-cream);color:var(--ds-acc-dd)}
+body:not(.adm) .uihd .svi{width:26px;height:26px;stroke-width:2.2}
+body:not(.adm) .ui-danger .uihd{background:#FDE7E5;color:#D9483B}
+body:not(.adm) .ui-warn .uihd{background:#FFF3D6;color:#B76E00}
+body:not(.adm) .ui-info .uihd{background:#E6F2FD;color:#1E7FC2}
+body:not(.adm) .ui-ok .uihd{background:#E5F5EB;color:var(--ds-ok)}
+[data-dark] body:not(.adm) .ui-danger .uihd{background:rgba(217,72,59,.18);color:#FF9EA0}
+[data-dark] body:not(.adm) .ui-warn .uihd{background:rgba(244,161,38,.16);color:#FFC36B}
+[data-dark] body:not(.adm) .ui-info .uihd{background:rgba(30,159,224,.16);color:#7CC8F2}
+[data-dark] body:not(.adm) .ui-ok .uihd{background:rgba(47,158,87,.18);color:#6FD39A}
+body:not(.adm) .uimsg{color:var(--ds-ink);font-weight:700;font-size:var(--fs-md);line-height:1.8}
+body:not(.adm) .ui-danger .uimsg{font-weight:600;font-size:var(--fs-sm);text-align:right}
+body:not(.adm) .uiin{background:var(--ds-bg);border:0;box-shadow:inset 0 0 0 1px var(--ds-line);border-radius:var(--r-md);color:var(--ds-ink);padding:12px 14px;margin-top:var(--sp-3);font-weight:700;text-align:center}
+body:not(.adm) .uiin:focus{outline:0;box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) .uibtns{gap:var(--sp-2);margin-top:var(--sp-4)}
+body:not(.adm) .uibtns .btn:focus{outline:0}
+body:not(.adm) .uibtns .btn{flex:1;border-radius:var(--r-md);padding:12px;font-size:var(--fs-md);font-weight:900}
+body:not(.adm) .uiok{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 3px 0 var(--ds-acc-d)}
+body:not(.adm) .uino{background:var(--ds-bg);color:var(--ds-muted);box-shadow:inset 0 0 0 1px var(--ds-line)}
+body:not(.adm) .ui-danger .uiok{background:#D9483B;color:#fff;box-shadow:0 3px 0 #9E2C22}
+/* النوافذ الكبيرة: البلاغ، بدء الدرس، المنهج، الملصقات، المهام، بطاقة اللاعب، هدية الطاقة */
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)){background:var(--ds-card);color:var(--ds-ink);border-radius:var(--r-lg);box-shadow:var(--sh-3);padding:var(--sp-5) var(--sp-4) var(--sp-4);gap:var(--sp-3);animation:uiin .18s ease-out}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) h1{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ds-navy);font-weight:900}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) h1 .svi{width:24px;height:24px;color:var(--ds-acc-dd)}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) h1 .i3{width:30px;height:30px}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) .rnote{color:var(--ds-muted);font-weight:600;font-size:var(--fs-sm);line-height:1.7}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) .rnote .svi{width:15px;height:15px;vertical-align:-2px}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) .btn.next{background:var(--ds-acc);color:var(--ds-acc-ink);border-radius:var(--r-md);box-shadow:0 3px 0 var(--ds-acc-d);font-weight:900;display:flex;align-items:center;justify-content:center;gap:6px}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) .btn.next .svi{width:20px;height:20px}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) .btn.lgo{background:var(--ds-bg);color:var(--ds-ink);border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--ds-line);font-weight:900;padding:12px}
+body:not(.adm) #fbModal .lbox:not(:has(#fbStars)) .link{color:var(--ds-muted);font-weight:800;text-decoration:none;padding:6px}
+/* بدء الدرس */
+body:not(.adm) #fbModal .stpop .logo{width:76px;height:76px;margin:0 auto;border-radius:50%;background:var(--ds-cream);display:grid;place-items:center}
+body:not(.adm) #fbModal .ppills{gap:var(--sp-2);margin:0 0 var(--sp-2)}
+body:not(.adm) #fbModal .ppills span{background:var(--ds-bg);color:var(--ds-ink);border-radius:var(--r-pill);padding:6px 12px;font-size:var(--fs-sm)}
+body:not(.adm) #fbModal .ppills .svi{width:18px;height:18px;color:var(--ds-acc-dd)}
+body:not(.adm) #fbModal .ppills .hic,body:not(.adm) #fbModal .ppills span:last-child .svi{color:var(--ds-ok)}
+/* البلاغ */
+body:not(.adm) #fbModal .repbox .numpick{border:0;background:var(--ds-bg);color:var(--ds-ink);border-radius:var(--r-pill);padding:8px 14px;font-weight:800;font-size:var(--fs-sm)}
+body:not(.adm) #fbModal .repbox .numpick.on{background:var(--ds-acc);color:var(--ds-acc-ink);box-shadow:0 2px 0 var(--ds-acc-d)}
+body:not(.adm) #fbModal .repbox textarea{background:var(--ds-bg);border:0;box-shadow:inset 0 0 0 1px var(--ds-line);border-radius:var(--r-md);color:var(--ds-ink);padding:12px;margin:0}
+body:not(.adm) #fbModal .repbox textarea:focus{outline:0;box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #fbModal .repbox .de{color:var(--ds-navy)}
+/* المنهج */
+body:not(.adm) #fbModal .crsopt{border:0;background:var(--ds-bg);border-radius:var(--r-md);padding:14px 16px;margin:0}
+body:not(.adm) #fbModal .crsopt b{color:var(--ds-ink);font-weight:900}
+body:not(.adm) #fbModal .crsopt small{color:var(--ds-muted);font-weight:600}
+body:not(.adm) #fbModal .crsopt.on{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #fbModal .crsopt i{color:var(--ds-acc-dd)}body:not(.adm) #fbModal .crsopt i .svi{width:22px;height:22px;stroke-width:2.6}
+/* ملصقات الأشهر */
+body:not(.adm) #fbModal .mongrid{gap:var(--sp-2);margin:0}
+body:not(.adm) #fbModal .monit{background:var(--ds-bg);border-radius:var(--r-md);padding:12px 4px}
+body:not(.adm) #fbModal .monit.ok{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #fbModal .monit b{color:var(--ds-ink);font-weight:800}
+/* المهام (البازل وبطاقته كما هما) */
+body:not(.adm) #fbModal .qbox .qrow{border:0;background:var(--ds-bg);border-radius:var(--r-md)}
+body:not(.adm) #fbModal .qbox .qrow.ok{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #fbModal .qbox .qrow .qtx b{color:var(--ds-ink);font-weight:800}
+body:not(.adm) #fbModal .qbox h1 .svi{width:24px;height:24px}
+body:not(.adm) #fbModal .qgot .svi,body:not(.adm) #fbModal .chgot .svi{width:1em;height:1em;color:var(--ds-gem);vertical-align:-.12em}
+/* بطاقة اللاعب */
+body:not(.adm) #fbModal .pcard .pchead{background:var(--ds-bg);border-radius:var(--r-md)}
+body:not(.adm) #fbModal .pcard .pchead b{color:var(--ds-ink);font-weight:900}
+body:not(.adm) #fbModal .pcard .pchead small{color:var(--ds-muted);font-weight:700}
+body:not(.adm) #fbModal .pcard .gstats{gap:var(--sp-2)}
+body:not(.adm) #fbModal .pcard .gstat{background:var(--ds-bg);border:0;border-radius:var(--r-md);padding:10px 6px}
+body:not(.adm) #fbModal .pcard .gstat b{display:flex;align-items:center;justify-content:center;gap:4px;color:var(--ds-navy);font-weight:900}
+body:not(.adm) #fbModal .pcard .gstat b .i3{width:22px;height:22px}body:not(.adm) #fbModal .pcard .gstat b .svi{width:20px;height:20px;color:var(--ds-fire)}
+body:not(.adm) #fbModal .pcard .gstat span{color:var(--ds-muted);font-weight:700}
+body:not(.adm) #fbModal .pcard .pch{color:var(--ds-navy);font-weight:900}
+body:not(.adm) #fbModal .pcard>.logo{width:76px;height:76px;margin:0 auto;border-radius:50%;background:var(--ds-bg);display:grid;place-items:center}
+/* هدية الطاقة */
+body:not(.adm) #fbModal .engift h1{color:var(--ds-navy)}
+body:not(.adm) #fbModal .engift .logo .i3{filter:none}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -1700,9 +1780,13 @@ function uiDialog(msg,{input=false,def="",ok="موافق",cancel="إلغاء"}={
     // نفس الرسالة مفتوحة أصلًا (ضغطة مكرّرة على الزر): لا تُفتح نافذة ثانية فوقها
     if([...document.querySelectorAll(".uidlg .uimsg")].some(x=>x.textContent===msg)){res(input?null:false);return}
     const m=document.createElement("div");m.className="uidlg";m.dataset.msg=msg;
-    m.innerHTML=`<div class="uibox"><div class="uimsg"></div>${input?'<input class="uiin" dir="auto" autocomplete="off" autocapitalize="none">':""}
+    // للمتعلّم: لون النافذة وأيقونتها بحسب أهمية الإجراء (حذف وتصفير، خروج وإنهاء، تأكيد، إدخال، تنبيه)
+    let tone="",hd="";try{if(typeof isAdmin==="function"&&!isAdmin()&&!document.body.classList.contains("adm")){
+      tone=!cancel?"info":input?"ask":/حذف|تصفير|⚠️|لا يمكن التراجع|نهائي/.test(msg)?"danger":/الخروج|تنسحب|إنهاء|لن يُحسب|لن تُحسب/.test(msg)?"warn":"ok";
+      hd=`<div class="uihd">${LIC({info:"bulb",ask:"pencil",danger:"alert",warn:"flag",ok:"check"}[tone])}</div>`}}catch(e){}
+    m.innerHTML=`<div class="uibox${tone?" ui-"+tone:""}">${hd}<div class="uimsg"></div>${input?'<input class="uiin" dir="auto" autocomplete="off" autocapitalize="none">':""}
       <div class="uibtns">${cancel?`<button class="btn uino">${cancel}</button>`:""}<button class="btn uiok">${ok}</button></div></div>`;
-    m.querySelector(".uimsg").textContent=msg;
+    m.querySelector(".uimsg").textContent=tone?msg.replace(/^⚠️\s*/,""):msg;
     const inp=m.querySelector(".uiin");if(inp)inp.value=def;
     const done=v=>{m.remove();res(v)};
     m.querySelector(".uiok").onclick=()=>done(input?inp.value:true);
@@ -2244,7 +2328,7 @@ async function apiPost(path,body){const r=await fetch(API+path,{method:"POST",he
 function reportWord(k){
   const w=uniq(W).find(x=>x.k===k);if(!w)return;
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};let kind="ar";m.style.display="flex";
-  m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">🚩 الإبلاغ عن خطأ</h1><p class="rnote"><b class="de" dir="ltr">${esc(w.de)}</b> = ${esc(w.ar)}</p>
+  m.innerHTML=`<div class="lbox repbox"><h1 style="font-size:1.15rem">${isAdmin()?"🚩":LIC("flag")} الإبلاغ عن خطأ</h1><p class="rnote"><b class="de" dir="ltr">${esc(w.de)}</b> = ${esc(w.ar)}</p>
    <div class="numpicks" id="rpK">${REP_KINDS.map(([id,n])=>`<button type="button" class="numpick${id===kind?" on":""}" data-v="${id}">${n}</button>`).join("")}</div>
    <textarea id="rpN" maxlength="500" rows="3" placeholder="ما الصحيح برأيك؟ (اختياري)"></textarea>
    <button class="btn next" id="rpGo">إرسال البلاغ</button><button class="link" id="rpNo">إلغاء</button></div>`;
@@ -2298,7 +2382,7 @@ function resultView(){
 function lessonPop(o){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
   m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1><p class="rnote">${o.sub}</p>
-   <div class="ppills"><span>${I3("sparkles")} ${o.xp?"+"+o.xp+" خبرة":"بلا خبرة"}</span><span>${I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":unlAt(Date.now())&&!FREEU?"طاقة بلا حدود":"مجانية"}</span></div>
+   <div class="ppills"><span>${isAdmin()?I3("sparkles"):LIC("sparkles")} ${o.xp?"+"+o.xp+" خبرة":"بلا خبرة"}</span><span>${o.cost&&!isAdmin()?HIC("battery"):I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":unlAt(Date.now())&&!FREEU?"طاقة بلا حدود":"مجانية"}</span></div>
    <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ${o.xp?" · +"+o.xp+" خبرة":""}</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
   m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();o.go()};
 }
@@ -2398,8 +2482,8 @@ let REVH={h:"",n:null},AUTOSW=0;
 function coursePicker(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
   const row=c=>{const ws=c===COURSE?uniq(W):(OTHERC[c]||[]),n=ws.filter(w=>P[w.k]).length;
-    return `<button type="button" class="crsopt${c===COURSE?" on":""}" data-c="${esc(c)}"><b>${esc(COURSES[c].name)}</b><small>${ws.length?"تعلّمت "+n+" من "+ws.length+" كلمة":""}</small>${c===COURSE?"<i>✓</i>":""}</button>`};
-  m.innerHTML=`<div class="lbox"><h1 style="font-size:1.15rem">📘 اختر المنهج</h1><p class="rnote">المحطات تعلّمك كلمات المنهج الذي تختاره، أما المراجعة والتمارين فمن كل مناهجك.</p>
+    return `<button type="button" class="crsopt${c===COURSE?" on":""}" data-c="${esc(c)}"><b>${esc(COURSES[c].name)}</b><small>${ws.length?"تعلّمت "+n+" من "+ws.length+" كلمة":""}</small>${c===COURSE?`<i>${isAdmin()?"✓":LIC("check")}</i>`:""}</button>`};
+  m.innerHTML=`<div class="lbox crsbox"><h1 style="font-size:1.15rem">${isAdmin()?"📘":LIC("mapbook")} اختر المنهج</h1><p class="rnote">المحطات تعلّمك كلمات المنهج الذي تختاره، أما المراجعة والتمارين فمن كل مناهجك.</p>
    ${MY_COURSES.filter(c=>COURSES[c]).map(row).join("")}<button class="link" id="crsNo">إغلاق</button></div>`;
   m.onclick=e=>{if(e.target===m)close()};$("crsNo").onclick=close;
   m.querySelectorAll(".crsopt").forEach(b=>b.onclick=async()=>{close();if(b.dataset.c!==COURSE){await switchCourse(b.dataset.c)}});
@@ -2574,7 +2658,7 @@ const CHEST=`<svg class="chest" viewBox="0 0 120 100" aria-hidden="true"><ellips
  <g class="lid"><path d="M14 46 V34 Q14 14 60 14 Q106 14 106 34 V46 Z" fill="#f2a93b"/><rect x="24" y="17" width="10" height="29" fill="#d88a1f"/><rect x="86" y="17" width="10" height="29" fill="#d88a1f"/></g>
  <rect x="50" y="38" width="20" height="22" rx="5" fill="#fff4d6"/><circle cx="60" cy="47" r="3.5" fill="#c97a16"/><rect x="58.5" y="49" width="3" height="6" rx="1.5" fill="#c97a16"/></svg>`;
 function questRows(L){return L.map(q=>`<div class="qrow${q.done?" ok":""}"><div class="qtx"><b>${q.n}</b><div class="qbar"><i style="width:${q.v/q.goal*100}%"></i><span dir="ltr">${q.v} / ${q.goal}</span></div></div>
-  ${!q.g&&!q.pz?`<span class="qmon">${monStat(curMon()).ic}<small>ملصق الشهر</small></span>`:q.got&&q.pz?`<span class="qgot">${I3("puzzle")} ${pzGotTxt()}</span>`:!q.done&&q.pz?`<span class="qmon">${I3("puzzle")}<small>قطعة بازل</small></span>`:q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> 💎</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
+  ${!q.g&&!q.pz?`<span class="qmon">${monStat(curMon()).ic}<small>ملصق الشهر</small></span>`:q.got&&q.pz?`<span class="qgot">${I3("puzzle")} ${pzGotTxt()}</span>`:!q.done&&q.pz?`<span class="qmon">${I3("puzzle")}<small>قطعة بازل</small></span>`:q.got?`<span class="qgot">${I3("check")} <bdi dir="ltr">+${q.g}</bdi> ${isAdmin()?"💎":HIC("gem")}</span>`:q.done?`<button type="button" class="btn qopen" data-q="${q.id}">افتح</button>`:`<span class="qch">${CHEST}</span>`}</div>`).join("")}
 // فتح صندوق مهمة: يهتزّ ثم ينفتح وتخرج الجواهر
 // ما ربحه من بازل اليوم: قطعة جديدة، أو جواهر قطعة مكرّرة، أو جائزة اكتمال البازل
 function pzToday(){const d=today(),e=(Array.isArray(R.qd)?R.qd:[]).find(x=>x[0]===d&&x[1]==="perf"),p=(Array.isArray(R.pz)?R.pz:[]).filter(x=>x[0]===d).pop();return {g:e?+e[2]||0:0,p:p?p[1]:-1}}
@@ -2595,12 +2679,12 @@ function openChest(id,host,done){
   host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
     if(ev({type:"quest",id})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
     b.classList.remove("shake");b.classList.add("open");b.insertAdjacentHTML("beforeend",[0,1,2,3,4].map(i=>`<i class="chg${i}">💎</i>`).join(""));fx("done");confetti(60);renderHeader();
-    host.querySelector(".chhint").outerHTML=`<p class="chgot"><bdi dir="ltr">+${q.g}</bdi> جواهر 💎</p><button class="btn next" id="chOk">رائع!</button>`;
+    host.querySelector(".chhint").outerHTML=`<p class="chgot"><bdi dir="ltr">+${q.g}</bdi> جواهر ${isAdmin()?"💎":HIC("gem")}</p><button class="btn next" id="chOk">رائع!</button>`;
     host.querySelector("#chOk").onclick=done};
 }
 function questModal(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML="";if($("review").classList.contains("on")&&!STS&&!DRL&&!RES)reviewHome()};
-  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${I3("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: يوم في ملصق الشهر، أو صندوق جواهر، أو قطعة بازل. تتجدّد المهام كل يوم.</p>
+  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${isAdmin()?I3("target"):NIC("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: يوم في ملصق الشهر، أو صندوق جواهر، أو قطعة بازل. تتجدّد المهام كل يوم.</p>
     <div id="qList">${questRows(L)}${monCard()}${pzCard()}</div><button class="link" id="qNo">إغلاق</button></div>`;
     $("qNo").onclick=close;m.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,$("qList"),draw))};
   m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};draw();
@@ -2740,7 +2824,7 @@ function quizIntro(){
   const n=learnedList().length,hard=Object.keys(hardScores()).length,last=QLOG.filter(q=>q[3]==="quiz").slice(-1)[0];
   $("quiz").innerHTML=`<div class="box qintro">${I3("quiz")}<h2>الاختبار</h2>
    <p class="rnote">${arN(Math.max(4,Math.min(10,n)),"سؤال","سؤالان","أسئلة")} على الكلمات التي تعلّمتها: ترى الكلمة الألمانية وتختار معناها. أغلب الأسئلة من الكلمات التي تخطئ فيها أو تجدها صعبة.</p>
-   <div class="ppills"><span>${I3("sparkles")} حتى ${Math.max(4,Math.min(10,n))*CFG.xp.quiz} خبرة</span><span>${I3("gift")} بلا طاقة</span></div>
+   <div class="ppills"><span>${isAdmin()?I3("sparkles"):LIC("sparkles")} حتى ${Math.max(4,Math.min(10,n))*CFG.xp.quiz} خبرة</span><span>${I3("gift")} بلا طاقة</span></div>
    ${last?`<p class="rnote">آخر نتيجة: ${last[1]} من ${last[2]}</p>`:""}
    ${n<4?'<p class="rnote">يحتاج الاختبار 4 كلمات متعلّمة على الأقل. تعلّم كلمات جديدة في المحطات أولًا.</p>':`<button class="btn next" id="qStart">ابدأ الاختبار</button>`}</div>`;
   const b=$("qStart");if(b)b.onclick=startQuiz;
@@ -3809,13 +3893,13 @@ async function showPlayer(row){
   const me=row.dataset.u===UID;
   if(d.hide&&!me){m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
-    <p class="rnote" style="margin-top:12px">🔒 اختار هذا المتعلّم إخفاء ملفه، فلا تظهر إنجازاته ولا ملصقاته.</p>
+    <p class="rnote" style="margin-top:12px">${LIC("lock")} اختار هذا المتعلّم إخفاء ملفه، فلا تظهر إنجازاته ولا ملصقاته.</p>
     <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;$("pcClose").onclick=close;return}
   const al=achList(),stickers=SHOP.filter(x=>x.cat==="sticker"),have=new Set(d.stk||[]),lvSum=Object.values(d.alv||{}).reduce((a,b)=>a+b,0);
   m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>المستوى ${d.lv||1} · ${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
-   ${me&&d.hide?'<p class="rnote" style="margin-top:10px">🔒 ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
-   <div class="gstats" style="margin-top:10px"><div class="gstat"><b>🔥 ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>${I3("medal")} ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>🏆 ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
+   ${me&&d.hide?'<p class="rnote" style="margin-top:10px">'+LIC("lock")+' ملفك مخفي: يرى الآخرون اسمك ومظهرك ودوريك فقط.</p>':""}
+   <div class="gstats" style="margin-top:10px"><div class="gstat"><b>${HIC("fire")} ${d.streak||0}</b><span>السلسلة</span></div><div class="gstat"><b>${I3("medal")} ${d.best||0}</b><span>أفضل سلسلة</span></div><div class="gstat"><b>${I3("trophy")} ${lvSum}</b><span>مستويات الإنجاز</span></div></div>
    <h3 class="pch">الإنجازات</h3><div class="pach">${al.map(a=>{const k=(d.alv||{})[a.id]||0;return `<span class="${k?"":"no"}" title="${esc(a.n)}">${achIc(a)}${k?`<i>${k}</i>`:""}</span>`}).join("")}</div>
    <button class="btn lgo" id="pcClose" style="margin-top:12px">إغلاق</button></div>`;
   $("pcClose").onclick=close;
@@ -3943,11 +4027,11 @@ function claimEnGifts(){
   const g=todo[0];EN_SHOWN.add(g.id);const why=String(g.note||"").replace(/^⚡\s*/,"");
   const m=$("fbModal");if(m.style.display==="flex"){EN_SHOWN.delete(g.id);setTimeout(claimEnGifts,4000);return}
   m.style.display="flex";
-  m.innerHTML=`<div class="lbox stpop engift"><div class="logo">${I3("battery")}</div><h1>هدية من المشرف 🎁</h1>
+  m.innerHTML=`<div class="lbox stpop engift"><div class="logo">${I3("battery")}</div><h1>هدية من المشرف ${I3("gift")}</h1>
    <p style="font-size:1.25rem;font-weight:800;margin:6px 0">طاقة بلا حدود لمدة ${durAr(g.g)}</p>
    ${why?`<p class="rnote" style="font-size:1rem">«${esc(why)}»</p>`:""}
    <p class="rnote">يبدأ الوقت حين تضغط الزر. تتعلّم كالمعتاد بخبرتك وجواهرك، والمحطات والتدريبات بلا طاقة.</p>
-   <button class="btn next" id="egGo">استلم الهدية ⚡</button></div>`;
+   <button class="btn next" id="egGo">استلم الهدية ${HIC("battery")}</button></div>`;
   confetti(140);fx("done");
   $("egGo").onclick=()=>{const r=ev({type:"unl",id:g.id});m.style.display="none";m.innerHTML="";
     if(r===true){renderEnergy();toast(I3("battery"),"طاقة بلا حدود لمدة "+durAr(g.g),"ابدأ محطاتك الآن!");confetti(60);syncNow();const on=document.querySelector(".panel.on");if(on&&on.id==="review"&&!STS&&!DRL&&!RES)reviewHome()}
