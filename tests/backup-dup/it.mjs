@@ -28,10 +28,10 @@ const memfs={async get(p){const d=DB.get(p);return d?{data:cl(d.data),updateTime
       if(w.inc){const x=d?d.data:{};for(const k in w.inc)x[k]=(x[k]||0)+w.inc[k];DB.set(w.path,{data:x,ut:String(++UT)});continue}
       const data=cl(w.data);for(const k in data)if(data[k]&&data[k].__ts)data[k]={ms:data[k].__ts};
       DB.set(w.path,{data:w.merge&&d?{...d.data,...data}:data,ut:String(++UT)})}}};
-const KV={m:new Map(),puts:0,async put(k,v,o){this.puts++;this.m.set(k,{v,o})},async list(o){const p=(o&&o.prefix)||'';return {keys:[...this.m.keys()].filter(n=>n.startsWith(p)).map(name=>({name,metadata:this.m.get(name).o&&this.m.get(name).o.metadata}))}},async get(k){return this.m.get(k)?.v??null},async delete(k){this.m.delete(k)}};
+const KV={m:new Map(),puts:0,async put(k,v,o){this.puts++;this.m.set(k,{v,o})},async list(o){const p=(o&&o.prefix)||'';return {keys:[...this.m.keys()].filter(n=>n.startsWith(p)).map(name=>({name,metadata:this.m.get(name).o&&this.m.get(name).o.metadata}))}},async get(k,o){return this.m.get(k)?.v??null},async delete(k){this.m.delete(k)}};
 const env={__fs:memfs,BAK:KV};export {env};
 // ---- الخادمان: القديم (main) والجديد (combined-test) ----
-const SRV={old:(await import(pathToFileURL(path.resolve(DIR,'w_old.mjs')).href)).default,new:(await import(pathToFileURL(path.resolve(DIR,'w_new.mjs')).href)).default};
+const SRV={old:(await import(pathToFileURL(path.resolve(DIR,'w_old.mjs')).href)).default,new:(await import(pathToFileURL(path.resolve(DIR,'w_new.mjs')).href)).default,new2:(await import(pathToFileURL(path.resolve(DIR,'w_new.mjs')).href+'?isolate2')).default,new3:(await import(pathToFileURL(path.resolve(DIR,'w_new.mjs')).href+'?isolate3')).default};
 let ACTIVE='new';
 async function post(p,uid,body){const r=await SRV[ACTIVE].fetch(new Request('https://api.test'+p,{method:'POST',headers:{Authorization:'Bearer '+await token(uid,uid+'@mufradati.app'),'Content-Type':'application/json',Origin:'https://ghadeerabbas.github.io'},body:JSON.stringify(body)}),env,{});const j=await r.json();if(r.status!==200)throw new Error(p+' '+r.status+' '+JSON.stringify(j));return j}
 // ---- التطبيق: core.js (القديم أو الجديد) مع منطق applyServer نفسه في index.html ----

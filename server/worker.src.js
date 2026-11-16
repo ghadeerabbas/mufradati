@@ -523,7 +523,9 @@ async function handleAiLog(fs, user, body, env) {
 
 
 /* ---------- النسخ الاحتياطي: كل ليلة تُحفظ نسخة كاملة من قاعدة البيانات في تخزين Cloudflare (منفصل عن Firebase) ---------- */
-const BAK_KEEP = 14;   // تبقى آخر 14 نسخة
+// الاحتفاظ (السياسة 2): آخر 14 نسخة ليلية وآخر 5 يدوية، كلٌّ على حدة، فلا تُخرج اليدويةُ الليليةَ.
+// يُطبَّق فقط على النسخ التي أُنشئت بهذه السياسة (pol: 2)؛ النسخ الأقدم لا تُحذف تلقائيًا أبدًا، ولا نسخة «قبل الاسترجاع»
+const BAK_KEEP = { auto: 14, manual: 5 }, BAK_POL = 2;
 const DOCROOT = `projects/${PROJECT}/databases/(default)/documents`;
 async function gauth(env) { return { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" } }
 // كل وثائق قاعدة البيانات بصيغتها الأصلية (الأنواع محفوظة كما هي). تُحفظ الردود كما وصلت بلا تحليل، توفيرًا لوقت المعالج
@@ -548,39 +550,52 @@ async function exportAll(env) {
 const gz = async s => new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
 const gunz = async b => await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
 async function backupNow(env, why, rid) {
-  const ex = await exportAll(env), now = Date.now(), key = "bak-" + new Date(now).toISOString().replace(/[:.]/g, "-");
+  const ex = await exportAll(env); let now = Date.now(), key;
+  // مفتاح فريد: إن وُجدت نسخة بالجزء نفسه من الألف من الثانية (نادر جدًا) يُزاد جزءًا، فلا تُكتب نسخة فوق أخرى
+  // ولكل عملية لاحقة رقمية من معرّفها، فعمليتان مختلفتان في اللحظة نفسها لا تتشاركان المفتاح
+  let h = 0; for (const ch of String(rid || "")) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+  const suf = rid ? "-" + String(h).padStart(4, "0") : "";
+  for (let i = 0; i < 20; i++, now++) { key = "bak-" + new Date(now).toISOString().replace(/[:.]/g, "-") + suf; if (!(await env.BAK.get(key, { type: "stream" }).then(v => { if (v && v.cancel) v.cancel(); return v }))) break }
   const body = await gz('{"v":2,"at":' + now + ',"parts":[' + ex.parts.join(",") + "]}");
-  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto", ...(rid ? { rid } : {}) };
+  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto", pol: BAK_POL, ...(rid ? { rid } : {}) };
   await env.BAK.put(key, body, { metadata: meta });
-  const all = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1);
-  for (const k of all.slice(BAK_KEEP)) await env.BAK.delete(k.name);
+  await bakPrune(env);
   return { key, ...meta };
 }
-// «نسخة الآن» عملية لا تتكرّر: لكل ضغطة معرّف (rid) يرسله التطبيق، وإعادة الطلب نفسه (إعادة محاولة، أو طلب مكرّر من الشبكة)
-// تُرجع النسخة نفسها ولا تنشئ غيرها. العلامة brid-<rid> تُكتب قبل البدء، فطلب مكرّر وصل أثناء النسخ يعرف أنها قيد الإنشاء.
-// التطبيق القديم (بلا rid): نسخة يدوية في آخر دقيقتين تُرجَع بدل إنشاء أخرى
-const BAKRUN = new Map();
+// «نسخة الآن» عملية لا تتكرّر. لكل عملية معرّف (rid): ضغطة في التطبيق، أو «auto-<اليوم>» للنسخة الليلية، أو للتطبيق القديم بلا معرّف «m-<فترة دقيقتين>».
+// القفل وثيقة bakrid/<rid> تُنشأ بشرط ألّا تكون موجودة (ذرّيًّا في قاعدة البيانات): مهما تزامنت الطلبات أو اختلفت نسخ الخادم التي وصلت إليها،
+// يفوز طلب واحد فقط بإنشاء النسخة، والباقي يُرجع النسخة نفسها أو «قيد الإنشاء». الوثيقة صغيرة ولا تمسّ بيانات الحسابات.
+const BAKRUN = new Map(), BAK_STALE = 15 * 60e3;
 const RID_OK = r => typeof r === "string" && /^[A-Za-z0-9_-]{8,40}$/.test(r);
-async function backupOnce(env, rid) {
-  const now = Date.now();
-  if (RID_OK(rid)) {
-    if (BAKRUN.has(rid)) { const r = await BAKRUN.get(rid).catch(() => null); if (r) return { ...r, dup: 1 } }
-    const m = await env.BAK.get("brid-" + rid);
-    if (m) { const x = parseJ(m, {}); return x.key ? { ...x, dup: 1 } : { pending: 1, dup: 1 } }
-  } else {
-    rid = "";
-    const l = (await env.BAK.list({ prefix: "bak-" })).keys.map(k => ({ key: k.name, ...(k.metadata || {}) })).filter(x => x.why === "manual" && now - (x.at || 0) < 120e3).sort((a, b) => b.at - a.at);
-    if (l.length) return { ...l[0], dup: 1 };
+async function backupOnce(env, fs, rid, why) {
+  const now = Date.now(); why = why === "auto" ? "auto" : "manual";
+  if (!RID_OK(rid)) rid = why === "auto" ? "auto-" + new Date(now).toISOString().slice(0, 10) : "m-" + Math.floor(now / 120e3);
+  if (BAKRUN.has(rid)) { const r = await BAKRUN.get(rid).catch(() => null); if (r) return { ...r, dup: 1 } }
+  const lock = `bakrid/${rid}`;
+  try { await fs.commit([{ path: lock, data: { st: "run", at: now, why }, ifMissing: true }]) }
+  catch (e) {
+    if (!e.conflict) throw e;
+    const d = await fs.get(lock), x = d ? d.data : {};
+    if (x.st === "done") return { ...parseJ(x.r, {}), dup: 1 };
+    if (now - (+x.at || 0) < BAK_STALE) return { pending: 1, dup: 1 };
+    // قفل قديم من عملية توقفت: يُستولى عليه بشرط ألّا يكون قد تغيّر منذ قرأناه (ذرّيًّا أيضًا)
+    try { await fs.commit([{ path: lock, data: { st: "run", at: now, why }, ifUpdateTime: d.updateTime }]) }
+    catch (e2) { if (e2.conflict) return { pending: 1, dup: 1 }; throw e2 }
   }
-  const p = (async () => {
-    if (rid) await env.BAK.put("brid-" + rid, "{}", { expirationTtl: 86400 });
-    const r = await backupNow(env, "manual", rid);
-    if (rid) await env.BAK.put("brid-" + rid, JSON.stringify(r), { expirationTtl: 86400 });
+  const p = backupNow(env, why, rid);
+  BAKRUN.set(rid, p); if (BAKRUN.size > 20) BAKRUN.delete(BAKRUN.keys().next().value);
+  try {
+    const r = await p; await fs.commit([{ path: lock, data: { st: "done", at: now, why, r: JSON.stringify(r) } }]);
+    try { const old = (await fs.list("bakrid")).filter(x => x.st === "done" && now - (+x.at || 0) > 30 * 864e5).slice(0, 50); if (old.length) await fs.commit(old.map(x => ({ path: "bakrid/" + x.id, del: true }))) } catch (e) { }   // أقفال أقدم من شهر
     return r;
-  })();
-  if (rid) { BAKRUN.set(rid, p); if (BAKRUN.size > 20) BAKRUN.delete(BAKRUN.keys().next().value) }
-  try { return await p }
-  catch (e) { if (rid) { BAKRUN.delete(rid); try { await env.BAK.delete("brid-" + rid) } catch (x) { } } throw e }
+  }
+  catch (e) { BAKRUN.delete(rid); try { await fs.commit([{ path: lock, del: true }]) } catch (x) { } throw e }
+}
+async function bakPrune(env) {
+  const all = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1), del = [];
+  for (const why of ["auto", "manual"]) del.push(...all.filter(k => k.metadata && k.metadata.pol === BAK_POL && k.metadata.why === why).slice(BAK_KEEP[why]));
+  for (const k of del) await env.BAK.delete(k.name);
+  return del.map(k => k.name);
 }
 // تفكّ النسخة وتعيد وثائقها: [{name, fields}]
 async function loadBak(env, key) {
@@ -631,7 +646,7 @@ async function handleBackup(fs, user, body, env) {
   if (!env.BAK) return { status: 500, json: { error: "nokv" } };
   const op = String(body.op || "list"), key = String(body.key || "");
   if (op === "list") { const l = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1); return { status: 200, json: { items: l.map(k => ({ key: k.name, ...(k.metadata || {}) })) } } }
-  if (op === "now") return { status: 200, json: await backupOnce(env, body.rid) };
+  if (op === "now") return { status: 200, json: await backupOnce(env, fs, body.rid, "manual") };
   // لقطة الحسابات الآن (للتوثيق قبل التحديث وبعده)
   if (op === "snap") return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } };
   const b = await loadBak(env, key);
@@ -998,7 +1013,7 @@ async function handleRd(fs, user, body, env) {
 }
 
 export default {
-  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupNow(env, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
+  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
   async fetch(req, env, ctx) {
     env.__ctx = ctx;
     const H = cors(req), url = new URL(req.url);
