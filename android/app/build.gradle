@@ -1,11 +1,6 @@
 plugins { id "com.android.application" }
 
 def run = (System.getenv("GITHUB_RUN_NUMBER") ?: "1") as Integer
-// النسخة التجريبية تُبنى بأمر مستقل (apk-beta.yml في فرع design) يضيف 100000 إلى رقم النسخة، فيقبلها الهاتف تحديثًا فوق «مفرداتي 1» الحالي.
-// في البناء العادي (apk.yml من main) لا يوجد VC_BASE فيبقى الرقم كما كان.
-def vcBase = (System.getenv("VC_BASE") ?: "0") as Integer
-// رابط «مفرداتي 1»: الموقع الأساسي، إلا في البناء التجريبي (BETA_HOME) فيفتح موقع التجربة
-def secondHome = System.getenv("BETA_HOME") ?: "https://ghadeerabbas.github.io/mufradati/"
 
 android {
     namespace "de.mufradati.app"
@@ -14,8 +9,8 @@ android {
         applicationId "de.mufradati.app"
         minSdk 24
         targetSdk 34
-        versionCode vcBase + run
-        versionName (vcBase > 0 ? "beta." + run : "1.0." + run)
+        versionCode run
+        versionName "1.0." + run
     }
     // نسختان من التطبيق نفسه تُثبَّتان معًا على الجهاز: الأساسية، والثانوية «مفرداتي 1» (لحساب ثانٍ مثلًا)
     flavorDimensions "v"
@@ -23,16 +18,13 @@ android {
         primary {
             dimension "v"
             manifestPlaceholders = [appLabel: "مفرداتي"]
-            buildConfigField "String", "HOME", '"https://ghadeerabbas.github.io/mufradati/"'
         }
         second {
             dimension "v"
             applicationIdSuffix ".one"
             manifestPlaceholders = [appLabel: "مفرداتي 1"]
-            buildConfigField "String", "HOME", "\"" + secondHome + "\""
         }
     }
-    buildFeatures { buildConfig true }
     signingConfigs {
         release {
             // المفتاح محميّ بكلمة سرّ محفوظة في أسرار GitHub (KS_PASS)، ولا تظهر في الملفات

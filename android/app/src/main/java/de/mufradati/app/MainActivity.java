@@ -23,7 +23,7 @@ import java.util.Locale;
 
 // تطبيق مفرداتي: يعرض الموقع بملء الشاشة، فيتحدّث تلقائيًّا مع كل تحديث للموقع.
 public class MainActivity extends Activity {
-    private static final String HOME = BuildConfig.HOME;   // لكل نسخة رابطها (انظر build.gradle)
+    private static final String HOME = "https://ghadeerabbas.github.io/mufradati/";
     private static final String HOST = "ghadeerabbas.github.io";
     private WebView web;
     private static final int PICK = 7;
