@@ -1775,6 +1775,12 @@ body:not(.adm):not(.lesson) #review .stgo:has(.btn){padding:6px 0 4px}
 body.hasseg:not(.seghide):not(.adm):not(.lesson) #review .stgo:has(.btn){bottom:calc(var(--navH,64px) + var(--segH,56px) + 2px)}
 body:not(.adm) #review .stgo .btn.next{min-height:48px;max-height:56px;padding:10px 14px;font-size:var(--fs-md);margin-top:0!important;line-height:1.3}
 body:not(.adm) #review .stsub{margin:5px 4px 0;font-size:var(--fs-xs);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ---------- زر المعلومات: شرح مطويّ يُفتح عند الحاجة ---------- */
+body:not(.adm) .infob{display:inline-grid;place-items:center;width:28px;height:28px;margin-inline-start:6px;vertical-align:middle;border:0;border-radius:50%;background:transparent;color:var(--ds-muted);padding:0;cursor:pointer}
+body:not(.adm) .infob .svi{width:19px;height:19px}
+body:not(.adm) .infob.on{background:var(--ds-cream);color:var(--ds-acc-dd)}
+body:not(.adm) .inft{background:var(--ds-bg);border-radius:var(--r-md);padding:8px 12px;margin:4px 0 8px;text-align:right}
+[data-dark] body:not(.adm) .infob.on{background:rgba(244,161,38,.18)}
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2216,7 +2222,7 @@ function mascot(pose,cls){
 function courseDoneHTML(){
   const others=MY_COURSES.filter(c=>c!==COURSE&&COURSES[c]),sent=st(K("crq_"+COURSE))==="1";
   return `<p class="stok">${I3("party")} أنهيت كل كلمات منهج «${esc((COURSES[COURSE]||{}).name||"")}».</p>`+
-   (others.length?'<p class="rnote">تستطيع أن تنتقل إلى منهج آخر من مناهجك في الإعدادات، أو أن تطلب منهجًا جديدًا.</p>':"")+
+   (others.length?(isAdmin()?'<p class="rnote">تستطيع أن تنتقل إلى منهج آخر من مناهجك في الإعدادات، أو أن تطلب منهجًا جديدًا.</p>':'<p class="rnote">غيّر المنهج من الإعدادات، أو اطلب منهجًا جديدًا.</p>'):"")+
    (sent?'<p class="rnote">✓ أرسلت طلب منهج جديد إلى المشرف، وسيصلك رده في الرسائل.</p>':'<button class="btn next" id="crqBtn">📘 اطلب منهجًا جديدًا من المشرف</button>');
 }
 async function askNewCourse(){
@@ -2491,7 +2497,7 @@ function resultView(){
   const el=$("review"),R_=RES,acc=Math.round(R_.acc*100);
   if(!isAdmin()){
     el.innerHTML=resDS({img:acc===100?"trophy":acc>=60?"jump":"thumbs",pct:R_.acc,mid:`<b class="sm"><bdi>${acc}٪</bdi></b><small>الدقّة</small>`,
-      title:String(R_.title).replace(/\+(\d+) 💎/g,(_,n)=>`<span class="sr-gem"><bdi dir="ltr">+${n}</bdi>${HIC("gem")}</span>`).replace(/💎/g,`<span class="sr-gem">${HIC("gem")}</span>`),sub:acc===100?"بلا أي خطأ، أداء مثالي!":acc>=60?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان",
+      title:String(R_.title).replace(/\+(\d+) 💎/g,(_,n)=>`<span class="sr-gem"><bdi dir="ltr">+${n}</bdi>${HIC("gem")}</span>`).replace(/💎/g,`<span class="sr-gem">${HIC("gem")}</span>`),sub:acc===100?"بلا أي خطأ، أداء مثالي!":"",
       stats:[["الدقّة",acc+"٪"],["الوقت",mmss(R_.ms)]],gains:{xp:R_.xp},
       btns:`<button class="btn next" id="resGo">${R_.daily?"تابع إلى الكلمات الجديدة":"متابعة"}</button>${R_.drill&&drillsToday()<stToday()?`<button class="btn gr-sec" id="resDrill">${LIC("puzzle")} تدريب على كلماتها${drillCost()?" · "+drillCost()+" طاقة":""}</button>`:""}`});
   }else
@@ -2507,7 +2513,7 @@ function resultView(){
 // نافذة قبل البدء: اسم الدرس وما يكسبه وما يكلّفه
 function lessonPop(o){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
-  m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1><p class="rnote">${o.sub}</p>
+  m.innerHTML=`<div class="lbox stpop"><div class="logo">${I3(o.ic)}</div><h1>${o.title}</h1>${o.sub?`<p class="rnote">${o.sub}</p>`:""}
    <div class="ppills"><span>${isAdmin()?I3("sparkles"):LIC("sparkles")} ${o.xp?"+"+o.xp+" خبرة":"بلا خبرة"}</span><span>${o.cost&&!isAdmin()?HIC("battery"):I3(o.cost?"battery":"gift")} ${o.cost?o.cost+" طاقة":unlAt(Date.now())&&!FREEU?"طاقة بلا حدود":"مجانية"}</span></div>
    <button class="btn next${o.blue?" blue":""}" id="ppGo">ابدأ${o.xp?" · +"+o.xp+" خبرة":""}</button><button class="link" id="ppNo" style="margin-top:8px">لاحقًا</button></div>`;
   m.onclick=e=>{if(e.target===m)close()};$("ppNo").onclick=close;$("ppGo").onclick=()=>{close();o.go()};
@@ -2556,7 +2562,7 @@ function drillView(){
   }
   const cell=(w,side)=>{const k=w.k,dn=D.done.has(k),on=D.sel&&D.sel.side===side&&D.sel.k===k;
     return `<button type="button" ${side==="de"?'lang="de"':""} class="btn mt${side==="de"?" de":""}${(side==="de"?lemmaOf(w):arLemma(w)).length>18?" long":""}${dn?" ok":""}${on?" on":""}" data-s="${side}" data-k="${esc(k)}" ${dn?"disabled":""}><span>${side==="de"?artHTML(lemmaOf(w)):esc(arLemma(w))}</span></button>`};
-  el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">اضغط كلمة ألمانية ثم معناها، أو العكس</p>
+  el.innerHTML=comboHTML()+head+`<div class="box"><p class="ghint">${isAdmin()?"اضغط كلمة ألمانية ثم معناها، أو العكس":"طابق كل كلمة بمعناها"}</p>
    <div class="mtgrid">${D.words.map((w,i)=>cell(w,"de")+cell(D.ar[i],"ar")).join("")}</div></div>`;
   el.querySelectorAll(".mt").forEach(b=>b.onclick=()=>{
     const side=b.dataset.s,k=b.dataset.k;
@@ -2609,7 +2615,7 @@ function coursePicker(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";
   const row=c=>{const ws=c===COURSE?uniq(W):(OTHERC[c]||[]),n=ws.filter(w=>P[w.k]).length;
     return `<button type="button" class="crsopt${c===COURSE?" on":""}" data-c="${esc(c)}"><b>${esc(COURSES[c].name)}</b><small>${ws.length?"تعلّمت "+n+" من "+ws.length+" كلمة":""}</small>${c===COURSE?`<i>${isAdmin()?"✓":LIC("check")}</i>`:""}</button>`};
-  m.innerHTML=`<div class="lbox crsbox"><h1 style="font-size:1.15rem">${isAdmin()?"📘":LIC("mapbook")} اختر المنهج</h1><p class="rnote">المحطات تعلّمك كلمات المنهج الذي تختاره، أما المراجعة والتمارين فمن كل مناهجك.</p>
+  m.innerHTML=`<div class="lbox crsbox"><h1 style="font-size:1.15rem">${isAdmin()?"📘":LIC("mapbook")} اختر المنهج</h1>${isAdmin()?'<p class="rnote">المحطات تعلّمك كلمات المنهج الذي تختاره، أما المراجعة والتمارين فمن كل مناهجك.</p>':""}
    ${MY_COURSES.filter(c=>COURSES[c]).map(row).join("")}<button class="link" id="crsNo">إغلاق</button></div>`;
   m.onclick=e=>{if(e.target===m)close()};$("crsNo").onclick=close;
   m.querySelectorAll(".crsopt").forEach(b=>b.onclick=async()=>{close();if(b.dataset.c!==COURSE){await switchCourse(b.dataset.c)}});
@@ -2644,11 +2650,11 @@ function heroCard(o){const {u,dueN,memN,done,dn,N,pend,dl,PB}=o;
   // ومجموع الكلمات وما يُراجَع وما حُفظ انتقلت إلى قسم «المراجعة». الدراسة الحرّة بلا شريط فيبقى لها عنوانها
   if(FREEU)return `<div class="unit dsh uh-c"><b class="uh-t">${title}</b>${questPill()}</div>`;
   return `<div class="unit dsh uh-c"><div class="uh-pr">${seg}<span class="uh-n" dir="ltr">${nd} / ${N}</span></div>${questPill()}</div>`}
-// سطر قصير تحت زر البدء (للمتعلّم): ما بعد «·» إن وُجد، وإلا الجملة الأولى (حتى «!» أو «.»)، بلا الرموز في آخرها.
-// (النرد وفقاعته مخفيّان في هوية design، فالسطر المختصر هو ما يظهر)
-function stLine(c){const t=String(c).replace(/<[^>]*>/g,"").replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/gu,"").trim();
-  if(t.includes("·"))return t.split("·").pop().trim();
-  const m=t.match(/^[^!.؟]*[!.؟]/);if(!m)return t;const f=m[0].trim();return f.length>=12?f:(t.slice(m[0].length).trim()||f)}
+// زر معلومات صغير للمتعلّم: الشرح مطويّ تحته ولا يظهر إلا عند الضغط. INFB في العنوان، وINFT بعده داخل الصندوق نفسه
+const INFB=()=>`<button type="button" class="infob" aria-label="معلومات" aria-expanded="false">${LIC("info")}</button>`;
+const INFT=t=>`<p class="rnote inft" hidden>${t}</p>`;
+document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest(".infob");if(!b)return;e.stopPropagation();
+  const box=b.closest(".lbox,.rsec,.box,.kpis")||b.parentNode,t=box&&box.querySelector(".inft");if(!t)return;t.hidden=!t.hidden;b.setAttribute("aria-expanded",String(!t.hidden));b.classList.toggle("on",!t.hidden)},true);
 function reviewHome(){
   if(!document.body.classList.contains("lesson"))document.body.classList.toggle("rvtab",HOMETAB==="rv");   // القسم يُطبَّق قبل الرسم، فلا يقفز الزر من مكانه
   if(STS)return stationView();
@@ -2695,6 +2701,17 @@ function reviewHome(){
     :!cost&&!done?"محطتك الأولى اليوم مجانية! هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" 🎁"
     :done?cheerMsg(done)+" · بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")
     :"هيا نتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+"!";
+  // للمتعلّم: سطر عملي قصير تحت الزر، بلا عبارات تشجيع متكرّرة (المشرف يرى الرسالة الكاملة كما كانت)
+  const coachL=!pend&&done>=N&&chOpen?"بقي تحدي اليوم: خبرة مضاعفة"
+    :!pend&&done>=N&&chOk?"أنهيت مسار اليوم وتحدّيه"
+    :pend&&(dl||done>=N)?(done<N?"التدريب يفتح المحطة التالية":"التدريب يكمل مسار اليوم")
+    :done>=N?"أنهيت مسار اليوم"
+    :!fresh?(allDone?"أنهيت كل كلمات منهجك":"تعلّمت كل كلمات هذا الاختيار. غيّره من الأعلى")
+    :low?(dueN?"الطاقة لا تكفي. المراجعة تعيد الطاقة":"تمتلئ الطاقة مع الوقت")
+    :FREEU||UN&&!done?""
+    :!cost&&!done?"المحطة الأولى اليوم مجانية"
+    :done?"بقيت لك "+arN(N-done,"محطة واحدة","محطتان","محطات")
+    :"";
   // شكلان مختلفان للنرد: الأول بحسب الحال، والثاني غيره
   const pose1=pend&&(dl||done>=N)?"thumbs":done>=N?(msg?"thumbs":"jump"):!fresh?"think":low?"sleep":!cost?"book":done?"thumbs":"idle";
   const pose2=pose1==="thumbs"?"cheer":"thumbs";
@@ -2706,24 +2723,24 @@ function reviewHome(){
    <div class="zz" style="height:${N*SP+TOP+6+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+TOP+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+TOP+80}px"><div class="flip">${mascot(pose2)}</div></div>`:""}${[...Array(N)].map((_,i)=>node(i)).join("")}${chNode()}</div>
    <div class="stgo">${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?(isAdmin()?"🪫 ":HIC("lowbat")+" "):""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?(isAdmin()?" ⚡":" "+HIC("battery")):""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:coach?`<p class="stsub">${isAdmin()?coach:stLine(coach)}</p>`:""}</div>
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?(isAdmin()?"🪫 ":HIC("lowbat")+" "):""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?(isAdmin()?" ⚡":" "+HIC("battery")):""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:(isAdmin()?coach:coachL)?`<p class="stsub">${isAdmin()?coach:coachL}</p>`:""}</div>
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
-   ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
+   ${FREEU?(isAdmin()?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':'<p class="rnote unlnote">الدراسة الحرّة: بلا خبرة ولا جواهر</p>'):""}
   </div>
   ${learned||scopeGet()!=="all"?`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة: ما تعلّمته (${learned})</h3>${rvStats}${scopeHTML()}
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}><small>${counts[id]}</small>${n}</button>`).join("")}</div>
-   ${RVSTATE!=="due"&&cnt?'<p class="rnote">ما لم يحن موعده يُراجَع للتدريب فقط، بلا خبرة ولا طاقة.</p>':""}
+   ${RVSTATE!=="due"&&cnt?(isAdmin()?'<p class="rnote">ما لم يحن موعده يُراجَع للتدريب فقط، بلا خبرة ولا طاقة.</p>':'<p class="rnote">ما لم يحن موعده: بلا خبرة ولا طاقة.</p>'):""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
-  </div>`:`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة</h3>${rvStats}<p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
+  </div>`:`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة</h3>${rvStats}<p class="rnote">${isAdmin()?"تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.":"لا كلمات للمراجعة بعد."}</p></div>`}`+settingsHTML();
   // لا نعيد كتابة الشاشة إن كانت هي نفسها معروضة (يمنع الارتجاف والقفز أثناء التمرير)
   if(!(REVH.h===html&&el.firstElementChild===REVH.n&&REVH.n)){const y=scrollY;el.innerHTML=html;REVH={h:html,n:el.firstElementChild};if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
   bindSettings();
   {const sg=el.querySelector(".stgo");if(sg&&!isAdmin())requestAnimationFrame(()=>document.documentElement.style.setProperty("--stgoH",sg.offsetHeight+"px"))}
   const qb=$("qBtn");if(qb)qb.onclick=questModal;
-  const sb=$("stStart");if(sb)sb.onclick=()=>{if(dailyN&&!low){startReview("due",dailyN);DAILY=1}else startStation()};const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها",xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
-  const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:"طابق كلمات المحطة بمعانيها",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
+  const sb=$("stStart");if(sb)sb.onclick=()=>{if(dailyN&&!low){startReview("due",dailyN);DAILY=1}else startStation()};const sn=$("stNode");if(sn)sn.onclick=()=>{const c=stCostAt(Date.now());lessonPop({ic:"star",title:FREEU?"المحطة "+(stToday()+1):"المحطة "+(stToday()+1)+" من "+stMax(),sub:isAdmin()?"تتعلّم "+arN(ST_WORDS,"كلمة جديدة","كلمتين جديدتين","كلمات جديدة")+" ثم تختبر نفسك فيها":arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة"),xp:FREEU?0:ST_WORDS*CFG.xp.stOk,cost:c,go:startStation})};
+  const dg=$("dGo");if(dg)dg.onclick=startDrill;const ds=$("dStart");if(ds)ds.onclick=startDrill;const dd=$("dNode");if(dd)dd.onclick=()=>lessonPop({ic:"puzzle",title:"تدريب المحطة "+(drillsToday()+1),sub:isAdmin()?"طابق كلمات المحطة بمعانيها":"",xp:FREEU?0:ST_WORDS*CFG.xp.quiz,cost:drillCost(),blue:1,go:startDrill});
   const cr=$("crqBtn");if(cr)cr.onclick=askNewCourse;
   const cb=$("crsBtn");if(cb)cb.onclick=coursePicker;
   // أنهى كل كلمات منهجه: ينتقل وحده إلى منهجه التالي الذي فيه كلمات جديدة
@@ -2759,17 +2776,17 @@ function pzBoard(have,hl,m,hide){
   const src=pzImg(m||curMon()),got=i=>have.has(i)&&i!==hide;
   return `<div class="pzboard">${[...Array(PZ_N).keys()].sort((a,b)=>got(a)-got(b)).map(i=>pzPiece(i,src,got(i)?"got"+(i===hl?" hl":""):"miss")).join("")}</div>`}
 function pzCard(hl,hide){const m=curMon(),{have}=pzMonth(m),s=monStat(m),n=have.size-(hide!=null&&have.has(hide)?1:0);
-  return `<div class="pzcard"><b>بازل ${s.name} <span dir="ltr" class="pzn">${n} / ${PZ_N}</span></b>${pzBoard(have,hl,m,hide)}<small>${have.size>=PZ_N?"اكتمل بازل هذا الشهر! 🎉":"اجمع القطع التسع هذا الشهر لتربح "+CFG.gems.puzzle+" جوهرة. القطعة المكرّرة تعطيك "+CFG.gems.pdup+" جواهر."}</small></div>`}
+  return `<div class="pzcard"><b>بازل ${s.name} <span dir="ltr" class="pzn">${n} / ${PZ_N}</span></b>${pzBoard(have,hl,m,hide)}${have.size>=PZ_N?"<small>اكتمل بازل هذا الشهر! 🎉</small>":isAdmin()?"<small>اجمع القطع التسع هذا الشهر لتربح "+CFG.gems.puzzle+" جوهرة. القطعة المكرّرة تعطيك "+CFG.gems.pdup+" جواهر.</small>":""}</div>`}
 const curMon=()=>today().slice(0,7);
 // بطاقة ملصق الشهر: الملصق (رمادي حتى يُكسب)، وعدد الأيام من المطلوب
 function monCard(){const s=monStat(curMon());
   return `<div class="moncard${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><div class="montx"><b>ملصق ${s.name}</b><div class="qbar"><i style="width:${s.n/s.need*100}%"></i><span dir="ltr">${s.n} / ${s.need}</span></div>
-   <small>${s.ok?"حصلت على ملصق هذا الشهر! 🎉":"أكمل محطة مع تدريبها في "+s.need+" يومًا من هذا الشهر لتحصل عليه"}</small></div></div>`}
+   ${s.ok?"<small>حصلت على ملصق هذا الشهر! 🎉</small>":isAdmin()?"<small>أكمل محطة مع تدريبها في "+s.need+" يومًا من هذا الشهر لتحصل عليه</small>":""}</div></div>`}
 // ملصقات الأشهر: كل الأشهر منذ أول تدريب، ما كُسب منها ملوّن
 function monthsModal(){
   const md=monDays(),ms=[...new Set([...Object.keys(md),curMon()])].filter(m=>m>="2026-11"&&m<=curMon()).sort().reverse().map(m=>monStat(m,md)),got=ms.filter(s=>s.ok).length;
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};
-  m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">ملصقات الأشهر</h1><p class="rnote">لكل شهر ملصق: تكسبه بإكمال محطة مع تدريبها في كل أيام الشهر إلا 7 أيام.${got?" معك "+arN(got,"ملصق واحد","ملصقان","ملصقات")+".":""}</p>
+  m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">ملصقات الأشهر${isAdmin()?"":INFB()}</h1>${isAdmin()?`<p class="rnote">لكل شهر ملصق: تكسبه بإكمال محطة مع تدريبها في كل أيام الشهر إلا 7 أيام.${got?" معك "+arN(got,"ملصق واحد","ملصقان","ملصقات")+".":""}</p>`:INFT("تكسب ملصق الشهر بإكمال محطة مع تدريبها في كل أيام الشهر إلا 7 أيام.")}
    <div class="mongrid">${ms.map(s=>`<div class="monit${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><b>${s.name}</b><small dir="ltr">${s.n} / ${s.need}</small></div>`).join("")}</div><button class="link" id="mnNo">إغلاق</button></div>`;
   $("mnNo").onclick=close;
 }
@@ -2779,9 +2796,9 @@ const pzMonths=()=>{const out=[],c=curMon();let [y,m]=[2026,11];while(true){cons
 function puzzleModal(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};
   const done=pzMonths().filter(k=>pzMonth(k).have.size>=PZ_N).reverse();
-  m.innerHTML=`<div class="lbox qbox pzbox"><h1 style="font-size:1.2rem">${I3("puzzle")} بازل الشهر</h1><div class="pzview">${pzCard()}</div>
+  m.innerHTML=`<div class="lbox qbox pzbox"><h1 style="font-size:1.2rem">${I3("puzzle")} بازل الشهر${INFB()}</h1>${INFT("اجمع القطع التسع هذا الشهر لتربح "+CFG.gems.puzzle+" جوهرة. القطعة المكرّرة تعطيك "+CFG.gems.pdup+" جواهر.")}<div class="pzview">${pzCard()}</div>
    <h3 class="pzah">ألبوم البازل</h3>${done.length?`<div class="pzalbum">${done.map(k=>`<div class="pzalb"><img src="${pzImg(k)}" alt="" loading="lazy"><b>${monStat(k).name}</b></div>`).join("")}</div>`
-     :`<p class="rnote">تظهر هنا صورة كل بازل تكمله، مع اسم شهره.</p>`}<button class="link" id="pzNo">إغلاق</button></div>`;
+     :`<p class="rnote">لا بازل مكتملًا بعد.</p>`}<button class="link" id="pzNo">إغلاق</button></div>`;
   $("pzNo").onclick=close;
 }
 function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&(q.g||q.pz));
@@ -2855,7 +2872,7 @@ function openChest(id,host,done){
 }
 function questModal(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML="";if($("review").classList.contains("on")&&!STS&&!DRL&&!RES)reviewHome()};
-  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${isAdmin()?I3("target"):NIC("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: يوم في ملصق الشهر، أو صندوق جواهر، أو قطعة بازل. تتجدّد المهام كل يوم.</p>
+  const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${isAdmin()?I3("target"):NIC("target")} مهام اليوم${isAdmin()?"":INFB()}</h1>${isAdmin()?'<p class="rnote">لكل مهمة جائزة: يوم في ملصق الشهر، أو صندوق جواهر، أو قطعة بازل. تتجدّد المهام كل يوم.</p>':INFT("تتجدّد المهام كل يوم. ملصق الشهر: أكمل محطة مع تدريبها في "+monStat(curMon()).need+" يومًا من الشهر.")}
     <div id="qList">${questRows(L)}${monCard()}</div><button class="link" id="qNo">إغلاق</button></div>`;
     $("qNo").onclick=close;m.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,$("qList"),draw))};
   m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};draw();
@@ -2867,7 +2884,7 @@ function questWatch(){
   seen.ids.push(...fresh.map(q=>q.id));st(k,JSON.stringify(seen));
   const mk=K("monann"),ma=jget(mk,[]),s=monStat(curMon());
   if(fresh.some(q=>q.id==="st1")&&s.ok&&!ma.includes(s.m)){ma.push(s.m);st(mk,JSON.stringify(ma.slice(-40)));
-    bigScreen(`<div class="monbadge big">${s.ic}</div><h2 class="btit">حصلت على ملصق ${s.name}!</h2><p class="bsub">أكملت محطة مع تدريبها في ${s.need} يومًا من هذا الشهر. تجد ملصقاتك في صفحة «أنا».</p>`,"questfx",()=>{fx("done");confetti(140)})}
+    bigScreen(`<div class="monbadge big">${s.ic}</div><h2 class="btit">حصلت على ملصق ${s.name}!</h2><p class="bsub">${isAdmin()?"أكملت محطة مع تدريبها في "+s.need+" يومًا من هذا الشهر. تجد ملصقاتك في صفحة «أنا».":"تجده في صفحة «أنا»."}</p>`,"questfx",()=>{fx("done");confetti(140)})}
   // مهمة البازل لها شاشة مفاجأة مستقلة (بعد شاشة المهام الأخرى إن وُجدت): تهنئة وصندوق مغلق فقط، ولا يظهر اللوح ولا عدد القطع قبل فتحه
   const pzq=fresh.find(q=>q.pz),rest=fresh.filter(q=>!q.pz),rows=()=>questRows(questList().filter(q=>!q.pz))+monCard();
   if(rest.length)bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${rest.length>1?"أكملت "+arN(rest.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+rest[0].n+"!"}</h2><div class="qbig" id="qBig">${rows()}</div>`,"questfx",d_=>{
@@ -2905,7 +2922,7 @@ function flip(){
   const b=(P[cur.k]||{box:0}).box,d0=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
   // مراجعة قبل موعدها: تدريب لا يغيّر موعد الكلمة، فلا نعرض مواعيد تحت الأزرار
   const prac=!!(P[cur.k]&&P[cur.k].box>0&&!rewarded(P[cur.k],cur.k,Date.now(),LOG)),d=n=>prac?"تدريب":d0(n);
-  $("rate").innerHTML=`${prac?'<p class="rnote pracnote">'+(isAdmin()?"🔁":LIC("repeat"))+' تدريب: لم يحن موعد هذه الكلمة، فمراجعتها الآن لا تغيّر موعدها ولا تعطي خبرة.</p>':""}<div class="rate">
+  $("rate").innerHTML=`${prac?'<p class="rnote pracnote">'+(isAdmin()?"🔁":LIC("repeat"))+(isAdmin()?' تدريب: لم يحن موعد هذه الكلمة، فمراجعتها الآن لا تغيّر موعدها ولا تعطي خبرة.':' تدريب فقط: لم يحن موعدها، بلا خبرة.')+'</p>':""}<div class="rate">
    <button class="btn r0" data-r="0">نسيت<small>${prac?"تدريب":"الآن"}</small></button>
    <button class="btn r1" data-r="1">صعبة<small>${d(IV[Math.max(1,b)])}</small></button>
    <button class="btn r2" data-r="2">عرفتها<small>${d(IV[Math.min(b+1,8)])}</small></button>
@@ -2998,7 +3015,7 @@ function quizIntro(){
   const n=learnedList().length,hard=Object.keys(hardScores()).length,last=QLOG.filter(q=>q[3]==="quiz").slice(-1)[0];
   const AD=isAdmin();
   $("quiz").innerHTML=`<div class="box qintro">${AD?I3("quiz"):`<span class="qzic">${LIC("brain")}</span>`}<h2>الاختبار</h2>
-   <p class="rnote">${arN(Math.max(4,Math.min(10,n)),"سؤال","سؤالان","أسئلة")} على الكلمات التي تعلّمتها: ترى الكلمة الألمانية وتختار معناها. أغلب الأسئلة من الكلمات التي تخطئ فيها أو تجدها صعبة.</p>
+   <p class="rnote">${arN(Math.max(4,Math.min(10,n)),"سؤال","سؤالان","أسئلة")} على ${AD?"الكلمات التي تعلّمتها: ترى الكلمة الألمانية وتختار معناها. أغلب الأسئلة من الكلمات التي تخطئ فيها أو تجدها صعبة.":"كلماتك"}</p>
    <div class="ppills"><span>${isAdmin()?I3("sparkles"):LIC("sparkles")} حتى ${Math.max(4,Math.min(10,n))*CFG.xp.quiz} خبرة</span><span>${I3("gift")} بلا طاقة</span></div>
    ${last?(AD?`<p class="rnote">آخر نتيجة: ${last[1]} من ${last[2]}</p>`:`<p class="qzlast">${LIC("medal")} آخر نتيجة: ${last[1]} من ${last[2]}</p>`):""}
    ${n<4?`<p class="rnote${AD?"":" qzneed"}">${AD?"":LIC("lock")}<span>يحتاج الاختبار 4 كلمات متعلّمة على الأقل. تعلّم كلمات جديدة في المحطات أولًا.</span></p>`:`<button class="btn next" id="qStart">ابدأ الاختبار</button>`}</div>`;
@@ -3023,7 +3040,7 @@ function showQ(){
     const pc=qs/qz.length;
     el.innerHTML=isAdmin()?`<div class="box done"><img class="jmp" src="img/m/${qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs"}.svg" alt=""><h2>النتيجة: ${qs} من ${qz.length}</h2><button class="btn next" id="again">اختبار جديد</button><button class="btn" id="qBack" style="width:100%;margin-top:8px">رجوع</button></div>`
       :`<div class="box done qzres">${resDS({img:qs===qz.length?"trophy":qs>=qz.length*.6?"cheer":"thumbs",pct:pc,mid:`<b><bdi>${qs}</bdi></b><small>من ${qz.length}</small>`,
-        title:"الاختبار",sub:pc===1?"كل الإجابات صحيحة، أداء مثالي!":pc>=.6?"عمل جيد، واصل التقدّم":"كل محاولة تقرّبك من الإتقان",
+        title:"الاختبار",sub:pc===1?"كل الإجابات صحيحة، أداء مثالي!":"",
         stats:[["النتيجة",qs+" من "+qz.length],["الدقّة",Math.round(pc*100)+"٪"]],gains:qz.gain,
         btns:`<button class="btn next" id="again">اختبار جديد</button><button class="btn gr-sec" id="qBack">رجوع</button>`})}</div>`;
     if(qs===qz.length)confetti(150);
@@ -3198,6 +3215,7 @@ function pickWords(list,n){
 // أيقونات خطّية موحّدة للعناصر الوظيفية في واجهة المتعلّم (هوية design)
 function LIC(k){const d={
   pencil:'<path d="M4 20h4l10.5-10.5a2.83 2.83 0 1 0-4-4L4 16v4"/><path d="M13.5 6.5l4 4"/>',
+  info:'<circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/>',
   target:'<circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="9"/>',
   keyboard:'<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M6 14h.01M18 14h.01M10 14h4"/>',
   headphones:'<rect x="4" y="13" width="5" height="7" rx="2"/><rect x="15" y="13" width="5" height="7" rx="2"/><path d="M4 15v-3a8 8 0 0 1 16 0v3"/>',
@@ -3245,7 +3263,7 @@ const GAMES=[
  {id:"listen",ic:I3("headphones"),li:"headphones",n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
  {id:"match",ic:I3("puzzle"),li:"puzzle",n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
  {id:"order",ic:I3("books"),li:"order",n:"رتّب الجملة",d:"ترى معنى الجملة بالعربية فتبني جملتها الألمانية بترتيب الكلمات"},
- {id:"s5",ic:I3("stopwatch"),li:"stopwatch",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت"},
+ {id:"s5",ic:I3("stopwatch"),li:"stopwatch",n:"جلسة الدقائق الخمس",d:"تمارين منوّعة متتالية حتى ينتهي الوقت",dl:"تمارين منوّعة حتى ينتهي الوقت"},
  {id:"chal",ic:I3("trophy"),n:"تحدي اليوم",d:"أسئلة منوّعة على كلماتك بخبرة مضاعفة",hidden:1},
 ];
 // التحدي اليومي: أسئلة منوّعة، كلمات اليوم أولًا ثم ما تعلّمه قبلها
@@ -3298,9 +3316,9 @@ function renderGames(){
   const bm=bestMatch();
   el.innerHTML=`<button class="frcard" id="frOpen"><span class="gic">${isAdmin()?"👫":LIC("users")}</span><span><b>الأصدقاء والتحدي</b><small>تحدَّ صديقًا متصلًا: 10 أسئلة، كلٌّ من كلماته</small></span>${FRN.nin?`<em class="mbadge on">${FRN.nin}</em>`:""}</button>
    <div class="gcards">${GAMES.filter(g=>!g.hidden).map(g=>{const n=gamePool(g.id).length,ok=n>=gameMin[g.id];
-    return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${isAdmin()?g.ic:LIC(g.li)}</span><b>${g.n}</b><small>${g.d}</small>
+    return `<button class="gcard" data-g="${g.id}" ${ok?"":"disabled"}><span class="gic">${isAdmin()?g.ic:LIC(g.li)}</span><b>${g.n}</b>${isAdmin()?`<small>${g.d}</small>`:g.dl?`<small>${g.dl}</small>`:""}
      <em>${g.id==="listen"&&listenMuted()?"متوقف مؤقتًا: يعود بعد "+Math.ceil((+(localStorage.getItem("muf_nolisten")||0)-Date.now())/60000)+" دقيقة":g.id==="listen"&&!canSpeak()?"النطق غير متاح على هذا الجهاز":ok?(g.id==="match"&&bm?I3("medal")+" أفضل وقت: "+secs(bm):g.id==="s5"?"5 دقائق":n+" كلمة متاحة"):"تعلّم كلمات أكثر في المحطات"}</em></button>`}).join("")}</div>
-   <p class="rnote" style="margin-top:10px">التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.</p>`;
+   <p class="rnote" style="margin-top:10px">${isAdmin()?"التمارين تأخذ الكلمات التي تعلّمتها من الاختيار الحالي في الأعلى، وتركّز على الكلمات الصعبة عليك. كل جواب صحيح = نقطة خبرة.":"كل جواب صحيح = نقطة خبرة."}</p>`;
   el.querySelectorAll(".gcard").forEach(b=>b.onclick=()=>startGame(b.dataset.g));
   $("frOpen").onclick=()=>{FRV=true;renderFriends()};
 }
@@ -3603,7 +3621,8 @@ function streakScreen(e){
   const days=[...Array(7)].map((_,i)=>{const d=dkey(ws+i*DAY+12*3600e3);return {d,done:dayDone(e,d),fut:d>td,now:d===td}});
   const missed=days.some(x=>!x.fut&&!x.done),left=days.filter(x=>x.fut).length;
   const lab=n===1?"يوم في سلسلتك":n===2?"يومان متتاليان":n<=10?"أيام متتالية":"يومًا متتاليًا";
-  const msg=missed?"عُد غدًا لتحافظ على سلسلتك وتكبر شعلتك!":left?"ادرس "+arN(left,"يومًا آخر","يومين آخرين","أيام أخرى")+" لتكمل أسبوعًا مثاليًا!":"أكملت أسبوعًا مثاليًا! 🌟";
+  const msg=isAdmin()?(missed?"عُد غدًا لتحافظ على سلسلتك وتكبر شعلتك!":left?"ادرس "+arN(left,"يومًا آخر","يومين آخرين","أيام أخرى")+" لتكمل أسبوعًا مثاليًا!":"أكملت أسبوعًا مثاليًا! 🌟")
+    :missed?"عُد غدًا لتحافظ على سلسلتك":left?arN(left,"يوم واحد","يومان","أيام")+" لأسبوع مثالي":"أكملت أسبوعًا مثاليًا! 🌟";
   bigScreen(`<div class="bfire">${I3("fire")}</div><div class="bnum">${n}</div><div class="blab">${lab}</div>
     <div class="wk">${days.map((x,i)=>`<div class="wd${x.done?" ok":""}${x.now?" now":""}${x.fut?" fut":""}"><small>${WD[i]}</small><i>${x.done?"✓":""}</i></div>`).join("")}</div>
     <p class="bmsg">${msg}</p>`,"streakfx",()=>{fx("streak");confetti(90)});
@@ -3670,7 +3689,7 @@ function drawLeague(rows){
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>${isAdmin()?"":LIC("stopwatch")}ينتهي الأسبوع <span id="lgLeft">${lgLeftTxt()}</span> · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
-   ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
+   ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">${isAdmin()?"اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.":"ادرس محطة لتدخل دوري هذا الأسبوع."}</div>'}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت "+(isAdmin()?"⬆️":LIC("up")):lastRes.mv<0?"نزلت "+(isAdmin()?"⬇️":LIC("down")):"بقيت"}${lastRes.g?" · +"+lastRes.g+" "+(isAdmin()?"💎":HIC("gem")):""}</p>`:""}
 `;
   if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}
@@ -3701,7 +3720,7 @@ function crsCountHTML(){
   const rows=cs.map(c=>{const ws=uniq(poolOf(c)),l=ws.filter(w=>P[w.k]).length;ws.forEach(w=>all.add(w.k));
     return `<div class="ccrow"><b>${esc(COURSES[c].name)}</b><span><em>${l}</em> من ${ws.length}</span>${isAdmin()?"":`<i class="ccbar"><i style="width:${ws.length?Math.max(l?2:0,l/ws.length*100):0}%"></i></i>`}</div>`}).join("");
   for(const k of all){T++;if(P[k])Ln++}
-  return `<div class="box ccount"><h3>${isAdmin()?I3("books"):LIC("book")} كلماتك في كل منهج</h3>${rows}${cs.length>1?`<div class="ccrow tot"><b>كل المناهج</b><span><em>${Ln}</em> من ${T}</span></div>`:""}<p class="rnote">العدد الأول: الكلمات التي تعلّمتها (ظهرت لك في المحطات ولو مرة). والثاني: كل كلمات المنهج.</p></div>`;
+  return `<div class="box ccount"><h3>${isAdmin()?I3("books"):LIC("book")} كلماتك في كل منهج${isAdmin()?"":INFB()}</h3>${isAdmin()?"":INFT("العدد الأول: الكلمات التي تعلّمتها، أي ظهرت لك في المحطات ولو مرة. والثاني: كل كلمات المنهج.")}${rows}${cs.length>1?`<div class="ccrow tot"><b>كل المناهج</b><span><em>${Ln}</em> من ${T}</span></div>`:""}${isAdmin()?`<p class="rnote">العدد الأول: الكلمات التي تعلّمتها (ظهرت لك في المحطات ولو مرة). والثاني: كل كلمات المنهج.</p>`:""}</div>`;
 }
 function renderReport(){
   const el=$("report"),f=uniq(filtered()),now=Date.now(),fk=new Set(f.map(w=>w.k)),L=LOG.filter(x=>fk.has(x[1]));
@@ -3728,12 +3747,12 @@ function renderReport(){
    <div class="kpi"><b>${learned}</b><span>كلمة تعلّمتها</span></div>
    <div class="kpi g"><b>${mem}</b><span>كلمة رسخت في ذاكرتك</span></div>
   </div>
-  <div class="rsec"><h3>${isAdmin()?"📈":LIC("trend")} ماذا تعلّمت فعلًا</h3>
+  <div class="rsec"><h3>${isAdmin()?"📈":LIC("trend")} ماذا تعلّمت فعلًا${isAdmin()?"":INFB()}</h3>${isAdmin()?"":INFT("ترسخ الكلمة حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع أو أكثر.")}
    <div class="rtab"><span></span><b>هذا الأسبوع</b><b>آخر 30 يومًا</b>
     <span>كلمات جديدة</span><em>${wk.nw}</em><em>${mo.nw}</em>
     <span>كلمات رسخت</span><em>${wk.mem}</em><em>${mo.mem}</em></div>
-   <p class="rnote">الكلمة ترسخ حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع.</p></div>
-  <div class="rsec"><h3>${isAdmin()?"🧠":LIC("brain")} نسبة تذكّرك في المراجعة</h3>${recN.some(n=>n)?colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
+   ${isAdmin()?'<p class="rnote">الكلمة ترسخ حين تتذكّرها مرات متتالية حتى يصير موعد مراجعتها بعد أسبوع.</p>':""}</div>
+  <div class="rsec"><h3>${isAdmin()?"🧠":LIC("brain")} نسبة تذكّرك في المراجعة${isAdmin()||!recN.some(n=>n)?"":INFB()}</h3>${recN.some(n=>n)?(isAdmin()?"":INFT("نسبة المراجعات التي تذكّرت فيها الكلمة في كل أسبوع، بلا الكلمات الجديدة والتدريب. الأعمدة تحت 70% بلون مختلف."))+colChart(rec,wl,rec.map((v,i)=>recN[i]&&v<70))+(isAdmin()?`<p class="rnote">كم كلمة تذكّرتها من كل الكلمات التي راجعتها في الأسبوع. فوق 80% ممتاز.</p>`:""):'<div class="empty">تظهر هنا بعد أول مراجعة لكلماتك.</div>'}</div>
   <div class="rsec"><h3>${isAdmin()?"🔁":LIC("calendar")} مواعيد المراجعة</h3><div class="kpis" style="margin:0"><div class="kpi o"><b>${dueT}</b><span>مستحقّة اليوم</span></div><div class="kpi"><b>${dueM}</b><span>مستحقّة غدًا</span></div></div></div>
   <div class="rsec"><h3>${isAdmin()?I3("warning"):LIC("alert")} الكلمات التي تنساها أكثر</h3>${scopeHTML()}${hard.length?hard.map(w=>`<div class="hw"><span class="de">${artHTML(w.de)}</span><span class="m">${esc(w.ar)}</span><small>${err[w.k]}×</small></div>`).join("")+`<button class="btn next" id="hardGo" style="margin-top:10px">راجعها الآن</button>`:'<div class="empty">لا كلمات صعبة الآن. تظهر هنا الكلمة حين تنساها أو تخطئ فيها، وتخرج حين تعرفها مرتين متتاليتين.</div>'}</div>
   ${isAdmin()?`<details class="rsec"><summary><b>تفاصيل أكثر (للمشرف)</b></summary>${reportDetailsHTML()}</details>`:""}`;
@@ -3788,7 +3807,7 @@ function looksHTML(){
   const cf=E.frame||"none",lf=E.lgFrame??cf,cs=stkVal(E.sticker),ls=stkVal(E.lgSticker??E.sticker);
   const frow=(id,cur)=>`<div class="numpicks lk" id="${id}">${frs.map(x=>`<button type="button" class="numpick lkf${x.id===cur?" on":""}" data-v="${x.id}" title="${esc(x.name)}"><i class="frmini fr-${x.id}"></i></button>`).join("")}</div>`;
   const srow=(id,cur)=>`<div class="numpicks lk" id="${id}"><button type="button" class="numpick${cur?"":" on"}" data-v="">بدون</button>${sts.map(x=>`<button type="button" class="numpick${x.val===cur?" on":""}" data-v="${esc(x.val)}">${stkH(x.val)}</button>`).join("")}</div>`;
-  return `<h3>${isAdmin()?I3("palette"):LIC("palette")} مظهري</h3><p class="rnote">ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.</p>
+  return `<h3>${isAdmin()?I3("palette"):LIC("palette")} مظهري</h3><p class="rnote">${isAdmin()?"ما تستعمله من المتجر يظهر في البطاقة والدوري معًا، وتستطيع هنا أن تختار لكلٍّ منهما شيئًا مختلفًا.":"اختر مظهر بطاقتك ومظهرك في الدوري."}</p>
    <b class="lkh">بطاقة المراجعة</b>${frow("lkCF",cf)}${sts.length?srow("lkCS",cs):""}
    <b class="lkh">اسمي في الدوري</b>${frow("lkLF",lf)}${sts.length?srow("lkLS",ls):""}`;
 }
@@ -3834,11 +3853,11 @@ function renderShop(){
   const vis=x=>!x.hidden||(x.cat!=="power"&&owned(x.cat,x.id));
   const AD=isAdmin(),G=AD?"💎":HIC("gem"),LK=AD?"🔒":LIC("lock"),FI=AD?"🔥":HIC("fire"),ST=AD?"⭐":LIC("star");
   const items=(shopCat==="streak"?SHOP.filter(x=>x.streak).sort((a,b)=>a.streak-b.streak):shopCat==="lvl"?SHOP.filter(x=>x.lvl).sort((a,b)=>a.lvl-b.lvl):SHOP.filter(x=>x.cat===shopCat&&!x.streak&&!x.lvl)).filter(vis),sb=streakBest(),lb=lvlBest();
-  el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>${G} ${e.gems}</b></div><div style="text-align:left"><small>${AD?"":LIC("star")}المستوى ${e.lv}</small><small>اكسب المزيد بالمحطات والدوري${AD?" 💪":""}</small></div></div>
+  el.innerHTML=`<div class="bal"><div><small>رصيدك</small><b>${G} ${e.gems}</b></div><div style="text-align:left"><small>${AD?"":LIC("star")}المستوى ${e.lv}</small>${AD?"<small>اكسب المزيد بالمحطات والدوري 💪</small>":""}</div></div>
   <div class="cats">${Object.keys(CATS).map(c=>`<button data-c="${c}" class="${c===shopCat?"on":""}">${CATS[c]}</button>`).join("")}<button data-c="streak" class="${shopCat==="streak"?"on":""}">${FI} السلسلة</button><button data-c="lvl" class="${shopCat==="lvl"?"on":""}">${ST} المستوى</button></div>
-  ${shopCat==="streak"?`<p class="rnote" style="margin-bottom:8px">هدايا مجانية تنفتح بطول سلسلتك. أطول سلسلة وصلتها: ${FI} ${sb} ${sb===1?"يوم":"يومًا"}</p>`:""}
-  ${shopCat==="lvl"?`<p class="rnote" style="margin-bottom:8px">هدايا مجانية تنفتح بمستواك: هدية جديدة كل 5 مستويات. أعلى مستوى وصلته: ${ST} ${lb}</p>`:""}
-  ${shopCat!=="power"&&shopCat!=="streak"&&shopCat!=="lvl"?`<p class="rnote" style="margin-bottom:8px">كلما صعدت في الدوري انفتحت هدايا أجمل. أعلى دوري وصلته: ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
+  ${shopCat==="streak"?`<p class="rnote" style="margin-bottom:8px">${AD?"هدايا مجانية تنفتح بطول سلسلتك. أطول سلسلة وصلتها:":"أطول سلسلة:"} ${FI} ${sb} ${sb===1?"يوم":"يومًا"}</p>`:""}
+  ${shopCat==="lvl"?`<p class="rnote" style="margin-bottom:8px">${AD?"هدايا مجانية تنفتح بمستواك: هدية جديدة كل 5 مستويات. أعلى مستوى وصلته:":"أعلى مستوى:"} ${ST} ${lb}</p>`:""}
+  ${shopCat!=="power"&&shopCat!=="streak"&&shopCat!=="lvl"?`<p class="rnote" style="margin-bottom:8px">${AD?"كلما صعدت في الدوري انفتحت هدايا أجمل. أعلى دوري وصلته:":"أعلى دوري:"} ${TIERS[bestTier()][1]} ${tierName(bestTier())}</p>`:""}
   <div class="shop">${items.map(it=>{
     const mine=it.cat!=="power"&&owned(it.cat,it.id),ek=EQKEY[it.cat];
     const eqv=it.cat==="avatar"?it.val:it.id,isEq=ek&&(it.cat==="avatar"?E.avatar===it.val:E[ek]===it.id);
@@ -4010,10 +4029,10 @@ function renderSettings(){
   const AD=isAdmin(),L=(k,f)=>AD?f:LIC(k);
   $("settings").innerHTML=`<h2 class="sth">${L("gear","⚙️")} الإعدادات</h2>
   <div class="rsec"><h3>${L("moon",I3("moon"))} الوضع الليلي</h3><div class="numpicks" id="stDark"><button type="button" class="numpick${isDark()?"":" on"}" data-v="0">${L("sun","☀️")} نهاري</button><button type="button" class="numpick${isDark()?" on":""}" data-v="1">${L("moon","🌙")} ليلي</button></div></div>
-  <div class="rsec"><h3>${L("speaker",I3("speaker"))} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div><p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p></div>
+  <div class="rsec"><h3>${L("speaker",I3("speaker"))} المؤثرات الصوتية</h3><div class="numpicks" id="stSnd"><button type="button" class="numpick${sndOn()?" on":""}" data-v="1">مفعّلة</button><button type="button" class="numpick${sndOn()?"":" on"}" data-v="0">صامتة</button></div>${AD?'<p class="rnote" style="margin-top:6px">أصوات الإجابة الصحيحة والخاطئة والاحتفال في المحطات والتدريب.</p>':""}</div>
   ${isAdmin()?"":`<div class="rsec"><h3>${LIC("mapbook")} المنهج</h3>${courses.length>1?`<div class="numpicks" id="stCourse">${courses.map(id=>`<button type="button" class="numpick${id===COURSE?" on":""}" data-v="${esc(id)}">${esc(COURSES[id].name)}</button>`).join("")}</div>`
     :`<p>${esc((COURSES[COURSE]||{}).name||"")}</p><p class="rnote">المنهج يحدّده لك المشرف.</p>`}</div>
-  <div class="rsec"><h3>${LIC("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">تصل التذكيرات إن سمحت بإشعارات التطبيق في هاتفك. ويُعدّ اليوم مكتملًا بمحطة أو بعشر مراجعات أو بإنهاء تحدٍّ مع صديق.</p>'
+  <div class="rsec"><h3>${LIC("bell")} التذكير اليومي</h3>${window.MufApp&&MufApp.setReminder?reminderHTML()+'<p class="rnote" style="margin-top:6px">يحتاج السماح بإشعارات التطبيق. يكتمل اليوم بمحطة أو 10 مراجعات أو تحدٍّ مع صديق.</p>'
     :'<p class="rnote">التذكير اليومي متاح في تطبيق أندرويد.</p>'}</div>`}
   ${isAdmin()?"":`<div class="rsec" id="stNameBox">${nameBoxHTML(login)}</div>`}
   <div class="rsec"><h3>${L("key","🔑")} تغيير كلمة المرور</h3>
@@ -4066,11 +4085,11 @@ function pubData(){
 async function showPlayer(row){
   const m=$("fbModal"),bot=row.dataset.bot==="1",close=()=>{m.style.display="none";m.innerHTML=""};
   m.style.display="flex";
-  if(bot){m.innerHTML=`<div class="lbox pcard"><div class="logo">🤖</div><h1 style="font-size:1.2rem">${esc(row.dataset.n)}</h1><p class="rnote">منافس آلي يكمل مجموعتك في الدوري.<br>خبرته هذا الأسبوع: ${esc(row.dataset.x)}</p><button class="btn lgo" id="pcClose">إغلاق</button></div>`;$("pcClose").onclick=close;m.onclick=e=>{if(e.target===m)close()};return}
+  if(bot){m.innerHTML=`<div class="lbox pcard"><div class="logo">🤖</div><h1 style="font-size:1.2rem">${esc(row.dataset.n)}</h1><p class="rnote">${isAdmin()?"منافس آلي يكمل مجموعتك في الدوري.<br>":"منافس آلي · "}خبرته هذا الأسبوع: ${esc(row.dataset.x)}</p><button class="btn lgo" id="pcClose">إغلاق</button></div>`;$("pcClose").onclick=close;m.onclick=e=>{if(e.target===m)close()};return}
   m.innerHTML='<div class="lbox pcard"><div class="empty">جارٍ التحميل…</div></div>';m.onclick=e=>{if(e.target===m)close()};
   let d=null;try{const x=await pref(row.dataset.u).get();d=x.exists?x.data():null}catch(e){}
   if(row.dataset.u===UID)d=pubData();
-  if(!d){m.innerHTML=`<div class="lbox pcard"><div class="logo">🙂</div><h1 style="font-size:1.2rem">${esc(row.dataset.n)}</h1><p class="rnote">لم يُنشر ملفه بعد. يظهر عندما يفتح التطبيق.</p><button class="btn lgo" id="pcClose">إغلاق</button></div>`;$("pcClose").onclick=close;return}
+  if(!d){m.innerHTML=`<div class="lbox pcard"><div class="logo">🙂</div><h1 style="font-size:1.2rem">${esc(row.dataset.n)}</h1><p class="rnote">${isAdmin()?"لم يُنشر ملفه بعد. يظهر عندما يفتح التطبيق.":"ملفه غير متاح بعد."}</p><button class="btn lgo" id="pcClose">إغلاق</button></div>`;$("pcClose").onclick=close;return}
   const me=row.dataset.u===UID;
   if(d.hide&&!me){m.innerHTML=`<div class="lbox pcard"><div class="pchead ${d.fr&&d.fr!=="none"?"fr-"+d.fr:""}"><div class="av">${stkH(d.av||"🎓")}</div>
     <div><b class="${d.nc&&NCOL[d.nc]?"nc-"+d.nc:""}">${esc(d.name||"")}</b><small>${TIERS[d.tier||0][1]} ${tierName(d.tier||0)}</small></div></div>
@@ -4114,7 +4133,7 @@ function nameBoxHTML(login){
   if(NM.pending)body=`<p>طلبت تغيير اسمك إلى <b>${esc(NM.pending)}</b>، وهو بانتظار موافقة المشرف.</p><button class="btn sec" id="stNameCancel" style="margin-top:6px">إلغاء الطلب</button>`;
   else if(!isAdmin()&&okAt&&left>0)body=`<p class="rnote">تستطيع تغيير اسمك مرة أخرى بعد ${left} ${left===1?"يوم":left===2?"يومين":left<=10?"أيام":"يومًا"}.</p>`;
   else body=`<div class="strow"><input id="stName" class="stin" maxlength="${isAdmin()?40:NAME_MAX}" value="${esc(UNAME)}" autocomplete="off"><button class="btn stbtn" id="stNameBtn">${isAdmin()?"حفظ":"إرسال"}</button></div>
-   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">من 6 إلى 16 خانة: حروف عربية أو إنجليزية وأرقام ومسافات فقط. يظهر الاسم الجديد بعد موافقة المشرف، ويمكن تغييره مرة كل 7 أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
+   ${isAdmin()?"":'<p class="rnote" style="margin-top:6px">من 6 إلى 16 خانة: حروف وأرقام ومسافات. يظهر بعد موافقة المشرف، ويتغيّر مرة كل 7 أيام.</p>'}<div class="stmsg" id="stNameMsg"></div>`;
   return `<h3>${isAdmin()?"👤":LIC("user")} الاسم الظاهر</h3><p class="rnote">اسمك الآن: <b>${esc(UNAME)}</b>. يظهر في الأعلى وفي الدوري. أما اسم الدخول <b dir="ltr">${esc(login)}</b> فلا يتغيّر.</p>${body}`;
 }
 function bindNameBox(){
@@ -4211,7 +4230,7 @@ function claimEnGifts(){
   m.innerHTML=`<div class="lbox stpop engift"><div class="logo">${I3("battery")}</div><h1>هدية من المشرف ${I3("gift")}</h1>
    <p style="font-size:1.25rem;font-weight:800;margin:6px 0">طاقة بلا حدود لمدة ${durAr(g.g)}</p>
    ${why?`<p class="rnote" style="font-size:1rem">«${esc(why)}»</p>`:""}
-   <p class="rnote">يبدأ الوقت حين تضغط الزر. تتعلّم كالمعتاد بخبرتك وجواهرك، والمحطات والتدريبات بلا طاقة.</p>
+   <p class="rnote">يبدأ الوقت حين تستلم الهدية.</p>
    <button class="btn next" id="egGo">استلم الهدية ${HIC("battery")}</button></div>`;
   confetti(140);fx("done");
   $("egGo").onclick=()=>{const r=ev({type:"unl",id:g.id});m.style.display="none";m.innerHTML="";
@@ -5025,7 +5044,7 @@ async function duelInvited(inv){
   DL={id:inv.id,me:UID,d:null,off:0,inv:true};
   try{if(navigator.vibrate)navigator.vibrate([120,60,120])}catch(e){}
   const w=(inv.with||[]).filter(Boolean);
-  dlOv(`<h2>⚔️ ${esc(inv.name)} يتحدّاك!</h2>${w.length?`<p class="rnote">ومعكم في التحدي: <b>${w.map(esc).join("، ")}</b></p>`:""}<div class="dlbig">🏁</div><p class="rnote">${DUEL_N} أسئلة بالسرعة، كلٌّ من كلماته. الأكثر إجابات صحيحة يفوز، وعند التعادل الأسرع.</p>
+  dlOv(`<h2>⚔️ ${esc(inv.name)} يتحدّاك!</h2>${w.length?`<p class="rnote">ومعكم في التحدي: <b>${w.map(esc).join("، ")}</b></p>`:""}<div class="dlbig">🏁</div><p class="rnote">${isAdmin()?DUEL_N+" أسئلة بالسرعة، كلٌّ من كلماته. الأكثر إجابات صحيحة يفوز، وعند التعادل الأسرع.":DUEL_N+" أسئلة · يفوز الأكثر صوابًا، ثم الأسرع"}</p>
    <button class="btn next" id="dlAcc" style="width:100%">قبول التحدي</button><button class="link" id="dlNo">ليس الآن</button>`);
   $("dlNo").onclick=async()=>{await duelPoll("no");duelClose()};
   $("dlAcc").onclick=async()=>{$("dlAcc").disabled=true;const j=await duelPoll("acc");if(!DL)return;
@@ -5120,7 +5139,7 @@ async function duelEnd(final){
   if(gem&&!DL.gem){DL.gem=1;try{if(ev({type:"dwin",id:DL.id})===true)renderHeader()}catch(e){}}
   const r=tie?["🤝","تعادل!"]:pos===0?["🏆","فزت!"]:R.length>2?[md[pos]||"💪","المركز "+["الأول","الثاني","الثالث","الرابع"][pos]]:["💪","خسرت هذه المرة"];
   dlOv(`<div class="dlres">${r[0]}</div><h2>${r[1]}</h2>${gem?`<p class="rnote" style="font-size:1.05rem">ربحت ${I3("gem")} ${gem}</p>`:""}
-   ${!final&&playing.length?`<p class="rnote">ترتيبك ثابت ✔ — ${esc(playing.map(u=>d.nm[u]||"صديق").join("، "))} ما زال يلعب، والنتيجة تتحدّث وحدها.</p>`:""}
+   ${!final&&playing.length?`<p class="rnote">${isAdmin()?"ترتيبك ثابت ✔ — "+esc(playing.map(u=>d.nm[u]||"صديق").join("، "))+" ما زال يلعب، والنتيجة تتحدّث وحدها.":"بانتظار "+esc(playing.map(u=>d.nm[u]||"صديق").join("، "))}</p>`:""}
    <div class="rsec" style="text-align:start">${R.map((u,k)=>`<div class="frrow"><span>${tie?"🤝":(d.p[u]||{}).d||final?md[k]:"⏳"}</span><div><b>${esc(dlName(d,u))}</b></div><b>${(d.p[u]||{}).c||0}/${DUEL_N} ✓</b><small>${(d.p[u]||{}).d||final?sec(d.p[u]):"يلعب… "+((d.p[u]||{}).i||0)+"/"+DUEL_N}</small></div>`).join("")}</div>
    <div class="rsec" style="text-align:start"><h3>تقرير الأخطاء</h3>${R.map(u=>{const p=d.p[u]||{},x=u===DL.me&&DL.x.length>=(p.x||[]).length?DL.x:(p.x||[]),h=u===DL.me?DL.h:(p.h||"");
      return `<div class="dlrep"><b>${esc(dlName(d,u))}</b><div class="dlseg">${Array.from({length:DUEL_N},(_,k)=>`<i class="${h[k]==="1"?"ok":h[k]==="0"?"no":""}"></i>`).join("")}</div>
@@ -5663,14 +5682,14 @@ function renderMe(){
   const AD=isAdmin(),LI=(k,f)=>AD?f:`<i class="meic">${LIC(k)}</i>`;
   $("me").innerHTML=`<div class="mehd"><div class="stkav">${stkH(E.avatar||"🎓")}</div><div><b><bdi>${esc(UNAME)}</bdi></b><small>${AD?"":LIC("star")}المستوى ${e.lv}</small><div class="xpbar"><i style="width:${e.rest/e.need*100}%"></i></div><small>${AD?I3("sparkles"):LIC("sparkles")} ${e.rest}/${e.need}${AD?"":" خبرة"}</small></div></div>
   <div class="melist">
-   ${it("hAv",LI("medal",I3("medal")),"ملفي","إنجازاتك وإحصاءاتك")}
+   ${it("hAv",LI("medal",I3("medal")),"ملفي",AD?"إنجازاتك وإحصاءاتك":"")}
    ${isAdmin()?"":it("monBtn",`<i class="monbadge sm">${monStat(curMon()).ic}</i>`,"ملصقات الأشهر",(()=>{const s=monStat(curMon());return s.ok?"حصلت على ملصق "+s.name:s.name+": "+s.n+" من "+s.need+" يومًا"})())}
    ${isAdmin()||!questOn()?"":it("pzBtn",`<i class="meic pzic">${I3("puzzle")}</i>`,"بازل الشهر",monStat(curMon()).name+": "+pzMonth(curMon()).have.size+" من "+PZ_N+" قطع")}
    ${btnVis("rdBtn")?it("rdBtn",LI("book",I3("book")),"القراءة",""):""}
    ${btnVis("mtBtn")?it("mtBtn",LI("pencil",'<span class="mtIco">✏️</span>'),"تمارين المدرسة",""):""}
-   ${btnVis("aiBtn")?it("aiBtn",LI("sparkles",I3("owl")),"مساعد الوظيفة","يساعدك خطوة خطوة"):""}
-   ${it("msgBtn",LI("mail",I3("mail")),"الرسائل","راسل المشرف",bd)}
-   ${it("setBtn",LI("gear",I3("gear")),"الإعدادات","الحساب والمظهر والتذكير")}
+   ${btnVis("aiBtn")?it("aiBtn",LI("sparkles",I3("owl")),"مساعد الوظيفة",AD?"يساعدك خطوة خطوة":""):""}
+   ${it("msgBtn",LI("mail",I3("mail")),"الرسائل",AD?"راسل المشرف":"",bd)}
+   ${it("setBtn",LI("gear",I3("gear")),"الإعدادات",AD?"الحساب والمظهر والتذكير":"")}
   </div>`;
 }
 
