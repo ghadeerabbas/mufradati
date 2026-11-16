@@ -1,0 +1,14 @@
+{
+  "_": "إعدادات بيئة الاختبار المعزولة. كلها معرّفات عامة (لا أسرار). يملؤها صاحب المشروع بعد إنشاء مشروع Firebase الاختباري وعامل Cloudflare.",
+  "project": "FILL-ME-test-project-id",
+  "web": {
+    "apiKey": "FILL-ME",
+    "authDomain": "FILL-ME.firebaseapp.com",
+    "projectId": "FILL-ME-test-project-id",
+    "storageBucket": "FILL-ME.firebasestorage.app",
+    "messagingSenderId": "FILL-ME",
+    "appId": "FILL-ME"
+  },
+  "api": "https://mufradati-api-it.FILL-ME.workers.dev",
+  "label": "بيئة اختبار"
+}

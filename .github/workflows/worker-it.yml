@@ -1,0 +1,24 @@
+# نشر عامل بيئة الاختبار وحده (mufradati-api-it). لا يعمل إلا عند دفع وسم يبدأ بـ it-deploy- بعد الموافقة.
+# لا يمسّ العامل الحقيقي mufradati-api ولا main.
+name: نشر عامل الاختبار
+on:
+  push:
+    tags: ["it-deploy-*"]
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: فحص الإعدادات والحواجز وبناء نسخة الاختبار
+        run: python3 it/build_it.py && cp server/worker-it.js /tmp/w.mjs && node --check /tmp/w.mjs
+      - name: التأكد أن الهدف عامل الاختبار وحده
+        run: grep -q '^name = "mufradati-api-it"$' server/wrangler-it.toml && ! grep -q '^name = "mufradati-api"$' server/wrangler-it.toml
+      - name: النشر
+        working-directory: server
+        env:
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]"')
+          export CLOUDFLARE_ACCOUNT_ID=$(printf %s "$A" | tr -d '[:space:]')
+          npx --yes wrangler@4 deploy -c wrangler-it.toml

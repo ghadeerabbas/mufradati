@@ -1,0 +1,13 @@
+# عامل بيئة الاختبار فقط — مستقل عن mufradati-api الحقيقي. ينشره سير «نشر عامل الاختبار» عند وسم it-deploy-*، بعد الموافقة.
+name = "mufradati-api-it"
+main = "worker-it.js"
+compatibility_date = "2025-01-01"
+workers_dev = true
+keep_vars = true
+
+# النسخ الاحتياطية الليلية لبيئة الاختبار، في مخزن خاص بها (يُنشأ تلقائيًا عند أول نشر)
+[triggers]
+crons = ["37 3 * * *"]
+
+[[kv_namespaces]]
+binding = "BAK"
