@@ -15,4 +15,8 @@ T('بلا نشاط بعد النسخة: «مطابقة»، وكل وثائق ا�
 const cols=Object.entries(v.bak).filter(([,a])=>a.name==='علي');
 T('جدول «من النسخة» فيه عمودان باسم «علي» بأرقام مختلفة (وهذا ما يبدو «فرقًا»)',cols.length===2&&cols[0][1].stations!==cols[1][1].stations,cols.map(([u,a])=>u+': جواهر '+a.gems+' · محطات '+a.stations).join(' | '));
 T('ولكل حساب: النسخة = الآن',cols.every(([u,a])=>JSON.stringify(a)===JSON.stringify(v.live[u])));
+// حساب بلا وثيقة أسماء (مثل محمد ونانا وسمارة في النسخة الحقيقية): العنوان من وثيقة المستخدم، ومعه رقم الحساب
+await memfs.commit([{path:'users/mohX1',data:{name:'mohamad'}},{path:'members/mohX1',data:{no:5}}]);const M=app('new','mohX1');await M.sync();await station(M);
+const k2=(await post('/backup','admin',{op:'now',rid:'clickTWO00002'})).key;const v2=await post('/backup','admin',{op:'verify',key:k2});
+T('حساب بلا وثيقة أسماء: عنوان عموده اسمه في قائمة المستخدمين ورقمه، لا معرّفه الطويل',v2.accts.mohX1.name==='mohamad'&&v2.accts.mohX1.no===5&&v2.bak.mohX1.name==='mohamad',JSON.stringify({name:v2.accts.mohX1.name,no:v2.accts.mohX1.no}));
 console.log(out.join('\n'));

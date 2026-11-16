@@ -650,8 +650,9 @@ async function verifyBak(fs, b, key) {
   for (const u of await fs.list("users")) uids.add(u.id);
   const K = ["core", "log", "qa", "ck"], L = {};
   for (const uid of uids) {
-    const g = await Promise.all([...K.map(k => fs.get(`users/${uid}/data/${k}`)), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`), fs.get(`users/${uid}`)]);
-    L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[4], name: g[5] && g[5].data.name || "", user: !!g[6] };
+    const g = await Promise.all([...K.map(k => fs.get(`users/${uid}/data/${k}`)), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`), fs.get(`users/${uid}`), fs.get(`members/${uid}`)]);
+    // الاسم من وثيقة الأسماء، وإن لم تكن (كبعض الحسابات القديمة) فمن وثيقة المستخدم كما في قائمة المستخدمين و«لقطة الحسابات»؛ ورقم الحساب من وثيقة التفعيل
+    L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[4], name: g[5] && g[5].data.name || g[6] && g[6].data.name || "", user: !!g[6], no: g[7] && g[7].data.no != null ? +g[7].data.no : null };
   }
   await loadCfg(fs);   // إعدادات المشرف، كما يحسبها التطبيق والمزامنة
   const accts = {}; let same = true;
@@ -666,7 +667,7 @@ async function verifyBak(fs, b, key) {
     const sd = bs && ls ? Object.keys(bs).filter(k => stab(bs[k]) !== stab(ls[k])) : [bs ? "غير موجود الآن" : "غير موجود في النسخة"];
     const docSame = Object.values(docs).every(v => v === "same" || v === "none");
     if (!docSame || sd.length) same = false;
-    accts[uid] = { name: l.name || (B.get(`names/${uid}`) || { data: {} }).data.name || "", userDoc: l.user, docs, docSame,
+    accts[uid] = { name: l.name || (B.get(`names/${uid}`) || { data: {} }).data.name || (B.get(`users/${uid}`) || { data: {} }).data.name || "", no: l.no, userDoc: l.user, docs, docSame,
       coreUt: { bak: bd("core") ? bd("core").ut : "", live: l.d.core ? l.d.core.updateTime : "" }, bak: bs, live: ls, diff: sd };
   }
   return { ok: true, key, at: b.at, cmpAt, n: b.docs.length, result: same ? "match" : "diff", accts,
