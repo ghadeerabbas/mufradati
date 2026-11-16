@@ -1,6 +1,6 @@
 // إصلاح مهمة «بلا أي خطأ مع تدريبها»: OLD = core.js من main، NEW = هذا الفرع. الخادم يُحاكى بحفظ السجلّ بالثواني كما في worker.src.js
 const vm=require('vm'),fs=require('fs'),path=require('path');
-const W=fs.readFileSync(path.join(process.argv[2],'server/worker.src.js'),'utf8').split('\n'),PK=W.slice(20,24).join('\n');
+const W=fs.readFileSync(path.join(process.argv[2],'server/worker.src.js'),'utf8').split('\n'),PK=W.filter(l=>/^function (un)?pack(Log|QA)/.test(l)).join('\n');
 let NOW=Date.parse('2026-11-16T07:00:00Z');
 class FD extends Date{constructor(...a){a.length?super(...a):super(NOW)}static now(){return NOW}}
 function load(f){const c={console,Math,Date:FD,JSON,Array,Object,String,Number,Set,Map,Intl};vm.createContext(c);

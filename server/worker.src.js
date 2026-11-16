@@ -574,6 +574,41 @@ async function loadBak(env, key) {
   for (const part of j.parts || []) for (const x of part) if (x && x.document) docs.set(x.document.name, x.document.fields || {});
   return { at: j.at, docs: [...docs].map(([name, fields]) => ({ name, fields })) };
 }
+// ملخّص حساب واحد كما يحسبه الخادم: للتوثيق قبل التحديث وبعده، وللتحقق من النسخة الاحتياطية. لا يكتب شيئًا
+function acctSum(c, log, qa, ck, gifts) {
+  setState(c, log, qa, ck); GIFTS = (gifts || []).map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts })); EC = null;
+  const e = econ(), ms = new Set([...(Array.isArray(R.pz) ? R.pz : []).map(x => String(x[0]).slice(0, 7)), ...Object.keys(R.pza || {})]);
+  const pz = {}; for (const m of [...ms].sort()) pz[m] = pzMonth(m).have.size;
+  return { gems: e.gems, earned: e.earned, xp: e.xp, lv: e.lv, streak: e.s.streak, best: e.s.best, reviews: e.s.reviews, mem: e.s.mem, mast: e.s.mast,
+    words: Object.keys(P).length, stations: STN.length, quizzes: QLOG.length, buys: BUY.length, ach: (R.ach || []).length,
+    quests: (R.qd || []).length, qdg: +R.qdg || 0, duelWins: (R.dw || []).length, dwg: +R.dwg || 0, duelDays: duelDays().length,
+    tier: LG.tier, weeks: (LG.hist || []).length, lgg: (LG.hist || []).reduce((a, h) => a + (h.g || 0), 0) + (+LG.hg || 0), pz, album: Object.values(pz).filter(n => n >= PZ_N).length,
+    log: LOG.length, ck: typeof CK !== "undefined" && CK ? 1 : 0,
+    // ما طُوي في الأرشيف الدائم (0 حتى يبلغ الحساب حدود السجلّات): يحدّد هل التراجع إلى النسخة القديمة آمن
+    folded: (+R.qdg || 0) + (+R.dwg || 0) + (+LG.hg || 0) + Object.keys(R.dda || {}).length + (typeof CK !== "undefined" && CK ? 1 : 0) };
+}
+// ملخّصات كل الحسابات من قاعدة البيانات الحيّة
+async function liveSums(fs) {
+  const us = await fs.list("users"), out = {};
+  for (const u of us) {
+    const uid = u.id, [coreD, logD, qaD, ckD, gifts, nm] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`), fs.get(`users/${uid}/data/ck`), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`)]);
+    if (!coreD) continue;
+    out[uid] = { name: (nm && nm.data.name) || u.name || "", ...acctSum(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null), gifts) };
+  }
+  return out;
+}
+// ملخّصات كل الحسابات من نسخة احتياطية (بعد فكّها كاملة) — تثبت أن النسخة تكفي لإعادة بناء كل حساب
+function bakSums(b) {
+  const at = d => d.name.slice(DOCROOT.length + 1), docs = new Map(), val = f => { const o = {}; for (const k in f) o[k] = dec(f[k]); return o };
+  for (const d of b.docs) docs.set(at(d), val(d.fields));
+  const out = {};
+  for (const [p, v] of docs) {
+    const m = p.match(/^users\/([^/]+)\/data\/core$/); if (!m) continue; const uid = m[1], g = k => docs.get(`users/${uid}/data/${k}`);
+    const gifts = [...docs].filter(([q]) => q.startsWith(`gifts/${uid}/g/`)).map(([q, x]) => ({ id: q.split("/").pop(), ...x }));
+    out[uid] = { name: (docs.get(`names/${uid}`) || {}).name || "", ...acctSum(parseJ(v.v, {}), parseJ(g("log") && g("log").v, null), parseJ(g("qa") && g("qa").v, null), parseJ(g("ck") && g("ck").v, null), gifts) };
+  }
+  return out;
+}
 // المشرف: قائمة النسخ، نسخة الآن، تجربة الاسترجاع (فكّ النسخة وفحصها بلا كتابة)، الاسترجاع الفعلي
 async function handleBackup(fs, user, body, env) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
@@ -581,16 +616,37 @@ async function handleBackup(fs, user, body, env) {
   const op = String(body.op || "list"), key = String(body.key || "");
   if (op === "list") { const l = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1); return { status: 200, json: { items: l.map(k => ({ key: k.name, ...(k.metadata || {}) })) } } }
   if (op === "now") return { status: 200, json: await backupNow(env, "manual") };
+  // لقطة الحسابات الآن (للتوثيق قبل التحديث وبعده)
+  if (op === "snap") return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } };
   const b = await loadBak(env, key);
   if (op === "test") {
     const per = {}; for (const d of b.docs) { const p = d.name.slice(DOCROOT.length + 1).split("/"), c = p.length > 2 ? p[0] + "/…/" + p[p.length - 2] : p[0]; per[c] = (per[c] || 0) + 1 }
     const bad = b.docs.filter(d => !d.name.startsWith(DOCROOT + "/") || typeof d.fields !== "object").length;
     return { status: 200, json: { ok: !bad, at: b.at, n: b.docs.length, bad, per } };
   }
+  // تحقق كامل بلا كتابة: تُفكّ النسخة وتُعاد بناء كل الحسابات منها، وتُقارن بالحسابات الحيّة
+  if (op === "verify") {
+    const fromBak = bakSums(b), live = await liveSums(fs), diff = {};
+    for (const uid of new Set([...Object.keys(fromBak), ...Object.keys(live)])) {
+      const a = fromBak[uid], c = live[uid], d = [];
+      if (!a || !c) d.push(!a ? "غير موجود في النسخة" : "غير موجود الآن");
+      else for (const k of Object.keys(a)) if (JSON.stringify(a[k]) !== JSON.stringify(c[k])) d.push(k);
+      diff[uid] = d;
+    }
+    return { status: 200, json: { ok: true, at: b.at, n: b.docs.length, bak: fromBak, live, diff } };
+  }
+  // تنزيل النسخة ملفًّا إلى جهاز المشرف (نسخة خارج Cloudflare وFirebase)
+  if (op === "download") {
+    const raw = new Uint8Array(await env.BAK.get(key, "arrayBuffer")); let bin = ""; for (let i = 0; i < raw.length; i += 32768) bin += String.fromCharCode.apply(null, raw.subarray(i, i + 32768));
+    return { status: 200, json: { name: key + ".json.gz", b64: btoa(bin), size: raw.length } };
+  }
   if (op === "restore") {
     if (body.confirm !== key) return { status: 400, json: { error: "confirm" } };
     const before = await backupNow(env, "before-restore");   // نسخة من الوضع الحالي أولًا، للتراجع إن لزم
     const H = await gauth(env), W = b.docs.filter(d => d.name.startsWith(DOCROOT + "/")).map(d => ({ update: { name: d.name, fields: d.fields }, ...(/\/aichat\/[^/]+\/m\//.test(d.name) ? { updateMask: { fieldPaths: Object.keys(d.fields) } } : {}) }));
+    // نقطة حفظ السجل التي لم تكن في النسخة تُفرَّغ: وإلا اختلطت بسجلّ أقدم منها
+    const inBak = new Set(b.docs.map(d => d.name));
+    for (const u of await fs.list("users")) { const n = `${DOCROOT}/users/${u.id}/data/ck`; if (!inBak.has(n)) W.push({ update: { name: n, fields: { v: { stringValue: "" } } } }) }
     for (let k = 0; k < W.length; k += 400) { const r = await fetch(FS_BASE + ":commit", { method: "POST", headers: H, body: JSON.stringify({ writes: W.slice(k, k + 400) }) }); if (!r.ok) throw new Error("restore " + r.status + " " + (await r.text()).slice(0, 150)) }
     return { status: 200, json: { ok: true, n: W.length, before: before.key } };
   }
@@ -943,7 +999,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await handleBackup(fs0, user, body, env) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/mt" ? await handleMt(fs0, user, body) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await serial(() => handleBackup(fs0, user, body, env)) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/mt" ? await handleMt(fs0, user, body) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

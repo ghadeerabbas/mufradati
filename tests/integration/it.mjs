@@ -57,5 +57,5 @@ async function station(A,{miss=false,drill=true,syncEach=true}={}){
   const ws=nextWords();A.ev({type:'stDone',words:ws,miss:miss?[ws[1]]:[]});if(syncEach)await A.sync();adv(20e3);
   if(drill){A.ev({type:'quiz',kind:'drill',ok:4,total:5,ms:9000});if(syncEach)await A.sync()}adv(30e3)}
 async function duelDoc(id,winner,other){await memfs.commit([{path:'duel/'+id,data:{st:'done',ps:[winner,other],rank:[winner,other],['p_'+winner]:{d:true,c:4,ms:9000},['p_'+other]:{d:true,c:1,ms:12000}}}])}
-export {T,out,app,user,station,adv,duelDoc,memfs,DB,post,SRV};
+export {T,out,app,user,station,adv,duelDoc,memfs,DB,post,SRV,KV};
 export const ctl={get NOW(){return NOW},set NOW(v){NOW=v},set ACTIVE(v){ACTIVE=v},get ACTIVE(){return ACTIVE}};
