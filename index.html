@@ -1080,6 +1080,9 @@ body:not(.adm):has(#review.on .unitw) .unitw{background:var(--ds-bg)}
 body:not(.adm) header{background:var(--ds-card);border-bottom:0;box-shadow:var(--sh-1)}
 body:not(.adm) .hrow{padding:var(--sp-2) var(--sp-4)}
 body:not(.adm) .hcrs{background:var(--ds-cream);color:var(--ds-navy);padding:7px 14px;font-size:var(--fs-sm);gap:6px}
+/* شريط المنهج مع شارة المستوى: حشوة أصغر من جهة الشارة، فيتّسع الاسم على الشاشات الصغيرة */
+body:not(.adm) .hcrs{padding:6px 10px 6px 5px;gap:4px}
+@media (max-width:380px){body:not(.adm) .hcrs{padding:5px 8px 5px 4px;gap:3px;font-size:.78rem;letter-spacing:-.1px}body:not(.adm) .htop{gap:6px}}
 body:not(.adm) .hcrs:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);opacity:.7}
 body:not(.adm) .hflt{width:38px;height:38px;background:var(--ds-bg);color:var(--ds-navy)}
 body:not(.adm) .hflt svg{width:19px;height:19px}
