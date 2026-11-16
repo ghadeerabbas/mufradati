@@ -1449,8 +1449,11 @@ body:not(.adm) #rewards .lghead small .svi{width:15px;height:15px;color:var(--ds
 body:not(.adm) #rewards .tiers{background:var(--ds-bg);border-radius:var(--r-md);padding:8px 10px;margin:var(--sp-3) 0}
 body:not(.adm) #rewards .tiers .on{transform:scale(1.35)}
 body:not(.adm) #rewards .tiers .lock{opacity:.45;filter:grayscale(.6)}
-body:not(.adm) #rewards .lgrow{grid-template-columns:28px 28px minmax(0,1fr) auto;padding:8px 10px;border:0;border-radius:var(--r-md);margin-bottom:2px;font-size:var(--fs-sm)}
-body:not(.adm) #rewards .lgrow:nth-child(odd of .lgrow){background:transparent}
+body:not(.adm) #rewards .lgrow{grid-template-columns:28px 28px minmax(0,1fr) auto;padding:8px 10px;border-radius:var(--r-md);margin-bottom:2px;font-size:var(--fs-sm)}
+/* إطارات المتجر تبقى ظاهرة في الدوري: التنسيق الموحّد يحذف الحدّ والخلفية للصفوف التي بلا إطار فقط */
+body:not(.adm) #rewards .lgrow:not([class*="fr-"]){border:0}
+body:not(.adm) #rewards .lgrow[class*="fr-"]{margin:4px 0;padding:6px 8px}
+body:not(.adm) #rewards .lgrow:not([class*="fr-"]):nth-child(odd of .lgrow){background:transparent}
 body:not(.adm) #rewards .lgrow>b{color:var(--ds-ink);font-weight:800}
 body:not(.adm) #rewards .lgrow .rk{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--ds-bg);color:var(--ds-muted);font-weight:800;font-size:var(--fs-xs)}
 body:not(.adm) #rewards .lgrow .rk:has(.i3){background:none}
@@ -1458,7 +1461,8 @@ body:not(.adm) #rewards .lgrow .rk .i3{width:26px;height:26px}
 body:not(.adm) #rewards .lgrow .xp{color:var(--ds-muted);font-weight:700;font-size:var(--fs-xs)}
 body:not(.adm) #rewards .lgrow .xp b{color:var(--ds-navy);font-size:var(--fs-sm);font-weight:900}
 body:not(.adm) #rewards .lgrow .botl{background:var(--ds-bg);color:var(--ds-muted);border-radius:var(--r-pill);padding:1px 8px;font-size:.68rem;font-weight:800}
-body:not(.adm) #rewards .lgrow.me{background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #rewards .lgrow.me:not([class*="fr-"]){background:var(--ds-cream);box-shadow:inset 0 0 0 2px var(--ds-acc)}
+body:not(.adm) #rewards .lgrow.me[class*="fr-"]{--tint:rgba(244,161,38,.16)}
 body:not(.adm) #rewards .lgrow.me .rk{background:var(--ds-acc);color:var(--ds-acc-ink)}
 body:not(.adm) #rewards .lgline{display:flex;align-items:center;justify-content:center;gap:6px;margin:var(--sp-2) 0;font-size:var(--fs-xs);font-weight:800}
 body:not(.adm) #rewards .lgline:before,body:not(.adm) #rewards .lgline:after{content:"";flex:1;height:0;border-top:2px dashed currentColor;opacity:.35}
