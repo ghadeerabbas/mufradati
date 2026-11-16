@@ -769,6 +769,7 @@ const ONLINE = 90e3, INV_TTL = 60e3, DUEL_N = 10;
 // وحدّ احتياطي فقط لمن أغلق التطبيق = الأسئلة × (ثواني السؤال + 2) + 15 ثانية
 const dQt = d => Math.min(120, Math.max(5, +d.qt || 15));
 const dLen = d => DUEL_N * (dQt(d) * 1e3 + 2e3) + 15e3;
+const ONA = new Map();   // آخر كتابة لوقت النشاط الحقيقي (لمس أو كتابة من المتعلّم) في هذه النسخة من الخادم
 const ONW = new Map();   // آخر كتابة للظهور في هذه النسخة من الخادم (توفير الكتابات)
 const loginOf = u => String(u.email || "").split("@")[0];
 async function frGet(fs, uid) { const d = await fs.get(`fr/${uid}`); return Object.assign({ list: {}, inv: null }, d ? d.data : {}) }
@@ -788,7 +789,11 @@ async function handleFriends(fs, user, body, env) {
   if (op === "tick") {
     // نبضة كل بضع ثوانٍ: «أنا متصل»، وهل وصلتني دعوة تحدٍّ؟
     const w = [];
-    if (now - (ONW.get(me) || 0) > 50e3) { ONW.set(me, now); w.push({ path: `on/${me}`, data: { t: { __ts: now } } }) }
+    // t: التطبيق مفتوح وظاهر (للاتصال الآن ودعوات التحدي). a: آخر نشاط حقيقي، فقط إن أخبر التطبيق أن المتعلّم لمس الشاشة أو كتب منذ النبضة السابقة
+    const d = {};
+    if (now - (ONW.get(me) || 0) > 50e3) { ONW.set(me, now); d.t = { __ts: now } }
+    if (body.act && now - (ONA.get(me) || 0) > 50e3) { ONA.set(me, now); d.a = { __ts: now } }
+    if (d.t || d.a) w.push({ path: `on/${me}`, data: d, merge: true });
     const f = await frGet(fs, me); if (w.length) await fs.commit(w);
     const inv = f.inv && now - (f.inv.t && f.inv.t.ms || f.inv.t || 0) < INV_TTL ? { id: f.inv.id, from: f.inv.from, name: f.inv.name, with: f.inv.with || [] } : null;
     const L = Object.values(f.list || {});
@@ -798,8 +803,9 @@ async function handleFriends(fs, user, body, env) {
     const f = await frGet(fs, me), ids = Object.keys(f.list || {});
     const mm = await fs.get(`members/${me}`), myNo = mm && mm.data.no != null ? String(mm.data.no).padStart(6, "0") : "";   // رقم الحساب نفسه (يظهر في الإعدادات)
     const got = await fs.many(ids.flatMap(id => [`names/${id}`, `on/${id}`]));
-    return { status: 200, json: { items: ids.map(id => { const x = f.list[id], nm = got[`names/${id}`], on = got[`on/${id}`], t = on && on.t ? on.t.ms || 0 : 0;
-      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: t, w: x.w || 0, l: x.l || 0 } }), code: myNo } };
+    return { status: 200, json: { items: ids.map(id => { const x = f.list[id], nm = got[`names/${id}`], on = got[`on/${id}`], t = on && on.t ? on.t.ms || 0 : 0, a = on && on.a ? on.a.ms || 0 : 0;
+      // «آخر ظهور»: آخر نشاط حقيقي (a)، وللحساب الذي لم يرسل تطبيقه النشاط بعد (نسخة قديمة) وقت الظهور كما كان
+      return { uid: id, s: x.s, login: x.n || "", name: nm && nm.name || x.n || "", on: now - t < ONLINE, seen: a || t, w: x.w || 0, l: x.l || 0 } }), code: myNo } };
   }
   const other = String(body.uid || "");
   if (op === "add") {
