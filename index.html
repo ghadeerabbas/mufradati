@@ -4207,7 +4207,8 @@ const kb=n=>n>1048576?(n/1048576).toFixed(1)+" م.ب":Math.max(1,Math.round(n/10
 const BAKWHY={auto:"تلقائية",manual:"يدوية","before-restore":"قبل الاسترجاع"};
 // جدول ملخّصات الحسابات (لقطة أو تحقق من نسخة)
 // B: جدول للمقارنة؛ الخانة المختلفة عنه تُلوَّن
-function acctTable(A,ttl,B){const rows=[["gems","الجواهر"],["earned","الجواهر المكتسبة"],["xp","الخبرة"],["lv","المستوى"],["streak","السلسلة"],["best","أطول سلسلة"],["reviews","المراجعات"],["words","الكلمات"],["mem","محفوظة"],["mast","راسخة"],["stations","المحطات"],["quests","صناديق المهام"],["duelWins","فوز التحديات"],["duelDays","أيام التحدي"],["tier","الدوري"],["weeks","أسابيع الدوري"],["lgg","جوائز الدوري"],["album","بازل مكتمل"],["buys","المشتريات"],["ach","الإنجازات"],["log","طول السجل"],["folded","مطويّ في الأرشيف"]];
+const ACCT_ROWS=[["gems","الجواهر"],["earned","الجواهر المكتسبة"],["xp","الخبرة"],["lv","المستوى"],["streak","السلسلة"],["best","أطول سلسلة"],["reviews","المراجعات"],["words","الكلمات"],["mem","محفوظة"],["mast","راسخة"],["stations","المحطات"],["quests","صناديق المهام"],["duelWins","فوز التحديات"],["duelDays","أيام التحدي"],["tier","الدوري"],["weeks","أسابيع الدوري"],["lgg","جوائز الدوري"],["album","بازل مكتمل"],["buys","المشتريات"],["ach","الإنجازات"],["log","طول السجل"],["folded","مطويّ في الأرشيف"]];
+function acctTable(A,ttl,B){const rows=ACCT_ROWS;
   const U=Object.entries(A);return `<div style="overflow-x:auto;margin-top:8px"><table class="acct" style="border-collapse:collapse;font-size:.8rem;width:100%"><tr><th style="text-align:right">${esc(ttl)}</th>${U.map(([u,a])=>`<th>${esc(a.name||u)}</th>`).join("")}</tr>`+
   rows.map(([k,l])=>`<tr><td>${l}</td>${U.map(([u,a])=>`<td style="text-align:center${B&&B[u]&&JSON.stringify(B[u][k])!==JSON.stringify(a[k])?";background:#fde68a;color:#222":""}">${a[k]??""}</td>`).join("")}</tr>`).join("")+
   `<tr><td>قطع البازل</td>${U.map(([,a])=>`<td style="text-align:center;font-size:.7rem">${Object.entries(a.pz||{}).map(([m,n])=>m+": "+n).join("<br>")}</td>`).join("")}</tr></table></div>`}
@@ -4253,10 +4254,11 @@ async function renderSafe(){
       const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([u],{type:"application/gzip"}));a.download=j.name;document.body.appendChild(a);a.click();a.remove();msg("✓ نُزّلت النسخة ("+kb(j.size)+")","ok")}catch(err){msg("تعذّر التنزيل: "+(err.detail||err.error||""),"bad")}dl.disabled=false;return}
     // تحقق كامل: تُعاد بناء الحسابات من النسخة وتُقارن بالحالية، بلا أي كتابة
     if(v){v.disabled=true;msg("جارٍ التحقق الكامل…");try{const j=await apiPost("/backup",{op:"verify",key:v.dataset.k});const same=Object.values(j.diff).every(d=>!d.length);
-      // أيّ نسخة قورنت، ومتى قُرئت الحالة الآن: من الرد نفسه لا من القائمة
-      const which="نسخة "+bkTime({at:j.at})+" ("+String(v.dataset.k).slice(-10)+") مقارنة بالحالة "+bkTime({at:Date.now()})+": ";
-      msg(which+(same?"✓ تعيد بناء كل الحسابات مطابقة ("+Object.keys(j.bak).length+" حساب)":"الفروق (طبيعية إن وصلت أحداث بعد النسخ، ولو كانت قد حدثت قبله): "+Object.entries(j.diff).filter(([,d])=>d.length).map(([u,d])=>(j.live[u]||j.bak[u]||{}).name+": "+d.join("، ")).join(" · ")),same?"ok":"");
-      $("bkOut").innerHTML=acctTable(j.bak,"من النسخة",j.live)+acctTable(j.live,"الآن")}catch(err){msg("تعذّر التحقق: "+(err.detail||err.error||""),"bad")}v.disabled=false;return}
+      // النتيجة: أيّ نسخة قورنت (معرّفها ووقت إنشائها من الملف نفسه)، ومتى قُرئت الحالة الآن، و«مطابقة» أو «توجد فروقات»
+      const ok2=j.result?j.result==="match":same,DN={core:"الحالة",log:"السجل",qa:"الأسئلة",ck:"نقطة الحفظ",gifts:"الهدايا"},ST={same:"مطابقة",diff:"مختلفة","missing-bak":"ليست في النسخة","missing-live":"ليست الآن"};
+      const acc=Object.entries(j.accts||{}).filter(([,a])=>!a.docSame||a.diff.length).map(([u,a])=>`<div class="rnote"><b>${esc(a.name||u)}</b>${a.userDoc===false?" (بلا وثيقة مستخدم)":""}: الوثائق: ${Object.entries(a.docs).filter(([,v])=>v!=="none").map(([k,v])=>DN[k]+" "+ST[v]).join("، ")}${a.diff.length?" · الملخّص يختلف في: "+esc(a.diff.map(k=>(ACCT_ROWS.find(r=>r[0]===k)||[k,k])[1]).join("، ")):""}<br><small dir="ltr">core: ${esc(a.coreUt.bak||"-")} → ${esc(a.coreUt.live||"-")}</small></div>`).join("");
+      msg((ok2?"✓ مطابقة":"✗ توجد فروقات")+" · النسخة "+String(j.key||v.dataset.k)+" · أُنشئت "+bkTime({at:j.at})+" · قورنت "+bkTime({at:j.cmpAt||Date.now()}),ok2?"ok":"bad");
+      $("bkOut").innerHTML=acc+acctTable(j.bak,"من النسخة",j.live)+acctTable(j.live,"الآن")}catch(err){msg("تعذّر التحقق: "+(err.detail||err.error||""),"bad")}v.disabled=false;return}
     if(cp){copyTxt(errTxt(ERRS[+cp.dataset.i]),"الخطأ");return}
     if(e.target.closest("#erCpAll")){copyTxt(ERRS.map(x=>errTxt(x)).join("\n\n————————\n\n"),"كل الأخطاء");return}
     if(t){t.disabled=true;msg("جارٍ فحص النسخة…");try{const j=await apiPost("/backup",{op:"test",key:t.dataset.k});

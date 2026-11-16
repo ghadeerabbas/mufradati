@@ -1135,8 +1135,8 @@ async function loadBak(env, key) {
   if (!/^bak-[0-9TZ-]+$/.test(key)) throw new Error("key");
   const b = await env.BAK.get(key, "arrayBuffer"); if (!b) throw new Error("nobak");
   const j = JSON.parse(await gunz(b)), docs = new Map();
-  for (const part of j.parts || []) for (const x of part) if (x && x.document) docs.set(x.document.name, x.document.fields || {});
-  return { at: j.at, docs: [...docs].map(([name, fields]) => ({ name, fields })) };
+  for (const part of j.parts || []) for (const x of part) if (x && x.document) docs.set(x.document.name, { fields: x.document.fields || {}, ut: x.document.updateTime || "" });
+  return { at: j.at, docs: [...docs].map(([name, d]) => ({ name, fields: d.fields, ut: d.ut })) };
 }
 // ملخّص حساب واحد كما يحسبه الخادم: للتوثيق قبل التحديث وبعده، وللتحقق من النسخة الاحتياطية. لا يكتب شيئًا
 function acctSum(c, log, qa, ck, gifts) {
@@ -1173,6 +1173,41 @@ function bakSums(b) {
   }
   return out;
 }
+// «تحقق كامل» (2): يقارن الوثائق الأصلية لكل حساب (core وlog وqa وck والهدايا) بين النسخة والحالة الآن، ثم الملخّصات.
+// الحالة الآن تُقرأ كلها أولًا، ثم تُحسب ملخّصات الطرفين معًا دون أي انتظار بينهما، وبإعدادات المشرف نفسها (فلا يتغيّر شيء أثناء الحساب)
+const stab = v => Array.isArray(v) ? "[" + v.map(stab).join(",") + "]" : v && typeof v === "object" ? "{" + Object.keys(v).sort().map(k => JSON.stringify(k) + ":" + stab(v[k])).join(",") + "}" : JSON.stringify(v);
+async function verifyBak(fs, b, key) {
+  const cmpAt = Date.now(), at = d => d.name.slice(DOCROOT.length + 1), B = new Map();
+  for (const d of b.docs) { const o = {}; for (const k in d.fields) o[k] = dec(d.fields[k]); B.set(at(d), { data: o, ut: d.ut || "" }) }
+  const uids = new Set([...B.keys()].map(p => (p.match(/^users\/([^/]+)\/data\/core$/) || [])[1]).filter(Boolean));
+  for (const u of await fs.list("users")) uids.add(u.id);
+  const K = ["core", "log", "qa", "ck"], L = {};
+  for (const uid of uids) {
+    const g = await Promise.all([...K.map(k => fs.get(`users/${uid}/data/${k}`)), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`), fs.get(`users/${uid}`)]);
+    L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[4], name: g[5] && g[5].data.name || "", user: !!g[6] };
+  }
+  await loadCfg(fs);   // إعدادات المشرف، كما يحسبها التطبيق والمزامنة
+  const accts = {}; let same = true;
+  for (const uid of uids) {
+    const l = L[uid], bd = k => B.get(`users/${uid}/data/${k}`), docs = {};
+    for (const k of K) { const x = bd(k), y = l.d[k]; docs[k] = !x && !y ? "none" : !x ? "missing-bak" : !y ? "missing-live" : stab(x.data) === stab(y.data) ? "same" : "diff" }
+    const bg = [...B].filter(([p]) => p.startsWith(`gifts/${uid}/g/`)).map(([p, x]) => ({ id: p.split("/").pop(), ...x.data })).sort((a, c) => a.id < c.id ? -1 : 1);
+    const lg = [...l.gifts].sort((a, c) => a.id < c.id ? -1 : 1);
+    docs.gifts = stab(bg) === stab(lg) ? "same" : "diff";
+    const sum = (d, gifts) => d.core ? acctSum(parseJ(d.core.v, {}), parseJ(d.log && d.log.v, null), parseJ(d.qa && d.qa.v, null), parseJ(d.ck && d.ck.v, null), gifts) : null;
+    const bs = sum(Object.fromEntries(K.map(k => [k, bd(k) && bd(k).data])), bg), ls = sum(Object.fromEntries(K.map(k => [k, l.d[k] && l.d[k].data])), lg);
+    const sd = bs && ls ? Object.keys(bs).filter(k => stab(bs[k]) !== stab(ls[k])) : [bs ? "غير موجود الآن" : "غير موجود في النسخة"];
+    const docSame = Object.values(docs).every(v => v === "same" || v === "none");
+    if (!docSame || sd.length) same = false;
+    accts[uid] = { name: l.name || (B.get(`names/${uid}`) || { data: {} }).data.name || "", userDoc: l.user, docs, docSame,
+      coreUt: { bak: bd("core") ? bd("core").ut : "", live: l.d.core ? l.d.core.updateTime : "" }, bak: bs, live: ls, diff: sd };
+  }
+  return { ok: true, key, at: b.at, cmpAt, n: b.docs.length, result: same ? "match" : "diff", accts,
+    // للتوافق مع الواجهة القديمة
+    bak: Object.fromEntries(Object.entries(accts).filter(([, a]) => a.bak).map(([u, a]) => [u, { name: a.name, ...a.bak }])),
+    live: Object.fromEntries(Object.entries(accts).filter(([, a]) => a.live).map(([u, a]) => [u, { name: a.name, ...a.live }])),
+    diff: Object.fromEntries(Object.entries(accts).map(([u, a]) => [u, a.docSame ? a.diff : [...new Set([...a.diff, ...Object.entries(a.docs).filter(([, v]) => v !== "same" && v !== "none").map(([k]) => "وثيقة " + k)])]])) };
+}
 // المشرف: قائمة النسخ، نسخة الآن، تجربة الاسترجاع (فكّ النسخة وفحصها بلا كتابة)، الاسترجاع الفعلي
 async function handleBackup(fs, user, body, env) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
@@ -1181,7 +1216,7 @@ async function handleBackup(fs, user, body, env) {
   if (op === "list") { const l = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1); return { status: 200, json: { items: l.map(k => ({ key: k.name, ...(k.metadata || {}) })) } } }
   if (op === "now") return { status: 200, json: await backupOnce(env, fs, body.rid, "manual") };
   // لقطة الحسابات الآن (للتوثيق قبل التحديث وبعده)
-  if (op === "snap") return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } };
+  if (op === "snap") { await loadCfg(fs); return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } } }
   const b = await loadBak(env, key);
   if (op === "test") {
     const per = {}; for (const d of b.docs) { const p = d.name.slice(DOCROOT.length + 1).split("/"), c = p.length > 2 ? p[0] + "/…/" + p[p.length - 2] : p[0]; per[c] = (per[c] || 0) + 1 }
@@ -1189,7 +1224,8 @@ async function handleBackup(fs, user, body, env) {
     return { status: 200, json: { ok: !bad, at: b.at, n: b.docs.length, bad, per } };
   }
   // تحقق كامل بلا كتابة: تُفكّ النسخة وتُعاد بناء كل الحسابات منها، وتُقارن بالحسابات الحيّة
-  if (op === "verify") {
+  if (op === "verify") return { status: 200, json: await verifyBak(fs, b, key) };
+  if (op === "verify1") {
     const fromBak = bakSums(b), live = await liveSums(fs), diff = {};
     for (const uid of new Set([...Object.keys(fromBak), ...Object.keys(live)])) {
       const a = fromBak[uid], c = live[uid], d = [];
