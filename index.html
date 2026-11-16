@@ -4014,11 +4014,18 @@ async function renderAssign(uid){
 var FRC="",FRV=false,FRL=null,FRN={nf:0,nin:0},FRT=null,FRLT=null,DL=null,DLSEEN=new Set;
 const DUEL_N=10;
 const myLogin=()=>auth.currentUser?String(auth.currentUser.email||"").split("@")[0]:"";
-const seenAgo=t=>{if(!t)return "لم يظهر بعد";const m=Math.round((Date.now()-t)/60000);return m<60?"آخر ظهور قبل "+Math.max(1,m)+" دقيقة":m<1440?"آخر ظهور قبل "+Math.round(m/60)+" ساعة":"آخر ظهور قبل "+Math.round(m/1440)+" يوم"};
+// «آخر ظهور»: بالدقائق في الساعة الأولى، ثم بالساعة نفسها (اليوم أو أمس) بتوقيت هاتفك، ثم بالأيام. لا تقريب إلى الأعلى
+const seenAgo=(t,nw)=>{if(!t)return "لم يظهر بعد";nw=nw||Date.now();const m=Math.max(0,Math.floor((nw-t)/60000)),d=new Date(t),hm=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  if(m<1)return "آخر ظهور قبل أقل من دقيقة";if(m<60)return "آخر ظهور قبل "+(m===1?"دقيقة":m===2?"دقيقتين":m<=10?m+" دقائق":m+" دقيقة");
+  const day=x=>{const y=new Date(x);y.setHours(0,0,0,0);return y.getTime()},dd=Math.round((day(nw)-day(t))/864e5);
+  if(dd===0)return "آخر ظهور اليوم الساعة "+hm;if(dd===1)return "آخر ظهور أمس الساعة "+hm;
+  return "آخر ظهور قبل "+(dd===2?"يومين":dd<=10?dd+" أيام":dd+" يومًا")};
+// نشاط حقيقي: لمس أو نقر أو كتابة من المتعلّم. يُرسل مع النبضة التالية، فلا يُحسب فتح التطبيق وحده ولا إعادة تحميله ولا المزامنة
+let ACT=false;["pointerdown","keydown","touchstart"].forEach(k=>document.addEventListener(k,()=>{ACT=true},{capture:true,passive:true}));
 // نبضة: «أنا متصل» + هل وصلتني دعوة تحدٍّ؟ كل 3 ثوانٍ والتطبيق ظاهر إن كان له أصدقاء (لتصل الدعوة فورًا)، وإلا كل 12 ثانية أو دقيقة
 async function frTick(){
   clearTimeout(FRT);if(!UID||isAdmin())return;
-  if(!document.hidden){try{const j=await apiPost("/fr",{op:"tick"});const ch=j.nin!==FRN.nin;FRN={nf:j.nf,nin:j.nin};
+  if(!document.hidden){try{const act=ACT;ACT=false;const j=await apiPost("/fr",{op:"tick",act:act?1:0}).catch(e=>{if(act)ACT=true;throw e});const ch=j.nin!==FRN.nin;FRN={nf:j.nf,nin:j.nin};
     if(ch&&$("games").classList.contains("on")&&!GM&&!FRV)renderGames();
     if(j.inv&&(!DL||DL.end)&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);if(DL)duelClose();duelInvited(j.inv)}}catch(e){}}
   FRT=setTimeout(frTick,FRN.nf?3e3:FRN.nin||FRV?12e3:60e3);
@@ -4230,7 +4237,7 @@ async function duelEnd(final){
   // إعادة التحدي مع نفس اللاعبين بضغطة؛ وإن سبقك أحدهم بالدعوة تظهر لك دعوته مباشرة
   const ag=$("dlAgain");if(ag){const others=dlPlayers(d).filter(u=>u!==DL.me);
     ag.onclick=async()=>{ag.disabled=true;
-      try{const j=await apiPost("/fr",{op:"tick"});if(j.inv&&others.includes(j.inv.from)&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);duelClose();duelInvited(j.inv);return}}catch(e){}
+      try{const j=await apiPost("/fr",{op:"tick",act:1});if(j.inv&&others.includes(j.inv.from)&&!DLSEEN.has(j.inv.id)){DLSEEN.add(j.inv.id);duelClose();duelInvited(j.inv);return}}catch(e){}
       duelClose();duelStart(others)};
     const rp=()=>{if(!DL||!DL.end)return;frTick();DL.pt=setTimeout(rp,3000)};DL.pt=setTimeout(rp,3000)}
 }
