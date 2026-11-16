@@ -1741,6 +1741,13 @@ body:not(.adm) .questfx .chgot{font-size:1.2rem;margin:4px 0}
 body:not(.adm) .questfx .qrow{padding:8px 10px;gap:10px;margin-bottom:6px}
 body:not(.adm) .questfx .qtx b{font-size:var(--fs-sm);margin-bottom:4px}
 body:not(.adm) #fbModal .pzview .pzcard{margin:var(--sp-2) 0 0;background:var(--ds-bg);border:0;border-radius:var(--r-md)}
+body:not(.adm) #me .meit .meic.pzic{background:var(--ds-cream)}body:not(.adm) #me .meit .meic.pzic .i3{width:26px;height:26px}
+body:not(.adm) #fbModal .pzbox h1 .i3{width:26px;height:26px}
+body:not(.adm) #fbModal .pzah{margin:var(--sp-3) 0 var(--sp-2);color:var(--ds-navy);font-weight:900;font-size:var(--fs-md);text-align:right}
+body:not(.adm) #fbModal .pzalbum{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-2)}
+body:not(.adm) #fbModal .pzalb{background:var(--ds-bg);border-radius:var(--r-md);padding:6px;display:flex;flex-direction:column;gap:4px;text-align:center}
+body:not(.adm) #fbModal .pzalb img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;display:block}
+body:not(.adm) #fbModal .pzalb b{font-size:var(--fs-xs);color:var(--ds-ink);font-weight:800}
 body:not(.adm) #fbModal .pzview .pzboard{width:min(48vw,180px)}
 [data-dark] body:not(.adm) .moncard{background:rgba(244,161,38,.14);color:var(--ds-ink)}[data-dark] body:not(.adm) .moncard .montx b{color:var(--ds-ink)}[data-dark] body:not(.adm) .moncard .montx small{color:var(--ds-muted)}
 /* شاشة مفاجأة البازل: المحتوى من الأعلى، والصندوق ثابت الحجم والمكان، فلا يقفز شيء حين يُفتح وتخرج منه القطعة */
@@ -2759,8 +2766,19 @@ function monthsModal(){
   const md=monDays(),ms=[...new Set([...Object.keys(md),curMon()])].filter(m=>m>="2026-11"&&m<=curMon()).sort().reverse().map(m=>monStat(m,md)),got=ms.filter(s=>s.ok).length;
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};
   m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">ملصقات الأشهر</h1><p class="rnote">لكل شهر ملصق: تكسبه بإكمال محطة مع تدريبها في كل أيام الشهر إلا 7 أيام.${got?" معك "+arN(got,"ملصق واحد","ملصقان","ملصقات")+".":""}</p>
-   <div class="mongrid">${ms.map(s=>`<div class="monit${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><b>${s.name}</b><small dir="ltr">${s.n} / ${s.need}</small></div>`).join("")}</div>${questOn()?`<div class="pzview">${pzCard()}</div>`:""}<button class="link" id="mnNo">إغلاق</button></div>`;   // «بازل الشهر» للعرض فقط: القطع المكتسبة والعدد، بلا حركة ولا صندوق
+   <div class="mongrid">${ms.map(s=>`<div class="monit${s.ok?" ok":""}"><div class="monbadge">${s.ic}</div><b>${s.name}</b><small dir="ltr">${s.n} / ${s.need}</small></div>`).join("")}</div><button class="link" id="mnNo">إغلاق</button></div>`;
   $("mnNo").onclick=close;
+}
+// «بازل الشهر» في صفحة «أنا»: بازل الشهر الحالي (للعرض فقط، بلا حركة ولا صندوق)، ثم «ألبوم البازل» لصور الأشهر السابقة المكتملة.
+// يقرأ سجلّ القطع المحفوظ فقط، فلا يمنح ولا يحذف شيئًا
+const pzMonths=()=>{const out=[],c=curMon();let [y,m]=[2026,11];while(true){const k=y+"-"+String(m).padStart(2,"0");if(k>=c)break;out.push(k);if(++m>12){m=1;y++}}return out};
+function puzzleModal(){
+  const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML=""};m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};
+  const done=pzMonths().filter(k=>pzMonth(k).have.size>=PZ_N).reverse();
+  m.innerHTML=`<div class="lbox qbox pzbox"><h1 style="font-size:1.2rem">${I3("puzzle")} بازل الشهر</h1><div class="pzview">${pzCard()}</div>
+   <h3 class="pzah">ألبوم البازل</h3>${done.length?`<div class="pzalbum">${done.map(k=>`<div class="pzalb"><img src="${pzImg(k)}" alt="" loading="lazy"><b>${monStat(k).name}</b></div>`).join("")}</div>`
+     :`<p class="rnote">تظهر هنا صورة كل بازل تكمله، مع اسم شهره.</p>`}<button class="link" id="pzNo">إغلاق</button></div>`;
+  $("pzNo").onclick=close;
 }
 function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&(q.g||q.pz));
   // للمتعلّم: «صندوق جاهز» أيقونة هدية بدل النص، فيبقى الزر قصيرًا في صف بطاقة المسار (والزر برتقالي حين يكون جاهزًا)
@@ -5634,7 +5652,7 @@ function kidsRow(){
   const r=btnVis("rdBtn"),m=btnVis("mtBtn");if(!r&&!m)return "";
   return `<div class="kidrow">${r?`<button type="button" data-b="rdBtn">${I3("book")} القراءة</button>`:""}${m?`<button type="button" data-b="mtBtn"><span class="mtIco">✏️</span> التمارين</button>`:""}</div>`;
 }
-document.addEventListener("click",e=>{const k=e.target.closest(".kidrow button,.meit");if(k&&k.dataset.b==="monBtn"){monthsModal();return}if(k&&$(k.dataset.b))$(k.dataset.b).click()});
+document.addEventListener("click",e=>{const k=e.target.closest(".kidrow button,.meit");if(k&&k.dataset.b==="monBtn"){monthsModal();return}if(k&&k.dataset.b==="pzBtn"){puzzleModal();return}if(k&&$(k.dataset.b))$(k.dataset.b).click()});
 function renderMe(){
   const e=EC||econ(),mb=$("mBadge"),bd=mb.classList.contains("on")?`<span class="mbadge on">${esc(mb.textContent)}</span>`:"";
   const it=(id,ic,t,s,x)=>`<button type="button" class="meit" data-b="${id}">${ic}<span><b>${t}</b>${s?`<small>${s}</small>`:""}</span>${x||""}<em>‹</em></button>`;
@@ -5643,6 +5661,7 @@ function renderMe(){
   <div class="melist">
    ${it("hAv",LI("medal",I3("medal")),"ملفي","إنجازاتك وإحصاءاتك")}
    ${isAdmin()?"":it("monBtn",`<i class="monbadge sm">${monStat(curMon()).ic}</i>`,"ملصقات الأشهر",(()=>{const s=monStat(curMon());return s.ok?"حصلت على ملصق "+s.name:s.name+": "+s.n+" من "+s.need+" يومًا"})())}
+   ${isAdmin()||!questOn()?"":it("pzBtn",`<i class="meic pzic">${I3("puzzle")}</i>`,"بازل الشهر",monStat(curMon()).name+": "+pzMonth(curMon()).have.size+" من "+PZ_N+" قطع")}
    ${btnVis("rdBtn")?it("rdBtn",LI("book",I3("book")),"القراءة",""):""}
    ${btnVis("mtBtn")?it("mtBtn",LI("pencil",'<span class="mtIco">✏️</span>'),"تمارين المدرسة",""):""}
    ${btnVis("aiBtn")?it("aiBtn",LI("sparkles",I3("owl")),"مساعد الوظيفة","يساعدك خطوة خطوة"):""}
