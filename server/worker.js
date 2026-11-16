@@ -255,21 +255,46 @@ const duelDays=()=>{const o=ddRaw(),A=R.dda&&typeof R.dda==="object"?R.dda:{};
 // يقصّ سجلًّا إلى آخر n عنصرًا، ويطوي المحذوف بالدالة fold قبل الحذف
 const cutKeep=(a,n,fold)=>{if(a.length<=n)return a;fold(a.slice(0,a.length-n));return a.slice(-n)};
 const sumAt=(a,i)=>a.reduce((s,x)=>s+(+x[i]||0),0);
+// ===== نقطة حفظ سجلّ المراجعات =====
+// السجل LOG محدود الحجم. بدل حذف أوّله، تُطوى الأيام الكاملة القديمة في نقطة حفظ دائمة CK بالدالة نفسها التي يعيد بها econ() الحساب،
+// فتبقى الخبرة والمستوى والجواهر والسلسلة والإنجازات ومكافآت الحفظ والرسوخ كما لو كان السجل كاملًا. لا تتغيّر أي قاعدة.
+// CK = {v,t: وقت أول حدث بقي في السجل, reviews, xp (خبرة الأحداث ومكافآت الحفظ والرسوخ، بلا مكافأة اليوم),
+//       w: {كلمة: صندوقها×4 + 1 إن أخذت مكافأة الحفظ + 2 إن أخذت مكافأة الرسوخ} (رقم واحد لكل كلمة، لصغر الحجم),
+//       per: {يوم:[n,bad,clean,f]}, nights/earlies: أيام}
+let CK=null;
+const LOG_MAX=60000,LOG_KEEP=50000;   // يُطوى عند تجاوز 60000 حتى يبقى نحو 50000 (أيام كاملة)
+function ckState(){const c=CK||{},per={};for(const d in c.per||{}){const a=c.per[d];per[d]={n:a[0],bad:a[1],clean:a[2],f:a[3]}}
+  const box={},r4=new Set,r7=new Set;for(const k in c.w||{}){const v=c.w[k];box[k]=v>>2;if(v&1)r4.add(k);if(v&2)r7.add(k)}
+  return {reviews:c.reviews||0,xp:c.xp||0,box,r4,r7,per,nights:new Set(c.nights||[]),earlies:new Set(c.earlies||[]),bon:[]}}
+function replayLog(S,L){const {box,r4,r7,per,bon}=S;
+  for(const [t,k,r,nw] of L){
+    if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
+    S.reviews++;S.xp+=xpOf(r,nw);
+    const fr=nw>=3;   // الدراسة الحرّة: تُحفظ الكلمة وتُحسب، بلا خبرة
+    let b=nw===1||nw===4?1:boxStep(box[k]||0,r,false);box[k]=b;
+    if(b>=4&&!r4.has(k)){r4.add(k);if(!fr){S.xp+=CFG.xp.mem;bon.push([t,CFG.xp.mem])}}
+    if(b>=7&&!r7.has(k)){r7.add(k);if(!fr){S.xp+=CFG.xp.solid;bon.push([t,CFG.xp.solid])}}
+    const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0,f:0});x.n++;if(fr)x.f++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
+    const h=hourOf(t);if(h>=23||h<4)S.nights.add(dkey(t-5*36e5));if(h>=4&&h<7)S.earlies.add(d);
+  }}
+function ckFold(){
+  if(LOG.length<=LOG_MAX)return false;
+  let L=LOG;for(let i=1;i<L.length;i++)if(L[i][0]<L[i-1][0]){L=[...LOG].sort((a,b)=>a[0]-b[0]);break}
+  const cut=dkey(L[L.length-LOG_KEEP][0]);let j=0;while(j<L.length&&dkey(L[j][0])<cut)j++;
+  if(!j)return false;
+  const S=ckState();replayLog(S,L.slice(0,j));const per={};for(const d in S.per){const x=S.per[d];per[d]=[x.n,x.bad,x.clean,x.f]}
+  const w={};for(const k of new Set([...Object.keys(S.box),...S.r4,...S.r7]))w[k]=((S.box[k]||0)<<2)|(S.r4.has(k)?1:0)|(S.r7.has(k)?2:0);
+  CK={v:1,t:L[j][0],reviews:S.reviews,xp:S.xp,w,per,nights:[...S.nights],earlies:[...S.earlies]};
+  LOG=L.slice(j);EC=null;return true}
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
-  let gems=0,xp=0;const box={},r4=new Set,r7=new Set,per={},bon=[];   // bon: مكافآت الحفظ والرسوخ بوقتها، لتدخل خبرة الدوري أيضًا
+  let gems=0;
+  // الإعادة تبدأ من نقطة الحفظ (إن وُجدت) ثم تكمل بالسجل الحيّ: النتيجة نفسها كما لو كان السجل كاملًا
+  const S=ckState(),ckT=CK&&CK.t||0;
   let L=LOG;for(let i=1;i<L.length;i++)if(L[i][0]<L[i-1][0]){L=[...LOG].sort((a,b)=>a[0]-b[0]);break}
-  for(const [t,k,r,nw] of L){
-    if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
-    s.reviews++;xp+=xpOf(r,nw);
-    const fr=nw>=3;   // الدراسة الحرّة: تُحفظ الكلمة وتُحسب، بلا خبرة
-    let b=nw===1||nw===4?1:boxStep(box[k]||0,r,false);box[k]=b;
-    if(b>=4&&!r4.has(k)){r4.add(k);if(!fr){xp+=CFG.xp.mem;bon.push([t,CFG.xp.mem])}}
-    if(b>=7&&!r7.has(k)){r7.add(k);if(!fr){xp+=CFG.xp.solid;bon.push([t,CFG.xp.solid])}}
-    const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0,f:0});x.n++;if(fr)x.f++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
-    const h=hourOf(t);if(h>=23||h<4)nights.add(dkey(t-5*36e5));if(h>=4&&h<7)earlies.add(d);
-  }
+  replayLog(S,ckT?L.filter(x=>x[0]>=ckT):L);
+  let xp=S.xp;s.reviews=S.reviews;const {r4,r7,per,bon}=S;for(const d of S.nights)nights.add(d);for(const d of S.earlies)earlies.add(d);
   s.mem=r4.size;s.mast=r7.size;s.night=nights.size;s.early=earlies.size;
   for(const d in per){const x=per[d];s.maxDay=Math.max(s.maxDay,x.n);if(x.clean>=20)s.perfect++;
     xp+=(x.n-(x.f||0)>=CFG.xp.dayN?CFG.xp.dayXp:0)}
@@ -476,7 +501,7 @@ function applyAt(ev,T,now,ctx){
     const t=now,last=LOG.length?LOG[LOG.length-1][0]:0;
     if(ctx.server&&t<=last+500)return "time";
     const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,box=boxStep(b0,r,!ok);
-    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);if(LOG.length>60000)LOG=LOG.slice(-60000);
+    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);ckFold();
     if(ok&&!FREEU&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
     return true;
   }
@@ -493,7 +518,7 @@ function applyAt(ev,T,now,ctx){
     if(!ws.length||ws.some(k=>P[k]||(ctx.words&&!ctx.words.has(k))))return "word";
     const miss=new Set((ev.miss||[]).map(String));
     const pw=new Set(R.pw||[]);   // كلمة كوفئ عليها قبل التصفير: تُعلَّم 4 فلا خبرة لها مرة ثانية
-    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU||pw.has(k)?4:1])});STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
+    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU||pw.has(k)?4:1])});ckFold();STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
   }
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
@@ -701,10 +726,10 @@ async function loadCfg(fs) {
 }
 
 /* ---------- الحالة: تحميلها وحفظها ---------- */
-function setState(c, log, qa) {
+function setState(c, log, qa, ck) {
   P = c.P || {}; QLOG = c.QLOG || []; BUY = c.BUY || []; R = Object.assign({ bank: 0, ach: [], lv: 1, ts: 0 }, c.R || {});
   LG = Object.assign({ tier: null, w: "", hist: [], ts: 0 }, c.LG || {}); EN = c.EN || { v: 30, t: 0 }; STN = c.STN || []; STV = c.STV || 0;
-  LOG = unpackLog(log); QA = unpackQA(qa); EC = null; CW = c.wiped || 0;
+  LOG = unpackLog(log); QA = unpackQA(qa); CK = ck && ck.v ? ck : null; EC = null; CW = c.wiped || 0;
   if (!c.lf) flagLog();             // مرة واحدة: وسم التدريب في السجلّ القديم
   if ((LG.v || 1) < 2) { if (LG.tier != null) LG.tier = 0; LG.v = 2 }
 }
@@ -748,9 +773,9 @@ async function handleSync(fs, user, body) {
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
-  const [uDoc, coreD, logD, qaD, nameD, gifts] = await Promise.all([
+  const [uDoc, coreD, logD, qaD, nameD, gifts, ckD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
-    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`)]);
+    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`)]);
   // الحساب المفعّل فقط
   if (!admin && !uDoc && !(await fs.get(`members/${uid}`))) return { status: 403, json: { error: "inactive" } };
   const u = uDoc ? uDoc.data : {};
@@ -758,11 +783,11 @@ async function handleSync(fs, user, body) {
   let c;
   if (coreD) c = parseJ(coreD.data.v, {});
   else { const m = parseJ(u.main, {}); c = { P: m.P, QLOG: m.QLOG, BUY: m.BUY, R: m.R, LG: m.LG, EN: m.EN, STN: m.STN, STV: 0 } }
-  setState(c, parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
+  setState(c, parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null));
   // مستخدم جديد تمامًا (أول دخول، بلا بيانات سابقة): طاقة بلا حدود أول 24 ساعة، ليتعلّم ما يكفي فتكون له كلمات يراجعها في اليوم التالي
   if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
-  const before = { log: LOG.length, qa: QA.length, core: JSON.stringify(coreObj()) };
+  const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
   const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [];
   let words = null;
@@ -807,11 +832,17 @@ async function handleSync(fs, user, body) {
   const coreJ = JSON.stringify(coreObj()), logJ = JSON.stringify(packLog(LOG)), qaJ = JSON.stringify(packQA(QA));
   const cw = [];
   if (!coreD || coreJ !== before.core || c.pubJ !== pubJ || c.pubAt !== pubAt) cw.push({ path: `users/${uid}/data/core`, data: { v: coreJ.slice(0, -1) + "," + JSON.stringify({ pubJ, pubL: lookJ, pubAt }).slice(1) }, ...(coreD ? { ifUpdateTime: coreD.updateTime } : { ifMissing: true }) });
-  if (!logD || LOG.length !== before.log || !c.lf || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/log`, data: { v: logJ } });
+  // السجل يُحفظ إن تغيّر طوله أو أوّله أو آخره (عند الحدّ يبقى الطول ثابتًا وإن تغيّر المحتوى)
+  const l0 = LOG.length ? LOG[0][0] : 0, l1 = LOG.length ? LOG[LOG.length - 1][0] : 0;
+  if (!logD || LOG.length !== before.log || l0 !== before.l0 || l1 !== before.l1 || !c.lf || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/log`, data: { v: logJ } });
+  // نقطة الحفظ: وثيقة مستقلة تُكتب عند الطيّ فقط
+  const ckT = CK ? CK.t : 0, ckJ = CK ? JSON.stringify(CK) : "";
+  if (ckT !== before.ck) cw.push({ path: `users/${uid}/data/ck`, data: { v: ckJ } });
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
   await fs.commit([...cw, ...writes]);
-  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "" } };
+  // نقطة الحفظ تُرسل للتطبيق فقط حين تختلف عمّا عنده (يرسل وقتها ckt)
+  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
 }
 
 /* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */
@@ -827,6 +858,7 @@ async function handleWipe(fs, user, body) {
     { path: `users/${uid}/data/core`, data: { v: JSON.stringify(core) } },
     { path: `users/${uid}/data/log`, data: { v: empty } },
     { path: `users/${uid}/data/qa`, data: { v: empty } },
+    { path: `users/${uid}/data/ck`, data: { v: "" } },
     { path: `pub/${uid}`, del: true },
     { path: `lg/${weekId(now)}/m/${uid}`, del: true },
     ...gifts.map(g => ({ path: `gifts/${uid}/g/${g.id}`, del: true }))]);
@@ -842,9 +874,9 @@ async function handleFix(fs, user, body, env) {
   if (streak != null && !(streak >= 0 && streak <= 3650)) return { status: 400, json: { error: "streak" } };
   if (tier != null && !(tier >= 0 && tier < CFG.league.up.length)) return { status: 400, json: { error: "tier" } };
   await loadCfg(fs);
-  const [coreD, logD, qaD] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`)]);
+  const [coreD, logD, qaD, ckD] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`), fs.get(`users/${uid}/data/ck`)]);
   if (!coreD) return { status: 404, json: { error: "nouser" } };
-  setState(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
+  setState(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null));
   const now = Date.now();
   if (streak != null) {
     R = { ...R }; delete R.sk; EC = null;
