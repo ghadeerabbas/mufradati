@@ -8,7 +8,7 @@
 2. Build ← Authentication ← Get started ← Sign-in method ← Email/Password ← Enable.
 3. Build ← Firestore Database ← Create database ← المنطقة نفسها التي في المشروع الحقيقي ← Production mode.
 4. Firestore ← Rules: الصق محتوى ملف firestore.rules من المستودع كما هو ← Publish.
-5. Authentication ← Users ← Add user: admin@mufradati.app بكلمة مرور جديدة خاصة بالاختبار (غير كلمة مرور الحساب الحقيقي). بقية حسابات الاختبار تُنشأ لاحقًا من صفحة المشرف في موقع الاختبار.
+5. Authentication ← Users ← Add user: admin@mufradati.app بكلمة مرور جديدة خاصة بالاختبار (غير كلمة مرور الحساب الحقيقي). بقية حسابات الاختبار تُنشأ لاحقًا من صفحة المشرف في موقع الاختبار بأسماء وهمية (it1، it2، it3…). لا يُستعمل حساب test الحقيقي ولا أي حساب حقيقي، ولا تُنسخ أي بيانات من المشروع الحقيقي.
 6. إعدادات المشروع (الترس) ← General ← Your apps ← Web (</>) ← اسم mufradati-it-web ← انسخ قيم firebaseConfig إلى it/config.json في الفرع it-env (حقل web، وحقل project = projectId). يمكنك تعديله من موقع GitHub مباشرة، أو إرسال هذه القيم العامة لي.
 7. إعدادات المشروع ← Service accounts ← Generate new private key ← ينزل ملف JSON. احتفظ به في جهازك فقط حتى الخطوة ب-4، ثم احذفه.
 
