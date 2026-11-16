@@ -1,0 +1,26 @@
+--- core_old.js	2026-11-16 12:22:15.190506368 +0000
++++ core_new.js	2026-11-16 12:22:15.221278572 +0000
+@@ -416,7 +416,13 @@
+    القطع بأوزان مختلفة (الأخيرة أندر)، والسحب محدّد بالتاريخ وعدد مرات الشهر، فيحسبه التطبيق والخادم بالنتيجة نفسها */
+ const PZ_W=[10,10,10,10,8,6,6,4,3],PZ_N=PZ_W.length;
+ const hrand=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967296};
+-function pzMonth(m){const L=(Array.isArray(R.pz)?R.pz:[]).filter(x=>String(x[0]).slice(0,7)===m);return {claims:L.length,have:new Set(L.map(x=>x[1]).filter(x=>x>=0))}}
++// ألبوم البازل الدائم: R.pza = {"2026-11": قناع القطع} (رقم لكل شهر، كل قطعة بِت؛ 511 = مكتمل). لا يُحذف منه شيء أبدًا.
++// القطع = اتحاد الألبوم وسجلّ المطالبات R.pz؛ وعدد المطالبات (للسحب) من R.pz وحده، والشهر الحالي لا يُقصّ منه شيء.
++function pzMonth(m){const L=(Array.isArray(R.pz)?R.pz:[]).filter(x=>String(x[0]).slice(0,7)===m),have=new Set(L.map(x=>x[1]).filter(x=>x>=0));
++  const k=R.pza&&+R.pza[m]||0;for(let i=0;i<PZ_N;i++)if(k>>i&1)have.add(i);return {claims:L.length,have}}
++// يطوي كل قطع R.pz في الألبوم (اتحاد، فتكراره آمن). يُستدعى قبل أي قصّ لـR.pz، فلا تضيع قطعة
++function pzFold(){const A=R.pza&&typeof R.pza==="object"?{...R.pza}:{};
++  for(const [d,p] of Array.isArray(R.pz)?R.pz:[])if(p>=0&&p<PZ_N){const m=String(d).slice(0,7);A[m]=(+A[m]||0)|1<<p}R.pza=A}
+ function pzDraw(d){
+   const {claims,have}=pzMonth(d.slice(0,7)),miss=PZ_W.map((_,i)=>i).filter(i=>!have.has(i));if(!miss.length)return -1;
+   let pool=hrand(d+":"+claims)<.5||claims-have.size>=20-PZ_N?miss:[...have];if(!pool.length)pool=miss;
+@@ -506,7 +512,7 @@
+   if(T==="quest"){
+     if(FREEU)return "free";const i=QUESTS.findIndex(q=>q.id===ev.id),d=dkey(now);if(i<0)return "id";
+     if(QUESTS[i].pz){if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
+-      const m=d.slice(0,7),p=pzDraw(d),had=pzMonth(m).have;R.pz=Array.isArray(R.pz)?R.pz:[];R.pz.push([d,p]);if(R.pz.length>800)R.pz=R.pz.slice(-800);
++      const m=d.slice(0,7),p=pzDraw(d),had=pzMonth(m).have;R.pz=Array.isArray(R.pz)?R.pz:[];R.pz.push([d,p]);pzFold();if(R.pz.length>800)R.pz=R.pz.slice(-800);
+       const g=p<0||had.has(p)?CFG.gems.pdup:had.size===PZ_N-1?CFG.gems.puzzle:0;
+       R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);if(R.qd.length>600)R.qd=R.qd.slice(-600);return true}
+     const g=CFG.gems.quest[i]||0;if(!g)return "off";if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
