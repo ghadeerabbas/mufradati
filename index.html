@@ -1703,6 +1703,46 @@ body:not(.adm) #quiz .gres{padding-top:var(--sp-5)}
 body:not(.adm) #quiz .gres .btn.next{width:100%;margin:0;background:var(--ds-acc);color:var(--ds-acc-ink);border-radius:var(--r-md);box-shadow:0 4px 0 var(--ds-acc-d);font-weight:900}
 body:not(.adm) #quiz .gres .gr-sec{width:100%;margin:0;background:var(--ds-cream);color:var(--ds-acc-dd);box-shadow:none;border-radius:var(--r-md);font-weight:800;border:0}
 
+/* ---------- المهام والمكافآت والبازل: أحجام مضبوطة لشاشة الهاتف (هوية design) ---------- */
+/* نافذة «مهام اليوم» */
+body:not(.adm) #fbModal .lbox.qbox{padding:var(--sp-4) var(--sp-3) var(--sp-3);gap:var(--sp-2)}
+body:not(.adm) #fbModal .qbox h1{font-size:1.1rem!important;margin:0}
+body:not(.adm) #fbModal .qbox h1 .svi{width:20px;height:20px}
+body:not(.adm) #fbModal .qbox>.rnote{font-size:var(--fs-xs);line-height:1.6;margin:0}
+body:not(.adm) #fbModal .qbox .qrow{padding:8px 10px;gap:10px;margin-bottom:6px}
+body:not(.adm) #fbModal .qbox .qtx b{font-size:var(--fs-sm);margin-bottom:4px;line-height:1.35}
+body:not(.adm) #fbModal .qbox .qbar,body:not(.adm) .bigfx .qbar{height:14px}
+body:not(.adm) #fbModal .qbox .qbar span,body:not(.adm) .bigfx .qbar span{line-height:14px;font-size:.66rem}
+body:not(.adm) #fbModal .qbox .qch .chest{width:34px;height:30px}
+body:not(.adm) #fbModal .qbox .qmon,body:not(.adm) .questfx .qmon{font-size:1.3rem}
+body:not(.adm) #fbModal .qbox .qmon small,body:not(.adm) .questfx .qmon small{font-size:.6rem}
+body:not(.adm) #fbModal .qbox .qmon .i3,body:not(.adm) .questfx .qmon .i3{width:26px;height:26px}
+body:not(.adm) #fbModal .qbox .qopen{padding:6px 12px;font-size:var(--fs-sm)}
+body:not(.adm) #fbModal .qbox .moncard{padding:8px 10px;gap:10px;margin:2px 0 6px}
+body:not(.adm) #fbModal .qbox .moncard .monbadge{width:44px;height:44px;font-size:1.5rem}
+body:not(.adm) #fbModal .qbox .montx b{font-size:var(--fs-sm);margin-bottom:4px}
+body:not(.adm) #fbModal .qbox .montx small{font-size:.68rem;margin-top:4px;line-height:1.5}
+/* بطاقة البازل في النافذة وشاشة الجائزة: اللوح أصغر فلا يأخذ معظم الشاشة */
+body:not(.adm) .pzcard{padding:10px;margin:2px 0 6px}
+body:not(.adm) .pzcard>b{font-size:var(--fs-sm);margin-bottom:6px}
+body:not(.adm) .pzcard .pzboard{width:min(52vw,200px)}
+body:not(.adm) .pzcard small{font-size:.68rem;margin-top:6px;line-height:1.5}
+/* شاشة الجائزة الكاملة */
+body:not(.adm) .bigfx.questfx .bfin{gap:2px;padding-bottom:84px}
+body:not(.adm) .questfx .bcup .i3{width:56px;height:56px}
+body:not(.adm) .questfx .btit{font-size:1.1rem;line-height:1.5;margin-top:4px}
+body:not(.adm) .questfx .qbig{margin-top:6px}
+body:not(.adm) .questfx .chscene{padding:4px 0}
+body:not(.adm) .questfx .chlab{font-size:var(--fs-sm)}
+body:not(.adm) .questfx .chbox .chest{width:120px;height:100px}
+body:not(.adm) .questfx .chscene:has(.pzstage) .chbox .chest,body:not(.adm) .questfx .chbox.open .chest{width:72px;height:60px}
+body:not(.adm) .questfx .chhint{font-size:var(--fs-sm);margin:4px 0 0}
+body:not(.adm) .questfx .chgot{font-size:1.2rem;margin:4px 0}
+body:not(.adm) .questfx .qrow{padding:8px 10px;gap:10px;margin-bottom:6px}
+body:not(.adm) .questfx .qtx b{font-size:var(--fs-sm);margin-bottom:4px}
+[data-dark] body:not(.adm) .moncard{background:rgba(244,161,38,.14);color:var(--ds-ink)}[data-dark] body:not(.adm) .moncard .montx b{color:var(--ds-ink)}[data-dark] body:not(.adm) .moncard .montx small{color:var(--ds-muted)}
+@media (max-height:700px){body:not(.adm) .pzcard .pzboard{width:min(46vw,170px)}body:not(.adm) .questfx .bcup .i3{width:44px;height:44px}}
+
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
