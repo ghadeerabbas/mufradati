@@ -367,7 +367,7 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .chscene:has(.pzstage) .chbox .chest{width:96px;height:80px;transition:width .4s,height .4s}.chscene:has(.pzstage) .chlab{margin:0}
 @media (prefers-reduced-motion:reduce){.pzp.hl{animation:none;filter:drop-shadow(0 0 3px #ffd34d) drop-shadow(0 0 6px #ffb800)}}
 .pzstage{position:relative}.pzfly{position:absolute;inset:0;pointer-events:none;z-index:5}.pzfly .pzp{filter:drop-shadow(0 6px 10px rgba(0,0,0,.35))}
-.pzwait{visibility:hidden}
+.pzwait{visibility:hidden}.pzn.pzpop{display:inline-block;animation:pzpop .5s cubic-bezier(.3,1.7,.5,1);color:var(--acc)}@keyframes pzpop{0%{transform:scale(.6)}100%{transform:scale(1)}}
 .qgot .i3,.qmon .i3{width:24px;height:24px}
 .qbox{max-width:420px}.questfx .bcup .i3{width:84px;height:84px}.qbig{width:100%;margin-top:12px}
 .chscene{text-align:center;padding:10px 0}.chlab{font-weight:800;color:var(--hd)}.chbox{display:inline-block;cursor:pointer}.chbox .chest{width:170px;height:142px}
@@ -1741,6 +1741,10 @@ body:not(.adm) .questfx .chgot{font-size:1.2rem;margin:4px 0}
 body:not(.adm) .questfx .qrow{padding:8px 10px;gap:10px;margin-bottom:6px}
 body:not(.adm) .questfx .qtx b{font-size:var(--fs-sm);margin-bottom:4px}
 [data-dark] body:not(.adm) .moncard{background:rgba(244,161,38,.14);color:var(--ds-ink)}[data-dark] body:not(.adm) .moncard .montx b{color:var(--ds-ink)}[data-dark] body:not(.adm) .moncard .montx small{color:var(--ds-muted)}
+/* شاشة مفاجأة البازل: المحتوى من الأعلى، والصندوق ثابت الحجم والمكان، فلا يقفز شيء حين يُفتح وتخرج منه القطعة */
+body:not(.adm) .bigfx.pzfx{align-items:flex-start;overflow-y:auto;padding-top:calc(28px + env(safe-area-inset-top))}
+body:not(.adm) .pzfx .chscene:has(.pzstage) .chbox .chest,body:not(.adm) .pzfx .chbox.open .chest{width:120px;height:100px}
+body:not(.adm) .pzfx .chscene{min-height:190px}
 @media (max-height:700px){body:not(.adm) .pzcard .pzboard{width:min(46vw,170px)}body:not(.adm) .questfx .bcup .i3{width:44px;height:44px}}
 
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
@@ -2746,40 +2750,50 @@ function questRows(L){return L.map(q=>`<div class="qrow${q.done?" ok":""}"><div 
 function pzToday(){const d=today(),e=(Array.isArray(R.qd)?R.qd:[]).find(x=>x[0]===d&&x[1]==="perf"),p=(Array.isArray(R.pz)?R.pz:[]).filter(x=>x[0]===d).pop();return {g:e?+e[2]||0:0,p:p?p[1]:-1}}
 function pzGotTxt(){const r=pzToday();return r.g>=CFG.gems.puzzle&&r.g>CFG.gems.pdup?`<bdi dir="ltr">+${r.g}</bdi> 💎`:r.g?`مكرّرة <bdi dir="ltr">+${r.g}</bdi> 💎`:"قطعة جديدة"}
 function openPuzzle(host,done){
-  host.innerHTML=`<div class="chscene"><p class="chlab">قطعة بازل اليوم</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
+  host.innerHTML=`<div class="chscene"><p class="chlab">صندوق المكافأة</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
+  const bf=host.closest(".bigfx")&&host.closest(".bigfx").querySelector("#bfGo");if(bf)bf.classList.add("pzwait");   // في شاشة المفاجأة: «متابعة» بعد فتح الصندوق
   host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
-    if(ev({type:"quest",id:"perf"})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
+    if(ev({type:"quest",id:"perf"})!==true){if(bf)bf.classList.remove("pzwait");toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
     b.classList.remove("shake");b.classList.add("open");fx("done");renderHeader();
     const r=pzToday(),full=r.g>=CFG.gems.puzzle&&r.g>CFG.gems.pdup,n=pzMonth(curMon()).have.size;
     if(full)confetti(160);else confetti(50);
     const fresh=(!r.g||full)&&r.p>=0;   // قطعة جديدة فعلًا (لا مكرّرة): لها الحركة، مرة واحدة عند فتح الصندوق فقط
-    host.querySelector(".chhint").outerHTML=(r.g&&!full?`<p class="chgot">قطعة مكرّرة: <bdi dir="ltr">+${r.g}</bdi> جواهر 💎</p>`:full?`<p class="chgot">اكتمل البازل! <bdi dir="ltr">+${r.g}</bdi> جوهرة 💎</p>`:`<p class="chgot">قطعة جديدة! ${n} من ${PZ_N}</p>`)+(fresh?`<div class="pzstage">${pzCard(r.p,r.p)}</div>`:pzCard(-1))+`<button class="btn next" id="chOk">رائع!</button>`;
-    host.querySelector("#chOk").onclick=done;
-    if(fresh)pzFly(host,r.p,n)};
+    host.querySelector(".chhint").outerHTML=(r.g&&!full?`<p class="chgot">قطعة مكرّرة: <bdi dir="ltr">+${r.g}</bdi> جواهر ${isAdmin()?"💎":HIC("gem")}</p>`:full?`<p class="chgot">اكتمل البازل! <bdi dir="ltr">+${r.g}</bdi> جوهرة ${isAdmin()?"💎":HIC("gem")}</p>`:(fresh?`<p class="chgot">قطعة جديدة!</p>`:`<p class="chgot">قطعة جديدة! ${n} من ${PZ_N}</p>`))+(fresh?`<div class="pzstage">${pzCard(r.p,r.p)}</div>`:pzCard(-1))+(done?`<button class="btn next" id="chOk">متابعة</button>`:"");
+    if(done)host.querySelector("#chOk").onclick=done;
+    if(fresh)pzFly(host,r.p,n,b);else if(bf)setTimeout(()=>bf.classList.remove("pzwait"),700)};
 }
 // حركة القطعة الجديدة: تظهر وتدور في الوسط، ثم يظهر اللوح، ثم تنتقل إلى مكانها وتستقر، ويبقى اللوح لحظة قبل زر المتابعة
-function pzFly(host,i,n){
-  const st=host.querySelector(".pzstage"),card=st&&st.querySelector(".pzcard"),slot=st&&st.querySelector(`.pzp[data-i="${i}"]`),ok=host.querySelector("#chOk"),bf=document.querySelector(".bigfx.on #bfGo");
+// حركة القطعة الجديدة: تخرج من الصندوق وتدور وتكبر قليلًا، ثم يظهر اللوح تدريجيًا، ثم تنتقل القطعة إلى موضعها وتستقر،
+// ثم يظهر التقدّم الجديد (5 / 9)، وبعد لحظة يظهر زر «متابعة». مرة واحدة فقط عند فتح الصندوق
+function pzFly(host,i,n,chest){
+  const st=host.querySelector(".pzstage"),card=st&&st.querySelector(".pzcard"),slot=st&&st.querySelector(`.pzp[data-i="${i}"]`),bd=st&&st.querySelector(".pzboard"),
+    btns=[host.querySelector("#chOk"),host.closest(".bigfx")&&host.closest(".bigfx").querySelector("#bfGo")].filter(Boolean),got=host.querySelector(".chgot");
   if(!st||!slot)return;
-  const wait=on=>{[ok,bf].forEach(x=>{if(x)x.classList.toggle("pzwait",on)})};
-  const settle=()=>{const g=card.querySelector(".pzn");if(g)g.textContent=n+" / "+PZ_N;const bd=slot.parentNode;slot.remove();bd.insertAdjacentHTML("beforeend",pzPiece(i,pzImg(curMon()),"got hl"))};   // القطعة بقناع المجموعة، في آخر اللوح فتكون فوق جاراتها
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!slot.animate){settle();return}
+  const wait=on=>btns.forEach(x=>x.classList.toggle("pzwait",on));
+  const settle=()=>{const g=card.querySelector(".pzn");if(g){g.textContent=n+" / "+PZ_N;g.classList.add("pzpop")}
+    if(got)got.textContent="قطعة جديدة! "+n+" من "+PZ_N;
+    const p=slot.parentNode;slot.remove();p.insertAdjacentHTML("beforeend",pzPiece(i,pzImg(curMon()),"got hl"))};   // القطعة بقناع المجموعة، فوق جاراتها
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches||!slot.animate){settle();wait(false);return}
   wait(true);
-  const sr=st.getBoundingClientRect(),pr=slot.getBoundingClientRect();
+  const sr=st.getBoundingClientRect(),pr=slot.getBoundingClientRect(),br=bd.getBoundingClientRect(),cr=(chest||st).getBoundingClientRect();
   const fly=document.createElement("div");fly.className="pzfly";fly.innerHTML=pzPiece(i,pzImg(curMon()),"got");
   const f=fly.firstChild;f.style.cssText+=`;left:${pr.left-sr.left}px;top:${pr.top-sr.top}px;width:${pr.width}px;height:${pr.height}px`;
   st.appendChild(fly);
-  const cx=sr.width/2-(pr.left-sr.left+pr.width/2),cy=Math.min(sr.height/2,150)-(pr.top-sr.top+pr.height/2),big=Math.min(2.1,(sr.width*.5)/pr.width);
-  const C=(sc,rot)=>`translate(${cx}px,${cy}px) scale(${sc}) rotate(${rot}deg)`;
-  card.animate([{opacity:0,transform:"scale(.96)"},{opacity:0,transform:"scale(.96)",offset:.36},{opacity:1,transform:"scale(1)",offset:.5},{opacity:1,transform:"scale(1)"}],{duration:3200,easing:"ease-out",fill:"both"});
+  const px=pr.left+pr.width/2,py=pr.top+pr.height/2,
+    ox=cr.left+cr.width/2-px,oy=cr.top+cr.height*.45-py,   // فم الصندوق
+    hx=br.left+br.width/2-px,hy=br.top+br.height/2-py,      // فوق وسط اللوح
+    big=Math.min(1.9,(br.width*.62)/pr.width);
+  const T=(x,y,sc,rot)=>`translate(${x}px,${y}px) scale(${sc}) rotate(${rot}deg)`;
+  card.animate([{opacity:0},{opacity:0,offset:.34},{opacity:1,offset:.52},{opacity:1}],{duration:3800,easing:"ease-out",fill:"both"});
   const a=f.animate([
-    {transform:C(.15,-300),opacity:0},
-    {transform:C(big*1.08,-20),opacity:1,offset:.24,easing:"ease-out"},
-    {transform:C(big,0),offset:.34,easing:"ease-in-out"},
-    {transform:C(big,0),offset:.58,easing:"cubic-bezier(.55,0,.25,1)"},
-    {transform:"translate(0,0) scale(1.1) rotate(0deg)",offset:.9,easing:"ease-out"},
-    {transform:"translate(0,0) scale(1) rotate(0deg)"}],{duration:3200,fill:"forwards"});
-  a.onfinish=()=>{fly.remove();settle();fx("ok");setTimeout(()=>wait(false),1300)};   // يبقى اللوح ظاهرًا لحظة قبل زر المتابعة
+    {transform:T(ox,oy,.2,0),opacity:0},
+    {transform:T(ox,oy-10,.32,40),opacity:1,offset:.06},
+    {transform:T(hx,hy-30,big*1.1,330),offset:.28,easing:"ease-out"},
+    {transform:T(hx,hy,big,360),offset:.36,easing:"ease-in-out"},
+    {transform:T(hx,hy,big,360),offset:.6,easing:"cubic-bezier(.55,0,.25,1)"},
+    {transform:T(0,0,1.1,360),offset:.9,easing:"ease-out"},
+    {transform:T(0,0,1,360)}],{duration:3800,fill:"forwards"});
+  a.onfinish=()=>{fly.remove();settle();fx("ok");setTimeout(()=>wait(false),1200)};   // يبقى اللوح ظاهرًا لحظة قبل «متابعة»
 }
 function openChest(id,host,done){
   const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;if(q.pz)return openPuzzle(host,done);
@@ -2805,8 +2819,11 @@ function questWatch(){
   const mk=K("monann"),ma=jget(mk,[]),s=monStat(curMon());
   if(fresh.some(q=>q.id==="st1")&&s.ok&&!ma.includes(s.m)){ma.push(s.m);st(mk,JSON.stringify(ma.slice(-40)));
     bigScreen(`<div class="monbadge big">${s.ic}</div><h2 class="btit">حصلت على ملصق ${s.name}!</h2><p class="bsub">أكملت محطة مع تدريبها في ${s.need} يومًا من هذا الشهر. تجد ملصقاتك في صفحة «أنا».</p>`,"questfx",()=>{fx("done");confetti(140)})}
-  bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${fresh.length>1?"أكملت "+arN(fresh.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+fresh[0].n+"!"}</h2><div class="qbig" id="qBig">${questRows(questList())}${monCard()}${pzCard()}</div>`,"questfx",d_=>{
-    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=questRows(questList())+monCard()+pzCard();wire()}));wire()});
+  // مهمة البازل لها شاشة مفاجأة مستقلة (بعد شاشة المهام الأخرى إن وُجدت): تهنئة وصندوق مغلق فقط، ولا يظهر اللوح ولا عدد القطع قبل فتحه
+  const pzq=fresh.find(q=>q.pz),rest=fresh.filter(q=>!q.pz),rows=()=>questRows(questList().filter(q=>!q.pz))+monCard();
+  if(rest.length)bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">${rest.length>1?"أكملت "+arN(rest.length,"مهمة","مهمتين","مهام")+"!":"أكملت مهمة: "+rest[0].n+"!"}</h2><div class="qbig" id="qBig">${rows()}</div>`,"questfx",d_=>{
+    const wire=()=>d_.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,d_.querySelector("#qBig"),()=>{d_.querySelector("#qBig").innerHTML=rows();wire()}));wire()});
+  if(pzq)bigScreen(`<div class="bcup">${I3("target")}</div><h2 class="btit">أكملت مهمة: ${pzq.n}!</h2><div class="qbig" id="qBig"></div>`,"questfx pzfx",d_=>openPuzzle(d_.querySelector("#qBig")));
 }
 function lastMiss(k){
   let l=null;for(let i=LOG.length-1;i>=0;i--)if(LOG[i][1]===k){l=LOG[i];break}
