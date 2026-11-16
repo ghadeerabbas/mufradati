@@ -6,6 +6,12 @@
   const cnt={};let badLen=0;
   for(let i=0;i<3000;i++){const ws=shuffle([...pool]).slice(0,5),st=stationSteps(ws);if(st.length!==ws.length*3)badLen++;st.forEach(s=>cnt[s.t]=(cnt[s.t]||0)+1)}
   ok(!cnt.tr&&!cnt.write,"لا «ترجم الجملة» ولا «اكتبها» في 3000 محطة",JSON.stringify(cnt));
+  // تكرار مزعج: الكلمة نفسها بنوع السؤال نفسه مرتين في المحطة (بلا إعادة الخطأ)
+  let dup=0,tot=0;for(let i=0;i<3000;i++){const ws=shuffle([...pool]).slice(0,5),st=stationSteps(ws);tot++;
+    const seen=new Set;let d=0;st.forEach(x=>{if(x.t==="intro")return;const k=x.w.k+"|"+x.t;if(seen.has(k))d=1;seen.add(k)});dup+=d}
+  ok(dup===0,"لا يتكرّر السؤال نفسه للكلمة نفسها في المحطة (3000 محطة)","محطات فيها تكرار "+dup+" من "+tot);
+  let adj=0;for(let i=0;i<3000;i++){const st=stationSteps(shuffle([...pool]).slice(0,5));for(let j=1;j<st.length;j++)if(st[j].w.k===st[j-1].w.k)adj++}
+  ok(adj===0,"لا تأتي الكلمة نفسها في خطوتين متتاليتين","مرات "+adj);
   ok(badLen===0,"عدد خطوات كل محطة = 3 لكل كلمة (كما كان)","مخالفة "+badLen);
   ok(!GAMES.some(g=>g.id==="type"),"«اكتبها بالألمانية» ليست في قائمة التمارين",GAMES.map(g=>g.id).join(","));
   let ck=0;for(let i=0;i<3000;i++)if(chalKind(pool[i%pool.length])==="type")ck++;ok(ck===0,"تحدي اليوم بلا «اكتبها»");

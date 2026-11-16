@@ -743,8 +743,10 @@ body:not(.adm) .hcrs.has{display:inline-flex}
 .hcrs{padding-inline-start:6px;padding-inline-end:9px;gap:3px;max-width:58%}.hcrs:not(.pick){cursor:default}
 .lvb{position:relative;flex:none;width:30px;height:34px;margin:-7px 0 -7px 0;display:block}
 .lvb img{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
-.lvb b{position:absolute;inset:44% 0 auto 0;text-align:center;color:#fff;font:900 10px/1 system-ui,sans-serif;letter-spacing:-.3px;text-shadow:0 1px 1px rgba(0,0,0,.55)}
-@media (max-width:340px){.lvb{width:27px;height:31px;margin:-6px 0 -6px 1px}.lvb b{font-size:9px}}
+/* بعد 50: الرقم داخل الدرع مكان رقم الصور الأصلية وبحجمه، فوق النجوم. خط كبير مصغَّر بالتحويل فلا يكبّره حدّ أصغر خط في الهاتف */
+.lvb b{position:absolute;left:50%;top:53.5%;font-size:16px;font-weight:900;line-height:1;color:#fff;white-space:nowrap;letter-spacing:-.5px;text-shadow:0 1px 0 rgba(60,0,0,.45);transform:translate(-50%,-50%) scale(.52);pointer-events:none}
+.lvb b.d3{transform:translate(-50%,-50%) scale(.44)}.lvb b.d4{transform:translate(-50%,-50%) scale(.35)}
+@media (max-width:340px){.lvb{width:27px;height:31px;margin:-6px 0 -6px 0}.lvb b{transform:translate(-50%,-50%) scale(.5)}.lvb b.d3{transform:translate(-50%,-50%) scale(.41)}.lvb b.d4{transform:translate(-50%,-50%) scale(.33)}}
 .hflt{display:none;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--soft);color:var(--hd);font-size:1rem;cursor:pointer;position:relative;align-items:center;justify-content:center}
 body:not(.adm) .hflt.has{display:inline-flex}.hflt.act:after{content:"";position:absolute;top:3px;left:3px;width:9px;height:9px;border-radius:50%;background:#ff9600}
 .hgap{flex:1}
@@ -1478,7 +1480,8 @@ function stationSteps1(words){
   // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
   // الترتيب عشوائي في كل مرة: ترتيب الكلمات، ونوع التمرين الثالث، وأيّ تمرين جاهز يأتي أولًا
   const out=[],pend=[];words=shuffle([...words]);
-  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>({t:Math.random()<.5?"rev":"mc",w});   // «ترجم الجملة» و«اكتبها» أُلغيا: الخطوة الثالثة اختيار من متعدد بأحد الاتجاهين
+  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),// «ترجم الجملة» و«اكتبها» أُلغيا: الخطوة الثالثة اختيار من متعدد، وبغير اتجاه الخطوة الثانية إن كانت اختيارًا (فلا يتكرّر السؤال نفسه)
+  third=(w,prev)=>({t:prev==="rev"?"mc":prev==="mc"?"rev":Math.random()<.5?"rev":"mc",w});
   const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:-1;
   const take=force=>{
     const last=out.length?out[out.length-1].w:null;
@@ -1494,8 +1497,8 @@ function stationSteps1(words){
   // منهج «ألماني · إنكليزي» (الكلمات التي لها en): الكلمة، ثم جملتها مباشرة، ثم تمارينها موزّعة كالعادة
   const seq=w=>!!(w.en&&w.ex);
   words.forEach((w,i)=>{if(twoIntros())take(true);out.push({t:"intro",w});
-    if(seq(w)){out.push({t:"ex",w,seq:1});pend.push({s:{t:clozeOf(w)?"cloze":"rev",w},next:third(w,i),ready:out.length+2})}
-    else pend.push({s:second(w),next:third(w,i),ready:out.length+2});take(false);});
+    if(seq(w)){out.push({t:"ex",w,seq:1});const s2={t:clozeOf(w)?"cloze":"rev",w};pend.push({s:s2,next:third(w,s2.t),ready:out.length+2})}
+    else{const s2=second(w);pend.push({s:s2,next:third(w,s2.t),ready:out.length+2})}take(false);});
   while(pend.length)take(true);
   return out;
 }
@@ -4668,7 +4671,7 @@ function navSync(){
 }
 // شارة المستوى: صورة لكل مستوى من 1 إلى 50، وبعد 50 شارة بلا رقم يُكتب عليها المستوى الحقيقي
 function lvBadge(lv){lv=Math.max(1,Math.floor(+lv||1));const hi=lv>50;
-  return `<span class="lvb" title="${lv}"><img src="img/lv/${hi?"x":lv}.webp" alt="${lv}" width="30" height="34" decoding="async">${hi?`<b>${lv}</b>`:""}</span>`}
+  return `<span class="lvb" title="${lv}"><img src="img/lv/${hi?"x":lv}.webp" alt="${lv}" width="30" height="34" decoding="async">${hi?`<b class="d${Math.min(4,String(lv).length)}">${lv}</b>`:""}</span>`}
 function hdrExtra(){
   const c=$("hCrs"),many=MY_COURSES.filter(x=>COURSES[x]).length>1&&!isAdmin(),nm=(COURSES[COURSE]||{}).name||"";
   c.classList.toggle("has",!!nm&&!isAdmin());c.classList.toggle("pick",many);c.setAttribute("aria-label","المنهج: "+nm);
