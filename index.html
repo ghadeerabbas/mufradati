@@ -1082,12 +1082,12 @@ body:not(.adm) .hrow{padding:var(--sp-2) var(--sp-4)}
 body:not(.adm) .hcrs{background:var(--ds-cream);color:var(--ds-navy);padding:7px 14px;font-size:var(--fs-sm);gap:6px}
 /* زر المنهج: كتاب مفتوح وسهم في زر بيج صغير (الاسم في القائمة لا في الشريط). شارة المستوى مستقلة بجانبه بلا إطار ولا خلفية */
 body:not(.adm) .hcrs{padding:4px 10px 4px 8px;gap:6px;height:38px;max-width:none;flex:none}
-body:not(.adm) .hcrs .bk{width:26px;height:26px;display:block;stroke-width:2.2;color:#8b5cf6}[data-dark] body:not(.adm) .hcrs .bk,[data-dark] .hcrs .bk{color:#b794ff}
+body:not(.adm) .hcrs .bk{width:34px;height:26px;display:block}
 .hlvb{display:none;flex:none}body:not(.adm) .hlvb.has{display:block}
 body:not(.adm) .hlvb .lvb{width:48px;height:55px;margin:-9px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.83)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.7)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.56)}
 /* توزيع عناصر الشريط بالتساوي مثل التصميم المرجعي: الشارة، الكتاب، التصفية، ثم الطاقة والجواهر والسلسلة */
 body:not(.adm) .htop{justify-content:space-between}body:not(.adm) .htop .hgap{display:none}
-@media (max-width:380px){body:not(.adm) .htop{gap:6px}body:not(.adm) .hcrs{padding:3px 8px 3px 6px;gap:4px;height:36px}body:not(.adm) .hcrs .bk{width:24px;height:24px}body:not(.adm) .hlvb .lvb{width:43px;height:49px;margin:-7px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.75)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.63)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.5)}}
+@media (max-width:380px){body:not(.adm) .htop{gap:6px}body:not(.adm) .hcrs{padding:3px 8px 3px 6px;gap:4px;height:36px}body:not(.adm) .hcrs .bk{width:31px;height:24px}body:not(.adm) .hlvb .lvb{width:43px;height:49px;margin:-7px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.75)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.63)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.5)}}
 body:not(.adm) .hcrs:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);opacity:.7}
 body:not(.adm) .hflt{width:38px;height:38px;background:var(--ds-bg);color:var(--ds-navy)}
 body:not(.adm) .hflt svg{width:19px;height:19px}
@@ -5669,11 +5669,12 @@ function navSync(){
 // شارة المستوى: صورة لكل مستوى من 1 إلى 50، وبعد 50 شارة بلا رقم يُكتب عليها المستوى الحقيقي
 function lvBadge(lv){lv=Math.max(1,Math.floor(+lv||1));const hi=lv>50;
   return `<span class="lvb" title="${lv}"><img src="img/lv/${hi?"x":lv}.webp" alt="${lv}" width="30" height="34" decoding="async">${hi?`<b class="d${Math.min(4,String(lv).length)}">${lv}</b>`:""}</span>`}
+const BOOKI=`<svg class="bk" viewBox="0 0 36 27" width="34" height="26" xmlns="http://www.w3.org/2000/svg"> <path d="M1.5 7.5 Q1.5 5.5 3.5 5.5 H32.5 Q34.5 5.5 34.5 7.5 V22.8 Q34.5 25 32.3 25 H20.2 Q18 26.6 15.8 25 H3.7 Q1.5 25 1.5 22.8Z" fill="#c2710c"/> <path d="M1.5 7.5 Q1.5 5.5 3.5 5.5 H32.5 Q34.5 5.5 34.5 7.5 V21.6 Q34.5 23.6 32.4 23.6 H20 Q18 25 16 23.6 H3.6 Q1.5 23.6 1.5 21.6Z" fill="#f59e0b"/> <path d="M3.8 3.6 Q10.5 1.8 17.2 4.6 V22.4 Q10.5 19.8 3.8 21.4Z" fill="#fffaf0" stroke="#e6d8bf" stroke-width=".7"/> <path d="M32.2 3.6 Q25.5 1.8 18.8 4.6 V22.4 Q25.5 19.8 32.2 21.4Z" fill="#fffaf0" stroke="#e6d8bf" stroke-width=".7"/> <g stroke="#d9c9ab" stroke-width="1.2" stroke-linecap="round" fill="none"><path d="M6.6 8 Q10.4 7 14.6 8.6"/><path d="M6.6 11.6 Q10.4 10.6 14.6 12.2"/><path d="M6.6 15.2 Q10.4 14.2 14.6 15.8"/><path d="M21.4 8.6 Q25.6 7 29.4 8"/><path d="M21.4 12.2 Q25.6 10.6 29.4 11.6"/><path d="M21.4 15.8 Q25.6 14.2 29.4 15.2"/></g> <path d="M24.6 2.6 V10 L26.2 8.6 L27.8 10 V2.5 Q26.2 2.2 24.6 2.6Z" fill="#ef4444"/></svg>`;
 function hdrExtra(){
   // زر المنهج: كتاب وسهم، والاسم في القائمة التي تفتح بالضغط (مع ✓ عند المنهج الحالي). وشارة المستوى مستقلة بجانبه
   const c=$("hCrs"),nm=(COURSES[COURSE]||{}).name||"",lb=$("hLvB");
   c.classList.toggle("has",!!nm&&!isAdmin());c.classList.add("pick");c.setAttribute("aria-label","المنهج: "+nm);c.title=nm;
-  setH(c,SVGI('<path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6l0 13"/><path d="M12 6l0 13"/><path d="M21 6l0 13"/>').replace('class="i3 svi"','class="i3 svi bk"'));   // كتاب مفتوح بخطوط بسيطة مثل الشعلة والجوهرة والبطارية
+  setH(c,BOOKI);   // كتاب مفتوح ملوّن مسطّح: غلاف برتقالي وصفحتان وشريط علامة
   lb.classList.toggle("has",!isAdmin());setH(lb,lvBadge((EC||econ()).lv));
   navSync();
 }
