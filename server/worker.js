@@ -245,7 +245,16 @@ const lvlNeed=l=>{if(l<8)return CFG.xp.level*l;let n=CFG.xp.level*7;for(let k=8;
 function carryDays(){const o=new Set,k=R.sk;if(!k||!(k.n>0)||!/^\d{4}-\d\d-\d\d$/.test(k.t||""))return o;
   const t=new Date(k.t+"T12:00:00").getTime();for(let i=0;i<Math.min(k.n,3650);i++)o.add(dkey(t-i*DAY));return o}
 // أيام أنهى فيها تحدّيًا مع صديق (R.dd): تُحسب في السلسلة كيوم دراسة، بلا خبرة ولا جواهر
-const duelDays=()=>Array.isArray(R.dd)?R.dd.filter(d=>/^\d{4}-\d\d-\d\d$/.test(d)):[];
+// أرشيف دائم (لا يُقصّ): ما يتجاوز حدود السجلّات يُطوى هنا قبل القصّ، فلا تنقص الجواهر ولا السلسلة ولا الألبوم.
+// R.dda: أيام التحدّي المطويّة {"2026-11": قناع أيام الشهر}، R.qdg: جواهر صناديق المهام المطويّة، R.dwg: جواهر تحدّيات الأصدقاء المطويّة،
+// LG.hg: جوائز الدوري المطويّة، R.pza: قطع البازل {"2026-11": قناع القطع}. كل الطيّ اتحاد أو جمع لما يُحذف فقط، فلا يُحسب شيء مرتين.
+const DAYRE=/^\d{4}-\d\d-\d\d$/;
+const ddRaw=()=>Array.isArray(R.dd)?R.dd.filter(d=>DAYRE.test(d)):[];
+const duelDays=()=>{const o=ddRaw(),A=R.dda&&typeof R.dda==="object"?R.dda:{};
+  for(const m in A){const k=+A[m]||0;if(!/^\d{4}-\d\d$/.test(m))continue;for(let i=0;i<31;i++)if(k>>>i&1)o.push(m+"-"+String(i+1).padStart(2,"0"))}return o};
+// يقصّ سجلًّا إلى آخر n عنصرًا، ويطوي المحذوف بالدالة fold قبل الحذف
+const cutKeep=(a,n,fold)=>{if(a.length<=n)return a;fold(a.slice(0,a.length-n));return a.slice(-n)};
+const sumAt=(a,i)=>a.reduce((s,x)=>s+(+x[i]||0),0);
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -293,10 +302,10 @@ function econ(){
   gems+=STN.filter(x=>x[2]!==0).length*CFG.gems.station;   // المحطة التي كل كلماتها كوفئ عليها قبل التصفير لا تعطي جوهرة
   for(const [d,g] of STREAK_G)if(s.best>=d&&d>(R.sb||0))gems+=g;
   gems+=R.bank||0;
-  gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0);      // جوائز الدوري
+  gems+=(LG.hist||[]).reduce((a,h)=>a+(h.g||0),0)+(+LG.hg||0);      // جوائز الدوري (مع المطويّ منها)
   gems+=giftSum();                                      // هدايا المشرف
-  gems+=(Array.isArray(R.dw)?R.dw:[]).reduce((a,x)=>a+(+x[1]||0),0);   // الفوز في تحدّيات الأصدقاء
-  gems+=(Array.isArray(R.qd)?R.qd:[]).reduce((a,x)=>a+(+x[2]||0),0);   // صناديق مهام اليوم
+  gems+=(Array.isArray(R.dw)?R.dw:[]).reduce((a,x)=>a+(+x[1]||0),0)+(+R.dwg||0);   // الفوز في تحدّيات الأصدقاء (مع المطويّ منها)
+  gems+=(Array.isArray(R.qd)?R.qd:[]).reduce((a,x)=>a+(+x[2]||0),0)+(+R.qdg||0);   // صناديق مهام اليوم (مع المطويّ منها)
   // الملصقات أُلغيت: ما اشتُري منها لا يُحسب من الجواهر، فيعود ثمنه إلى الرصيد (ويبقى في السجلّ لإنجاز «جامع التحف»)
   const spent=BUY.reduce((a,b)=>{const[c,id]=b.item.split(":");if(GONE_CATS.includes(c))return a;const it=itemOf(c,id);return a+(b.p!=null?b.p:it?(it.old!=null?it.old:it.price):0)},0);
   const td=per[today()]||{n:0};
@@ -434,7 +443,15 @@ const QUESTS=[
    القطع بأوزان مختلفة (الأخيرة أندر)، والسحب محدّد بالتاريخ وعدد مرات الشهر، فيحسبه التطبيق والخادم بالنتيجة نفسها */
 const PZ_W=[10,10,10,10,8,6,6,4,3],PZ_N=PZ_W.length;
 const hrand=s=>{let h=2166136261;for(const c of s){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return (h>>>0)/4294967296};
-function pzMonth(m){const L=(Array.isArray(R.pz)?R.pz:[]).filter(x=>String(x[0]).slice(0,7)===m);return {claims:L.length,have:new Set(L.map(x=>x[1]).filter(x=>x>=0))}}
+// ألبوم البازل الدائم R.pza: القطع = اتحاد الألبوم وسجلّ المطالبات R.pz؛ وعدد المطالبات (للسحب) من R.pz وحده، والشهر الحالي لا يُقصّ منه شيء
+function pzMonth(m){const L=(Array.isArray(R.pz)?R.pz:[]).filter(x=>String(x[0]).slice(0,7)===m),have=new Set(L.map(x=>x[1]).filter(x=>x>=0));
+  const k=R.pza&&+R.pza[m]||0;for(let i=0;i<PZ_N;i++)if(k>>i&1)have.add(i);return {claims:L.length,have}}
+// يطوي كل قطع R.pz في الألبوم (اتحاد، فتكراره آمن). يُستدعى مع كل قطعة، قبل أي قصّ لـR.pz
+function pzFold(){const A=R.pza&&typeof R.pza==="object"?{...R.pza}:{};
+  for(const [d,p] of Array.isArray(R.pz)?R.pz:[])if(p>=0&&p<PZ_N){const m=String(d).slice(0,7);A[m]=(+A[m]||0)|1<<p}R.pza=A}
+const qdFold=cut=>{R.qdg=(+R.qdg||0)+sumAt(cut,2)};
+// جائزة أسبوع الدوري (يستعملها الخادم): يبقى آخر 52 أسبوعًا، وجوائز ما قبلها تُطوى في LG.hg فلا تنقص الجواهر
+function lgPush(h){LG.hist=cutKeep([...(LG.hist||[]),h],52,cut=>{LG.hg=(+LG.hg||0)+sumAt(cut.map(x=>[x&&x.g]),0)})}
 function pzDraw(d){
   const {claims,have}=pzMonth(d.slice(0,7)),miss=PZ_W.map((_,i)=>i).filter(i=>!have.has(i));if(!miss.length)return -1;
   let pool=hrand(d+":"+claims)<.5||claims-have.size>=20-PZ_N?miss:[...have];if(!pool.length)pool=miss;
@@ -499,11 +516,12 @@ function applyAt(ev,T,now,ctx){
   if(T==="dwin"){
     if(ctx.server&&!ctx.dwinOk)return "dwin";const id=String(ev.id||"");if(!/^[A-Za-z0-9_-]{4,40}$/.test(id))return "id";
     if(!CFG.duel.gem)return "off";R.dw=Array.isArray(R.dw)?R.dw:[];if(R.dw.some(x=>x[0]===id))return "dup";
-    R.dw.push([id,CFG.duel.gem]);if(R.dw.length>2000)R.dw=R.dw.slice(-2000);return true;
+    R.dw.push([id,CFG.duel.gem]);R.dw=cutKeep(R.dw,2000,cut=>{R.dwg=(+R.dwg||0)+sumAt(cut,1)});return true;
   }
   if(T==="duel"){
     if(ctx.server&&!ctx.duelOk)return "duel";
-    const d=dkey(now);R.dd=duelDays().filter(x=>x!==d);R.dd.push(d);if(R.dd.length>400)R.dd=R.dd.slice(-400);return true;
+    const d=dkey(now);R.dd=ddRaw().filter(x=>x!==d);R.dd.push(d);
+    R.dd=cutKeep(R.dd,400,cut=>{const A=R.dda&&typeof R.dda==="object"?{...R.dda}:{};for(const x of cut){const m=x.slice(0,7);A[m]=((+A[m]||0)|1<<(+x.slice(8,10)-1))>>>0}R.dda=A});return true;
   }
   if(T==="buy"){
     const it=itemOf(ev.cat,ev.id);if(!it||it.hidden||it.streak||!it.price&&it.cat!=="power")return "item";
@@ -524,11 +542,11 @@ function applyAt(ev,T,now,ctx){
   if(T==="quest"){
     if(FREEU)return "free";const i=QUESTS.findIndex(q=>q.id===ev.id),d=dkey(now);if(i<0)return "id";
     if(QUESTS[i].pz){if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
-      const m=d.slice(0,7),p=pzDraw(d),had=pzMonth(m).have;R.pz=Array.isArray(R.pz)?R.pz:[];R.pz.push([d,p]);if(R.pz.length>800)R.pz=R.pz.slice(-800);
+      const m=d.slice(0,7),p=pzDraw(d),had=pzMonth(m).have;R.pz=Array.isArray(R.pz)?R.pz:[];R.pz.push([d,p]);pzFold();if(R.pz.length>800)R.pz=R.pz.slice(-800);
       const g=p<0||had.has(p)?CFG.gems.pdup:had.size===PZ_N-1?CFG.gems.puzzle:0;
-      R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);if(R.qd.length>600)R.qd=R.qd.slice(-600);return true}
+      R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);R.qd=cutKeep(R.qd,600,qdFold);return true}
     const g=CFG.gems.quest[i]||0;if(!g)return "off";if(QUESTS[i].f(d)<QUESTS[i].goal)return "notyet";if(questGot(d,ev.id))return "dup";
-    R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);if(R.qd.length>600)R.qd=R.qd.slice(-600);return true;
+    R.qd=Array.isArray(R.qd)?R.qd:[];R.qd.push([d,ev.id,g]);R.qd=cutKeep(R.qd,600,qdFold);return true;
   }
   // طاقة الإجابات المتتالية: كل 5 إجابات صحيحة متتالية في الدرس، بحدّ أقصى في اليوم
   if(T==="combo"){
@@ -703,7 +721,7 @@ async function leagueStep(fs, uid, prof, now, writes) {
       const prev = await fs.list(`lg/${weekId(weekStart(now) - 10 * DAY)}/m`), rows = tableFor(uid, last, docs, prev, 1);
       const n = rows.length, rank = rows.findIndex(r => r.id === uid) + 1, realRank = rows.filter(r => !r.bot).findIndex(r => r.id === uid) + 1, { up, down } = zones(n, me.tier);
       let mv = 0; if (rank && rank <= up && me.xp >= PROMO_MIN && me.tier < 9) mv = 1; else if (rank && down && rank > n - down && me.tier > 0) mv = -1;
-      LG.hist = [...(LG.hist || []), { w: last, tier: me.tier, rank, n, mv, g: prizeOf(realRank, me.xp), xp: me.xp }].slice(-52);
+      lgPush({ w: last, tier: me.tier, rank, n, mv, g: prizeOf(realRank, me.xp), xp: me.xp });   // آخر 52 أسبوعًا، وجوائز ما قبلها تُطوى في LG.hg
       LG.tier = me.tier + mv; LG.best = Math.max(LG.best || 0, LG.tier);
     }
     LG.w = cur; LG.ts = now;

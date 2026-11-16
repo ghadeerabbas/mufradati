@@ -1108,7 +1108,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=ca445042ea"></script>
+<script src="core.js?v=0f508c87bc"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2965,7 +2965,7 @@ function ev(e){
 }
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
 function applyServer(j){
-  const c=(typeof j.core==="string"?JSON.parse(j.core):j.core)||{},h0=(LG.hist||[]).length;
+  const c=(typeof j.core==="string"?JSON.parse(j.core):j.core)||{},h0=(LG.hist||[]).length,w0=h0?String((LG.hist[h0-1]||{}).w||""):"";
   // حذف المشرف بياناتِ هذا الحساب: يبدأ من الصفر هنا أيضًا (المظهر والإعدادات وما لم يُرسل بعد)
   if(c.wiped&&c.wiped>(+st(K("wiped"))||0)){st(K("wiped"),String(c.wiped));EVQ=[];E=Object.assign({},DEF_E,{ts:Date.now()});S=Object.assign({},DEF_S,{ts:Date.now()});st(K("giftSeen"),"[]");PREFLAST="";applyLook()}
   P=c.P||{};QLOG=c.QLOG||[];BUY=c.BUY||[];R=Object.assign({bank:0,ach:[],lv:1,ts:0},c.R||{});
@@ -2976,7 +2976,8 @@ function applyServer(j){
   if(pr.E&&(pr.E.ts||0)>(E.ts||0))E=Object.assign({},DEF_E,pr.E);
   if(pr.S&&(pr.S.ts||0)>(S.ts||0)){S.dir=pr.S.dir||S.dir;S.ts=pr.S.ts}
   save();EC=null;
-  const hs=LG.hist||[];if(hs.length>h0&&h0+1===hs.length)leagueNews(hs[hs.length-1]);
+  // خبر الدوري حين يصل أسبوع واحد جديد (بالمقارنة بآخر أسبوع، لا بطول السجل الذي يقف عند 52)
+  const hs=LG.hist||[];if(hs.length&&(h0||hs.length===1)&&hs.filter(x=>String(x&&x.w||"")>w0).length===1)leagueNews(hs[hs.length-1]);
   setTimeout(staleStation,0);
 }
 // محطة بدأت ولم تنتهِ ولم يُضغط «خروج» (أُغلق التطبيق أو سُحب من الخلفية): تُعامل كالخروج، فتُستعاد الطاقة
