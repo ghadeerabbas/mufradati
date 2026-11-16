@@ -4217,6 +4217,9 @@ async function errCheck(){
   if(b){b.textContent=nw||"";b.classList.toggle("on",nw>0)}
   if(nw)toast("⚠️","أخطاء جديدة: "+nw,"افتح «الحماية» لتراها");
 }
+let BKBUSY=false,BKRID=null;const rid12=()=>{const a=new Uint8Array(9);crypto.getRandomValues(a);return [...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,16)};
+// وقت النسخة بالثواني، ومعرّفها المختصر (آخر أرقام المفتاح)، ليُعرف إن كانت نسختان مختلفتين فعلًا
+const bkTime=x=>new Date(x.at||0).toLocaleString("ar-u-nu-latn",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",second:"2-digit"});
 async function renderSafe(){
   const el=$("safe");el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
   let B=[],ok=true;try{B=(await apiPost("/backup",{op:"list"})).items||[]}catch(e){ok=false}
@@ -4225,7 +4228,7 @@ async function renderSafe(){
   el.innerHTML=`<div class="rsec"><h3>🗄️ النسخ الاحتياطية</h3><p class="rnote">كل ليلة تُحفظ نسخة كاملة من بيانات المستخدمين في تخزين منفصل عن قاعدة البيانات، وتبقى آخر 14 نسخة. «تجربة» تفكّ النسخة وتفحصها دون أن تغيّر شيئًا.</p>
     <button class="btn" id="bkNow" style="width:100%;margin:6px 0;background:var(--navy);color:#fff">نسخة الآن</button>
     <button class="btn" id="bkSnap" style="width:100%;margin:0 0 6px">📋 لقطة الحسابات (توثيق الحالة)</button><div class="stmsg" id="bkMsg"></div><div id="bkOut"></div>
-    ${!ok?'<div class="err">تعذّر تحميل النسخ.</div>':B.length?B.map(x=>`<div class="bkrow"><div><b>${fmt(x.at)}</b><small>${BAKWHY[x.why]||x.why||""} · ${x.n||0} وثيقة · ${x.users||0} مستخدم · ${kb(x.size||0)}</small></div><div class="bkbtns"><button class="btn bkV" data-k="${esc(x.key)}">تحقق كامل</button><button class="btn bkD" data-k="${esc(x.key)}">تنزيل</button><button class="btn bkT" data-k="${esc(x.key)}">تجربة</button><button class="btn bkR" data-k="${esc(x.key)}">استرجاع</button></div></div>`).join(""):'<div class="empty">لا نسخ بعد. أول نسخة تلقائية الليلة، أو اضغط «نسخة الآن».</div>'}</div>
+    ${!ok?'<div class="err">تعذّر تحميل النسخ.</div>':B.length?B.map(x=>`<div class="bkrow"><div><b>${bkTime(x)}</b><small class="bkid" dir="ltr">${esc(String(x.key||"").slice(-10))}</small><small>${BAKWHY[x.why]||x.why||""} · ${x.n||0} وثيقة · ${x.users||0} مستخدم · ${kb(x.size||0)}</small></div><div class="bkbtns"><button class="btn bkV" data-k="${esc(x.key)}">تحقق كامل</button><button class="btn bkD" data-k="${esc(x.key)}">تنزيل</button><button class="btn bkT" data-k="${esc(x.key)}">تجربة</button><button class="btn bkR" data-k="${esc(x.key)}">استرجاع</button></div></div>`).join(""):'<div class="empty">لا نسخ بعد. أول نسخة تلقائية الليلة، أو اضغط «نسخة الآن».</div>'}</div>
    <div class="rsec"><h3>⚠️ الأخطاء</h3><p class="rnote">كل خطأ يحدث في التطبيق عند أي مستخدم، أو في الخادم، يظهر هنا مع عدد مرّاته وآخر وقت. اضغط على الخطأ لترى تفاصيله.</p>
     ${ERRS.length?`<div class="erbtns"><button class="btn" id="erCpAll">📋 نسخ كل الأخطاء</button><button class="btn" id="erAll">${I3("trash")} حذف كل الأخطاء</button></div>`+ERRS.map((x,i)=>`<div class="errwrap"><details class="errrow"><summary><b>${esc(x.msg)}</b><small>${x.src==="server"?"الخادم":"التطبيق"} · ${x.n} مرّة · آخرها ${fmt(x.last)} · ${x.users.length} مستخدم</small></summary>
       <pre>${esc(errTxt(x,1))}</pre><button class="btn erDel" data-id="${x.id}">${I3("trash")} حذف</button></details><button type="button" class="ercp" data-i="${i}" aria-label="نسخ الخطأ">📋</button></div>`).join(""):'<div class="empty">لا أخطاء 👍</div>'}</div>`;
@@ -4234,7 +4237,13 @@ async function renderSafe(){
     $("bkOut").innerHTML=acctTable(j.accts,"الآن")+'<button class="btn" id="bkSnapDl" style="width:100%;margin-top:6px">تنزيل اللقطة ملفًّا</button>';msg("✓ لقطة "+fmt(j.at),"ok");
     $("bkSnapDl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(j,null,1)],{type:"application/json"}));a.download="accounts-"+new Date(j.at).toISOString().slice(0,16).replace(/[:T]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove()}}
     catch(err){msg("تعذّر أخذ اللقطة: "+(err.detail||err.error||""),"bad")}e.target.disabled=false};
-  $("bkNow").onclick=async e=>{e.target.disabled=true;msg("جارٍ النسخ…");try{const r=await apiPost("/backup",{op:"now"});toast("🗄️","حُفظت نسخة",r.n+" وثيقة");renderSafe()}catch(err){e.target.disabled=false;msg("تعذّر النسخ: "+(err.detail||err.error||"تحقّق من الاتصال"),"bad")}};
+  // «نسخة الآن»: ضغطة واحدة = نسخة واحدة. الزر معطّل ما دام الطلب جاريًا ولو أُعيد رسم الصفحة، ولكل ضغطة معرّف يبقى عند إعادة المحاولة بعد خطأ،
+  // فإن كانت النسخة قد حُفظت فعلًا يُرجعها الخادم ولا ينشئ أخرى
+  const bn=$("bkNow");if(BKBUSY){bn.disabled=true;msg("جارٍ النسخ…")}
+  bn.onclick=async()=>{if(BKBUSY)return;BKBUSY=true;const b0=$("bkNow");if(b0)b0.disabled=true;msg("جارٍ النسخ…");BKRID=BKRID||rid12();
+    try{const r=await apiPost("/backup",{op:"now",rid:BKRID});BKRID=null;BKBUSY=false;
+      if(r.pending)toast("🗄️","النسخة قيد الإنشاء","حدّث القائمة بعد قليل");else toast("🗄️",r.dup?"النسخة محفوظة من قبل":"حُفظت نسخة",(r.n||0)+" وثيقة");renderSafe()}
+    catch(err){BKBUSY=false;const b1=$("bkNow");if(b1)b1.disabled=false;msg("تعذّر النسخ: "+(err.detail||err.error||"تحقّق من الاتصال")+". إن أعدت المحاولة فلن تتكرّر النسخة إن كانت قد حُفظت.","bad")}};
   el.onclick=async e=>{
     const t=e.target.closest(".bkT"),r=e.target.closest(".bkR"),d=e.target.closest(".erDel"),all=e.target.closest("#erAll"),cp=e.target.closest(".ercp");
     const v=e.target.closest(".bkV"),dl=e.target.closest(".bkD");

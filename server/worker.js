@@ -1062,6 +1062,7 @@ async function gauth(env) { return { Authorization: "Bearer " + await googleToke
 // كل وثائق قاعدة البيانات بصيغتها الأصلية (الأنواع محفوظة كما هي). تُحفظ الردود كما وصلت بلا تحليل، توفيرًا لوقت المعالج
 // صور مساعد الوظيفة محفوظة في تخزين Cloudflare لا في قاعدة البيانات، فلا تدخل النسخة (وتُحذف وحدها بعد شهر)
 async function exportAll(env) {
+  if (env.__export) return env.__export();   // للاختبار المحلي فقط (قاعدة في الذاكرة)
   const H = await gauth(env);
   const r0 = await fetch(FS_BASE + ":listCollectionIds", { method: "POST", headers: H, body: JSON.stringify({ pageSize: 300 }) });
   if (!r0.ok) throw new Error("ids " + r0.status);
@@ -1079,14 +1080,40 @@ async function exportAll(env) {
 }
 const gz = async s => new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
 const gunz = async b => await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
-async function backupNow(env, why) {
+async function backupNow(env, why, rid) {
   const ex = await exportAll(env), now = Date.now(), key = "bak-" + new Date(now).toISOString().replace(/[:.]/g, "-");
   const body = await gz('{"v":2,"at":' + now + ',"parts":[' + ex.parts.join(",") + "]}");
-  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto" };
+  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto", ...(rid ? { rid } : {}) };
   await env.BAK.put(key, body, { metadata: meta });
   const all = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1);
   for (const k of all.slice(BAK_KEEP)) await env.BAK.delete(k.name);
   return { key, ...meta };
+}
+// «نسخة الآن» عملية لا تتكرّر: لكل ضغطة معرّف (rid) يرسله التطبيق، وإعادة الطلب نفسه (إعادة محاولة، أو طلب مكرّر من الشبكة)
+// تُرجع النسخة نفسها ولا تنشئ غيرها. العلامة brid-<rid> تُكتب قبل البدء، فطلب مكرّر وصل أثناء النسخ يعرف أنها قيد الإنشاء.
+// التطبيق القديم (بلا rid): نسخة يدوية في آخر دقيقتين تُرجَع بدل إنشاء أخرى
+const BAKRUN = new Map();
+const RID_OK = r => typeof r === "string" && /^[A-Za-z0-9_-]{8,40}$/.test(r);
+async function backupOnce(env, rid) {
+  const now = Date.now();
+  if (RID_OK(rid)) {
+    if (BAKRUN.has(rid)) { const r = await BAKRUN.get(rid).catch(() => null); if (r) return { ...r, dup: 1 } }
+    const m = await env.BAK.get("brid-" + rid);
+    if (m) { const x = parseJ(m, {}); return x.key ? { ...x, dup: 1 } : { pending: 1, dup: 1 } }
+  } else {
+    rid = "";
+    const l = (await env.BAK.list({ prefix: "bak-" })).keys.map(k => ({ key: k.name, ...(k.metadata || {}) })).filter(x => x.why === "manual" && now - (x.at || 0) < 120e3).sort((a, b) => b.at - a.at);
+    if (l.length) return { ...l[0], dup: 1 };
+  }
+  const p = (async () => {
+    if (rid) await env.BAK.put("brid-" + rid, "{}", { expirationTtl: 86400 });
+    const r = await backupNow(env, "manual", rid);
+    if (rid) await env.BAK.put("brid-" + rid, JSON.stringify(r), { expirationTtl: 86400 });
+    return r;
+  })();
+  if (rid) { BAKRUN.set(rid, p); if (BAKRUN.size > 20) BAKRUN.delete(BAKRUN.keys().next().value) }
+  try { return await p }
+  catch (e) { if (rid) { BAKRUN.delete(rid); try { await env.BAK.delete("brid-" + rid) } catch (x) { } } throw e }
 }
 // تفكّ النسخة وتعيد وثائقها: [{name, fields}]
 async function loadBak(env, key) {
@@ -1137,7 +1164,7 @@ async function handleBackup(fs, user, body, env) {
   if (!env.BAK) return { status: 500, json: { error: "nokv" } };
   const op = String(body.op || "list"), key = String(body.key || "");
   if (op === "list") { const l = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1); return { status: 200, json: { items: l.map(k => ({ key: k.name, ...(k.metadata || {}) })) } } }
-  if (op === "now") return { status: 200, json: await backupNow(env, "manual") };
+  if (op === "now") return { status: 200, json: await backupOnce(env, body.rid) };
   // لقطة الحسابات الآن (للتوثيق قبل التحديث وبعده)
   if (op === "snap") return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } };
   const b = await loadBak(env, key);
