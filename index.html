@@ -25,7 +25,9 @@ function openScroll(){try{if(OPENSC>1)return;const rv=document.getElementById("r
 addEventListener("touchmove",()=>{OPENSC=2},{passive:true});addEventListener("wheel",()=>{OPENSC=2},{passive:true});
 // إشارة إلى تطبيق أندرويد: الواجهة الحقيقية رُسمت، فلتُخفَ شاشة البداية
 function appReady(){bootDone();try{if(window.MufApp&&MufApp.ready)setTimeout(()=>MufApp.ready(),120)}catch(e){}}setTimeout(bootDone,10000);</script>
-<style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}</style>
+<style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}#vbar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;background:#253363;color:#fff;font-size:.85rem;font-weight:700;padding:6px 12px;text-align:center}
+#vbar button{border:0;border-radius:999px;background:#F4A126;color:#fff;font:inherit;padding:3px 12px;cursor:pointer}
+</style>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -1975,6 +1977,7 @@ function pzGotTxt(){const r=pzToday();return r.g>=CFG.gems.puzzle&&r.g>CFG.gems.
 function openPuzzle(host,done){
   host.innerHTML=`<div class="chscene"><p class="chlab">قطعة بازل اليوم</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
   host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
+    if(VMIS){toast(I3("warning"),"حدّث التطبيق لفتح الصندوق","يتوفر تحديث");return}   // آلية رقم النسخة: لا نفتح صندوقًا قد يرفضه الخادم
     if(ev({type:"quest",id:"perf"})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
     b.classList.remove("shake");b.classList.add("open");fx("done");renderHeader();
     const r=pzToday(),full=r.g>=CFG.gems.puzzle&&r.g>CFG.gems.pdup,n=pzMonth(curMon()).have.size;
@@ -1986,6 +1989,7 @@ function openChest(id,host,done){
   const q=questList().find(x=>x.id===id);if(!q||!q.done||q.got)return;if(q.pz)return openPuzzle(host,done);
   host.innerHTML=`<div class="chscene"><p class="chlab">صندوق «${q.n}»</p><div class="chbox shake">${CHEST}</div><p class="chhint">اضغط لفتحه!</p></div>`;
   host.querySelector(".chbox").onclick=()=>{const b=host.querySelector(".chbox");if(b.classList.contains("open"))return;
+    if(VMIS){toast(I3("warning"),"حدّث التطبيق لفتح الصندوق","يتوفر تحديث");return}   // آلية رقم النسخة: لا نفتح صندوقًا قد يرفضه الخادم
     if(ev({type:"quest",id})!==true){toast(I3("warning"),"تعذّر فتح الصندوق","حاول مرة أخرى");return}
     b.classList.remove("shake");b.classList.add("open");b.insertAdjacentHTML("beforeend",[0,1,2,3,4].map(i=>`<i class="chg${i}">💎</i>`).join(""));fx("done");confetti(60);renderHeader();
     host.querySelector(".chhint").outerHTML=`<p class="chgot"><bdi dir="ltr">+${q.g}</bdi> جواهر 💎</p><button class="btn next" id="chOk">رائع!</button>`;
@@ -2734,7 +2738,7 @@ function drawLeague(rows){
   box.onclick=e=>{const r=e.target.closest(".lgrow");if(r)showPlayer(r)};
   const html=`<div class="lghead"><span class="lgic">${TIERS[t][1]}</span><div><b>${tierName(t)}</b><small>ينتهي الأسبوع <span id="lgLeft">${lgLeftTxt()}</span> · خبرتك هذا الأسبوع ${myXP}</small></div></div>
    <div class="tiers">${TIERS.map((x,i)=>`<span class="${i===t?"on":i>t?"lock":""}" title="${x[0]}">${x[1]}</span>`).join("")}</div>
-   ${n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
+   ${VMIS?'<div class="empty">الترتيب قيد التحديث. حدّث التطبيق لترى ترتيبك الصحيح.</div>':n?`<div class="lglist">${rows.map(row).join("")}</div>`:'<div class="empty">اكسب أول نقاط خبرة هذا الأسبوع لتنضمّ إلى مجموعتك في الدوري.</div>'}
    ${lastRes?`<p class="rnote" style="margin-top:8px">الأسبوع الماضي: المركز ${lastRes.rank} من ${lastRes.n} · ${lastRes.mv>0?"صعدت ⬆️":lastRes.mv<0?"نزلت ⬇️":"بقيت"}${lastRes.g?" · +"+lastRes.g+" 💎":""}</p>`:""}
 `;
   if(box.dataset.h!==html){box.innerHTML=html;box.dataset.h=html}
@@ -3011,11 +3015,40 @@ async function checkUpdate(){
   try{const q=await fetch("index.html",{method:"HEAD",cache:"no-cache"});const v=q.ok&&(q.headers.get("etag")||q.headers.get("last-modified"));if(!v)return;
     if(VER0==null){VER0=v;return}if(v!==VER0){UPD=true;tryReload()}}catch(e){}
 }
-function tryReload(){
-  if(!UPD||STS||DRL||GM||RES||document.querySelector(".uidlg")||$("fbModal").style.display==="flex"||syncing)return;
-  const on=document.querySelector(".panel.on");if(on&&(on.id==="quiz"||on.id==="messages"))return;
-  location.reload();
+// ===== آلية رقم النسخة (المرحلة 0) =====
+// الخادم يرسل رقم نسخة المنطق المشترك (core.js) مع كل مزامنة. إن اختلف عن رقم نسخة التطبيق:
+// - يعرض التطبيق الرصيد والمستوى والسلسلة كما يحسبها الخادم، ويخفي ترتيب الدوري، ويوقف فتح الصناديق مؤقتًا،
+// - ويظهر شريط «يتوفر تحديث»، ويعيد التحميل وحده في وقت آمن: لا درس ولا نافذة ولا أحداث لم تصل إلى الخادم.
+// - إعادة التحميل التلقائية مرة واحدة لكل رقم خلال 10 دقائق؛ إن بقي الاختلاف فالخادم هو المتأخر، فيبقى الشريط دون إعادة.
+const CORE_V=((document.querySelector('script[src*="core.js?v="]')||{}).getAttribute?.("src")||"").replace(/^.*v=/,"");
+let VMIS=null;
+function verCheck(j){
+  const was=!!VMIS;VMIS=j&&j.cv&&CORE_V&&j.cv!==CORE_V?{sv:j.cv,sum:j.sum||null}:null;
+  if(VMIS){EC=null;let r={};try{r=JSON.parse(sessionStorage.getItem("muf_vrl")||"{}")}catch(e){}
+    VMIS.tried=r.sv===VMIS.sv&&Date.now()-(r.t||0)<10*60e3;if(!VMIS.tried){UPD=true;tryReload()}}
+  if(VMIS||was){verBar();renderHeader()}
 }
+function verBar(){let b=$("vbar");
+  if(!VMIS){if(b)b.remove();return}
+  if(!b){b=document.createElement("div");b.id="vbar";b.setAttribute("role","status");document.querySelector("header").appendChild(b)}   // داخل الترويسة: جزء من التخطيط يدفع المحتوى، لا يغطيه
+  b.innerHTML=VMIS.tried?'يجري تحديث الخادم، والأرقام المعروضة منه':'يتوفر تحديث للتطبيق <button type="button" id="vbarGo">تحديث الآن</button>';
+  const g=$("vbarGo");if(g)g.onclick=async()=>{if(EVQ.length){await syncNow()}UPD=true;if(!reloadSafe()){toast(I3("warning"),"يُحدَّث بعد إنهاء الدرس","");return}doReload()}}
+// الأرقام المعروضة: من الخادم ما دام الاختلاف قائمًا (لا تغيّر أي حساب في الخادم)
+{const _econ=econ;econ=function(){const e=_econ.apply(this,arguments);const s=VMIS&&VMIS.sum;
+  if(s){e.gems=s.gems;e.xp=s.xp;e.lv=s.lv;e.rest=s.rest;e.need=s.need;e.s={...e.s,streak:s.streak,today:s.today}}return e}}
+function reloadSafe(){
+  if(STS||DRL||GM||RES||(typeof DL!=="undefined"&&DL)||EVQ.length||syncing)return false;
+  if(document.querySelector(".uidlg,.bigfx")||$("fbModal").style.display==="flex")return false;
+  const on=document.querySelector(".panel.on");if(on&&(on.id==="quiz"||on.id==="messages"||on.id==="reading"||on.id==="math"||on.id==="helper"))return false;
+  return true}
+async function doReload(){
+  if(VMIS)try{sessionStorage.setItem("muf_vrl",JSON.stringify({sv:VMIS.sv,t:Date.now()}))}catch(e){}
+  // وضع «العمل بلا إنترنت»: نحذف الصفحة المحفوظة فتُطلب من الشبكة، لا النسخة القديمة
+  try{if(window.caches&&navigator.serviceWorker&&navigator.serviceWorker.controller){const c=await caches.open("muf-data-1");await c.delete(new Request(new URL(".",location.href).href))}}catch(e){}
+  location.reload()}
+let RLD=false;   // إعادة التحميل تُطلب مرة واحدة فقط
+function tryReload(){
+  if(RLD||!UPD||!reloadSafe())return;RLD=true;doReload()}
 checkUpdate();setInterval(checkUpdate,30*60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 let SHT=null;
@@ -3035,11 +3068,11 @@ async function syncNow(manual){
     if(key!==PREFLAST){if(await tmo(uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),15000,"slow")!=="slow")PREFLAST=key}   // كتابة بطيئة لا توقف الحفظ: تكمل وحدها، وتُعاد في المرة القادمة
     const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();VSIG=viewSig();
     const ac=new AbortController(),to=setTimeout(()=>ac.abort(),30000);   // في سفاري قد يعلق الطلب بلا جواب بعد مغادرة الصفحة والعودة: يُلغى بعد 30 ث ويُعاد لاحقًا
-    let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
+    let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0,cv:CORE_V})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
     FSC.r-=stSent.r;FSC.w-=stSent.w;
-    EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;   // الدوري يُقرأ من جديد بعد كل حفظ
+    EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ
     lastSync=Date.now();syncErr="";ok=true;syncFails=0;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}
@@ -3051,7 +3084,8 @@ async function syncNow(manual){
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
     // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
     if(e.code!=="inactive"&&e.code!=="auth"&&e.code!=="permission-denied"&&EVQ.length){const d=[5,15,30,60,120][Math.min(syncFails,4)];syncFails++;schedSync(d*1000)}}
-  syncing=false;return ok;
+  syncing=false;if(ok&&VMIS&&!VMIS.tried&&UPD)tryReload();   // بعد انتهاء المزامنة: الآن يمكن إعادة التحميل إن كانت مطلوبة
+  return ok;
 }
 let syncFails=0;
 function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
@@ -4792,7 +4826,7 @@ function init(){
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
-  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(EVQ.length||syncErr))syncNow()});
+  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(EVQ.length||syncErr||Date.now()-lastSync>10*60e3))syncNow()});   // العودة بعد غياب طويل: مزامنة خفيفة تكشف أيضًا اختلاف النسخة
   // عاد الاتصال: نرسل ما تأخّر فورًا
   addEventListener("online",()=>{if(UID&&(EVQ.length||syncErr)){syncFails=0;syncNow()}});
 }

@@ -5,7 +5,10 @@ root=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 src=open(os.path.join(root,'server','worker.src.js'),encoding='utf-8').read()
 core=open(os.path.join(root,'core.js'),encoding='utf-8').read()
 assert '/* @@CORE@@ */' in src
-out='// ⚠️ ملف مُولَّد تلقائيًا من server/worker.src.js و core.js — لا تعدّله يدويًا\n'+src.replace('/* @@CORE@@ */',core)
+import hashlib
+cv=hashlib.sha1(core.encode('utf-8')).hexdigest()[:10]   # رقم نسخة المنطق المشترك: يرسله الخادم مع كل مزامنة، ويقارنه التطبيق برقمه
+assert '/* @@CORE_V@@ */' in src
+out='// ⚠️ ملف مُولَّد تلقائيًا من server/worker.src.js و core.js — لا تعدّله يدويًا\n'+src.replace('/* @@CORE@@ */',core).replace('/* @@CORE_V@@ */','const CORE_V = "'+cv+'";')
 open(os.path.join(root,'server','worker.js'),'w',encoding='utf-8').write(out)
 print('server/worker.js',len(out),'bytes')
 
