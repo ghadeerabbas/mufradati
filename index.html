@@ -2807,7 +2807,7 @@ function openChest(id,host,done){
 function questModal(){
   const m=$("fbModal"),close=()=>{m.style.display="none";m.innerHTML="";if($("review").classList.contains("on")&&!STS&&!DRL&&!RES)reviewHome()};
   const draw=()=>{const L=questList();m.innerHTML=`<div class="lbox qbox"><h1 style="font-size:1.2rem">${isAdmin()?I3("target"):NIC("target")} مهام اليوم</h1><p class="rnote">لكل مهمة جائزة: يوم في ملصق الشهر، أو صندوق جواهر، أو قطعة بازل. تتجدّد المهام كل يوم.</p>
-    <div id="qList">${questRows(L)}${monCard()}${pzCard()}</div><button class="link" id="qNo">إغلاق</button></div>`;
+    <div id="qList">${questRows(L)}${monCard()}</div><button class="link" id="qNo">إغلاق</button></div>`;
     $("qNo").onclick=close;m.querySelectorAll(".qopen").forEach(b=>b.onclick=()=>openChest(b.dataset.q,$("qList"),draw))};
   m.style.display="flex";m.onclick=e=>{if(e.target===m)close()};draw();
 }
