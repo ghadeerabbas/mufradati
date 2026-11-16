@@ -1749,6 +1749,16 @@ body:not(.adm) .pzfx .chscene:has(.pzstage) .chbox .chest,body:not(.adm) .pzfx .
 body:not(.adm) .pzfx .chscene{min-height:190px}
 @media (max-height:700px){body:not(.adm) .pzcard .pzboard{width:min(46vw,170px)}body:not(.adm) .questfx .bcup .i3{width:44px;height:44px}}
 
+/* ---------- بطاقة المسار المختصرة وأرقام المراجعة (هوية design) ---------- */
+body:not(.adm) .unit.uh-c{display:flex;align-items:center;flex-wrap:wrap;gap:var(--sp-2) var(--sp-3);padding:10px 12px}
+body:not(.adm) .unit.uh-c .uh-pr{flex:1 1 96px;min-width:0;margin:0}
+body:not(.adm) .unit.uh-c .uh-p{gap:4px}
+body:not(.adm) .unit.uh-c .uh-p i{height:8px}
+body:not(.adm) .unit.uh-c .qpill{padding:6px 10px;font-size:.74rem}
+body:not(.adm) .unit.uh-c .uh-t{flex:1;font-size:var(--fs-md)}
+body:not(.adm) .rvstats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2);margin:var(--sp-2) 0 var(--sp-3)}
+body:not(.adm) .rvstats span{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--ds-card);box-shadow:var(--sh-1);border-radius:var(--r-md);padding:8px 4px;color:var(--ds-muted);font-weight:700;font-size:var(--fs-xs);text-align:center}
+body:not(.adm) .rvstats b{color:var(--ds-navy);font-weight:900;font-size:var(--fs-lg);line-height:1.2}
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2614,9 +2624,10 @@ function heroCard(o){const {u,dueN,memN,done,dn,N,pend,dl,PB}=o;
   const seg=`<div class="uh-p" role="img" aria-label="محطات اليوم: ${Math.max(0,dn)} مكتملة من ${N}">${[...Array(N)].map((_,i)=>`<i class="${i<dn?"d":i<done?"h":(i===done&&!pend)?"c":""}"></i>`).join("")}</div>`;
   const cn=(COURSES[COURSE]||{}).name||"";
   const nd=Math.max(0,Math.min(dn,N));
-  return `<div class="unit dsh"><div class="uh-k"><b class="uh-t">${title}</b>${cn?`<span class="lvl">${esc(cn)}</span>`:""}</div>
-   ${FREEU?"":`<div class="uh-pr">${seg}<span class="uh-n" dir="ltr">${nd} / ${N}</span></div>`}
-   <div class="uh-f"><small>${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"} ${u.length} · للمراجعة ${dueN} · محفوظة ${memN}</small>${questPill()}</div></div>`}
+  // بطاقة مختصرة في صف واحد: شريط المحطات وعددها وزر «مهام اليوم». العنوان واسم المنهج حُذفا (المنهج في أعلى الصفحة)،
+  // ومجموع الكلمات وما يُراجَع وما حُفظ انتقلت إلى قسم «المراجعة». الدراسة الحرّة بلا شريط فيبقى لها عنوانها
+  if(FREEU)return `<div class="unit dsh uh-c"><b class="uh-t">${title}</b>${questPill()}</div>`;
+  return `<div class="unit dsh uh-c"><div class="uh-pr">${seg}<span class="uh-n" dir="ltr">${nd} / ${N}</span></div>${questPill()}</div>`}
 function reviewHome(){
   if(!document.body.classList.contains("lesson"))document.body.classList.toggle("rvtab",HOMETAB==="rv");   // القسم يُطبَّق قبل الرسم، فلا يقفز الزر من مكانه
   if(STS)return stationView();
@@ -2649,6 +2660,8 @@ function reviewHome(){
   const seg=i=>{const[a,b]=pts[i],[c,d]=pts[i+1],h=(d-b)/2;return `M${a} ${b}C${a} ${b+h} ${c} ${d-h} ${c} ${d}`};
   const zpath=`<svg class="zpath">${pts.slice(1).map((p_,i)=>`<path class="${p_[2]?"dn":"bg"}" d="${seg(i)}"/>`).join("")}</svg>`;
   const u=uniq(filtered()),dueN=u.filter(w=>isDue(P[w.k])).length,memN=u.filter(w=>P[w.k]&&P[w.k].box>=4).length;
+  // أرقام الكلمات (كانت في بطاقة المسار) تظهر للمتعلّم في قسم «المراجعة»
+  const rvStats=isAdmin()?"":`<div class="rvstats"><span><b>${u.length}</b>${u.length===uniq(W).length?"المجموع":"في هذا الاختيار"}</span><span><b>${dueN}</b>للمراجعة</span><span><b>${memN}</b>محفوظة</span></div>`;
   const dailyN=Math.min(dueN,DAILY_MAX,stateList("due").length);   // «جلسة اليوم»: مراجعات قبل الكلمات الجديدة
   const coach=!pend&&done>=N&&chOpen?"أحسنت! بقي تحدي اليوم: أسئلة سريعة بلا طاقة وبخبرة مضاعفة "+I3("trophy")
     :!pend&&done>=N&&chOk?"أنهيت مسار اليوم وتحدّيه! 🎉 راجع ما تعلّمته، وعُد غدًا لمحطات جديدة."
@@ -2676,13 +2689,13 @@ function reviewHome(){
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
-  ${learned||scopeGet()!=="all"?`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة: ما تعلّمته (${learned})</h3>${scopeHTML()}
+  ${learned||scopeGet()!=="all"?`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة: ما تعلّمته (${learned})</h3>${rvStats}${scopeHTML()}
    <div class="numpicks" id="rvState">${RSTATES.map(([id,n])=>`<button type="button" class="numpick${id===RVSTATE?" on":""}" data-v="${id}" ${counts[id]?"":"disabled"}><small>${counts[id]}</small>${n}</button>`).join("")}</div>
    ${RVSTATE!=="due"&&cnt?'<p class="rnote">ما لم يحن موعده يُراجَع للتدريب فقط، بلا خبرة ولا طاقة.</p>':""}
    ${cnt?`<div class="rvslide"><div class="rvn">عدد الكلمات: <b id="rvNv">${Math.min(RVN,cnt)}</b></div>
      <input type="range" dir="ltr" id="rvRange" min="0" max="${max}" step="10" value="${RVN}">
      <button class="btn next blue" id="rvGo">ابدأ المراجعة</button></div>`:""}
-  </div>`:`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة</h3><p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
+  </div>`:`<div class="rsec rvbox"><h3>${isAdmin()?I3("repeat"):LIC("repeat")} المراجعة</h3>${rvStats}<p class="rnote">تظهر هنا الكلمات التي تتعلّمها في المحطات لتراجعها.</p></div>`}`+settingsHTML();
   // لا نعيد كتابة الشاشة إن كانت هي نفسها معروضة (يمنع الارتجاف والقفز أثناء التمرير)
   if(!(REVH.h===html&&el.firstElementChild===REVH.n&&REVH.n)){const y=scrollY;el.innerHTML=html;REVH={h:html,n:el.firstElementChild};if(Math.abs(scrollY-y)>2)scrollTo(0,y)}
   bindSettings();
@@ -2740,7 +2753,9 @@ function monthsModal(){
   $("mnNo").onclick=close;
 }
 function questPill(){if(!questOn())return "";const L=questList();if(!L.length)return "";const n=L.filter(q=>q.done).length,ready=L.some(q=>q.done&&!q.got&&(q.g||q.pz));
-  return `<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${isAdmin()?I3("target"):NIC("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`}
+  // للمتعلّم: «صندوق جاهز» أيقونة هدية بدل النص، فيبقى الزر قصيرًا في صف بطاقة المسار (والزر برتقالي حين يكون جاهزًا)
+  return isAdmin()?`<button type="button" class="qpill${ready?" ready":""}" id="qBtn">${I3("target")} مهام اليوم ${n} من ${L.length}${ready?" · صندوق جاهز":""}</button>`
+    :`<button type="button" class="qpill${ready?" ready":""}" id="qBtn"${ready?' aria-label="مهام اليوم '+n+' من '+L.length+'، صندوق جاهز"':""}>${NIC("target")} مهام اليوم ${n} من ${L.length}${ready?I3("gift"):""}</button>`}
 const CHEST=`<svg class="chest" viewBox="0 0 120 100" aria-hidden="true"><ellipse cx="60" cy="94" rx="44" ry="5" fill="rgba(0,0,0,.12)"/>
  <rect x="14" y="44" width="92" height="46" rx="8" fill="#e8962a"/><rect x="14" y="44" width="92" height="12" fill="#c97a16"/><rect x="24" y="56" width="10" height="34" fill="#c97a16"/><rect x="86" y="56" width="10" height="34" fill="#c97a16"/>
  <g class="lid"><path d="M14 46 V34 Q14 14 60 14 Q106 14 106 34 V46 Z" fill="#f2a93b"/><rect x="24" y="17" width="10" height="29" fill="#d88a1f"/><rect x="86" y="17" width="10" height="29" fill="#d88a1f"/></g>
