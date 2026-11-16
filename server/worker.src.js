@@ -150,10 +150,10 @@ async function loadCfg(fs) {
 }
 
 /* ---------- الحالة: تحميلها وحفظها ---------- */
-function setState(c, log, qa) {
+function setState(c, log, qa, ck) {
   P = c.P || {}; QLOG = c.QLOG || []; BUY = c.BUY || []; R = Object.assign({ bank: 0, ach: [], lv: 1, ts: 0 }, c.R || {});
   LG = Object.assign({ tier: null, w: "", hist: [], ts: 0 }, c.LG || {}); EN = c.EN || { v: 30, t: 0 }; STN = c.STN || []; STV = c.STV || 0;
-  LOG = unpackLog(log); QA = unpackQA(qa); EC = null; CW = c.wiped || 0;
+  LOG = unpackLog(log); QA = unpackQA(qa); CK = ck && ck.v ? ck : null; EC = null; CW = c.wiped || 0;
   if (!c.lf) flagLog();             // مرة واحدة: وسم التدريب في السجلّ القديم
   if ((LG.v || 1) < 2) { if (LG.tier != null) LG.tier = 0; LG.v = 2 }
 }
@@ -197,9 +197,9 @@ async function handleSync(fs, user, body) {
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
-  const [uDoc, coreD, logD, qaD, nameD, gifts] = await Promise.all([
+  const [uDoc, coreD, logD, qaD, nameD, gifts, ckD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
-    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`)]);
+    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`)]);
   // الحساب المفعّل فقط
   if (!admin && !uDoc && !(await fs.get(`members/${uid}`))) return { status: 403, json: { error: "inactive" } };
   const u = uDoc ? uDoc.data : {};
@@ -207,11 +207,11 @@ async function handleSync(fs, user, body) {
   let c;
   if (coreD) c = parseJ(coreD.data.v, {});
   else { const m = parseJ(u.main, {}); c = { P: m.P, QLOG: m.QLOG, BUY: m.BUY, R: m.R, LG: m.LG, EN: m.EN, STN: m.STN, STV: 0 } }
-  setState(c, parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
+  setState(c, parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null));
   // مستخدم جديد تمامًا (أول دخول، بلا بيانات سابقة): طاقة بلا حدود أول 24 ساعة، ليتعلّم ما يكفي فتكون له كلمات يراجعها في اليوم التالي
   if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
-  const before = { log: LOG.length, qa: QA.length, core: JSON.stringify(coreObj()) };
+  const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
   const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [];
   let words = null;
@@ -256,11 +256,17 @@ async function handleSync(fs, user, body) {
   const coreJ = JSON.stringify(coreObj()), logJ = JSON.stringify(packLog(LOG)), qaJ = JSON.stringify(packQA(QA));
   const cw = [];
   if (!coreD || coreJ !== before.core || c.pubJ !== pubJ || c.pubAt !== pubAt) cw.push({ path: `users/${uid}/data/core`, data: { v: coreJ.slice(0, -1) + "," + JSON.stringify({ pubJ, pubL: lookJ, pubAt }).slice(1) }, ...(coreD ? { ifUpdateTime: coreD.updateTime } : { ifMissing: true }) });
-  if (!logD || LOG.length !== before.log || !c.lf || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/log`, data: { v: logJ } });
+  // السجل يُحفظ إن تغيّر طوله أو أوّله أو آخره (عند الحدّ يبقى الطول ثابتًا وإن تغيّر المحتوى)
+  const l0 = LOG.length ? LOG[0][0] : 0, l1 = LOG.length ? LOG[LOG.length - 1][0] : 0;
+  if (!logD || LOG.length !== before.log || l0 !== before.l0 || l1 !== before.l1 || !c.lf || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/log`, data: { v: logJ } });
+  // نقطة الحفظ: وثيقة مستقلة تُكتب عند الطيّ فقط
+  const ckT = CK ? CK.t : 0, ckJ = CK ? JSON.stringify(CK) : "";
+  if (ckT !== before.ck) cw.push({ path: `users/${uid}/data/ck`, data: { v: ckJ } });
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
   await fs.commit([...cw, ...writes]);
-  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "" } };
+  // نقطة الحفظ تُرسل للتطبيق فقط حين تختلف عمّا عنده (يرسل وقتها ckt)
+  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
 }
 
 /* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */
@@ -276,6 +282,7 @@ async function handleWipe(fs, user, body) {
     { path: `users/${uid}/data/core`, data: { v: JSON.stringify(core) } },
     { path: `users/${uid}/data/log`, data: { v: empty } },
     { path: `users/${uid}/data/qa`, data: { v: empty } },
+    { path: `users/${uid}/data/ck`, data: { v: "" } },
     { path: `pub/${uid}`, del: true },
     { path: `lg/${weekId(now)}/m/${uid}`, del: true },
     ...gifts.map(g => ({ path: `gifts/${uid}/g/${g.id}`, del: true }))]);
@@ -291,9 +298,9 @@ async function handleFix(fs, user, body, env) {
   if (streak != null && !(streak >= 0 && streak <= 3650)) return { status: 400, json: { error: "streak" } };
   if (tier != null && !(tier >= 0 && tier < CFG.league.up.length)) return { status: 400, json: { error: "tier" } };
   await loadCfg(fs);
-  const [coreD, logD, qaD] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`)]);
+  const [coreD, logD, qaD, ckD] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`), fs.get(`users/${uid}/data/ck`)]);
   if (!coreD) return { status: 404, json: { error: "nouser" } };
-  setState(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null));
+  setState(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null));
   const now = Date.now();
   if (streak != null) {
     R = { ...R }; delete R.sk; EC = null;
