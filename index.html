@@ -737,8 +737,14 @@ body:not(.adm) header .avatar,body:not(.adm) header .who,body:not(.adm) header .
 body:not(.adm) .hrow{padding:8px 14px}
 body:not(.adm) .htop{gap:8px}
 .hcrs{display:none;align-items:center;gap:4px;min-width:0;flex:0 1 auto;max-width:52%;background:var(--soft);color:var(--hd);border:0;border-radius:999px;padding:6px 12px;font:inherit;font-size:.85rem;font-weight:800;cursor:pointer}
-.hcrs bdi{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.hcrs:after{content:"▾";opacity:.6;font-size:.75rem}
+.hcrs bdi{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.hcrs.pick:after{content:"▾";opacity:.6;font-size:.75rem}
 body:not(.adm) .hcrs.has{display:inline-flex}
+/* شارة المستوى داخل شريط المنهج: تبرز قليلًا فوقه وتحته دون أن يزيد ارتفاعه */
+.hcrs{padding-inline-start:6px;padding-inline-end:9px;gap:3px;max-width:58%}.hcrs:not(.pick){cursor:default}
+.lvb{position:relative;flex:none;width:30px;height:34px;margin:-7px 0 -7px 0;display:block}
+.lvb img{width:100%;height:100%;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.18))}
+.lvb b{position:absolute;inset:44% 0 auto 0;text-align:center;color:#fff;font:900 10px/1 system-ui,sans-serif;letter-spacing:-.3px;text-shadow:0 1px 1px rgba(0,0,0,.55)}
+@media (max-width:340px){.lvb{width:27px;height:31px;margin:-6px 0 -6px 1px}.lvb b{font-size:9px}}
 .hflt{display:none;flex:none;width:34px;height:34px;border-radius:50%;border:0;background:var(--soft);color:var(--hd);font-size:1rem;cursor:pointer;position:relative;align-items:center;justify-content:center}
 body:not(.adm) .hflt.has{display:inline-flex}.hflt.act:after{content:"";position:absolute;top:3px;left:3px;width:9px;height:9px;border-radius:50%;background:#ff9600}
 .hgap{flex:1}
@@ -1472,7 +1478,7 @@ function stationSteps1(words){
   // لا خطوتان متتاليتان للكلمة نفسها، وبين خطوات الكلمة الواحدة خطوتان أخريان على الأقل
   // الترتيب عشوائي في كل مرة: ترتيب الكلمات، ونوع التمرين الثالث، وأيّ تمرين جاهز يأتي أولًا
   const out=[],pend=[];words=shuffle([...words]);
-  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>{const r=Math.random();return {t:trOf(w)&&r<.35?"tr":writeOk(w)&&r<.6?"write":r<.8?"rev":"mc",w}};
+  const second=w=>({t:clozeOf(w)?"cloze":exOk(w)?"ex":"rev",w}),third=w=>({t:Math.random()<.5?"rev":"mc",w});   // «ترجم الجملة» و«اكتبها» أُلغيا: الخطوة الثالثة اختيار من متعدد بأحد الاتجاهين
   const pick=a=>a.length?a[Math.floor(Math.random()*a.length)]:-1;
   const take=force=>{
     const last=out.length?out[out.length-1].w:null;
@@ -1515,31 +1521,6 @@ function stOpts(w,de){   // أربعة خيارات من النوع نفسه
   return pickOpts(w,uniq(W).filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de));
 }
 // زر «لا أعرف» تحت الخيارات: يُحسب خطأً (فتعود الكلمة في آخر المحطة) ويُظهر الجواب الصحيح، بدل التخمين
-// تمرين الكتابة في المحطة: لكلمة قصيرة واحدة (بلا مسافات، حتى 14 حرفًا) تُكتب بحروفها في خانات
-const writeOk=w=>{const T=typeTarget(w);return !!T&&!/\s/.test(T)&&/^[A-Za-zÄÖÜäöüß-]+$/.test(T)&&T.length<=14};
-// خانات الكتابة: حرف في كل خانة، والخانة التالية مؤشّرة. mark=1 بعد التحقّق: كل حرف أخضر إن طابق أو أحمر، mark=2: الكلمة مكشوفة
-function wBoxes(T,v,mark){const L=[...T],tv=[...String(v||"")];
-  return L.map((ch,i)=>{const c=tv[i],cls=mark===2?"rv":mark?(c!=null&&c.toLowerCase()===ch.toLowerCase()?"rv":"wr"):i===tv.length?"cur":"";
-    return `<b class="${cls}">${mark===2?esc(ch):c!=null?esc(c):""}</b>`}).join("")}
-// خانات لعبة «اكتبها»: مثل خانات المحطة، مع مسافات العبارة في مكانها، والأحرف المكشوفة بالمساعدة خضراء
-function gBoxes(T,v,rev,mark){const tv=[...String(v||"").replace(/\s+/g,"")];let j=0;
-  return [...T].map(ch=>{if(ch===" ")return '<i class="sp"></i>';const i=j++,c=tv[i];
-    const cls=mark?(c!=null&&c.toLowerCase()===ch.toLowerCase()?"rv":"wr"):i<rev?"rv":i===tv.length?"cur":"";
-    return `<b class="${cls}">${c!=null?esc(c):""}</b>`}).join("")}
-// يعيد المسافات إلى ما كُتب في الخانات بحسب مكانها في الكلمة الصحيحة
-// «ترجم الجملة»: جملة المثال الألمانية، وتُبنى ترجمتها العربية من بطاقات (وبينها بطاقات زائدة)
-function trOf(w){
-  const o=orderOf(w);if(!o)return null;
-  const toks=o.ar.replace(/[.،,؛;:!?؟«»"“”…()\[\]]/g," ").split(/\s+/).filter(Boolean);
-  return toks.length>=2&&toks.length<=10?{de:o.de,ar:o.ar,toks}:null;
-}
-function trQ(w,pool){
-  const o=trOf(w),have=new Set(o.toks),extra=[];
-  for(const x of shuffle(pool)){if(x.k===w.k)continue;const ox=trOf(x);if(!ox)continue;
-    for(const tk of shuffle(ox.toks))if(!have.has(tk)&&extra.length<3){extra.push(tk);have.add(tk)}if(extra.length>=3)break}
-  return {o,tiles:shuffle([...o.toks,...extra]),picked:[]};
-}
-function withSpaces(T,v){const tv=[...String(v||"").replace(/\s+/g,"")];let j=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(j>=tv.length)break;out+=tv[j++]}return out+tv.slice(j).join("")}
 // صنف لون الجنس لبطاقة الاسم (g-der / g-die / g-das)
 const gCls=w=>{const n=w&&w.t==="n"&&String(w.de).match(/^(der|die|das)\s/i);return n?"g-"+n[1].toLowerCase():""};
 const IDK=`<button type="button" class="link idk" id="idk">لا أعرف</button>`;
@@ -1547,6 +1528,7 @@ function stationView(){
   const el=$("review"),S_=STS;
   if(!S_.steps){S_.steps=stationSteps(S_.words);S_.i=0}
   const st=S_.steps[S_.i],w=st.w,T=S_.steps.length;
+  if(st.t==="tr"||st.t==="write"){st.t="mc";delete st.q}   // خطوة من نوع أُلغي (من نسخة أقدم): تصير اختيارًا من متعدد فلا يتوقف التعلّم
   const head=`<div class="sess"><div class="sbar"><i style="width:${S_.i/T*100}%"></i></div><span>🛤️ المحطة ${S_.n} · ${S_.i+1} من ${T}</span><button class="link" id="stQuit">خروج</button></div>`;
   const next=()=>{S_.i++;if(S_.i<S_.steps.length){stationView();scrollTo(0,0)}else finishStation()};
   const wordLine=`<div class="word de">${bigDe(w.de,1)}</div>`;
@@ -1578,41 +1560,6 @@ function stationView(){
       const bl=$("stBlank");bl.textContent=q.c.word;bl.classList.add("good");   // الجواب الصحيح يظهر في الفراغ بالأخضر دائمًا
       judge(ok,b,`<span dir="ltr">${esc(full)}</span>`,()=>speak(full))};
     el.querySelectorAll(".gopt").forEach(b=>b.onclick=()=>ansC(b));$("idk").onclick=()=>ansC(null);
-  }
-  else if(st.t==="write"){   // اكتب الكلمة: ترى المعنى، وتكتب الكلمة في خانات بعدد أحرفها، ومعك أزرار ä ö ü ß
-    const T=typeTarget(w),nn=nounOf(w);
-    el.innerHTML=comboHTML()+head+`<div class="box ${gCls(w)}"><span class="sttag">${I3("keyboard")} اكتبها</span><p class="ghint">اكتب الكلمة بالألمانية:</p>
-     <div class="qword" style="font-size:1.35rem">${esc(w.ar)}</div>${nn?`<div style="text-align:center;margin:-6px 0 6px"><b class="art art-${nn.art}" style="font-size:1.2rem">${nn.art}</b></div>`:""}
-     <div class="wwrap"><div class="wslots de" id="wLen">${wBoxes(T,"")}</div>
-     <input id="wIn" class="whid" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="${T.length}" aria-label="اكتب الكلمة"></div>
-     <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>${IDK}</div>
-     <button class="btn next" id="stNext">تحقّق</button>`;
-    // الكتابة مباشرة في الخانات: حقل كتابة شفاف فوقها يستقبل لوحة المفاتيح، والمسافات تُحذف لأن الكلمة بلا مسافات
-    const inp=$("wIn"),upd=()=>{const v=inp.value.replace(/\s+/g,"").slice(0,T.length);if(v!==inp.value)inp.value=v;$("wLen").innerHTML=wBoxes(T,v)};
-    inp.addEventListener("input",upd);inp.addEventListener("focus",()=>$("wLen").classList.add("foc"));inp.addEventListener("blur",()=>$("wLen").classList.remove("foc"));setTimeout(()=>inp.focus(),60);
-    el.querySelectorAll(".ukeys button").forEach(k=>k.onmousedown=e=>e.preventDefault());
-    el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{if(inp.disabled)return;inp.value=(inp.value+k.dataset.c).slice(0,T.length);inp.focus();upd()});
-    const sub=`<span dir="ltr">${artHTML(w.de)}</span> = ${esc(w.ar)}`;
-    const go=()=>{if(S_.ans)return;if(!inp.value.trim()){inp.focus();return}const r=checkTyped(w,inp.value);inp.disabled=true;inp.blur();$("stNext").style.display="none";
-      $("wLen").innerHTML=wBoxes(T,inp.value,1);
-      judge(!!r.ok,inp,r.ok&&r.note?esc(r.note):sub,()=>speak(w.de))};
-    $("stNext").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
-    $("idk").onclick=()=>{if(S_.ans)return;inp.disabled=true;inp.blur();$("stNext").style.display="none";$("wLen").innerHTML=wBoxes(T,T,2);judge(false,null,sub,()=>speak(w.de))};
-  }
-  else if(st.t==="tr"){
-    if(!st.q)st.q=trQ(w,[...S_.words,...uniq(W)]);const q=st.q;
-    el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${I3("books")} ترجم الجملة</span><p class="ghint">رتّب البطاقات لتكوّن ترجمة الجملة:</p>
-     <div class="trde"><button type="button" class="say trsay" id="trSay" aria-label="استمع">${I3("speaker")}</button><span class="de" dir="ltr">${esc(q.o.de)}</span></div>
-     <div id="trT"></div>${IDK}</div><button class="btn next" id="stNext">تحقّق</button>`;
-    const draw=()=>{$("trT").innerHTML=`<div class="oline trline" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
-      <div class="obank trbank">${q.tiles.map((x,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(x)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(x)}</button>`).join("")}</div>`;
-      $("trT").querySelectorAll(".otile[data-t]").forEach(b=>b.onclick=()=>{if(S_.ans)return;q.picked.push(+b.dataset.t);fx("tap");draw()});
-      $("trT").querySelectorAll(".otile[data-p]").forEach(b=>b.onclick=()=>{if(S_.ans)return;q.picked.splice(+b.dataset.p,1);draw()})};
-    draw();speak(q.o.de);$("trSay").onclick=()=>speak(q.o.de);
-    const sub=`<span class="de" dir="ltr">${esc(q.o.de)}</span><br>${esc(q.o.ar)}`;
-    const end=ok=>{$("stNext").style.display="none";$("trT").querySelectorAll(".otile").forEach(x=>x.disabled=true);$("oLine").classList.add(ok?"good":"bad");judge(ok,$("oLine"),sub)};
-    $("stNext").onclick=()=>{if(S_.ans||!q.picked.length)return;end(q.picked.map(i=>q.tiles[i]).join(" ")===q.o.toks.join(" "))};
-    $("idk").onclick=()=>{if(S_.ans)return;end(false)};
   }
   else{   // mc: الألمانية ← العربية · rev: العربية ← الألمانية
     if(!st.o)st.o=stOpts(w);const rev=st.t==="rev";
@@ -2328,7 +2275,6 @@ function pickWords(list,n){
 const GAMES=[
  {id:"cloze",ic:I3("pencil"),n:"املأ الفراغ",d:"جملة ناقصة: اختر الكلمة المناسبة لها"},
  {id:"art",ic:I3("target"),n:"der · die · das",d:"اختر أداة الاسم الصحيحة"},
- {id:"type",ic:I3("keyboard"),n:"اكتبها بالألمانية",d:"ترى المعنى فتكتب الكلمة بحروفها"},
  {id:"listen",ic:I3("headphones"),n:"استمع وافهم",d:"تسمع الكلمة دون أن تراها: اختر معناها أو اكتبها"},
  {id:"match",ic:I3("puzzle"),n:"المطابقة السريعة",d:"طابق 6 كلمات بمعانيها بأسرع ما يمكن"},
  {id:"order",ic:I3("books"),n:"رتّب الجملة",d:"ترى معنى الجملة بالعربية فتبني جملتها الألمانية بترتيب الكلمات"},
@@ -2337,7 +2283,7 @@ const GAMES=[
 ];
 // التحدي اليومي: أسئلة منوّعة، كلمات اليوم أولًا ثم ما تعلّمه قبلها
 const CHAL_N=8;
-function chalKind(w){const k=["mc"];if(clozeOf(w))k.push("cloze");if(nounOf(w))k.push("art");if(answersOf(w).length)k.push("type");if(orderOf(w))k.push("order");return k[Math.random()*k.length|0]}
+function chalKind(w){const k=["mc"];if(clozeOf(w))k.push("cloze");if(nounOf(w))k.push("art");if(orderOf(w))k.push("order");return k[Math.random()*k.length|0]}
 const qKindFor=(id,w)=>id==="chal"?chalKind(w):id;
 function startChal(){
   const all=learnedList();if(all.length<4){toast(I3("warning"),"تحتاج 4 كلمات متعلّمة على الأقل","");return}
@@ -2359,12 +2305,11 @@ function gamePool(id){
   const all=learnedList();
   if(id==="cloze")return all.filter(w=>clozeOf(w));
   if(id==="art")return all.filter(w=>nounOf(w));
-  if(id==="type")return all.filter(w=>answersOf(w).length);
   if(id==="listen")return canSpeak()&&!listenMuted()?all.filter(w=>answersOf(w).length):[];
   if(id==="order")return all.filter(w=>orderOf(w));
   return all;
 }
-const gameMin={cloze:4,art:4,type:4,listen:4,match:6,s5:4,order:4};
+const gameMin={cloze:4,art:4,listen:4,match:6,s5:4,order:4};
 // جملة المثال الأولى للكلمة مقسّمة إلى كلمات (من 3 إلى 9 كلمات)
 function orderOf(w){
   if(!w.ex||!w.exar)return null;const de=String(w.ex).split("\n")[0].trim(),ar=String(w.exar).split("\n")[0].trim();
@@ -2421,7 +2366,7 @@ function makeQ(kind,w){
   return {kind,w};
 }
 function nextMixed(){
-  const kinds=[["mc",learnedList()],["lmc",gamePool("listen")],["order",gamePool("order")],["cloze",gamePool("cloze")],["art",gamePool("art")],["type",gamePool("type")]].filter(([,p])=>p.length>=gameMin.cloze);
+  const kinds=[["mc",learnedList()],["lmc",gamePool("listen")],["order",gamePool("order")],["cloze",gamePool("cloze")],["art",gamePool("art")]].filter(([,p])=>p.length>=gameMin.cloze);
   const [kind,pool]=kinds[Math.random()*kinds.length|0];
   const last=GM&&GM.q?GM.q.w.k:null;const cand=pickWords(pool.filter(w=>w.k!==last),1);
   return makeQ(kind,cand[0]||pool[0]);
@@ -2455,14 +2400,6 @@ function gameView(){
     <div class="oline de" id="oLine">${q.picked.map((ti,pi)=>`<button type="button" class="otile" data-p="${pi}">${esc(q.tiles[ti])}</button>`).join("")}</div>
     <div class="obank de">${q.tiles.map((t,ti)=>q.picked.includes(ti)?`<span class="otile ghost">${esc(t)}</span>`:`<button type="button" class="otile" data-t="${ti}">${esc(t)}</button>`).join("")}</div>
     <button class="btn next" id="gCheck" ${q.picked.length?"":"disabled"}>تحقّق</button>`;
-  else if(q.kind==="type"){const T=typeTarget(w),cz=clozeOf(w);
-    body=`<p class="ghint">اكتب الكلمة بالألمانية${w.t==="n"?"، ومعها أداتها إن استطعت":""}:</p><div class="qword" style="font-size:1.3rem">${esc(w.ar)}</div><div style="text-align:center;margin-top:-8px"><span class="tag">${TYPE[w.t]||""}</span></div>
-    ${nounOf(w)?`<div class="tarts">${["der","die","das"].map(a=>`<button type="button" class="tart art-${a}${q.art===a?" on":""}" data-a="${a}">${a}</button>`).join("")}</div>`:""}
-    <div class="wwrap"><div class="wslots de${T.replace(/ /g,"").length>16?" many":""}" id="tLen">${gBoxes(T,"",q.rev||0)}</div><input id="gIn" class="whid" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" dir="ltr" maxlength="${T.replace(/ /g,"").length}" aria-label="اكتب الكلمة"></div>
-    <div class="ukeys">${["ä","ö","ü","ß","Ä","Ö","Ü"].map(c=>`<button type="button" data-c="${c}">${c}</button>`).join("")}</div>
-    <div class="thints"><span>مساعدة:</span><button type="button" data-h="letter">🔤 حرف</button>${canSpeak()?'<button type="button" data-h="hear">🔊 استمع</button>':""}${cz?'<button type="button" data-h="sent">📝 جملة</button>':""}<button type="button" data-h="mix">🧩 الأحرف</button></div>
-    <div id="tHelp"></div>
-    <button class="btn next" id="gCheck">تحقّق</button>`}
   el.innerHTML=gameHead()+`<div class="box" id="gBox">${body}<div id="gFb"></div>${q.kind==="lmc"||q.kind==="ltype"?'<button type="button" class="link nolisten" id="gNoL">لا أستطيع الاستماع الآن</button>':""}</div>`;
   $("gQuit").onclick=finishGame;
   if(q.kind==="lmc"||q.kind==="ltype"){const h=$("gHear");h.onclick=()=>speak(hearOf(w));const sl=$("gSlow");if(sl)sl.onclick=()=>speak(hearOf(w),1);if(!q.played){q.played=1;setTimeout(()=>speak(hearOf(w)),250)}
@@ -2486,48 +2423,15 @@ function gameView(){
     $("gCheck").onclick=()=>{if(GM.answered||!q.picked.length)return;const ok=normO(q.picked.map(i=>q.tiles[i]).join(" "))===normO(q.o.de);
       $("gCheck").style.display="none";el.querySelectorAll(".otile").forEach(x=>x.disabled=true);$("oLine").classList.add(ok?"good":"bad");if(ok)speak(q.o.de);answered(ok,$("oLine"))};
   }
-  if(q.kind==="type"||q.kind==="ltype"){
+  if(q.kind==="ltype"){
     const inp=$("gIn");setTimeout(()=>inp.focus(),50);
     el.querySelectorAll(".ukeys button").forEach(k=>k.onclick=()=>{const s=inp.selectionStart??inp.value.length,e=inp.selectionEnd??s;inp.value=inp.value.slice(0,s)+k.dataset.c+inp.value.slice(e);inp.focus();inp.setSelectionRange(s+1,s+1);inp.dispatchEvent(new Event("input"))});
     const go=()=>{if(GM.answered)return;if(!inp.value.trim()){inp.focus();return}
-      // «اكتبها»: الأحرف من الخانات، وتُعاد المسافات في مكانها من الكلمة، وتُضاف الأداة إن اختارها
-      const T=q.kind==="type"?typeTarget(w):"",val=q.kind==="type"?(q.art?q.art+" ":"")+withSpaces(T,inp.value):inp.value;
+      const val=inp.value;
       const r=checkTyped(w,val);inp.disabled=true;inp.blur();inp.classList.add(r.ok?"good":"bad");$("gCheck").style.display="none";
-      if(q.kind==="type")$("tLen").innerHTML=gBoxes(T,inp.value,q.rev||0,1);
       GM.typed={r,v:normT(val)};answered(!!r.ok,inp)};
     $("gCheck").onclick=go;inp.onkeydown=e=>{if(e.key==="Enter")go()};
-    if(q.kind==="type")bindTypeHints(q,w,inp);
   }
-}
-// وسائل المساعدة في تمرين الكتابة: عدد الأحرف ظاهر دائمًا، والباقي بالضغط. من استعمل أيًّا منها وأصاب تُحسب إجابته صحيحة بلا خبرة
-const typeTarget=w=>coreOf(answersOf(w)[0]||w.de)||lemmaOf(w);
-// خانات الأحرف داخل مستطيل الكتابة: تمتلئ بما يكتبه (بلا الأداة)، والأحرف المكشوفة بالمساعدة خضراء
-function lenHTML(T,typed,k){const tv=[...String(typed||"").replace(ART,"").replace(/\s+/g,"")];let i=0;
-  return [...T].map(ch=>{if(ch===" ")return '<i class="sp"></i>';const j=i++;return `<b class="${j<k?"rv":""}">${tv[j]!=null?esc(tv[j]):""}</b>`}).join("")}
-function bindTypeHints(q,w,inp){
-  const T=typeTarget(w),help=$("tHelp"),used=()=>{q.hint=1},N=T.replace(/ /g,"").length,
-    upd=()=>{const v=inp.value.replace(/\s+/g,"").slice(0,N);if(v!==inp.value)inp.value=v;const l=$("tLen");if(l)l.innerHTML=gBoxes(T,v,q.rev||0)};
-  inp.addEventListener("input",upd);upd();
-  inp.addEventListener("focus",()=>$("tLen").classList.add("foc"));inp.addEventListener("blur",()=>{const l=$("tLen");if(l)l.classList.remove("foc")});
-  document.querySelectorAll(".ukeys button").forEach(k=>k.onmousedown=e=>e.preventDefault());
-  document.querySelectorAll(".tart").forEach(b=>b.onclick=()=>{if(GM.answered)return;q.art=q.art===b.dataset.a?null:b.dataset.a;document.querySelectorAll(".tart").forEach(x=>x.classList.toggle("on",x.dataset.a===q.art));inp.focus()});
-  const INFO={letter:"🔤 حرف: يُكتب لك الحرف التالي من الكلمة. ويمكنك الضغط مرة أخرى لحرفٍ آخر.",hear:"🔊 استمع: تسمع نطق الكلمة الألمانية.",
-    sent:"📝 جملة: يظهر مثال الكلمة، وفيه فراغ مكانها.",mix:"🧩 الأحرف: تظهر أحرف الكلمة مخلوطة، فترتّبها بالضغط عليها."};
-  const asked=q.asked=q.asked||{};
-  document.querySelectorAll(".thints button").forEach(b=>b.onclick=async()=>{if(GM.answered)return;const h=b.dataset.h;
-    if(!asked[h]){if(!await uiDialog(INFO[h]+(q.hint?"":"\n\nإن استعملت المساعدة تُحسب إجابتك الصحيحة بلا خبرة."),{ok:"استعمل",cancel:"إلغاء"}))return;asked[h]=1}
-    if(GM.answered)return;used();
-    if(h==="letter"){const L=[...T.replace(/ /g,"")],tv=[...inp.value.replace(ART,"").replace(/\s+/g,"")];let ok=0;while(ok<tv.length&&ok<L.length&&tv[ok].toLowerCase()===L[ok].toLowerCase())ok++;   // ما كتبه صحيحًا من أول الكلمة يبقى، ويُضاف الحرف الذي بعده
-      q.rev=Math.min(Math.max((q.rev||0),ok)+1,L.length);let n=0,out="";for(const ch of T){if(ch===" "){out+=" ";continue}if(n++<q.rev)out+=ch;else break}
-      const nn=nounOf(w);inp.value=out.replace(/ /g,"");if(nn){q.art=nn.art;document.querySelectorAll(".tart").forEach(x=>x.classList.toggle("on",x.dataset.a===q.art))}upd();inp.focus()}
-    else if(h==="hear")speak(lemmaOf(w));
-    else if(h==="sent"){const c=clozeOf(w);if(c)help.innerHTML=`<div class="cloze de thelp">${esc(c.pre)}<span class="blank">_____</span>${esc(c.post)}</div>`;b.disabled=true}
-    else if(h==="mix"){const ls=shuffle([...T.replace(/ /g,"")].slice(q.rev||0));   // الأحرف الباقية بعد ما كُشف
-      help.innerHTML=`<div class="tmix de">${ls.map((c,i)=>`<button type="button" data-i="${i}">${esc(c)}</button>`).join("")}<button type="button" class="tback" aria-label="مسح">⌫</button></div>`;
-      help.querySelectorAll(".tmix button[data-i]").forEach(x=>x.onclick=()=>{if(GM.answered)return;inp.value+=x.textContent;x.disabled=true;x.dataset.u="1";upd()});
-      help.querySelector(".tback").onclick=()=>{if(GM.answered)return;const last=[...help.querySelectorAll(".tmix button[data-u]")].pop();if(!last)return;inp.value=inp.value.slice(0,-last.textContent.length);last.disabled=false;delete last.dataset.u;upd()};
-      b.disabled=true}
-  });
 }
 // بعد كل جواب: يُسجَّل للكلمات الصعبة، ثم يظهر التصحيح وزر التالي
 function answered(ok,el,auto){
@@ -2536,7 +2440,7 @@ function answered(ok,el,auto){
   (GM.qa=GM.qa||[]).push([w.k,ok?1:0]);
   // النتيجة في الشريط السفلي مثل المحطة، فتبقى الصفحة في شاشة واحدة بلا تمرير
   let fb="";const L_=x=>`<span class="fbl">${x}</span>`;
-  if(q.kind==="type"||q.kind==="ltype"){const r=GM.typed.r;
+  if(q.kind==="ltype"){const r=GM.typed.r;
     fb=r.ok?(q.hint?L_('<small>بمساعدة، بلا خبرة</small>'):"")+(r.note?L_(`<span class="fbnote">${esc(r.note)}</span>`):"")
       :L_(`<span class="gans de" dir="ltr">${diffHTML(coreOf(r.a)||r.a,coreOf(GM.typed.v))}</span>`)}
   else if(q.kind==="art"&&!ok){const nn=nounOf(w);fb=L_(`<span class="de art-${nn.art}" dir="ltr">${esc(nn.art+" "+nn.noun)}</span>`)}
@@ -4762,9 +4666,13 @@ function navSync(){
   $("hFlt").classList.toggle("has",fv);$("hFlt").classList.toggle("act",!noFilter());
   if(!fv)document.body.classList.remove("fopen");
 }
+// شارة المستوى: صورة لكل مستوى من 1 إلى 50، وبعد 50 شارة بلا رقم يُكتب عليها المستوى الحقيقي
+function lvBadge(lv){lv=Math.max(1,Math.floor(+lv||1));const hi=lv>50;
+  return `<span class="lvb" title="${lv}"><img src="img/lv/${hi?"x":lv}.webp" alt="${lv}" width="30" height="34" decoding="async">${hi?`<b>${lv}</b>`:""}</span>`}
 function hdrExtra(){
-  const c=$("hCrs"),many=MY_COURSES.filter(x=>COURSES[x]).length>1&&!isAdmin();
-  c.classList.toggle("has",many);setH(c,`<bdi>${esc((COURSES[COURSE]||{}).name||"")}</bdi>`);
+  const c=$("hCrs"),many=MY_COURSES.filter(x=>COURSES[x]).length>1&&!isAdmin(),nm=(COURSES[COURSE]||{}).name||"";
+  c.classList.toggle("has",!!nm&&!isAdmin());c.classList.toggle("pick",many);c.setAttribute("aria-label","المنهج: "+nm);
+  setH(c,lvBadge((EC||econ()).lv)+`<bdi dir="rtl">${esc(nm)}</bdi>`);
   navSync();
 }
 const btnVis=id=>{const b=$(id);return !!b&&b.style.display!=="none"};
@@ -4827,7 +4735,7 @@ function init(){
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     hideFb();b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=()=>{refresh();navSync()});
-  $("hCrs").onclick=coursePicker;
+  $("hCrs").onclick=()=>{if($("hCrs").classList.contains("pick"))coursePicker()};
   // الضغط على أيقونة الرئيسية من قسم آخر يعيدك دائمًا إلى «المسار»
   document.querySelectorAll('#mainNav button[data-p="review"]').forEach(b=>b.addEventListener("click",()=>{if(!$("review").classList.contains("on"))HOMETAB="path"},true));
   $("hFlt").onclick=()=>{document.body.classList.toggle("fopen");if(document.body.classList.contains("fopen"))scrollTo(0,0)};
