@@ -4208,9 +4208,11 @@ async function copyTxt(s,what){try{await navigator.clipboard.writeText(s)}catch(
 const kb=n=>n>1048576?(n/1048576).toFixed(1)+" م.ب":Math.max(1,Math.round(n/1024))+" ك.ب";
 const BAKWHY={auto:"تلقائية",manual:"يدوية","before-restore":"قبل الاسترجاع"};
 // جدول ملخّصات الحسابات (لقطة أو تحقق من نسخة)
-function acctTable(A,ttl){const rows=[["gems","الجواهر"],["earned","الجواهر المكتسبة"],["xp","الخبرة"],["lv","المستوى"],["streak","السلسلة"],["best","أطول سلسلة"],["reviews","المراجعات"],["words","الكلمات"],["mem","محفوظة"],["mast","راسخة"],["stations","المحطات"],["quests","صناديق المهام"],["duelWins","فوز التحديات"],["duelDays","أيام التحدي"],["tier","الدوري"],["weeks","أسابيع الدوري"],["lgg","جوائز الدوري"],["album","بازل مكتمل"],["buys","المشتريات"],["ach","الإنجازات"],["log","طول السجل"],["folded","مطويّ في الأرشيف"]];
-  const U=Object.entries(A);return `<div style="overflow-x:auto;margin-top:8px"><table class="acct" style="border-collapse:collapse;font-size:.8rem;width:100%"><tr><th style="text-align:right">${esc(ttl)}</th>${U.map(([u,a])=>`<th>${esc(a.name||u)}</th>`).join("")}</tr>`+
-  rows.map(([k,l])=>`<tr><td>${l}</td>${U.map(([,a])=>`<td style="text-align:center">${a[k]??""}</td>`).join("")}</tr>`).join("")+
+// B: جدول للمقارنة؛ الخانة المختلفة عنه تُلوَّن
+const ACCT_ROWS=[["gems","الجواهر"],["earned","الجواهر المكتسبة"],["xp","الخبرة"],["lv","المستوى"],["streak","السلسلة"],["best","أطول سلسلة"],["reviews","المراجعات"],["words","الكلمات"],["mem","محفوظة"],["mast","راسخة"],["stations","المحطات"],["quests","صناديق المهام"],["duelWins","فوز التحديات"],["duelDays","أيام التحدي"],["tier","الدوري"],["weeks","أسابيع الدوري"],["lgg","جوائز الدوري"],["album","بازل مكتمل"],["buys","المشتريات"],["ach","الإنجازات"],["log","طول السجل"],["folded","مطويّ في الأرشيف"]];
+function acctTable(A,ttl,B){const rows=ACCT_ROWS;
+  const U=Object.entries(A);return `<div style="overflow-x:auto;margin-top:8px"><table class="acct" style="border-collapse:collapse;font-size:.8rem;width:100%"><tr><th style="text-align:right">${esc(ttl)}</th>${U.map(([u,a])=>`<th>${esc(a.name||"بلا اسم")}${a.no!=null?`<br><small style="font-weight:400">#${noTxt(a.no)}</small>`:""}<br><small dir="ltr" style="font-weight:400;color:var(--muted)">…${esc(String(u).slice(-6))}</small>${a.userDoc===false?'<br><small style="font-weight:400;color:var(--rd)">بلا وثيقة مستخدم</small>':""}</th>`).join("")}</tr>`+
+  rows.map(([k,l])=>`<tr><td>${l}</td>${U.map(([u,a])=>`<td style="text-align:center${B&&B[u]&&JSON.stringify(B[u][k])!==JSON.stringify(a[k])?";background:#fde68a;color:#222":""}">${a[k]??""}</td>`).join("")}</tr>`).join("")+
   `<tr><td>قطع البازل</td>${U.map(([,a])=>`<td style="text-align:center;font-size:.7rem">${Object.entries(a.pz||{}).map(([m,n])=>m+": "+n).join("<br>")}</td>`).join("")}</tr></table></div>`}
 let ERRS=[];
 async function errCheck(){
@@ -4219,24 +4221,33 @@ async function errCheck(){
   if(b){b.textContent=nw||"";b.classList.toggle("on",nw>0)}
   if(nw)toast("⚠️","أخطاء جديدة: "+nw,"افتح «الحماية» لتراها");
 }
+let BKBUSY=false,BKRID=null;const rid12=()=>{const a=new Uint8Array(9);crypto.getRandomValues(a);return [...a].map(x=>x.toString(36).padStart(2,"0")).join("").slice(0,16)};
+// وقت النسخة بالثواني، ومعرّفها المختصر (آخر أرقام المفتاح)، ليُعرف إن كانت نسختان مختلفتين فعلًا
+const bkTime=x=>new Date(x.at||0).toLocaleString("ar-u-nu-latn",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit",second:"2-digit"});
 async function renderSafe(){
   const el=$("safe");el.innerHTML='<div class="empty">جارٍ التحميل…</div>';
   let B=[],ok=true;try{B=(await apiPost("/backup",{op:"list"})).items||[]}catch(e){ok=false}
   try{ERRS=(await apiPost("/errs",{})).items||[]}catch(e){}
   st("muf_errSeen",String(Date.now()));const b=$("eBadge");if(b){b.textContent="";b.classList.remove("on")}
-  el.innerHTML=`<div class="rsec"><h3>🗄️ النسخ الاحتياطية</h3><p class="rnote">كل ليلة تُحفظ نسخة كاملة من بيانات المستخدمين في تخزين منفصل عن قاعدة البيانات، وتبقى آخر 14 نسخة. «تجربة» تفكّ النسخة وتفحصها دون أن تغيّر شيئًا.</p>
+  el.innerHTML=`<div class="rsec"><h3>🗄️ النسخ الاحتياطية</h3><p class="rnote">كل ليلة تُحفظ نسخة كاملة من بيانات المستخدمين في تخزين منفصل عن قاعدة البيانات، وتبقى آخر 14 نسخة ليلية وآخر 5 نسخ يدوية، كلٌّ على حدة (النسخ الأقدم من هذا النظام لا تُحذف تلقائيًا). «تجربة» تفكّ النسخة وتفحصها دون أن تغيّر شيئًا.</p>
     <button class="btn" id="bkNow" style="width:100%;margin:6px 0;background:var(--navy);color:#fff">نسخة الآن</button>
     <button class="btn" id="bkSnap" style="width:100%;margin:0 0 6px">📋 لقطة الحسابات (توثيق الحالة)</button><div class="stmsg" id="bkMsg"></div><div id="bkOut"></div>
-    ${!ok?'<div class="err">تعذّر تحميل النسخ.</div>':B.length?B.map(x=>`<div class="bkrow"><div><b>${fmt(x.at)}</b><small>${BAKWHY[x.why]||x.why||""} · ${x.n||0} وثيقة · ${x.users||0} مستخدم · ${kb(x.size||0)}</small></div><div class="bkbtns"><button class="btn bkV" data-k="${esc(x.key)}">تحقق كامل</button><button class="btn bkD" data-k="${esc(x.key)}">تنزيل</button><button class="btn bkT" data-k="${esc(x.key)}">تجربة</button><button class="btn bkR" data-k="${esc(x.key)}">استرجاع</button></div></div>`).join(""):'<div class="empty">لا نسخ بعد. أول نسخة تلقائية الليلة، أو اضغط «نسخة الآن».</div>'}</div>
+    ${!ok?'<div class="err">تعذّر تحميل النسخ.</div>':B.length?B.map(x=>`<div class="bkrow"><div><b>${bkTime(x)}</b><small class="bkid" dir="ltr">${esc(String(x.key||"").slice(-10))}</small><small>${BAKWHY[x.why]||x.why||""} · ${x.n||0} وثيقة · ${x.users||0} مستخدم · ${kb(x.size||0)}</small></div><div class="bkbtns"><button class="btn bkV" data-k="${esc(x.key)}">تحقق كامل</button><button class="btn bkD" data-k="${esc(x.key)}">تنزيل</button><button class="btn bkT" data-k="${esc(x.key)}">تجربة</button><button class="btn bkR" data-k="${esc(x.key)}">استرجاع</button></div></div>`).join(""):'<div class="empty">لا نسخ بعد. أول نسخة تلقائية الليلة، أو اضغط «نسخة الآن».</div>'}</div>
    <div class="rsec"><h3>⚠️ الأخطاء</h3><p class="rnote">كل خطأ يحدث في التطبيق عند أي مستخدم، أو في الخادم، يظهر هنا مع عدد مرّاته وآخر وقت. اضغط على الخطأ لترى تفاصيله.</p>
     ${ERRS.length?`<div class="erbtns"><button class="btn" id="erCpAll">📋 نسخ كل الأخطاء</button><button class="btn" id="erAll">${I3("trash")} حذف كل الأخطاء</button></div>`+ERRS.map((x,i)=>`<div class="errwrap"><details class="errrow"><summary><b>${esc(x.msg)}</b><small>${x.src==="server"?"الخادم":"التطبيق"} · ${x.n} مرّة · آخرها ${fmt(x.last)} · ${x.users.length} مستخدم</small></summary>
       <pre>${esc(errTxt(x,1))}</pre><button class="btn erDel" data-id="${x.id}">${I3("trash")} حذف</button></details><button type="button" class="ercp" data-i="${i}" aria-label="نسخ الخطأ">📋</button></div>`).join(""):'<div class="empty">لا أخطاء 👍</div>'}</div>`;
   const msg=(t,c)=>{const m=$("bkMsg");m.textContent=t;m.className="stmsg "+(c||"")};
-  $("bkSnap").onclick=async e=>{e.target.disabled=true;msg("جارٍ أخذ اللقطة…");try{const j=await apiPost("/backup",{op:"snap"});
+  $("bkSnap").onclick=async e=>{e.target.disabled=true;$("bkOut").innerHTML="";msg("جارٍ أخذ اللقطة…");try{const j=await apiPost("/backup",{op:"snap"});
     $("bkOut").innerHTML=acctTable(j.accts,"الآن")+'<button class="btn" id="bkSnapDl" style="width:100%;margin-top:6px">تنزيل اللقطة ملفًّا</button>';msg("✓ لقطة "+fmt(j.at),"ok");
     $("bkSnapDl").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(j,null,1)],{type:"application/json"}));a.download="accounts-"+new Date(j.at).toISOString().slice(0,16).replace(/[:T]/g,"-")+".json";document.body.appendChild(a);a.click();a.remove()}}
     catch(err){msg("تعذّر أخذ اللقطة: "+(err.detail||err.error||""),"bad")}e.target.disabled=false};
-  $("bkNow").onclick=async e=>{e.target.disabled=true;msg("جارٍ النسخ…");try{const r=await apiPost("/backup",{op:"now"});toast("🗄️","حُفظت نسخة",r.n+" وثيقة");renderSafe()}catch(err){e.target.disabled=false;msg("تعذّر النسخ: "+(err.detail||err.error||"تحقّق من الاتصال"),"bad")}};
+  // «نسخة الآن»: ضغطة واحدة = نسخة واحدة. الزر معطّل ما دام الطلب جاريًا ولو أُعيد رسم الصفحة، ولكل ضغطة معرّف يبقى عند إعادة المحاولة بعد خطأ،
+  // فإن كانت النسخة قد حُفظت فعلًا يُرجعها الخادم ولا ينشئ أخرى
+  const bn=$("bkNow");if(BKBUSY){bn.disabled=true;msg("جارٍ النسخ…")}
+  bn.onclick=async()=>{if(BKBUSY)return;BKBUSY=true;const b0=$("bkNow");if(b0)b0.disabled=true;msg("جارٍ النسخ…");BKRID=BKRID||rid12();
+    try{const r=await apiPost("/backup",{op:"now",rid:BKRID});BKRID=null;BKBUSY=false;
+      if(r.pending)toast("🗄️","النسخة قيد الإنشاء","حدّث القائمة بعد قليل");else toast("🗄️",r.dup?"النسخة محفوظة من قبل":"حُفظت نسخة",(r.n||0)+" وثيقة");renderSafe()}
+    catch(err){BKBUSY=false;const b1=$("bkNow");if(b1)b1.disabled=false;msg("تعذّر النسخ: "+(err.detail||err.error||"تحقّق من الاتصال")+". إن أعدت المحاولة فلن تتكرّر النسخة إن كانت قد حُفظت.","bad")}};
   el.onclick=async e=>{
     const t=e.target.closest(".bkT"),r=e.target.closest(".bkR"),d=e.target.closest(".erDel"),all=e.target.closest("#erAll"),cp=e.target.closest(".ercp");
     const v=e.target.closest(".bkV"),dl=e.target.closest(".bkD");
@@ -4244,12 +4255,19 @@ async function renderSafe(){
     if(dl){dl.disabled=true;msg("جارٍ التنزيل…");try{const j=await apiPost("/backup",{op:"download",key:dl.dataset.k});const bin=atob(j.b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
       const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([u],{type:"application/gzip"}));a.download=j.name;document.body.appendChild(a);a.click();a.remove();msg("✓ نُزّلت النسخة ("+kb(j.size)+")","ok")}catch(err){msg("تعذّر التنزيل: "+(err.detail||err.error||""),"bad")}dl.disabled=false;return}
     // تحقق كامل: تُعاد بناء الحسابات من النسخة وتُقارن بالحالية، بلا أي كتابة
-    if(v){v.disabled=true;msg("جارٍ التحقق الكامل…");try{const j=await apiPost("/backup",{op:"verify",key:v.dataset.k});const same=Object.values(j.diff).every(d=>!d.length);
-      msg(same?"✓ النسخة تعيد بناء كل الحسابات مطابقة للحالة الآن ("+Object.keys(j.bak).length+" حساب)":"النسخة سليمة، والفروق عن الآن (طبيعية إن تغيّر شيء بعد النسخ): "+Object.entries(j.diff).filter(([,d])=>d.length).map(([u,d])=>(j.live[u]||j.bak[u]||{}).name+": "+d.join("، ")).join(" · "),same?"ok":"");
-      $("bkOut").innerHTML=acctTable(j.bak,"من النسخة")}catch(err){msg("تعذّر التحقق: "+(err.detail||err.error||""),"bad")}v.disabled=false;return}
+    if(v){v.disabled=true;$("bkOut").innerHTML="";msg("جارٍ التحقق الكامل…");try{const j=await apiPost("/backup",{op:"verify",key:v.dataset.k});const same=Object.values(j.diff).every(d=>!d.length);
+      // النتيجة: أيّ نسخة قورنت (معرّفها ووقت إنشائها من الملف نفسه)، ومتى قُرئت الحالة الآن، و«مطابقة» أو «توجد فروقات»
+      // تحقق ثانٍ في الصفحة: «مطابقة» فقط إن قال الخادم ذلك وكانت كل وثائق كل حساب مطابقة وكل عمود في الجدولين متساويًا
+      const eqT=Object.keys({...j.bak,...j.live}).every(u=>JSON.stringify(j.bak[u])===JSON.stringify(j.live[u])),docsOk=Object.values(j.accts||{}).every(a=>a.docSame);
+      const ok2=(j.result?j.result==="match":same)&&eqT&&(!j.accts||docsOk),clash=(j.result==="match")!==ok2,DN={core:"الحالة",log:"السجل",qa:"الأسئلة",ck:"نقطة الحفظ",gifts:"الهدايا"},ST={same:"مطابقة",diff:"مختلفة","missing-bak":"ليست في النسخة","missing-live":"ليست الآن"};
+      const acc=Object.entries(j.accts||{}).filter(([,a])=>!a.docSame||a.diff.length).map(([u,a])=>`<div class="rnote"><b>${esc(a.name||u)}</b>${a.userDoc===false?" (بلا وثيقة مستخدم)":""}: الوثائق: ${Object.entries(a.docs).filter(([,v])=>v!=="none").map(([k,v])=>DN[k]+" "+ST[v]).join("، ")}${a.diff.length?" · الملخّص يختلف في: "+esc(a.diff.map(k=>(ACCT_ROWS.find(r=>r[0]===k)||[k,k])[1]).join("، ")):""}<br><small dir="ltr">core: ${esc(a.coreUt.bak||"-")} → ${esc(a.coreUt.live||"-")}</small></div>`).join("");
+      const aug=o=>Object.fromEntries(Object.entries(o).map(([u,a])=>[u,{...a,name:((j.accts||{})[u]||{}).name||a.name,no:((j.accts||{})[u]||{}).no,userDoc:((j.accts||{})[u]||{}).userDoc}]));
+      const nm=Object.entries(j.accts||j.bak).map(([u,a])=>a.name||u),dup=[...new Set(nm.filter((x,i)=>nm.indexOf(x)!==i))];
+      msg((ok2?"✓ مطابقة":clash?"✗ تعارض في النتيجة، لا تعتمد عليها":"✗ توجد فروقات")+" · النسخة "+String(j.key||v.dataset.k)+" · أُنشئت "+bkTime({at:j.at})+" · قورنت "+bkTime({at:j.cmpAt||Date.now()}),ok2?"ok":"bad");
+      $("bkOut").innerHTML=(dup.length?`<div class="err">تنبيه: أكثر من حساب بالاسم نفسه: ${dup.map(esc).join("، ")}. كل عمود حساب مستقل (انظر آخر أرقام معرّفه تحت الاسم)، فقارن العمود نفسه بين الجدولين.</div>`:"")+acc+acctTable(aug(j.bak),"من النسخة",j.live)+acctTable(aug(j.live),"الآن")}catch(err){$("bkOut").innerHTML="";msg("تعذّر التحقق: "+(err.detail||err.error||""),"bad")}v.disabled=false;return}
     if(cp){copyTxt(errTxt(ERRS[+cp.dataset.i]),"الخطأ");return}
     if(e.target.closest("#erCpAll")){copyTxt(ERRS.map(x=>errTxt(x)).join("\n\n————————\n\n"),"كل الأخطاء");return}
-    if(t){t.disabled=true;msg("جارٍ فحص النسخة…");try{const j=await apiPost("/backup",{op:"test",key:t.dataset.k});
+    if(t){t.disabled=true;$("bkOut").innerHTML="";msg("جارٍ فحص النسخة…");try{const j=await apiPost("/backup",{op:"test",key:t.dataset.k});
       msg(j.ok?`✓ النسخة سليمة وقابلة للاسترجاع: ${j.n} وثيقة — `+Object.entries(j.per).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+" "+v).join("، "):"✗ في النسخة "+j.bad+" وثيقة تالفة",j.ok?"ok":"bad")}catch(err){msg("تعذّر فحص النسخة: "+(err.detail||err.error||""),"bad")}t.disabled=false;return}
     if(r){if(!await uiConfirm("استرجاع هذه النسخة؟ تعود بيانات كل المستخدمين كما كانت وقتها، ويضيع ما تغيّر بعدها."))return;
       if(!await uiConfirm("متأكد؟ قبل الاسترجاع تُحفظ نسخة من الوضع الحالي، فتستطيع التراجع بها."))return;

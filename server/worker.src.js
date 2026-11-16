@@ -530,12 +530,15 @@ async function handleAiLog(fs, user, body, env) {
 
 
 /* ---------- النسخ الاحتياطي: كل ليلة تُحفظ نسخة كاملة من قاعدة البيانات في تخزين Cloudflare (منفصل عن Firebase) ---------- */
-const BAK_KEEP = 14;   // تبقى آخر 14 نسخة
+// الاحتفاظ (السياسة 2): آخر 14 نسخة ليلية وآخر 5 يدوية، كلٌّ على حدة، فلا تُخرج اليدويةُ الليليةَ.
+// يُطبَّق فقط على النسخ التي أُنشئت بهذه السياسة (pol: 2)؛ النسخ الأقدم لا تُحذف تلقائيًا أبدًا، ولا نسخة «قبل الاسترجاع»
+const BAK_KEEP = { auto: 14, manual: 5 }, BAK_POL = 2;
 const DOCROOT = `projects/${PROJECT}/databases/(default)/documents`;
 async function gauth(env) { return { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" } }
 // كل وثائق قاعدة البيانات بصيغتها الأصلية (الأنواع محفوظة كما هي). تُحفظ الردود كما وصلت بلا تحليل، توفيرًا لوقت المعالج
 // صور مساعد الوظيفة محفوظة في تخزين Cloudflare لا في قاعدة البيانات، فلا تدخل النسخة (وتُحذف وحدها بعد شهر)
 async function exportAll(env) {
+  if (env.__export) return env.__export();   // للاختبار المحلي فقط (قاعدة في الذاكرة)
   const H = await gauth(env);
   const r0 = await fetch(FS_BASE + ":listCollectionIds", { method: "POST", headers: H, body: JSON.stringify({ pageSize: 300 }) });
   if (!r0.ok) throw new Error("ids " + r0.status);
@@ -553,22 +556,61 @@ async function exportAll(env) {
 }
 const gz = async s => new Uint8Array(await new Response(new Blob([s]).stream().pipeThrough(new CompressionStream("gzip"))).arrayBuffer());
 const gunz = async b => await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("gzip"))).text();
-async function backupNow(env, why) {
-  const ex = await exportAll(env), now = Date.now(), key = "bak-" + new Date(now).toISOString().replace(/[:.]/g, "-");
+async function backupNow(env, why, rid) {
+  const ex = await exportAll(env); let now = Date.now(), key;
+  // مفتاح فريد: إن وُجدت نسخة بالجزء نفسه من الألف من الثانية (نادر جدًا) يُزاد جزءًا، فلا تُكتب نسخة فوق أخرى
+  // ولكل عملية لاحقة رقمية من معرّفها، فعمليتان مختلفتان في اللحظة نفسها لا تتشاركان المفتاح
+  let h = 0; for (const ch of String(rid || "")) h = (h * 31 + ch.charCodeAt(0)) % 9973;
+  const suf = rid ? "-" + String(h).padStart(4, "0") : "";
+  for (let i = 0; i < 20; i++, now++) { key = "bak-" + new Date(now).toISOString().replace(/[:.]/g, "-") + suf; if (!(await env.BAK.get(key, { type: "stream" }).then(v => { if (v && v.cancel) v.cancel(); return v }))) break }
   const body = await gz('{"v":2,"at":' + now + ',"parts":[' + ex.parts.join(",") + "]}");
-  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto" };
+  const meta = { at: now, n: ex.n, users: ex.users, size: body.length, why: why || "auto", pol: BAK_POL, ...(rid ? { rid } : {}) };
   await env.BAK.put(key, body, { metadata: meta });
-  const all = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1);
-  for (const k of all.slice(BAK_KEEP)) await env.BAK.delete(k.name);
+  await bakPrune(env);
   return { key, ...meta };
+}
+// «نسخة الآن» عملية لا تتكرّر. لكل عملية معرّف (rid): ضغطة في التطبيق، أو «auto-<اليوم>» للنسخة الليلية، أو للتطبيق القديم بلا معرّف «m-<فترة دقيقتين>».
+// القفل وثيقة bakrid/<rid> تُنشأ بشرط ألّا تكون موجودة (ذرّيًّا في قاعدة البيانات): مهما تزامنت الطلبات أو اختلفت نسخ الخادم التي وصلت إليها،
+// يفوز طلب واحد فقط بإنشاء النسخة، والباقي يُرجع النسخة نفسها أو «قيد الإنشاء». الوثيقة صغيرة ولا تمسّ بيانات الحسابات.
+const BAKRUN = new Map(), BAK_STALE = 15 * 60e3;
+const RID_OK = r => typeof r === "string" && /^[A-Za-z0-9_-]{8,40}$/.test(r);
+async function backupOnce(env, fs, rid, why) {
+  const now = Date.now(); why = why === "auto" ? "auto" : "manual";
+  if (!RID_OK(rid)) rid = why === "auto" ? "auto-" + new Date(now).toISOString().slice(0, 10) : "m-" + Math.floor(now / 120e3);
+  if (BAKRUN.has(rid)) { const r = await BAKRUN.get(rid).catch(() => null); if (r) return { ...r, dup: 1 } }
+  const lock = `bakrid/${rid}`;
+  try { await fs.commit([{ path: lock, data: { st: "run", at: now, why }, ifMissing: true }]) }
+  catch (e) {
+    if (!e.conflict) throw e;
+    const d = await fs.get(lock), x = d ? d.data : {};
+    if (x.st === "done") return { ...parseJ(x.r, {}), dup: 1 };
+    if (now - (+x.at || 0) < BAK_STALE) return { pending: 1, dup: 1 };
+    // قفل قديم من عملية توقفت: يُستولى عليه بشرط ألّا يكون قد تغيّر منذ قرأناه (ذرّيًّا أيضًا)
+    try { await fs.commit([{ path: lock, data: { st: "run", at: now, why }, ifUpdateTime: d.updateTime }]) }
+    catch (e2) { if (e2.conflict) return { pending: 1, dup: 1 }; throw e2 }
+  }
+  const p = backupNow(env, why, rid);
+  BAKRUN.set(rid, p); if (BAKRUN.size > 20) BAKRUN.delete(BAKRUN.keys().next().value);
+  try {
+    const r = await p; await fs.commit([{ path: lock, data: { st: "done", at: now, why, r: JSON.stringify(r) } }]);
+    try { const old = (await fs.list("bakrid")).filter(x => x.st === "done" && now - (+x.at || 0) > 30 * 864e5).slice(0, 50); if (old.length) await fs.commit(old.map(x => ({ path: "bakrid/" + x.id, del: true }))) } catch (e) { }   // أقفال أقدم من شهر
+    return r;
+  }
+  catch (e) { BAKRUN.delete(rid); try { await fs.commit([{ path: lock, del: true }]) } catch (x) { } throw e }
+}
+async function bakPrune(env) {
+  const all = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1), del = [];
+  for (const why of ["auto", "manual"]) del.push(...all.filter(k => k.metadata && k.metadata.pol === BAK_POL && k.metadata.why === why).slice(BAK_KEEP[why]));
+  for (const k of del) await env.BAK.delete(k.name);
+  return del.map(k => k.name);
 }
 // تفكّ النسخة وتعيد وثائقها: [{name, fields}]
 async function loadBak(env, key) {
   if (!/^bak-[0-9TZ-]+$/.test(key)) throw new Error("key");
   const b = await env.BAK.get(key, "arrayBuffer"); if (!b) throw new Error("nobak");
   const j = JSON.parse(await gunz(b)), docs = new Map();
-  for (const part of j.parts || []) for (const x of part) if (x && x.document) docs.set(x.document.name, x.document.fields || {});
-  return { at: j.at, docs: [...docs].map(([name, fields]) => ({ name, fields })) };
+  for (const part of j.parts || []) for (const x of part) if (x && x.document) docs.set(x.document.name, { fields: x.document.fields || {}, ut: x.document.updateTime || "" });
+  return { at: j.at, docs: [...docs].map(([name, d]) => ({ name, fields: d.fields, ut: d.ut })) };
 }
 // ملخّص حساب واحد كما يحسبه الخادم: للتوثيق قبل التحديث وبعده، وللتحقق من النسخة الاحتياطية. لا يكتب شيئًا
 function acctSum(c, log, qa, ck, gifts) {
@@ -605,15 +647,51 @@ function bakSums(b) {
   }
   return out;
 }
+// «تحقق كامل» (2): يقارن الوثائق الأصلية لكل حساب (core وlog وqa وck والهدايا) بين النسخة والحالة الآن، ثم الملخّصات.
+// الحالة الآن تُقرأ كلها أولًا، ثم تُحسب ملخّصات الطرفين معًا دون أي انتظار بينهما، وبإعدادات المشرف نفسها (فلا يتغيّر شيء أثناء الحساب)
+const stab = v => Array.isArray(v) ? "[" + v.map(stab).join(",") + "]" : v && typeof v === "object" ? "{" + Object.keys(v).sort().map(k => JSON.stringify(k) + ":" + stab(v[k])).join(",") + "}" : JSON.stringify(v);
+async function verifyBak(fs, b, key) {
+  const cmpAt = Date.now(), at = d => d.name.slice(DOCROOT.length + 1), B = new Map();
+  for (const d of b.docs) { const o = {}; for (const k in d.fields) o[k] = dec(d.fields[k]); B.set(at(d), { data: o, ut: d.ut || "" }) }
+  const uids = new Set([...B.keys()].map(p => (p.match(/^users\/([^/]+)\/data\/core$/) || [])[1]).filter(Boolean));
+  for (const u of await fs.list("users")) uids.add(u.id);
+  const K = ["core", "log", "qa", "ck"], L = {};
+  for (const uid of uids) {
+    const g = await Promise.all([...K.map(k => fs.get(`users/${uid}/data/${k}`)), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`), fs.get(`users/${uid}`), fs.get(`members/${uid}`)]);
+    // الاسم من وثيقة الأسماء، وإن لم تكن (كبعض الحسابات القديمة) فمن وثيقة المستخدم كما في قائمة المستخدمين و«لقطة الحسابات»؛ ورقم الحساب من وثيقة التفعيل
+    L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[4], name: g[5] && g[5].data.name || g[6] && g[6].data.name || "", user: !!g[6], no: g[7] && g[7].data.no != null ? +g[7].data.no : null };
+  }
+  await loadCfg(fs);   // إعدادات المشرف، كما يحسبها التطبيق والمزامنة
+  const accts = {}; let same = true;
+  for (const uid of uids) {
+    const l = L[uid], bd = k => B.get(`users/${uid}/data/${k}`), docs = {};
+    for (const k of K) { const x = bd(k), y = l.d[k]; docs[k] = !x && !y ? "none" : !x ? "missing-bak" : !y ? "missing-live" : stab(x.data) === stab(y.data) ? "same" : "diff" }
+    const bg = [...B].filter(([p]) => p.startsWith(`gifts/${uid}/g/`)).map(([p, x]) => ({ id: p.split("/").pop(), ...x.data })).sort((a, c) => a.id < c.id ? -1 : 1);
+    const lg = [...l.gifts].sort((a, c) => a.id < c.id ? -1 : 1);
+    docs.gifts = stab(bg) === stab(lg) ? "same" : "diff";
+    const sum = (d, gifts) => d.core ? acctSum(parseJ(d.core.v, {}), parseJ(d.log && d.log.v, null), parseJ(d.qa && d.qa.v, null), parseJ(d.ck && d.ck.v, null), gifts) : null;
+    const bs = sum(Object.fromEntries(K.map(k => [k, bd(k) && bd(k).data])), bg), ls = sum(Object.fromEntries(K.map(k => [k, l.d[k] && l.d[k].data])), lg);
+    const sd = bs && ls ? Object.keys(bs).filter(k => stab(bs[k]) !== stab(ls[k])) : [bs ? "غير موجود الآن" : "غير موجود في النسخة"];
+    const docSame = Object.values(docs).every(v => v === "same" || v === "none");
+    if (!docSame || sd.length) same = false;
+    accts[uid] = { name: l.name || (B.get(`names/${uid}`) || { data: {} }).data.name || (B.get(`users/${uid}`) || { data: {} }).data.name || "", no: l.no, userDoc: l.user, docs, docSame,
+      coreUt: { bak: bd("core") ? bd("core").ut : "", live: l.d.core ? l.d.core.updateTime : "" }, bak: bs, live: ls, diff: sd };
+  }
+  return { ok: true, key, at: b.at, cmpAt, n: b.docs.length, result: same ? "match" : "diff", accts,
+    // للتوافق مع الواجهة القديمة
+    bak: Object.fromEntries(Object.entries(accts).filter(([, a]) => a.bak).map(([u, a]) => [u, { name: a.name, ...a.bak }])),
+    live: Object.fromEntries(Object.entries(accts).filter(([, a]) => a.live).map(([u, a]) => [u, { name: a.name, ...a.live }])),
+    diff: Object.fromEntries(Object.entries(accts).map(([u, a]) => [u, a.docSame ? a.diff : [...new Set([...a.diff, ...Object.entries(a.docs).filter(([, v]) => v !== "same" && v !== "none").map(([k]) => "وثيقة " + k)])]])) };
+}
 // المشرف: قائمة النسخ، نسخة الآن، تجربة الاسترجاع (فكّ النسخة وفحصها بلا كتابة)، الاسترجاع الفعلي
 async function handleBackup(fs, user, body, env) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
   if (!env.BAK) return { status: 500, json: { error: "nokv" } };
   const op = String(body.op || "list"), key = String(body.key || "");
   if (op === "list") { const l = (await env.BAK.list({ prefix: "bak-" })).keys.sort((a, b) => a.name < b.name ? 1 : -1); return { status: 200, json: { items: l.map(k => ({ key: k.name, ...(k.metadata || {}) })) } } }
-  if (op === "now") return { status: 200, json: await backupNow(env, "manual") };
+  if (op === "now") return { status: 200, json: await backupOnce(env, fs, body.rid, "manual") };
   // لقطة الحسابات الآن (للتوثيق قبل التحديث وبعده)
-  if (op === "snap") return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } };
+  if (op === "snap") { await loadCfg(fs); return { status: 200, json: { at: Date.now(), cv: typeof CORE_V !== "undefined" ? CORE_V : "", accts: await liveSums(fs) } } }
   const b = await loadBak(env, key);
   if (op === "test") {
     const per = {}; for (const d of b.docs) { const p = d.name.slice(DOCROOT.length + 1).split("/"), c = p.length > 2 ? p[0] + "/…/" + p[p.length - 2] : p[0]; per[c] = (per[c] || 0) + 1 }
@@ -621,7 +699,8 @@ async function handleBackup(fs, user, body, env) {
     return { status: 200, json: { ok: !bad, at: b.at, n: b.docs.length, bad, per } };
   }
   // تحقق كامل بلا كتابة: تُفكّ النسخة وتُعاد بناء كل الحسابات منها، وتُقارن بالحسابات الحيّة
-  if (op === "verify") {
+  if (op === "verify") return { status: 200, json: await verifyBak(fs, b, key) };
+  if (op === "verify1") {
     const fromBak = bakSums(b), live = await liveSums(fs), diff = {};
     for (const uid of new Set([...Object.keys(fromBak), ...Object.keys(live)])) {
       const a = fromBak[uid], c = live[uid], d = [];
@@ -978,7 +1057,7 @@ async function handleRd(fs, user, body, env) {
 }
 
 export default {
-  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupNow(env, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
+  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
   async fetch(req, env, ctx) {
     env.__ctx = ctx;
     const H = cors(req), url = new URL(req.url);
