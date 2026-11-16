@@ -1080,9 +1080,14 @@ body:not(.adm):has(#review.on .unitw) .unitw{background:var(--ds-bg)}
 body:not(.adm) header{background:var(--ds-card);border-bottom:0;box-shadow:var(--sh-1)}
 body:not(.adm) .hrow{padding:var(--sp-2) var(--sp-4)}
 body:not(.adm) .hcrs{background:var(--ds-cream);color:var(--ds-navy);padding:7px 14px;font-size:var(--fs-sm);gap:6px}
-/* شريط المنهج مع شارة المستوى: حشوة أصغر من جهة الشارة، فيتّسع الاسم على الشاشات الصغيرة */
-body:not(.adm) .hcrs{padding:6px 10px 6px 5px;gap:4px}
-@media (max-width:380px){body:not(.adm) .hcrs{padding:5px 8px 5px 4px;gap:3px;font-size:.78rem;letter-spacing:-.1px}body:not(.adm) .htop{gap:6px}}
+/* زر المنهج: كتاب مفتوح وسهم في زر بيج صغير (الاسم في القائمة لا في الشريط). شارة المستوى مستقلة بجانبه بلا إطار ولا خلفية */
+body:not(.adm) .hcrs{padding:4px 10px 4px 8px;gap:6px;height:38px;max-width:none;flex:none}
+body:not(.adm) .hcrs .bk{width:34px;height:auto;display:block;filter:drop-shadow(0 1px 1px rgba(0,0,0,.15))}
+.hlvb{display:none;flex:none}body:not(.adm) .hlvb.has{display:block}
+body:not(.adm) .hlvb .lvb{width:38px;height:43px;margin:-4px 0}
+/* توزيع عناصر الشريط بالتساوي مثل التصميم المرجعي: الشارة، الكتاب، التصفية، ثم الطاقة والجواهر والسلسلة */
+body:not(.adm) .htop{justify-content:space-between}body:not(.adm) .htop .hgap{display:none}
+@media (max-width:380px){body:not(.adm) .htop{gap:6px}body:not(.adm) .hcrs{padding:3px 8px 3px 6px;gap:4px;height:36px}body:not(.adm) .hcrs .bk{width:30px}body:not(.adm) .hlvb .lvb{width:34px;height:39px}}
 body:not(.adm) .hcrs:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);opacity:.7}
 body:not(.adm) .hflt{width:38px;height:38px;background:var(--ds-bg);color:var(--ds-navy)}
 body:not(.adm) .hflt svg{width:19px;height:19px}
@@ -1822,7 +1827,7 @@ body:not(.adm) #mainNav button.on i svg{color:var(--ds-acc-dd)}
       <div class="xpbar"><i id="hXp" style="width:0"></i></div>
       <small id="hXpT"></small>
     </div>
-    <button type="button" class="hcrs" id="hCrs" aria-label="المنهج"></button><span class="hgap"></span>
+    <span class="hlvb" id="hLvB" aria-label="المستوى"></span><button type="button" class="hcrs" id="hCrs" aria-label="المنهج"></button><span class="hgap"></span>
     <button type="button" class="hflt" id="hFlt" aria-label="تصفية الكلمات"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z"/></svg></button>
     <div class="chips">
       <span class="chip fire" id="hFire">🔥 0</span>
@@ -1904,7 +1909,7 @@ body:not(.adm) #mainNav button.on i svg{color:var(--ds-acc-dd)}
 <script>
 // فتح فوري: آخر شاشة رئيسية محفوظة على الجهاز تظهر مباشرة، ريثما يتحقّق التطبيق من الحساب ويحمّل الجديد
 try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
-  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="hBtns"')&&SHL.h.includes('id="rdBtn"')&&SHL.h.includes('id="mtBtn"')&&SHL.h.includes('id="hCrs"')){   // نسخة محفوظة من شكل أقدم للرأس (قبل صفّ الأزرار) لا تُستعمل
+  if(SHL&&SHL.v===1&&localStorage.getItem("muf_act_"+SHL.uid)==="1"&&SHL.h.includes('id="hBtns"')&&SHL.h.includes('id="rdBtn"')&&SHL.h.includes('id="mtBtn"')&&SHL.h.includes('id="hCrs"')&&SHL.h.includes('id="hLvB"')){   // نسخة محفوظة من شكل أقدم للرأس (قبل صفّ الأزرار) لا تُستعمل
     
     if(SHL.th)document.documentElement.dataset.theme=SHL.th;if(localStorage.getItem("muf_dark")==="1")document.documentElement.dataset.dark="1";
     document.querySelector("header .hrow").innerHTML=SHL.h;document.getElementById("mainFilters").innerHTML=SHL.f;document.getElementById("review").innerHTML=SHL.r.replace(/animation-delay:-\d+ms/g,"animation-delay:-"+Date.now()%1600+"ms");   // الحركة تكمل من موضعها الآن
@@ -5665,9 +5670,11 @@ function navSync(){
 function lvBadge(lv){lv=Math.max(1,Math.floor(+lv||1));const hi=lv>50;
   return `<span class="lvb" title="${lv}"><img src="img/lv/${hi?"x":lv}.webp" alt="${lv}" width="30" height="34" decoding="async">${hi?`<b class="d${Math.min(4,String(lv).length)}">${lv}</b>`:""}</span>`}
 function hdrExtra(){
-  const c=$("hCrs"),many=MY_COURSES.filter(x=>COURSES[x]).length>1&&!isAdmin(),nm=(COURSES[COURSE]||{}).name||"";
-  c.classList.toggle("has",!!nm&&!isAdmin());c.classList.toggle("pick",many);c.setAttribute("aria-label","المنهج: "+nm);
-  setH(c,lvBadge((EC||econ()).lv)+`<bdi dir="rtl">${esc(nm)}</bdi>`);
+  // زر المنهج: كتاب وسهم، والاسم في القائمة التي تفتح بالضغط (مع ✓ عند المنهج الحالي). وشارة المستوى مستقلة بجانبه
+  const c=$("hCrs"),nm=(COURSES[COURSE]||{}).name||"",lb=$("hLvB");
+  c.classList.toggle("has",!!nm&&!isAdmin());c.classList.add("pick");c.setAttribute("aria-label","المنهج: "+nm);c.title=nm;
+  setH(c,`<img class="bk" src="img/3d/book.png" alt="" width="34" height="23">`);
+  lb.classList.toggle("has",!isAdmin());setH(lb,lvBadge((EC||econ()).lv));
   navSync();
 }
 const btnVis=id=>{const b=$(id);return !!b&&b.style.display!=="none"};
@@ -5732,7 +5739,7 @@ function init(){
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));
     hideFb();b.classList.add("on");$(b.dataset.p).classList.add("on");renderPanel(b.dataset.p);scrollTo(0,0)});
   ["fDay","fSubj","fLvl","fCore"].forEach(id=>$(id).onchange=()=>{refresh();navSync()});
-  $("hCrs").onclick=()=>{if($("hCrs").classList.contains("pick"))coursePicker()};
+  $("hCrs").onclick=()=>coursePicker();
   // الضغط على أيقونة الرئيسية من قسم آخر يعيدك دائمًا إلى «المسار»
   document.querySelectorAll('#mainNav button[data-p="review"]').forEach(b=>b.addEventListener("click",()=>{if(!$("review").classList.contains("on"))HOMETAB="path"},true));
   $("hFlt").onclick=()=>{document.body.classList.toggle("fopen");if(document.body.classList.contains("fopen"))scrollTo(0,0)};
