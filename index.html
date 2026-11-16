@@ -25,8 +25,8 @@ function openScroll(){try{if(OPENSC>1)return;const rv=document.getElementById("r
 addEventListener("touchmove",()=>{OPENSC=2},{passive:true});addEventListener("wheel",()=>{OPENSC=2},{passive:true});
 // إشارة إلى تطبيق أندرويد: الواجهة الحقيقية رُسمت، فلتُخفَ شاشة البداية
 function appReady(){bootDone();try{if(window.MufApp&&MufApp.ready)setTimeout(()=>MufApp.ready(),120)}catch(e){}}setTimeout(bootDone,10000);</script>
-<style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}#vbar{position:fixed;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 56px);z-index:80;white-space:nowrap;background:#253363;color:#fff;font-size:.85rem;font-weight:700;padding:8px 14px;border-radius:999px;box-shadow:0 4px 14px rgba(0,0,0,.2);display:flex;align-items:center;gap:10px;max-width:92vw}
-#vbar button{border:0;border-radius:999px;background:#F4A126;color:#fff;font:inherit;padding:4px 12px;cursor:pointer}
+<style>html.boot,html.boot body{background:transparent!important}html.boot #login{background:transparent!important}html.boot #login>*,html.boot body>:not(#login){visibility:hidden}#vbar{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;background:#253363;color:#fff;font-size:.85rem;font-weight:700;padding:6px 12px;text-align:center}
+#vbar button{border:0;border-radius:999px;background:#F4A126;color:#fff;font:inherit;padding:3px 12px;cursor:pointer}
 </style>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
@@ -3028,7 +3028,7 @@ function verCheck(j){
 }
 function verBar(){let b=$("vbar");
   if(!VMIS){if(b)b.remove();return}
-  if(!b){b=document.createElement("div");b.id="vbar";b.setAttribute("role","status");document.body.appendChild(b)}
+  if(!b){b=document.createElement("div");b.id="vbar";b.setAttribute("role","status");document.querySelector("header").appendChild(b)}   // داخل الترويسة: جزء من التخطيط يدفع المحتوى، لا يغطيه
   b.innerHTML=VMIS.tried?'يجري تحديث الخادم، والأرقام المعروضة منه':'يتوفر تحديث للتطبيق <button type="button" id="vbarGo">تحديث الآن</button>';
   const g=$("vbarGo");if(g)g.onclick=async()=>{if(EVQ.length){await syncNow()}UPD=true;if(!reloadSafe()){toast(I3("warning"),"يُحدَّث بعد إنهاء الدرس","");return}doReload()}}
 // الأرقام المعروضة: من الخادم ما دام الاختلاف قائمًا (لا تغيّر أي حساب في الخادم)
@@ -3044,8 +3044,9 @@ async function doReload(){
   // وضع «العمل بلا إنترنت»: نحذف الصفحة المحفوظة فتُطلب من الشبكة، لا النسخة القديمة
   try{if(window.caches&&navigator.serviceWorker&&navigator.serviceWorker.controller){const c=await caches.open("muf-data-1");await c.delete(new Request(new URL(".",location.href).href))}}catch(e){}
   location.reload()}
+let RLD=false;   // إعادة التحميل تُطلب مرة واحدة فقط
 function tryReload(){
-  if(!UPD||!reloadSafe())return;doReload()}
+  if(RLD||!UPD||!reloadSafe())return;RLD=true;doReload()}
 checkUpdate();setInterval(checkUpdate,30*60000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
 let SHT=null;
@@ -3081,7 +3082,8 @@ async function syncNow(manual){
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
     // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
     if(e.code!=="inactive"&&e.code!=="auth"&&e.code!=="permission-denied"&&EVQ.length){const d=[5,15,30,60,120][Math.min(syncFails,4)];syncFails++;schedSync(d*1000)}}
-  syncing=false;return ok;
+  syncing=false;if(ok&&VMIS&&!VMIS.tried&&UPD)tryReload();   // بعد انتهاء المزامنة: الآن يمكن إعادة التحميل إن كانت مطلوبة
+  return ok;
 }
 let syncFails=0;
 function schedSync(ms){if(!UID||isAdmin())return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncNow(),ms||15000)}
@@ -4822,7 +4824,7 @@ function init(){
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
-  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(EVQ.length||syncErr))syncNow()});
+  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(EVQ.length||syncErr||Date.now()-lastSync>10*60e3))syncNow()});   // العودة بعد غياب طويل: مزامنة خفيفة تكشف أيضًا اختلاف النسخة
   // عاد الاتصال: نرسل ما تأخّر فورًا
   addEventListener("online",()=>{if(UID&&(EVQ.length||syncErr)){syncFails=0;syncNow()}});
 }

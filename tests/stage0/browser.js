@@ -1,6 +1,6 @@
 schedSync=function(){};syncNow=async function(){return true};
 window.__rl=0;doReload=async()=>{window.__rl++;try{sessionStorage.setItem("muf_vrl",JSON.stringify({sv:VMIS.sv,t:Date.now()}))}catch(e){}};
-try{sessionStorage.removeItem("muf_vrl")}catch(e){}
+try{sessionStorage.removeItem("muf_vrl")}catch(e){};RLD=false
 const SUM={gems:999,xp:4321,lv:17,rest:3,need:200,streak:42,today:true};
 T('رقم نسخة التطبيق مقروء من الصفحة',!!CORE_V,CORE_V);
 verCheck({cv:CORE_V});T('النسخة نفسها: لا شريط ولا إعادة',!document.getElementById('vbar')&&window.__rl===0);
@@ -24,5 +24,5 @@ T('الصندوق لا يُفتح أثناء الاختلاف',!h.querySelector(
 // عودة التطابق
 verCheck({cv:CORE_V});EC=null;renderHeader();T('بعد التحديث: الشريط يختفي والأرقام محلية',!document.getElementById('vbar')&&!/999/.test($('hGem').textContent),$('hGem').textContent);
 // زر «تحديث الآن» أثناء الدرس
-try{sessionStorage.removeItem("muf_vrl")}catch(e){}STS={x:1};verCheck({cv:'bbbbbbbbbb',sum:SUM});const r0=window.__rl;document.getElementById('vbarGo').click();await sleep(300);
-T('زر «تحديث الآن» أثناء الدرس لا يقطعه',window.__rl===r0);STS=null;verCheck({cv:CORE_V});
+try{sessionStorage.removeItem("muf_vrl")}catch(e){};RLD=false;STS={x:1};verCheck({cv:'bbbbbbbbbb',sum:SUM});const r0=window.__rl;document.getElementById('vbarGo').click();await sleep(300);
+T('زر «تحديث الآن» أثناء الدرس لا يقطعه',window.__rl===r0,r0+'→'+window.__rl+' safe '+reloadSafe()+' sts '+!!STS);STS=null;verCheck({cv:CORE_V});
