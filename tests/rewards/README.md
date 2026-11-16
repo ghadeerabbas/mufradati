@@ -12,3 +12,5 @@
 - أُصلح أيضًا خبر الدوري في التطبيق: كان يعتمد على زيادة طول LG.hist فيتوقف بعد 52 أسبوعًا.
 
 التشغيل: tests/rewards/run.sh (يحتاج node وgit وفرع origin/main).
+
+اختبار التكامل بشيفرة الخادم الحقيقية: tests/integration/run.sh. الخطة: tests/PLAN.md.

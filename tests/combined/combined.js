@@ -14,11 +14,11 @@ const OLD=load(process.argv[3]),NEW=load(process.argv[4]),CLI=load(process.argv[
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
 let rnd=(()=>{let s=777;return()=>(s=(s*1103515245+12345)%2147483648)/2147483648})();
 // ===== أ) الدوري: جدول التطبيق = جدول الخادم، والمتعلّمون لا يتغيّرون =====
-{let same=0,humansSame=0,minBot=1e9,tieOk=0,ties=0,worse=0,oldDiff=0,N=3000;
+{let rankDiff=0,rankBig=0,same=0,humansSame=0,minBot=1e9,tieOk=0,ties=0,worse=0,oldDiff=0,N=3000;
  for(let k=0;k<N;k++){const n=1+Math.floor(rnd()*6),docs=[...Array(n)].map((_,i)=>({id:'u'+k+'_'+i,xp:rnd()<.3?[5,10,15,12][i%4]:Math.floor(rnd()*400),tier:Math.floor(rnd()*4),grp:0,name:'n'+i}));
   const prev=docs.map(d=>({...d,xp:Math.floor(rnd()*300)}));const w='2027-'+String(1+k%52).padStart(2,'0')+'-01';const prog=[0,.3,1][k%3];
   const s=NEW.tableFor(docs[0].id,w,docs,prev,prog),c=CLI.tableFor(docs[0].id,w,docs,prev,prog),o=OLD.tableFor(docs[0].id,w,docs,prev,prog),oc=OCLI.tableFor(docs[0].id,w,docs,prev,prog);
-  if(JSON.stringify(s)===JSON.stringify(c))same++;if(JSON.stringify(s)!==JSON.stringify(oc))oldDiff++;
+  if(JSON.stringify(s)===JSON.stringify(c))same++;if(JSON.stringify(s)!==JSON.stringify(oc))oldDiff++;{const a=s.findIndex(r=>r.id===docs[0].id),b=oc.findIndex(r=>r.id===docs[0].id);if(a!==b){rankDiff++;if(docs[0].xp>=15)rankBig++}}
   const hx=t=>JSON.stringify(t.filter(r=>!r.bot).map(r=>[r.id,r.xp]).sort());if(hx(s)===hx(o))humansSame++;
   s.filter(r=>r.bot).forEach(r=>minBot=Math.min(minBot,r.xp));
   for(let i=1;i<s.length;i++)if(s[i].xp===s[i-1].xp&&s[i].bot!==s[i-1].bot){ties++;if(!s[i-1].bot)tieOk++}
@@ -28,7 +28,7 @@ let rnd=(()=>{let s=777;return()=>(s=(s*1103515245+12345)%2147483648)/2147483648
  T('الدوري: أقل منافس آلي',minBot>=5,minBot);
  T('الدوري: عند التساوي يتقدّم المتعلّم',tieOk===ties,ties+' حالة تساوٍ');
  T('الدوري: من جمع 15 فأكثر لم يتأخر مركزه',worse===0,worse);
- T('الدوري (خطر): تطبيق قديم يعرض جدولًا مختلفًا عن الخادم الجديد',true,oldDiff+' من '+N+' مجموعة')}
+ T('الدوري (خطر): تطبيق قديم يعرض جدولًا مختلفًا عن الخادم الجديد',true,oldDiff+' من '+N+' مجموعة (أرقام المنافسين الآليين)');T('الدوري (خطر): تطبيق قديم يعرض مركزًا مختلفًا للمتعلّم',true,rankDiff+' من '+N+'، منها لمن خبرته 15 فأكثر: '+rankBig)}
 // ===== ب) ثلاث سنوات: المهمة والجواهر والألبوم والتكرار، بطلبات منفصلة وإعادة تحميل =====
 NEW.QUESTS.find(q=>q.id==='rv15').f=()=>99;
 const req=(evs,ctx={})=>{NEW.load(S);const r=evs.map(e=>{NOW=e.t;return NEW.applyEv(e,e.t,{server:true,words:null,...ctx})});S=NEW.save();return r};
