@@ -1759,6 +1759,11 @@ body:not(.adm) .unit.uh-c .uh-t{flex:1;font-size:var(--fs-md)}
 body:not(.adm) .rvstats{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-2);margin:var(--sp-2) 0 var(--sp-3)}
 body:not(.adm) .rvstats span{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--ds-card);box-shadow:var(--sh-1);border-radius:var(--r-md);padding:8px 4px;color:var(--ds-muted);font-weight:700;font-size:var(--fs-xs);text-align:center}
 body:not(.adm) .rvstats b{color:var(--ds-navy);font-weight:900;font-size:var(--fs-lg);line-height:1.2}
+/* ---------- زر بدء الدراسة المختصر (هوية design) ---------- */
+body:not(.adm):not(.lesson) #review .stgo:has(.btn){padding:6px 0 4px}
+body.hasseg:not(.seghide):not(.adm):not(.lesson) #review .stgo:has(.btn){bottom:calc(var(--navH,64px) + var(--segH,56px) + 2px)}
+body:not(.adm) #review .stgo .btn.next{min-height:48px;max-height:56px;padding:10px 14px;font-size:var(--fs-md);margin-top:0!important;line-height:1.3}
+body:not(.adm) #review .stsub{margin:5px 4px 0;font-size:var(--fs-xs);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 /* ---------- الشريط السفلي: أيقونات خطّية موحّدة مع أسمائها ---------- */
 body:not(.adm) #mainNav{background:var(--ds-card);border-top:0;box-shadow:0 -1px 0 var(--ds-line),0 -6px 18px rgba(37,51,99,.06)}
 body:not(.adm) #mainNav button{flex-direction:column;align-items:center;gap:2px;padding:6px 2px 6px}
@@ -2628,6 +2633,11 @@ function heroCard(o){const {u,dueN,memN,done,dn,N,pend,dl,PB}=o;
   // ومجموع الكلمات وما يُراجَع وما حُفظ انتقلت إلى قسم «المراجعة». الدراسة الحرّة بلا شريط فيبقى لها عنوانها
   if(FREEU)return `<div class="unit dsh uh-c"><b class="uh-t">${title}</b>${questPill()}</div>`;
   return `<div class="unit dsh uh-c"><div class="uh-pr">${seg}<span class="uh-n" dir="ltr">${nd} / ${N}</span></div>${questPill()}</div>`}
+// سطر قصير تحت زر البدء (للمتعلّم): ما بعد «·» إن وُجد، وإلا الجملة الأولى (حتى «!» أو «.»)، بلا الرموز في آخرها.
+// (النرد وفقاعته مخفيّان في هوية design، فالسطر المختصر هو ما يظهر)
+function stLine(c){const t=String(c).replace(/<[^>]*>/g,"").replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]\uFE0F?/gu,"").trim();
+  if(t.includes("·"))return t.split("·").pop().trim();
+  const m=t.match(/^[^!.؟]*[!.؟]/);if(!m)return t;const f=m[0].trim();return f.length>=12?f:(t.slice(m[0].length).trim()||f)}
 function reviewHome(){
   if(!document.body.classList.contains("lesson"))document.body.classList.toggle("rvtab",HOMETAB==="rv");   // القسم يُطبَّق قبل الرسم، فلا يقفز الزر من مكانه
   if(STS)return stationView();
@@ -2685,7 +2695,7 @@ function reviewHome(){
    <div class="zz" style="height:${N*SP+TOP+6+(CH?SP*.75:0)}px">${zpath}${N>=2?`<div class="zmas r" style="top:${SP+TOP+80}px">${coach?`<div class="bub">${coach}</div>`:""}${mascot(pose1)}</div>`:""}${N>=4?`<div class="zmas l" style="top:${3*SP+TOP+80}px"><div class="flip">${mascot(pose2)}</div></div>`:""}${[...Array(N)].map((_,i)=>node(i)).join("")}${chNode()}</div>
    <div class="stgo">${pend&&(dl||done>=N)?`<button class="btn next blue" id="dStart" style="width:100%;margin-top:4px${dlow?";opacity:.6":""}">${I3("puzzle")} ابدأ تدريب المحطة ${PB+done}</button>`
      :done>=N?(chOpen?`<button class="btn next chalbtn" id="chStart" style="width:100%;margin-top:4px">${I3("trophy")} ابدأ تحدي اليوم · خبرة مضاعفة</button>`:''):!fresh?(allDone?courseDoneHTML():'')
-     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?(isAdmin()?"🪫 ":HIC("lowbat")+" "):""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?(isAdmin()?" ⚡":" "+HIC("battery")):""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:coach?`<p class="stsub">${coach}</p>`:""}</div>
+     :`<button class="btn next" id="stStart" style="width:100%;margin-top:4px${low?";opacity:.6":""}">${low?(isAdmin()?"🪫 ":HIC("lowbat")+" "):""}${dailyN&&!low?"ابدأ جلسة اليوم":"ابدأ المحطة "+(PB+done+1)}${UN?(isAdmin()?" ⚡":" "+HIC("battery")):""}</button>`}${dailyN&&!low&&!(pend&&(dl||done>=N))?`<p class="stsub">${arN(dailyN,"مراجعة","مراجعتان","مراجعات")} + ${arN(ST_WORDS,"كلمة جديدة","كلمتان جديدتان","كلمات جديدة")}</p>`:coach?`<p class="stsub">${isAdmin()?coach:stLine(coach)}</p>`:""}</div>
    ${UN&&!FREEU?`<p class="rnote unlnote">⚡ طاقة بلا حدود حتى ${new Date(EN.u).toLocaleTimeString("ar-u-nu-latn",{hour:"2-digit",minute:"2-digit"})}</p>`:""}
    ${FREEU?'<p class="rnote" style="text-align:center;margin-top:8px">🎓 الدراسة الحرّة: طاقة بلا حدود ومحطات متجدّدة، بلا خبرة ولا جواهر من الدراسة.</p>':""}
   </div>
@@ -3057,7 +3067,8 @@ const ART=/^(der|die|das)\s+/i;
 const arLemma=w=>{const d=String(w.de).split(",");if(d.length<2)return w.ar;const a=String(w.ar).split(/[،,]/);return a.length===d.length?a[0].trim():w.ar};
 // الصيغة الأساسية: قبل أول فاصلة وقبل «+»، بلا أقواس. البدائل المفصولة بـ « / » (بمسافتين) كلمات مستقلة،
 // أما الشرطة الملتصقة (der/die، jemanden/etwas) فجزء من الكلمة نفسها ولا تُقطع
-const deBase=w=>{let s=String(w.de).split(",")[0];const pi=s.indexOf("+");if(pi>0)s=s.slice(0,pi);return s.replace(/\([^)]*\)/g,"")};
+// الأقواس الشارحة تُحذف أولًا (قبل الفاصلة و«+»)، وإلا قُطع «als (+ Beruf/Rolle)» عند «+» فبقي «als (» بقوسٍ مفتوح
+const deBase=w=>{let s=String(w.de).replace(/\([^)]*\)/g,"").split(",")[0];const pi=s.indexOf("+");if(pi>0)s=s.slice(0,pi);return s};
 const lemmaOf=w=>deBase(w).split(/\s+[\/↔]\s+/)[0].replace(/\s+/g," ").trim();
 function answersOf(w){
   const out=[];
