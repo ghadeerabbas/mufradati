@@ -372,15 +372,19 @@ function rngOf(seed){let h=2166136261;for(const c of String(seed))h=Math.imul(h^
   return()=>{h=h+0x6D2B79F5|0;let t=h;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return((t^t>>>14)>>>0)/4294967296}}
 const BOTN=["Lena","Jonas","Mia","Paul","Emma","Felix","Hannah","Lukas","Sophie","Elias","Lea","Noah","Marie","Ben","Clara","Finn","Anna","Leon"];
 // منافسون آليّون ثابتون طوال الأسبوع: هدف كلٍّ منهم بين 20% و100% من متوسط خبرة المجموعة، مضروبًا في «قوة الروبوتات» من لوحة المدير (CFG.league.bots٪)، ويزداد يومًا بعد يوم
+// ولكل منافس حدّ أدنى ثابت طوال الأسبوع بين BOT_MIN[0] وBOT_MIN[1] خبرة، فلا يظهر أحد بصفر. مولّده منفصل، فلا تتغيّر الأسماء ولا الأهداف.
+// الحدّ ≤ 15، وعند التساوي يتقدّم المتعلّم (tableFor)، فلا يتأخر بسببه من جمع 15 خبرة أو أكثر. لا يُطبَّق إن كانت قوة الروبوتات 0.
+const BOT_MIN=[5,15];
 function makeBots(w,cl,base,prog){
-  const r=rngOf(w+"|"+cl.key),names=[...BOTN];
+  const r=rngOf(w+"|"+cl.key),fl=rngOf(w+"|"+cl.key+"|min"),names=[...BOTN],on=(CFG.league.bots??100)>0;
   for(let i=names.length-1;i>0;i--){const j=r()*(i+1)|0;[names[i],names[j]]=[names[j],names[i]]}
   const out=[],n=Math.max(0,TARGET-cl.m.length),tier=Math.min(...cl.m.map(m=>m.tier||0));
   for(let i=0;i<n;i++){
     const target=base*(.2+r()*.8)*(CFG.league.bots??100)/100,wts=[...Array(7)].map(()=>{const a=r(),b=r();return a<.2?0:.3+b});
     const tot=wts.reduce((a,b)=>a+b,0)||1,days=prog*7;let xp=0;
     for(let d=0;d<7;d++)xp+=target*wts[d]/tot*Math.max(0,Math.min(1,days-d));
-    out.push({id:"bot"+i,bot:1,name:names[i],av:"🤖",tier,xp:Math.round(xp)});
+    const mn=BOT_MIN[0]+Math.round(fl()*(BOT_MIN[1]-BOT_MIN[0]));
+    out.push({id:"bot"+i,bot:1,name:names[i],av:"🤖",tier,xp:on?Math.max(Math.round(xp),mn):Math.round(xp)});
   }
   return out;
 }
