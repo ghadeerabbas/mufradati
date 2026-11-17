@@ -13,18 +13,18 @@ ctl.NOW=Date.parse('2026-11-16T20:40:00Z');for(const u of U)await A[u].sync();
 const k1=(await at('new',{op:'now',rid:'clickVER00001'})).key;ctl.NOW+=60e3;
 const k2=(await at('new',{op:'now',rid:'clickVER00002'})).key;ctl.NOW+=60e3;
 const k3=(await at('new',{op:'now',rid:'clickVER00003'})).key;ctl.NOW+=5e3;
-// ===== الخادم الحالي (verify1 = «تحقق كامل» المنشور الآن) =====
+// ===== العملية القديمة verify1 (كانت «تحقق كامل» قبل backup-inspect): فحوصها تُثبت الخلل الذي استُبدلت لأجله =====
 // خادم بارد (new3: لم يُجرِ أي مزامنة، مثل نسخة جديدة بعد النشر) وبلا أي نشاط
 let v=await at('new3',{op:'verify1',key:k3});
-T('[الحالي] خادم بارد بلا نشاط: النتيجة مطابقة',Object.values(v.diff).every(d=>!d.length));
+T('[verify1] خادم بارد بلا نشاط: النتيجة مطابقة',Object.values(v.diff).every(d=>!d.length));
 const cold=v.bak.ali;ctl.ACTIVE='new';const warm=(await post('/backup','admin',{op:'snap'})).accts.ali;
-T('[الحالي] الحساب نفسه بلا تغيير: «من النسخة» في خادم بارد = «لقطة» في خادم قرأ إعدادات المشرف',cold.gems===warm.gems&&cold.xp===warm.xp,'جواهر '+cold.gems+' مقابل '+warm.gems+' · خبرة '+cold.xp+' مقابل '+warm.xp+' · مستوى '+cold.lv+' مقابل '+warm.lv+' · محطات '+cold.stations+' مقابل '+warm.stations);
+T('[خلل معروف في العملية القديمة verify1، ما زالت في الخادم ولا تستعملها الواجهة] خادم بارد لا يقرأ إعدادات المشرف: «من النسخة» يختلف عن «لقطة» الخادم الدافئ',cold.gems!==warm.gems||cold.xp!==warm.xp,'جواهر '+cold.gems+' مقابل '+warm.gems+' · خبرة '+cold.xp+' مقابل '+warm.xp+' · مستوى '+cold.lv+' مقابل '+warm.lv+' · محطات '+cold.stations+' مقابل '+warm.stations);
 // تحقق في خادم بارد، وأثناءه طلب آخر (مساعد الوظيفة أو التحدي) يقرأ إعدادات المشرف
 const g0=memfs.get.bind(memfs);memfs.get=async p=>{await sleep(3);return g0(p)};
 ctl.ACTIVE='new2';const pv=post('/backup','admin',{op:'verify1',key:k3});await sleep(1);ctl.ACTIVE='new2';const pa=post('/ai','ali',{msgs:[{r:'u',t:'x'}]}).catch(()=>0);
 v=await pv;await pa;memfs.get=g0;
 const dd=Object.entries(v.diff).filter(([,d])=>d.length);
-T('[الحالي] بلا أي نشاط، وطلب آخر أثناء التحقق: هل تظهر فروق؟',!dd.length,dd.map(([u,d])=>u+': '+d.join('، ')).join(' · ')+' · علي: جواهر '+v.bak.ali.gems+'→'+v.live.ali.gems+' · خبرة '+v.bak.ali.xp+'→'+v.live.ali.xp);
+T('[خلل معروف في verify1] بلا أي نشاط، وطلب آخر أثناء التحقق: تظهر فروق وهمية (ولهذا استُبدلت بـverify)',dd.length>0,dd.map(([u,d])=>u+': '+d.join('، ')).join(' · ')+' · علي: جواهر '+v.bak.ali.gems+'→'+v.live.ali.gems+' · خبرة '+v.bak.ali.xp+'→'+v.live.ali.xp);
 // ===== «تحقق كامل» الجديد =====
 for(const V of ['new3','new','new2']){v=await at(V,{op:'verify',key:k3});
   T(`[الجديد، خادم ${V}] بلا نشاط: «مطابقة»، والوثائق الأصلية مطابقة لكل حساب`,v.result==='match'&&Object.values(v.accts).every(a=>a.docSame&&!a.diff.length))}

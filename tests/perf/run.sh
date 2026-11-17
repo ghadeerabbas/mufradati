@@ -1,4 +1,5 @@
 #!/bin/bash
-# اختبار محلي فقط
-set -e;D=$(cd "$(dirname "$0")" && pwd);R=$(cd "$D/../.." && pwd);W=$(mktemp -d)
-git -C "$R" show origin/main:core.js > "$W/old.js";node "$D/perf.js" "$R" "$W/old.js" "$R/core.js"
+# اختبار محلي فقط: core.js المنشور (RELEASED) مقابل الحالي
+D=$(cd "$(dirname "$0")" && pwd); . "$D/../lib.sh"; W=$(mktemp -d)
+B=$(base RELEASED); oldfile "$B" core.js "$W/old.js"
+{ same_note "$W/old.js" "$R/core.js"; node "$D/perf.js" "$R" "$W/old.js" "$R/core.js"; } | verdict

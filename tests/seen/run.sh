@@ -1,6 +1,6 @@
 #!/bin/bash
-# «آخر ظهور»: شيفرة الخادم الحقيقية القديمة (main) والجديدة (هذا الفرع) مع قاعدة في الذاكرة. لا شبكة ولا مفاتيح.
-set -e;D=$(cd "$(dirname "$0")" && pwd);R=$(cd "$D/../.." && pwd);W=$(mktemp -d)
-git -C "$R" show origin/main:server/worker.js > "$W/w_old.mjs";cp "$R/server/worker.js" "$W/w_new.mjs"
-git -C "$R" show origin/main:core.js > "$W/core_old.js";cp "$R/core.js" "$W/core_new.js"
-cd "$D" && node seen.mjs "$W" "$R"
+# «آخر ظهور»: شيفرة الخادم الحقيقية القديمة (RELEASED) والجديدة (هذا الفرع) مع قاعدة في الذاكرة. لا شبكة ولا مفاتيح.
+D=$(cd "$(dirname "$0")" && pwd); . "$D/../lib.sh"; W=$(mktemp -d)
+B=$(base RELEASED); oldfile "$B" server/worker.js "$W/w_old.mjs"; cp "$R/server/worker.js" "$W/w_new.mjs"
+oldfile "$B" core.js "$W/core_old.js"; cp "$R/core.js" "$W/core_new.js"
+{ same_note "$W/w_old.mjs" "$W/w_new.mjs" "$W/core_old.js" "$W/core_new.js"; cd "$D" && node seen.mjs "$W" "$R"; } | verdict
