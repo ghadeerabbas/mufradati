@@ -11,6 +11,7 @@ function load(f){const c={console,Math,Date:FD,JSON,Array,Object,String,Number,S
    loadExact(c){P=c.P;QLOG=c.QLOG;R=c.R;STN=c.STN;STV=c.STV;LOG=c.LOG;EN=c.EN;EC=null},exact(){return JSON.parse(JSON.stringify({P,QLOG,R,STN,STV,LOG,EN}))}};`,c);return c.X}
 const O=load(process.argv[3]),N=load(process.argv[4]);
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 // طلب إلى «الخادم»: يقرأ الحالة المحفوظة (السجلّ بالثواني)، ويطبّق الأحداث، ثم يحفظ
 const req=(X,store,evs)=>{X.load(store);const r=evs.map(e=>{NOW=e.t;return X.applyEv(e,e.t,{server:true,words:null})});return [X.save(),r]};
 let rnd=(()=>{let s=4242;return()=>(s=(s*1103515245+12345)%2147483648)/2147483648})();
@@ -46,9 +47,9 @@ for(let day=0;day<400;day++){
   if(exp>=1&&rO[0]!==true){N.load(sO);NOW=t+1000;const rr=N.applyEv({type:'quest',id:'perf',t:NOW},NOW,{server:true});if(rr===true)st.recover++;else st.recoverBad++}
   days++;
 }
-T('الأيام والمحطات',true,days+' يومًا، '+stTot+' محطة، مع مراجعات منفصلة قبل المحطة وبعدها بأقل من ثانية');
+INFO('الأيام والمحطات',days+' يومًا، '+stTot+' محطة، مع مراجعات منفصلة قبل المحطة وبعدها بأقل من ثانية');
 T('بعد الحفظ وإعادة التحميل: الجديدة = الحقيقة في كل يوم',st.eqTruth===days,st.eqTruth+' من '+days);
-T('القديمة للمقارنة: أيام فقدت فيها المهمة',true,st.oldLost);
+INFO('القديمة للمقارنة: أيام فقدت فيها المهمة',st.oldLost);
 T('فتح الصندوق في طلب لاحق: الجديدة تقبل كل مستحقّ ولا تقبل غير مستحقّ',st.rejNewBad===0,'قُبل '+st.claimNew+' (القديمة قبلت '+st.claimOld+')');
 T('الضغط مرة ثانية يُرفض',st.dupBad===0,st.dupNew+' مرة');
 T('قطعة واحدة فقط في اليوم، محفوظة بعد إعادة التحميل',st.pzBad===0,st.pzOnce+' يومًا');

@@ -12,6 +12,7 @@ function load(f){const c={console,Math,Date:FD,JSON,Array,Object,String,Number,S
    load(s){const c=JSON.parse(s.core);P=c.P||{};QLOG=c.QLOG||[];BUY=c.BUY||[];R=Object.assign({bank:0,ach:[],lv:1,ts:0},c.R||{});LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;LOG=unpackLog(JSON.parse(s.log));QA=unpackQA(JSON.parse(s.qa));EC=null}};`,c);return c.X}
 const OLD=load(process.argv[3]),NEW=load(process.argv[4]),CLI=load(process.argv[4]),OCLI=load(process.argv[3]);
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 let rnd=(()=>{let s=777;return()=>(s=(s*1103515245+12345)%2147483648)/2147483648})();
 // ===== أ) الدوري: جدول التطبيق = جدول الخادم، والمتعلّمون لا يتغيّرون =====
 {let rankDiff=0,rankBig=0,same=0,humansSame=0,minBot=1e9,tieOk=0,ties=0,worse=0,oldDiff=0,N=3000;
@@ -28,7 +29,7 @@ let rnd=(()=>{let s=777;return()=>(s=(s*1103515245+12345)%2147483648)/2147483648
  T('الدوري: أقل منافس آلي',minBot>=5,minBot);
  T('الدوري: عند التساوي يتقدّم المتعلّم',tieOk===ties,ties+' حالة تساوٍ');
  T('الدوري: من جمع 15 فأكثر لم يتأخر مركزه',worse===0,worse);
- T('الدوري (خطر): تطبيق قديم يعرض جدولًا مختلفًا عن الخادم الجديد',true,oldDiff+' من '+N+' مجموعة (أرقام المنافسين الآليين)');T('الدوري (خطر): تطبيق قديم يعرض مركزًا مختلفًا للمتعلّم',true,rankDiff+' من '+N+'، منها لمن خبرته 15 فأكثر: '+rankBig)}
+ INFO('الدوري (خطر): تطبيق قديم يعرض جدولًا مختلفًا عن الخادم الجديد',oldDiff+' من '+N+' مجموعة (أرقام المنافسين الآليين)');INFO('الدوري (خطر): تطبيق قديم يعرض مركزًا مختلفًا للمتعلّم',rankDiff+' من '+N+'، منها لمن خبرته 15 فأكثر: '+rankBig)}
 // ===== ب) ثلاث سنوات: المهمة والجواهر والألبوم والتكرار، بطلبات منفصلة وإعادة تحميل =====
 NEW.QUESTS.find(q=>q.id==='rv15').f=()=>99;
 const req=(evs,ctx={})=>{NEW.load(S);const r=evs.map(e=>{NOW=e.t;return NEW.applyEv(e,e.t,{server:true,words:null,...ctx})});S=NEW.save();return r};
@@ -50,7 +51,7 @@ for(let day=0;day<3*365+5;day++){
   if(new FD(t).getUTCDay()===1){NEW.load(S);const g=Math.floor(rnd()*50);NEW.lgPush({w:d,tier:1,rank:3,n:15,mv:0,g,xp:120});led.lg+=g;S=NEW.save()}
   NEW.load(JSON.parse(JSON.stringify(S)));const e=NEW.earned();if(e<lastE)dec++;lastE=e;days++}
 NEW.load(S);const R_=NEW.R,L_=NEW.LG,sum=(a,i)=>(a||[]).reduce((s,x)=>s+(+x[i]||0),0);
-T('ثلاث سنوات',true,days+' يومًا · سجلّات: صناديق '+R_.qd.length+'، فوز '+R_.dw.length+'، أيام تحدٍّ '+R_.dd.length+'، دوري '+L_.hist.length);
+INFO('ثلاث سنوات',days+' يومًا · سجلّات: صناديق '+R_.qd.length+'، فوز '+R_.dw.length+'، أيام تحدٍّ '+R_.dd.length+'، دوري '+L_.hist.length);
 T('مهمة البازل تُقبل في كل يوم مستحقّ فقط، بطلب منفصل بعد الحفظ',perfBad===0,perfOk+' يومًا');
 T('منع التكرار (الصندوق وفوز التحدي)',dupBad===0);
 T('جواهر الصناديق: المطويّ + الباقي = كل ما مُنح',(+R_.qdg||0)+sum(R_.qd,2)===led.qd,led.qd);
@@ -68,5 +69,5 @@ T('حساب حالي: الرصيد نفسه قبل أي حدث',OLD.earned()===N
 T('حساب حالي: الألبوم نفسه',[...OLD.pzMonth('2026-11').have].sort()+''===[...NEW.pzMonth('2026-11').have].sort()+'');
 T('حساب حالي: مهمة البازل ليوم محفوظ (القديم 0، الجديد 1)',NEW.stPerfectAt('2026-11-12')===1,'قديم '+OLD.stPerfectAt('2026-11-12')+' · جديد '+NEW.stPerfectAt('2026-11-12'));
 OCLI.load(S);NEW.load(S);
-T('تطبيق قديم مع حالة الخادم الجديد (خطر): الرصيد الظاهر',true,'قديم '+OCLI.earned()+' · خادم '+NEW.earned());
+INFO('تطبيق قديم مع حالة الخادم الجديد (خطر): الرصيد الظاهر','قديم '+OCLI.earned()+' · خادم '+NEW.earned());
 console.log(out.join('\n'));

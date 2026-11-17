@@ -13,6 +13,7 @@ const srcOld=fs.readFileSync(OLDF,'utf8'),srcRef=srcOld.replace('if(LOG.length>6
 const REF=load(srcRef,'ref'),OLD=load(srcOld,'old');let NEW=load(fs.readFileSync(NEWF,'utf8'),'new');
 let rs=1;const rnd=()=>(rs=(rs*1103515245+12345)%2147483648)/2147483648;
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 const WITH_OLD=(+YEARS||10)<=2;   // الحالية للمقارنة فقط في المحاكاة القصيرة (حذفها عند الحدّ بطيء جدًّا)
 const ALL=()=>WITH_OLD?[REF,OLD,NEW]:[REF,NEW];let wid=0,ev=0,diffRet=0,folds=0,lastCkT=0,reloads=0,devices=0,maxLog=0,maxCk=0,maxLogDoc=0;
 const fields=e=>({xp:e.xp,lv:e.lv,earned:e.earned,rev:e.s.reviews,mem:e.s.mem,mast:e.s.mast,best:e.s.best,streak:e.s.streak,perfect:e.s.perfect,maxDay:e.s.maxDay,night:e.s.night,early:e.s.early,days:Object.keys(e.per).length,alv:JSON.stringify(e.alv)});
@@ -35,7 +36,7 @@ for(let day=0;day<days;day++){
     if(JSON.stringify(REF.P)!==JSON.stringify(NEW.P))pBad++}
 }
 const a=fields(REF.econ()),b=fields(NEW.econ()),o=WITH_OLD?fields(OLD.econ()):{};
-T('المحاكاة',true,`${days} يومًا · ${ev} حدثًا · ${Math.round((Date.now()-t0)/1000)} ث`);
+INFO('المحاكاة',`${days} يومًا · ${ev} حدثًا · ${Math.round((Date.now()-t0)/1000)} ث`);
 T('الطيّ حدث مرات',folds>0,folds+' مرة · أطول سجل حيّ '+maxLog);
 T('ردود كل الأحداث (قبول ورفض) مطابقة للمرجع',diffRet===0,diffRet);
 T('كل الأرقام مطابقة للمرجع في كل فحص شهري',bad.length===0,checks+' فحصًا'+(bad.length?' · أول اختلاف: '+bad[0]:''));
@@ -43,7 +44,7 @@ T('حالة الكلمات ومواعيد مراجعتها مطابقة للمر
 T('في النهاية: الخبرة والمستوى والجواهر',a.xp===b.xp&&a.lv===b.lv&&a.earned===b.earned,`مرجع ${a.xp} خبرة، مستوى ${a.lv}، ${a.earned} جوهرة · جديد ${b.xp}، ${b.lv}، ${b.earned} ${WITH_OLD?`· الحالي ${o.xp}، ${o.lv}، ${o.earned}`:''}`);
 T('في النهاية: السلسلة والإنجازات',a.best===b.best&&a.streak===b.streak&&a.alv===b.alv&&a.perfect===b.perfect&&a.maxDay===b.maxDay,`أطول سلسلة ${b.best}، مثالية ${b.perfect}، أكثر يوم ${b.maxDay}`);
 T('مكافآت الحفظ والرسوخ لم تتكرّر (عدد الكلمات المحفوظة والراسخة)',a.mem===b.mem&&a.mast===b.mast,`محفوظة ${b.mem}، راسخة ${b.mast} ${WITH_OLD?`(الحالي: ${o.mem}، ${o.mast})`:''}`);
-if(WITH_OLD)T('الحالي للمقارنة: فحوص فقد فيها خبرة',true,oldBad+' من '+checks);
-T('إعادة تحميل وتغيير جهاز',true,reloads+' إعادة · '+devices+' جهاز');
+if(WITH_OLD)INFO('الحالي للمقارنة: فحوص فقد فيها خبرة',oldBad+' من '+checks);
+INFO('إعادة تحميل وتغيير جهاز',reloads+' إعادة · '+devices+' جهاز');
 T('الأحجام',maxCk<500000&&maxLogDoc<1000000,`نقطة الحفظ ${Math.round(maxCk/1024)} ك.ب · وثيقة السجل ${Math.round(maxLogDoc/1024)} ك.ب (الحدّ 1024)`);
 console.log(out.join('\n'));

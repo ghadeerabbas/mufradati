@@ -9,6 +9,7 @@ function load(f,kind){const c={console,Math,Date:FD,JSON,Array,Object,String,Num
     dump(){return JSON.stringify({R,LG,STN})},load(j){const o=JSON.parse(j);R=Object.assign({bank:0,ach:[],lv:1,ts:0},o.R||{});LG=Object.assign({tier:null,w:"",hist:[],ts:0},o.LG||{});STN=o.STN||[];EC=null},
     gems(){EC=null;return econ().earned}};`,c);c.X.QUESTS.forEach(q=>q.f=()=>999);c.X.kind=kind;return c.X}
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 // حالة متعلّم حالي بالصيغة المحفوظة اليوم (بلا أي حقل جديد)
 const CUR=JSON.stringify({R:{bank:12,ach:[],lv:3,ts:0,qd:[["2026-11-10","rv15",3],["2026-11-12","perf",0],["2026-11-12","rv15",3]],dw:[["abcd1",10],["abcd2",10]],dd:["2026-11-08","2026-11-12"],pz:[["2026-11-03",0],["2026-11-12",4]]},
   LG:{tier:1,w:"2026-11-16",hist:[{w:"2026-11-02",g:20,tier:0,mv:1},{w:"2026-11-09",g:0,tier:1,mv:0}],ts:0},STN:[[Date.parse('2026-11-12T10:00:00Z'),5,1]]});
@@ -41,5 +42,5 @@ T('بعد 10 سنوات: رصيد الخادم الجديد = المرجع بل�
 T('الجهاز الجديد بعد المزامنة = الخادم',D1.gems()===S.gems(),D1.gems());
 const D4=dev('new');T('إعادة التثبيت: الرصيد والألبوم من الخادم كاملًا',D4.gems()===S.gems()&&[...D4.pzMonth('2026-11').have].sort()+''===[...REF.pzMonth('2026-11').have].sort()+'',D4.gems());
 T('بلا إنترنت: أحداث الأيام غير المتزامنة وصلت كلها بعد عودة الاتصال',D1.q.length===0&&D2.q.length===0);
-T('نسخة قديمة من التطبيق: أول يوم يعرض فيه رصيدًا أقل من الخادم',true,(firstOldLow||'لا يحدث')+' · أيام: '+oldLow);
+INFO('نسخة قديمة من التطبيق: أول يوم يعرض فيه رصيدًا أقل من الخادم',(firstOldLow||'لا يحدث')+' · أيام: '+oldLow);
 console.log(out.join('\n'));

@@ -11,6 +11,7 @@ function load(f,kind){const c={console,Math,Date:FD,JSON,Array,Object,String,Num
 const A={OLD:load('core_old.js','old'),NEW:load('core_new.js','new'),REF:load('core_ref.js','ref')};
 const rnd=(()=>{let s=12345;return()=>(s=(s*1103515245+12345)%2147483648)/2147483648})();
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 const resDiff={qd:0,pz:0,ret:0};let k=0;
 const end=Date.parse('2037-01-05T09:00:00Z');let snaps=[];
 while(NOW<end){
@@ -32,7 +33,7 @@ while(NOW<end){
   k++;NOW+=864e5;
   if(new FD(NOW).getUTCMonth()===0&&new FD(NOW).getUTCDate()===1){const e={};for(const [n,X] of Object.entries(A)){X.EC=null;const c=X.econ();e[n]={earned:c.earned,best:c.s.best,streak:c.s.streak}}snaps.push([X=>X,new FD(NOW).getUTCFullYear(),e])}
 }
-T('أيام المحاكاة',true,k+' يومًا حتى '+A.NEW.dkey(NOW));
+INFO('أيام المحاكاة',k+' يومًا حتى '+A.NEW.dkey(NOW));
 T('المكافآت وردود الأحداث (منح، رفض، تكرار) متطابقة بين الجديدة والمرجع كل يوم',resDiff.ret===0,resDiff.ret+' يومًا مختلفًا');
 for(const [,y,e] of snaps)T('1 كانون الثاني '+y+': الجواهر المكتسبة والسلسلة',e.NEW.earned===e.REF.earned&&e.NEW.best===e.REF.best&&e.NEW.streak===e.REF.streak,
   `مرجع ${e.REF.earned} · جديدة ${e.NEW.earned} · حالية ${e.OLD.earned} | أطول سلسلة: مرجع ${e.REF.best} جديدة ${e.NEW.best} حالية ${e.OLD.best}`);

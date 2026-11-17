@@ -1,5 +1,6 @@
 // النسخة الاحتياطية: تحقق كامل، لقطة، تنزيل، واسترجاع إلى قاعدة فارغة — بشيفرة الخادم الحقيقية وقاعدة في الذاكرة، بحسابات وهمية
 import {T,out,app,user,station,duelDoc,memfs,DB,post,ctl,KV} from './it.mjs';
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 import zlib from 'node:zlib';
 ctl.ACTIVE='new';ctl.NOW=Date.parse('2026-11-16T08:00:00Z');
 const ids=['acc1','acc2','acc3'];
@@ -26,5 +27,6 @@ const dec=x=>'stringValue' in x?x.stringValue:'integerValue' in x?+x.integerValu
 DB.clear();for(const d of docs)await memfs.commit([{path:d.document.name.slice(ROOT.length+1),data:Object.fromEntries(Object.entries(d.document.fields).map(([k,y])=>[k,dec(y)]))}]);
 const s2=await post('/backup','admin',{op:'snap'});
 T('استرجاع إلى قاعدة فارغة: كل الحسابات مطابقة لما في النسخة',JSON.stringify(s2.accts)===JSON.stringify(live),Object.keys(s2.accts).length+' حسابات');
-for(const u of ids){const A=app('new',u);await A.sync();}T('بعد الاسترجاع: كل حساب يعمل ويزامن',true);
+const bad=[];for(const u of ids){const A=app('new',u);await A.sync();const a=s2.accts[u];if(!a||A.earned()!==a.earned)bad.push(u+': '+A.earned()+' ≠ '+(a&&a.earned))}
+T('بعد الاسترجاع: كل حساب يزامن، ورصيده في التطبيق = رصيده في النسخة',!bad.length,bad.join(' · ')||ids.length+' حسابات');
 console.log(out.join('\n'));

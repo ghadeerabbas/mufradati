@@ -1,4 +1,5 @@
 import {T,out,user,post,ctl,memfs} from './it.mjs';import vm from 'node:vm';import fs from 'node:fs';
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));   // معلومة للعرض فقط: لا تُحسب نجاحًا ولا فشلًا
 const PK=fs.readFileSync('w_new.mjs','utf8').split('\n').filter(l=>/^function (un)?pack(Log|QA)/.test(l)).join('\n');
 const FD=globalThis.Date;
 function ctx(src){const c={console,Math,Date:FD,JSON,Array,Object,String,Number,Set,Map,Intl};vm.createContext(c);
@@ -25,7 +26,7 @@ T('عند تجاوز 60000: طيّ ونقطة حفظ في وثيقة مستقل�
 T('نقطة الحفظ تُرسل للتطبيق مرة واحدة فقط',ckSent===1,ckSent+' مرة من '+(ckSent+noCk));
 const a=REF.econ(),b=D1.econ();T('أرقام التطبيق بعد المزامنة = المرجع (السجل كاملًا)',JSON.stringify(a)===JSON.stringify(b),JSON.stringify(b));
 const D2=ctx(NEWC);j=await post('/sync','ck1',{evs:[],ckt:0});D2.fromServer(j);T('جهاز جديد أو إعادة تثبيت: يستلم نقطة الحفظ والأرقام نفسها',j.ck!==undefined&&JSON.stringify(D2.econ())===JSON.stringify(a));
-const O=ctx(OLDC);O.fromServer(j);const o=O.econ();T('تطبيق قديم مع الخادم الجديد (خطر، تعالجه المرحلة 0)',true,'خبرة '+o.xp+' بدل '+a.xp+' · مراجعات '+o.rev+' بدل '+a.rev);
+const O=ctx(OLDC);O.fromServer(j);const o=O.econ();INFO('تطبيق قديم مع الخادم الجديد (خطر، تعالجه المرحلة 0)','خبرة '+o.xp+' بدل '+a.xp+' · مراجعات '+o.rev+' بدل '+a.rev);
 // الخادم يحسب من نقطة الحفظ أيضًا: الملف العام (pub) يحمل الخبرة الصحيحة
 ctl.NOW+=11*60e3;await post('/sync','ck1',{evs:[],ckt});const pub=await memfs.get('pub/ck1');T('الخادم يحسب من نقطة الحفظ (الخبرة في الملف العام)',pub&&pub.data.xp===a.xp,pub&&pub.data.xp);
 // حذف المشرف بيانات الحساب
