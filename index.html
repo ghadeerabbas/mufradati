@@ -1086,8 +1086,16 @@ body:not(.adm) .hcrs .bk{width:34px;height:26px;display:block}
 .hlvb{display:none;flex:none}body:not(.adm) .hlvb.has{display:block}
 body:not(.adm) .hlvb .lvb{width:48px;height:55px;margin:-9px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.83)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.7)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.56)}
 /* توزيع عناصر الشريط بالتساوي مثل التصميم المرجعي: الشارة، الكتاب، التصفية، ثم الطاقة والجواهر والسلسلة */
-body:not(.adm) .htop{justify-content:space-between}body:not(.adm) .htop .hgap{display:none}
-@media (max-width:380px){body:not(.adm) .htop{gap:6px}body:not(.adm) .hcrs{padding:3px 8px 3px 6px;gap:4px;height:36px}body:not(.adm) .hcrs .bk{width:31px;height:24px}body:not(.adm) .hlvb .lvb{width:43px;height:49px;margin:-7px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.75)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.63)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.5)}}
+/* توزيع ثابت للشريط: مجموعة يمنى (الشارة، الكتاب، التصفية) ومجموعة يسرى (الشعلة، الجواهر، البطارية) بمسافات ثابتة،
+   وبينهما فراغ مرن واحد فقط. اختفاء التصفية لا يحرّك أي عنصر آخر */
+body:not(.adm) .hrow{padding-inline-start:10px;padding-inline-end:14px}
+body:not(.adm) .htop{justify-content:flex-start;align-items:center;gap:0;height:40px}
+body:not(.adm) .htop>#hLvB{order:1;align-self:center}
+body:not(.adm) .htop>#hCrs{order:2;margin-inline-start:10px}
+body:not(.adm) .htop>#hFlt{order:3;margin-inline-start:8px}
+body:not(.adm) .htop>.hgap{order:4;display:block;flex:1 1 0;min-width:8px}
+body:not(.adm) .htop>.chips{order:5;margin-inline-start:0}
+@media (max-width:380px){body:not(.adm) .htop{gap:0}body:not(.adm) .htop>#hCrs{margin-inline-start:8px}body:not(.adm) .htop>#hFlt{margin-inline-start:6px}body:not(.adm) .hrow{padding-inline-start:8px;padding-inline-end:12px}body:not(.adm) .hcrs{padding:3px 8px 3px 6px;gap:4px;height:36px}body:not(.adm) .hcrs .bk{width:31px;height:24px}body:not(.adm) .hlvb .lvb{width:43px;height:49px;margin:-7px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.75)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.63)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.5)}}
 body:not(.adm) .hcrs:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);opacity:.7}
 body:not(.adm) .hflt{width:38px;height:38px;background:var(--ds-bg);color:var(--ds-navy)}
 body:not(.adm) .hflt svg{width:19px;height:19px}
