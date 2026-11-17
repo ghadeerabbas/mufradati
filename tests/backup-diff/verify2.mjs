@@ -24,7 +24,7 @@ const g0=memfs.get.bind(memfs);memfs.get=async p=>{await sleep(3);return g0(p)};
 ctl.ACTIVE='new2';const pv=post('/backup','admin',{op:'verify1',key:k3});await sleep(1);ctl.ACTIVE='new2';const pa=post('/ai','ali',{msgs:[{r:'u',t:'x'}]}).catch(()=>0);
 v=await pv;await pa;memfs.get=g0;
 const dd=Object.entries(v.diff).filter(([,d])=>d.length);
-T('[خلل معروف في verify1] بلا أي نشاط، وطلب آخر أثناء التحقق: تظهر فروق وهمية (ولهذا استُبدلت بـverify)',dd.length>0,dd.map(([u,d])=>u+': '+d.join('، ')).join(' · ')+' · علي: جواهر '+v.bak.ali.gems+'→'+v.live.ali.gems+' · خبرة '+v.bak.ali.xp+'→'+v.live.ali.xp);
+T('[خلل معروف في verify1] بلا أي نشاط، وطلب آخر أثناء التحقق: تظهر فروق وهمية (ولهذا استُبدلت بـverify)',dd.length>0,dd.map(([u,d])=>u+': '+d.join('، ')).join(' · ')+' · سامر: جواهر '+v.bak.ali.gems+'→'+v.live.ali.gems+' · خبرة '+v.bak.ali.xp+'→'+v.live.ali.xp);
 // ===== «تحقق كامل» الجديد =====
 for(const V of ['new3','new','new2']){v=await at(V,{op:'verify',key:k3});
   T(`[الجديد، خادم ${V}] بلا نشاط: «مطابقة»، والوثائق الأصلية مطابقة لكل حساب`,v.result==='match'&&Object.values(v.accts).every(a=>a.docSame&&!a.diff.length))}
@@ -34,15 +34,15 @@ T('[الجديد] طلب آخر أثناء التحقق: لا فروق',v.result
 // 1) أيّ نسخة يقارن
 for(const k of [k1,k2,k3]){v=await at('new',{op:'verify',key:k});const meta=(await at('new',{op:'list'})).items.find(x=>x.key===k);
   T('1) يقارن النسخة المختارة نفسها: '+k.slice(15),v.key===k&&v.at===meta.at,'وقت الإنشاء من الملف '+new Date(v.at).toISOString().slice(11,19)+' · وقت المقارنة '+new Date(v.cmpAt).toISOString().slice(11,19))}
-// 3) و4) التصدير كامل وبأحدث القيم: وثائق علي في النسخة = وثائقه في القاعدة بايتًا ببايت
+// 3) و4) التصدير كامل وبأحدث القيم: وثائق سامر في النسخة = وثائقه في القاعدة بايتًا ببايت
 const f=JSON.parse(zlib.gunzipSync(Buffer.from((await at('new',{op:'download',key:k3})).b64,'base64')).toString()).parts.flat();
 const mine=f.filter(x=>x.document.name.includes('/ali'));const okAll=mine.every(x=>{const p=x.document.name.slice(ROOT.length+1),d=DB.get(p);return d&&JSON.stringify(Object.fromEntries(Object.entries(d.data).map(([k,v])=>[k,enc(v)])))===JSON.stringify(x.document.fields)});
-T('3) كل وثائق علي في الملف = القاعدة الآن (بلا نشاط بعد النسخة)',okAll,mine.map(x=>x.document.name.split('/documents/')[1]).join('، '));
+T('3) كل وثائق سامر في الملف = القاعدة الآن (بلا نشاط بعد النسخة)',okAll,mine.map(x=>x.document.name.split('/documents/')[1]).join('، '));
 // 5) نشاط بعد النسخة: «توجد فروقات»، والوثيقة المختلفة معروفة، وآخر كتابة لها بعد وقت النسخة
 ctl.NOW+=600e3;await station(A.ali);v=await at('new',{op:'verify',key:k3});
-T('5) نشاط بعد النسخة: «توجد فروقات» في علي وحده، ووقت كتابة وثيقته الآن بعد النسخة',v.result==='diff'&&!v.accts.ali.docSame&&v.accts.moh.docSame&&Date.parse(v.accts.ali.coreUt.live)>v.at,'وثائق علي: '+JSON.stringify(v.accts.ali.docs)+' · core '+v.accts.ali.coreUt.bak.slice(11,19)+'→'+v.accts.ali.coreUt.live.slice(11,19));
+T('5) نشاط بعد النسخة: «توجد فروقات» في سامر وحده، ووقت كتابة وثيقته الآن بعد النسخة',v.result==='diff'&&!v.accts.ali.docSame&&v.accts.moh.docSame&&Date.parse(v.accts.ali.coreUt.live)>v.at,'وثائق سامر: '+JSON.stringify(v.accts.ali.docs)+' · core '+v.accts.ali.coreUt.bak.slice(11,19)+'→'+v.accts.ali.coreUt.live.slice(11,19));
 // حساب بلا وثيقة مستخدم (وثائقه موجودة تحت users/<id>/data): يظهر ولا يختفي من المقارنة
-DB.set('users/ghost/data/core',DB.get('users/moh/data/core'));DB.set('names/ghost',{data:{name:'علي'},ut:'x'});
+DB.set('users/ghost/data/core',DB.get('users/moh/data/core'));DB.set('names/ghost',{data:{name:'سامر'},ut:'x'});
 const k4=(await at('new',{op:'now',rid:'clickVER00004'})).key;v=await at('new',{op:'verify',key:k4});
 T('حساب بلا وثيقة مستخدم بالاسم نفسه: يظهر في المقارنة ومعلَّم',v.accts.ghost&&v.accts.ghost.userDoc===false,'الاسم '+(v.accts.ghost||{}).name);
 console.log(out.join('\n'));

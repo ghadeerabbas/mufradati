@@ -15,30 +15,30 @@ async function inspect(bytes){const j=JSON.parse(zlib.gunzipSync(bytes).toString
   return {at:j.at,acc}}
 const liveInfo=uid=>{const d=DB.get(`users/${uid}/data/core`),c=JSON.parse(d.data.v);return {coreWritten:d.ut,stationTimes:c.STN.map(s=>s[0])}};
 const iso=t=>new Date(t).toISOString().slice(11,19);
-// ===== الحسابات: علي ومحمد وحساب ثالث، نشاط عادي متزامن لثلاثة أيام =====
+// ===== الحسابات: سامر ومحمد وحساب ثالث، نشاط عادي متزامن لثلاثة أيام =====
 ctl.NOW=Date.parse('2026-11-13T15:00:00Z');ctl.ACTIVE='new';
-const U={ali:'علي',moh:'محمد',acc3:'غدير'};const A={};
+const U={ali:'سامر',moh:'رامي',acc3:'باسل'};const A={};
 for(const [u,n] of Object.entries(U)){await user(u);A[u]=app('new',u);await A[u].sync()}
 for(let d=0;d<3;d++){for(const u of Object.keys(U)){for(let s=0;s<2+(u==='ali'?2:0);s++)await station(A[u])}ctl.NOW+=864e5}
-// ===== اليوم: علي يدرس 4 محطات الساعة 18:00 وهاتفه بلا اتصال (أو التطبيق في الخلفية)، فتبقى الأحداث في الهاتف =====
+// ===== اليوم: سامر يدرس 4 محطات الساعة 18:00 وهاتفه بلا اتصال (أو التطبيق في الخلفية)، فتبقى الأحداث في الهاتف =====
 ctl.NOW=Date.parse('2026-11-16T18:00:00Z');for(let s=0;s<4;s++)await station(A.ali,{syncEach:false});
 const pending=A.ali.q;
 // ===== 20:46:41 النسخة اليدوية =====
 ctl.NOW=Date.parse('2026-11-16T20:46:41Z');const bk=await post('/backup','admin',{op:'now',rid:'clickDIAG0001'});
 T('1) النسخة المفحوصة هي نسخة 20:46:41 نفسها (وقتها من داخل الملف، لا من القائمة)',new Date(bk.at).toISOString()==='2026-11-16T20:46:41.000Z',bk.key);
 let v=await post('/backup','admin',{op:'verify',key:bk.key});
-T('مباشرة بعد النسخ: «تحقق كامل» مطابق لكل الحسابات (النسخة تحفظ أحدث ما وصل إلى الخادم)',Object.values(v.diff).every(d=>!d.length),'علي في هاتفه '+pending+' أحداث لم تصل بعد');
-// ===== 23:30 علي نائم؛ هاتفه يتصل فيُرسل التطبيق الأحداث المعلّقة =====
+T('مباشرة بعد النسخ: «تحقق كامل» مطابق لكل الحسابات (النسخة تحفظ أحدث ما وصل إلى الخادم)',Object.values(v.diff).every(d=>!d.length),'سامر في هاتفه '+pending+' أحداث لم تصل بعد');
+// ===== 23:30 سامر نائم؛ هاتفه يتصل فيُرسل التطبيق الأحداث المعلّقة =====
 ctl.NOW=Date.parse('2026-11-16T23:30:00Z');await A.ali.sync();
 v=await post('/backup','admin',{op:'verify',key:bk.key});
-T('بعد المزامنة المتأخرة: الفروق في حساب علي وحده',v.diff.ali.length>0&&!v.diff.moh.length&&!v.diff.acc3.length,'علي: '+v.diff.ali.join('، '));
+T('بعد المزامنة المتأخرة: الفروق في حساب سامر وحده',v.diff.ali.length>0&&!v.diff.moh.length&&!v.diff.acc3.length,'سامر: '+v.diff.ali.join('، '));
 const b=v.bak.ali,l=v.live.ali;
 T('الأرقام: النسخة أقل من الآن في الجواهر والخبرة والمحطات (الشكل نفسه الذي رأيته)',b.gems<l.gems&&b.xp<l.xp&&b.stations<l.stations,`جواهر ${b.gems}→${l.gems} · خبرة ${b.xp}→${l.xp} · مستوى ${b.lv}→${l.lv} · محطات ${b.stations}→${l.stations} · كلمات ${b.words}→${l.words}`);
 // ===== 3) متى حدثت الفروق؟ الأدلة من الملف نفسه =====
 const raw=Buffer.from((await post('/backup','admin',{op:'download',key:bk.key})).b64,'base64');const I=await inspect(raw);
 const li=liveInfo('ali'),extra=li.stationTimes.filter(t=>!I.acc.ali.stationTimes.includes(t));
-T('3) المحطات الزائدة الآن حدثت قبل وقت النسخة، لكن وثيقة علي في الخادم كُتبت بعدها',extra.length===l.stations-b.stations&&extra.length>0&&extra.every(t=>t<I.at)&&Date.parse(li.coreWritten)>I.at,
-  'أوقات المحطات الزائدة '+extra.map(iso).join(' ')+' · وقت النسخة '+iso(I.at)+' · آخر كتابة لوثيقة علي في النسخة '+I.acc.ali.coreWritten.slice(11,19)+' والآن '+li.coreWritten.slice(11,19));
+T('3) المحطات الزائدة الآن حدثت قبل وقت النسخة، لكن وثيقة سامر في الخادم كُتبت بعدها',extra.length===l.stations-b.stations&&extra.length>0&&extra.every(t=>t<I.at)&&Date.parse(li.coreWritten)>I.at,
+  'أوقات المحطات الزائدة '+extra.map(iso).join(' ')+' · وقت النسخة '+iso(I.at)+' · آخر كتابة لوثيقة سامر في النسخة '+I.acc.ali.coreWritten.slice(11,19)+' والآن '+li.coreWritten.slice(11,19));
 T('4) النسخة تحفظ أحدث ما في الخادم وقتها: آخر كتابة لكل حساب في النسخة قبل وقت النسخة، ولا شيء أحدث منها كان في الخادم',Object.values(I.acc).every(a=>Date.parse(a.coreWritten)<=I.at));
 // ===== 2) الربط بين الحسابات والأعمدة =====
 const rev=JSON.parse(zlib.gunzipSync(raw).toString('utf8'));rev.parts=[rev.parts.flat().reverse()];const I2=await inspect(zlib.gzipSync(JSON.stringify(rev)));

@@ -7,18 +7,18 @@ for(const V of ['old','new']){
   DB.clear();ctl.ACTIVE=V;ctl.NOW=Date.parse('2026-11-16T08:00:00Z');
   for(const u of ['ali','moh','acc3'])await user(u);await mkFriends();
   const A=app(V,'ali');await A.sync();
-  // 1) علي يفتح التطبيق ويدرس (لمس) الساعة 8:00
+  // 1) سامر يفتح التطبيق ويدرس (لمس) الساعة 8:00
   await post('/fr','ali',{op:'tick',act:1});let x=await seenOf('ali');const t8=ctl.NOW;
   T(`[${V}] بعد استعمال حقيقي: آخر ظهور = وقت الاستعمال`,x.seen===t8);
   // 2) التطبيق يبقى مفتوحًا ظاهرًا ساعتين بلا لمس (نبضات كل دقيقة)
   for(let i=0;i<120;i++){ctl.NOW+=M;await post('/fr','ali',{op:'tick',act:0})}
   x=await seenOf('ali');
   T(`[${V}] تطبيق مفتوح بلا لمس ساعتين: «آخر ظهور» يبقى وقت آخر استعمال`,x.seen===t8,'الفرق '+Math.round((ctl.NOW-x.seen)/M)+' دقيقة');
-  // 3) عمليات المشرف والخادم بعد ساعة أخرى بلا أي نبضة من علي
+  // 3) عمليات المشرف والخادم بعد ساعة أخرى بلا أي نبضة من سامر
   ctl.NOW+=H;const before=onDoc();
   await post('/sync','admin',{evs:[]});await post('/backup','admin',{op:'snap'});
   const fl=await post('/fr','admin',{op:'list'}).catch(e=>({err:1}));
-  await A.sync();   // مزامنة علي نفسه (في الخلفية) لا تُعدّ ظهورًا
+  await A.sync();   // مزامنة سامر نفسه (في الخلفية) لا تُعدّ ظهورًا
   await post('/sync','moh',{evs:[]});
   T(`[${V}] المشرف (مزامنة، لقطة النسخ) ومزامنة الخلفية لا تغيّر وثيقة الظهور`,onDoc()===before);
   // 4) فتح التطبيق دون لمس (إعادة تحميل تلقائية مثلًا): نبضة بلا نشاط

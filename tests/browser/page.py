@@ -4,7 +4,7 @@
 import sys, os, mimetypes, asyncio
 from playwright.async_api import async_playwright
 ROOT=sys.argv[1]; JS=open(sys.argv[2],encoding="utf8").read()
-FAKE=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"fakefb.js"),encoding="utf8").read().replace("ghadeer@",os.environ.get("USR","ghadeer")+"@")
+FAKE=open(os.path.join(os.path.dirname(os.path.abspath(__file__)),"fakefb.js"),encoding="utf8").read().replace("tester@",os.environ.get("USR","tester")+"@")
 INIT='{"muf_testuid_myc":"[\\"b2\\",\\"c1\\",\\"deen\\",\\"a1\\"]","muf_testuid_course":"b2"}'
 DOCS='{"assign/testuid":{"courses":["b2","c1","deen","a1"]}}'
 async def main():
