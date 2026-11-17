@@ -1094,11 +1094,11 @@ body:not(.adm) .htop>#hLvB{order:1;align-self:center}
 body:not(.adm) .htop>#hCrs{order:2;margin-inline-start:10px}
 body:not(.adm) .htop>#hFlt{order:3;margin-inline-start:8px}
 body:not(.adm) .htop>.hgap{order:4;display:block;flex:1 1 0;min-width:8px}
-/* إذا كبّر الهاتف الخطوط (حجم الخط في إعدادات أندرويد) وضاق الشريط: ينكمش زر الكتاب من جهة السهم فقط،
-   فلا تتحرك البطارية والجواهر والشعلة ولا الشارة ولا أيقونة الكتاب */
-body:not(.adm) .htop>#hCrs{flex:0 1 auto;min-width:46px;overflow:hidden;justify-content:flex-start}
+/* البطارية والجواهر والشعلة ثابتة من الحافة اليسرى، والشارة والكتاب ثابتان من اليمنى، بأحجامها كاملة دائمًا.
+   إذا كبّر الهاتف الخطوط وضاق الشريط في صفحة فيها التصفية، يصغر زر التصفية وحده قليلًا في الفراغ بينهما */
+body:not(.adm) .htop>#hCrs,body:not(.adm) .htop>.chips,body:not(.adm) .htop>#hLvB{flex:none}
+body:not(.adm) .htop>#hFlt{flex:0 1 38px;min-width:24px}
 @media (max-width:440px){body:not(.adm) .chips{gap:8px}body:not(.adm) .htop>.hgap{min-width:4px}}
-@media (max-width:380px){body:not(.adm) .htop>#hCrs{min-width:40px}}
 body:not(.adm) .htop>.chips{order:5;margin-inline-start:0}
 @media (max-width:380px){body:not(.adm) .htop{gap:0}body:not(.adm) .htop>#hCrs{margin-inline-start:8px}body:not(.adm) .htop>#hFlt{margin-inline-start:6px}body:not(.adm) .hrow{padding-inline-start:8px;padding-inline-end:12px}body:not(.adm) .hcrs{padding:3px 8px 3px 6px;gap:4px;height:36px}body:not(.adm) .hcrs .bk{width:31px;height:24px}body:not(.adm) .hlvb .lvb{width:43px;height:49px;margin:-7px 0}body:not(.adm) .hlvb .lvb b{transform:translate(-50%,-50%) scale(.75)}body:not(.adm) .hlvb .lvb b.d3{transform:translate(-50%,-50%) scale(.63)}body:not(.adm) .hlvb .lvb b.d4{transform:translate(-50%,-50%) scale(.5)}}
 body:not(.adm) .hcrs:after{content:"";width:7px;height:7px;border:solid currentColor;border-width:0 2px 2px 0;transform:rotate(45deg) translateY(-2px);opacity:.7}
