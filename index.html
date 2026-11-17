@@ -1480,7 +1480,7 @@ body:not(.adm) #rewards .lgrow{grid-template-columns:28px 28px minmax(0,1fr) aut
 body:not(.adm) #rewards .lgrow:not([class*="fr-"]){border:0}
 body:not(.adm) #rewards .lgrow[class*="fr-"]{margin:4px 0;padding:6px 8px}
 body:not(.adm) #rewards .lgrow:not([class*="fr-"]):nth-child(odd of .lgrow){background:transparent}
-body:not(.adm) #rewards .lgrow>b{color:var(--ds-ink);font-weight:800}
+body:not(.adm) #rewards .lgrow>b{font-weight:800}body:not(.adm) #rewards .lgrow>b:not([class*="nc-"]){color:var(--ds-ink)}   /* لون الاسم المشترى (مثل «جمري بحافة») لا يُغطّى بلون النص العادي */
 body:not(.adm) #rewards .lgrow .rk{width:26px;height:26px;display:grid;place-items:center;border-radius:50%;background:var(--ds-bg);color:var(--ds-muted);font-weight:800;font-size:var(--fs-xs)}
 body:not(.adm) #rewards .lgrow .rk:has(.i3){background:none}
 body:not(.adm) #rewards .lgrow .rk .i3{width:26px;height:26px}
