@@ -1931,7 +1931,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=61e046d82f"></script>
+<script src="core.js?v=f02599b3d0"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2882,27 +2882,34 @@ function lastMiss(k){
 /* ===== التحقّق من التذكّر (المرحلة الأولى) =====
    بعض بطاقات المراجعة المحسوبة يُسأل فيها سؤال اختيار قبل القلب، بدل «اضغط لإظهار الجواب». الصحيح لا يغيّر شيئًا،
    والخطأ أو «لا أعرف» يترك زرّين فقط: «نسيت» (كما اليوم) أو «صعبة» (نصف الصندوق). يعمل فقط حين يفعّله المشرف لهذا الحساب (srsOn في core.js).
-   حالة اليوم في الجهاز: {d: اليوم, ask:{كلمة:{o:[مفاتيح الخيارات], rev, f: 1 إن فشل}}} — فلا تتغيّر الخيارات بإعادة التحميل، ويبقى الفشل فشلًا */
+   حالة اليوم في الجهاز: {d: اليوم, ask:{كلمة:{o:[مفاتيح الخيارات], rev, a: 1 إن أجاب, f: 1 إن فشل}}} — فلا تتغيّر الخيارات بإعادة التحميل، ويبقى الفشل فشلًا.
+   الحدّ اليومي يَعُدّ الأسئلة المُجاب عنها فقط (اختيار أو «لا أعرف»)، ويُحفظ لحظة الإجابة قبل قلب البطاقة؛ والسؤال الذي ظهر ولم يُجَب لا يُعرض من جديد إن بلغ الحدّ،
+   فلا تتجاوزه إعادة التحميل ولا الأسئلة المتروكة */
 const srsSt=()=>{let o=jget(K("srs"),null);if(!o||o.d!==today()||!o.ask||typeof o.ask!=="object")o={d:today(),ask:{}};return o};
 const srsSave=o=>st(K("srs"),JSON.stringify(o));
+const srsUsed=o=>Object.values(o.ask).filter(x=>x&&x.a).length;   // الأسئلة المُجاب عنها اليوم في هذا الجهاز
 let SRSC=null,SRSLAST={k:null,v:false};
 const srsPool=()=>uniq([...W,...Object.values(OTHERC).flat(),...ORPH]);
 function srsAsk(w,prevV){
   if(!UID||isAdmin()||!w||!P[w.k])return null;syncFree();
   const now=Date.now();if(!srsOn(now)||!rewarded(P[w.k],w.k,now,LOG))return null;   // المراجعة المحسوبة وحدها، لا التدريب ولا الظهور الثاني
-  const S2=srsSt(),a=S2.ask[w.k];if(a)return a;                      // سُئلت اليوم: السؤال نفسه وحالته نفسها
+  const S2=srsSt(),a=S2.ask[w.k],used=srsUsed(S2);
+  if(a&&a.a)return a;                                                 // أجاب عنها اليوم: حالتها نفسها (والفشل يبقى فشلًا)
+  if(used>=CFG.srs.max)return null;                                   // الحدّ اليومي (المُجاب عنها) في هذا الجهاز: لا سؤال جديد ولا سؤال متروك
+  if(a)return a;                                                      // ظهرت ولم يُجَب عنها: السؤال نفسه بالخيارات نفسها
   if(prevV||(P[w.k].box||0)<3)return null;                            // لا بطاقتا تحقّق متتاليتان، والصندوق 3 فأكثر
-  if(Object.keys(S2.ask).length>=CFG.srs.max)return null;             // الحدّ اليومي في هذا الجهاز
   let last=-1;for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[1]===w.k&&(x[3]===0||x[3]===3)){last=x[2];break}}
   if(last<2)return null;                                              // ادّعى معرفتها في آخر تقييم محسوب
   if(hrand(UID+"|"+w.k+"|"+today())>=CFG.srs.p)return null;           // النسبة ببصمة ثابتة: البطاقة نفسها في كل جهاز
   const rev=(P[w.k].box||0)>=5,opts=pickOpts(w,srsPool().filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de));
   const q={o:opts.map(x=>x.k),rev,f:0};S2.ask[w.k]=q;srsSave(S2);return q;
 }
+// تسجيل الإجابة في حالة اليوم فورًا (قبل القلب): تُحسب في الحدّ، والفشل يبقى فشلًا بعد إعادة التحميل
+function srsMark(k,ok){const S2=srsSt(),q=S2.ask[k];if(!q)return;q.a=1;if(!ok)q.f=1;srsSave(S2)}
 function srsAnswer(k){   // k: مفتاح الخيار، أو null لـ«لا أعرف»
   if(!SRSC||SRSC.done)return;SRSC.done=1;const ok=k===cur.k;
   document.querySelectorAll("#rate .gopt").forEach(x=>{if(x.dataset.k===cur.k)x.classList.add("ok");else if(x.dataset.k===k)x.classList.add("no")});
-  if(!ok){SRSC.f=1;const S2=srsSt();if(S2.ask[cur.k]){S2.ask[cur.k].f=1;srsSave(S2)};fx("no")}else fx("ok");
+  srsMark(cur.k,ok);if(!ok){SRSC.f=1;fx("no")}else fx("ok");
   setTimeout(()=>{flipped=false;flip()},ok?250:700);
 }
 function showCard(){

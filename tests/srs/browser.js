@@ -51,6 +51,26 @@
     ok(isQ()&&de&&document.querySelector("#review .face.front .ar"),"الصندوق 5 فأكثر: المعنى العربي والخيارات ألمانية",de);
     $("idk").click();await sleep(900);document.querySelector('#rate .rate button[data-r="1"]').click();await sleep(400);ok(P[k].box===4,"«لا أعرف» ثم «صعبة»: 8 ← 4",P[k].box)}
 
+  // 3ب) الحدّ يَعُدّ الإجابات لا مرات الظهور، ولا تتجاوزه إعادة التحميل
+  {const ws=setup(6,4,{max:2});localStorage.removeItem(K("srs"));SRSLAST={k:null,v:false};
+   const ask=w=>srsAsk(w,false),used=()=>srsUsed(srsSt());
+   const a1=ask(ws[0]),a2=ask(ws[1]),a3=ask(ws[2]);
+   ok(a1&&a2&&a3&&used()===0,"ظهور الأسئلة دون إجابة لا يُحسب من الحدّ (3 ظهرت، والحدّ 2)",`مُجاب ${used()}`);
+   srsMark(ws[0].k,true);srsMark(ws[1].k,false);
+   ok(used()===2&&!ask(ws[2])&&!ask(ws[3]),"بعد إجابتين: لا سؤال جديد، ولا عودة للسؤال المتروك",`مُجاب ${used()}`);
+   SRSLAST={k:null,v:false};const st=JSON.parse(localStorage.getItem(K("srs")));   // كأن الصفحة أُعيد تحميلها
+   ok(used()===2&&!ask(ws[2])&&!ask(ws[4])&&ask(ws[1]).f===1&&ask(ws[0]).a===1,"بعد إعادة التحميل: الحدّ باقٍ، والفشل يبقى فشلًا، والمُجاب عنها بحالتها",JSON.stringify(Object.values(st.ask).map(x=>(x.a||0)+""+(x.f||0))));
+   // الإجابة نفسها مرتين لا تُحسب مرتين
+   srsMark(ws[0].k,true);ok(used()===2,"الإجابة عن السؤال نفسه مرة ثانية لا تُحسب مرتين",used());
+   // في الواجهة: سؤال ظهر ثم أُعيد الرسم دون إجابة، ثم أُجيب عنه ← يُحسب مرة واحدة
+   setup(3,4,{max:1});const k=cur.k,q1=isQ();showCard();await sleep(50);const q2=isQ();
+   ok(q1&&q2&&srsUsed(srsSt())===0,"في الواجهة: الظهور وإعادة الرسم دون إجابة = 0",srsUsed(srsSt()));
+   document.querySelector(`#rate .srsq .gopt[data-k="${CSS.escape(k)}"]`).click();await sleep(450);
+   ok(srsUsed(srsSt())===1,"في الواجهة: الإجابة تُحفظ فورًا قبل التقييم",srsUsed(srsSt()));
+   document.querySelector('#rate .rate button[data-r="2"]').click();await sleep(450);
+   let more=0;for(let i=0;i<2&&queue.length;i++){if(isQ())more++;$("flip").click();await sleep(150);document.querySelector('#rate .rate button[data-r="2"]').click();await sleep(400)}
+   ok(more===0,"في الواجهة: بعد بلوغ الحدّ لا سؤال في بقية الجلسة",more)}
+
   // 4) حالات لا سؤال فيها
   setup(1,2);ok(!isQ(),"الصندوق 2: لا سؤال");
   setup(1,4,{p:0});ok(!isQ(),"النسبة 0: لا سؤال");

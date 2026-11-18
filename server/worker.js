@@ -518,6 +518,8 @@ function applyAt(ev,T,now,ctx){
     const t=now,last=LOG.length?LOG[LOG.length-1][0]:0;
     if(ctx.server&&t<=last+500)return "time";
     // v=-1: فشل التحقّق من التذكّر قبل التقييم (لا يُقبل معه إلا «نسيت» أو «صعبة»). يُتجاهل إن لم تكن الميزة مفعّلة لهذا الحساب أو كان الحدث قبل t0
+    // تنبيه: v=-1 مؤشّر يرسله التطبيق عن جواب المتعلّم في سؤال الاختيار، لا إثبات يتحقّق منه الخادم بنفسه (الخادم لا يرى السؤال ولا الجواب).
+    // لذلك لا يمنح أي مكافأة، وأقصى أثره نزول جزئي يختاره المتعلّم بـ«صعبة»؛ والخادم يفرض فقط اتّساقه (لا «عرفتها» ولا «سهلة» معه) وأنه مرة واحدة في المراجعة المحسوبة.
     const vOn=ev.v===-1&&srsOn(t);if(vOn&&r>1)return "verify";
     const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,vf=vOn&&ok&&r===1,box=vf?vfBox(b0):boxStep(b0,r,!ok);   // النزول الجزئي في المراجعة المحسوبة وحدها، مرة واحدة
     P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);
@@ -613,7 +615,7 @@ function applyAt(ev,T,now,ctx){
 
 applyCfg(null);
 
-const CORE_V = "61e046d82f";
+const CORE_V = "f02599b3d0";
 
 /* ---------- ضغط السجلّات (الصيغة نفسها التي في التطبيق) ---------- */
 function packLog(L) { const K = [], ix = {}, F = []; let p = 0; for (const [t, k, r, n] of L) { if (ix[k] === undefined) { ix[k] = K.length; K.push(k) } const s = Math.round(t / 1000); F.push(s - p, ix[k], r, n); p = s } return { K, F } }
