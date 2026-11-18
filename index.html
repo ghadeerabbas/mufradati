@@ -2377,7 +2377,9 @@ function stationView(){
     speak(String(w.ex).split("\n")[0]);$("stNext").onclick=next;
   }
   else if(st.t==="cloze"){
-    if(!st.q)st.q=makeQ("cloze",w);const q=st.q,full=q.c.pre+q.c.word+q.c.post;
+    if(!st.q)st.q=makeQ("cloze",w);
+    if(st.q.kind!=="cloze"){st.t="mc";delete st.q;return stationView()}   // لا تكفي الخيارات: «ما معنى هذه الكلمة؟» بدلها
+    const q=st.q,full=q.c.pre+q.c.word+q.c.post;
     el.innerHTML=comboHTML()+head+`<div class="box"><span class="sttag">${TI("books")} أكمل الجملة</span><p class="ghint">اختر الكلمة التي تملأ الفراغ:</p>
      <div class="cloze de" lang="de">${esc(q.c.pre)}<span class="blank" id="stBlank">_____</span>${esc(q.c.post)}</div>${q.c.ar?arHide(arMark(q.c.ar,w.ar)):""}
      ${q.opts.map(o=>`<button class="btn gopt de${String(o.label).length>22?" long":""}" lang="de" style="text-align:left" data-k="${esc(o.k)}">${esc(o.label)}</button>`).join("")}${IDK}</div>`;
@@ -3373,6 +3375,7 @@ function makeQ(kind,w){
     const cands=[],seen=new Set([low]);
     for(const x of shuffle(uniq(W).filter(x=>x.k!==w.k&&x.t===w.t))){const cx=clozeOf(x);if(!cx)continue;const t=fit(cx.word);if(seen.has(t.toLowerCase()))continue;seen.add(t.toLowerCase());cands.push({k:x.k,label:t,sc:t.toLowerCase().slice(-2)===low.slice(-2)?2:t.slice(-1).toLowerCase()===low.slice(-1)?1:0});if(cands.length>60)break}
     cands.sort((a,b)=>b.sc-a.sc);
+    if(cands.length<3)return makeQ("mc",w);   // لا تكفي الخيارات (مثل منهاج فيه فعل واحد): «اختر المعنى» بدلها
     return {kind,w,c,opts:shuffle([{k:w.k,label:ans},...cands.slice(0,3)])}}
   return {kind,w};
 }
