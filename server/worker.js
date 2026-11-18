@@ -38,6 +38,13 @@ let CFG=DEF_CFG;
 // «الدراسة الحرّة» للحساب الحالي: طاقة بلا حدود، ومحطات تتجدّد، ولا خبرة ولا جواهر من الدراسة
 // يضبطها التطبيق للمستخدم المسجّل، والخادم لكل طلب
 let FREEU=false,STMAXU=0;   // STMAXU: عدد محطات هذا المتعلّم اليومية إن حدّده المشرف
+// التحقّق من التذكّر لهذا الحساب: يضبطه التطبيق للمستخدم المسجّل، والخادم لكل طلب (مثل FREEU)
+let SRSU=false;
+const srsOn=t=>!!(SRSU&&CFG.srs&&CFG.srs.on&&t>=CFG.srs.t0);
+// النزول الجزئي بعد فشل التحقّق ثم «صعبة»: نصف الصندوق مقرّبًا للأسفل، و1 على الأقل
+const vfBox=b=>Math.max(1,Math.floor((b||0)/2));
+// أرشيف النزول الدائم R.vf = [[وقت التقييم بالثواني, الكلمة]]: تقرؤه إعادة الحساب (replayLog) فتطابق صناديقُها P، حتى بعد إيقاف الميزة
+const vfSet=()=>{const o=new Set;for(const x of Array.isArray(R.vf)?R.vf:[])if(Array.isArray(x))o.add(x[0]+"|"+x[1]);return o};
 let XPR,LV_GEMS,STREAK_G,PROMO_MIN,UP_N,DOWN_N,GROUP_MAX,TARGET,EN_MAX,EN_STEP,ST_COST,ST_WORDS,ST_MAX,FZ_MAX,FZ_START;
 const _num=(v,d,lo,hi)=>{v=+v;return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):d};
 // يدمج إعدادات المشرف مع الافتراضية ويتحقّق من كل رقم (فلا يكسر خطأٌ التطبيقَ)
@@ -60,6 +67,8 @@ function applyCfg(c){
     rd:Array.isArray(c.rd)?c.rd.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات لها «القراءة» (يضيفها المشرف تلقائيًا حين يضع لها مجموعة جمل)
     ai:Array.isArray(c.ai)?c.ai.filter(x=>typeof x==="string"&&x.length<130).slice(0,50):[],   // حسابات «مساعد الوظيفة» يختارها المشرف
     off:{all:c.off&&c.off.all?1:0,u:c.off&&Array.isArray(c.off.u)?c.off.u.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]},   // «العمل بلا إنترنت»: للجميع أو لمتعلّمين بأعيانهم
+    // التحقّق من التذكّر (المرحلة الأولى): مطفأ ما لم يضعه المشرف، ولا يعمل إلا للحسابات في u ولأحداث بعد t0
+    srs:(()=>{const x=c.srs&&typeof c.srs==="object"?c.srs:{};return {on:x.on?1:0,t0:_num(x.t0,0,0,1e14),u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,50):[],p:_num(x.p,.15,0,1),max:_num(x.max,5,0,50)}})(),
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
@@ -266,12 +275,12 @@ const LOG_MAX=60000,LOG_KEEP=50000;   // يُطوى عند تجاوز 60000 حت
 function ckState(){const c=CK||{},per={};for(const d in c.per||{}){const a=c.per[d];per[d]={n:a[0],bad:a[1],clean:a[2],f:a[3]}}
   const box={},r4=new Set,r7=new Set;for(const k in c.w||{}){const v=c.w[k];box[k]=v>>2;if(v&1)r4.add(k);if(v&2)r7.add(k)}
   return {reviews:c.reviews||0,xp:c.xp||0,box,r4,r7,per,nights:new Set(c.nights||[]),earlies:new Set(c.earlies||[]),bon:[]}}
-function replayLog(S,L){const {box,r4,r7,per,bon}=S;
+function replayLog(S,L){const {box,r4,r7,per,bon}=S;const VF=vfSet();
   for(const [t,k,r,nw] of L){
     if(nw===2){box[k]=boxStep(box[k]||0,r,true);continue}      // التدريب لا يُحسب
     S.reviews++;S.xp+=xpOf(r,nw);
     const fr=nw>=3;   // الدراسة الحرّة: تُحفظ الكلمة وتُحسب، بلا خبرة
-    let b=nw===1||nw===4?1:boxStep(box[k]||0,r,false);box[k]=b;
+    let b=nw===1||nw===4?1:r===1&&VF.size&&VF.has(Math.round(t/1000)+"|"+k)?vfBox(box[k]):boxStep(box[k]||0,r,false);box[k]=b;
     if(b>=4&&!r4.has(k)){r4.add(k);if(!fr){S.xp+=CFG.xp.mem;bon.push([t,CFG.xp.mem])}}
     if(b>=7&&!r7.has(k)){r7.add(k);if(!fr){S.xp+=CFG.xp.solid;bon.push([t,CFG.xp.solid])}}
     const d=dkey(t);const x=(per[d]=per[d]||{n:0,bad:0,clean:0,f:0});x.n++;if(fr)x.f++;if(r===0)x.bad++;if(!x.bad)x.clean=x.n;
@@ -285,7 +294,7 @@ function ckFold(){
   const S=ckState();replayLog(S,L.slice(0,j));const per={};for(const d in S.per){const x=S.per[d];per[d]=[x.n,x.bad,x.clean,x.f]}
   const w={};for(const k of new Set([...Object.keys(S.box),...S.r4,...S.r7]))w[k]=((S.box[k]||0)<<2)|(S.r4.has(k)?1:0)|(S.r7.has(k)?2:0);
   CK={v:1,t:L[j][0],reviews:S.reviews,xp:S.xp,w,per,nights:[...S.nights],earlies:[...S.earlies]};
-  LOG=L.slice(j);EC=null;return true}
+  LOG=L.slice(j);if(Array.isArray(R.vf)&&R.vf.length)R.vf=R.vf.filter(x=>Array.isArray(x)&&x[0]*1000>=CK.t-1000);EC=null;return true}
 let EC=null;
 function econ(){
   const s={reviews:0,mem:0,mast:0,best:0,streak:0,perfect:0,maxDay:0,quizzes:QLOG.length,qfull:0,dayAll:0,night:0,early:0,items:0,freezes:0};const nights=new Set,earlies=new Set;
@@ -508,8 +517,12 @@ function applyAt(ev,T,now,ctx){
     const k=String(ev.k||""),r=ev.r|0;if(!(r>=0&&r<=3)||!P[k])return "word";
     const t=now,last=LOG.length?LOG[LOG.length-1][0]:0;
     if(ctx.server&&t<=last+500)return "time";
-    const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,box=boxStep(b0,r,!ok);
-    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);ckFold();
+    // v=-1: فشل التحقّق من التذكّر قبل التقييم (لا يُقبل معه إلا «نسيت» أو «صعبة»). يُتجاهل إن لم تكن الميزة مفعّلة لهذا الحساب أو كان الحدث قبل t0
+    const vOn=ev.v===-1&&srsOn(t);if(vOn&&r>1)return "verify";
+    const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,vf=vOn&&ok&&r===1,box=vf?vfBox(b0):boxStep(b0,r,!ok);   // النزول الجزئي في المراجعة المحسوبة وحدها، مرة واحدة
+    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);
+    if(vf){R.vf=Array.isArray(R.vf)?R.vf:[];R.vf.push([Math.round(t/1000),k])}
+    ckFold();
     if(ok&&!FREEU&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
     return true;
   }
@@ -600,7 +613,7 @@ function applyAt(ev,T,now,ctx){
 
 applyCfg(null);
 
-const CORE_V = "9ef4ef4607";
+const CORE_V = "61e046d82f";
 
 /* ---------- ضغط السجلّات (الصيغة نفسها التي في التطبيق) ---------- */
 function packLog(L) { const K = [], ix = {}, F = []; let p = 0; for (const [t, k, r, n] of L) { if (ix[k] === undefined) { ix[k] = K.length; K.push(k) } const s = Math.round(t / 1000); F.push(s - p, ix[k], r, n); p = s } return { K, F } }
@@ -780,11 +793,12 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
-  FREEU = false; STMAXU = 0;
+  FREEU = false; STMAXU = 0; SRSU = false;
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
+  SRSU = !admin && ((CFG.srs || {}).u || []).includes(uid);   // التحقّق من التذكّر: للحسابات التي يختارها المشرف فقط (ومع on وt0 في srsOn)
   const [uDoc, coreD, logD, qaD, nameD, gifts, ckD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
     fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`)]);

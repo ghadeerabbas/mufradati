@@ -45,7 +45,7 @@ function app(kind,uid){const c={console,Math,Date:FD,JSON,Array,Object,String,Nu
     for(const e of EVQ)applyEv(e,e.t,{admin:false});EC=null}
   this.A={ev(e){e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:false});if(r===true)EVQ.push(e);EC=null;return r},take(){const q=EVQ;return q},done(n){EVQ=EVQ.slice(n)},applyServer,
     quest(id){const d=today(),q=QUESTS.find(x=>x.id===id);return {v:Math.min(q.f(d),q.goal),got:questGot(d,id)}},gems(){EC=null;return econ().gems},earned(){EC=null;return econ().earned},
-    pz(m){return [...pzMonth(m).have].sort()},table(w,docs,prev,prog){return tableFor("${uid}",w,docs,prev,prog)},get R(){return R},get LG(){return LG},get q(){return EVQ.length},weekId,dkey,today};`,c);
+    pz(m){return [...pzMonth(m).have].sort()},table(w,docs,prev,prog){return tableFor("${uid}",w,docs,prev,prog)},get R(){return R},get LG(){return LG},get P(){return P},get LOG(){return LOG},cfg(x){applyCfg(x);EC=null},xp(){EC=null;return econ().xp},srsU(v){SRSU=v},get q(){return EVQ.length},weekId,dkey,today};`,c);
   const A=c.A;A.kind=kind;A.uid=uid;A.sync=async()=>{const q=A.take().slice(0,300);const j=await post('/sync',uid,{evs:q});A.done(q.length);A.applyServer(j);A.rej=j.rej;return j};return A}
 // ---- أدوات ----
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));

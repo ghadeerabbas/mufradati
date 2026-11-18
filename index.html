@@ -1931,7 +1931,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=9ef4ef4607"></script>
+<script src="core.js?v=61e046d82f"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -2500,7 +2500,7 @@ function lessonPop(o){
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
-const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
+const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));SRSU=!!(UID&&!isAdmin()&&CFG.srs&&(CFG.srs.u||[]).includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
 // مدة بالعربية: 15 دقيقة، ساعة، ساعتان و30 دقيقة…
 function durAr(m){m=Math.round(m);const h=Math.floor(m/60),mm=m%60;
   const hs=h===0?"":h===1?"ساعة":h===2?"ساعتان":h<=10?h+" ساعات":h+" ساعة",ms=mm===0?"":mm===1?"دقيقة":mm===2?"دقيقتان":mm<=10?mm+" دقائق":mm+" دقيقة";
@@ -2879,6 +2879,32 @@ function lastMiss(k){
   if(q&&(!l||q[0]>l[0]))return !q[2];
   return !!l&&(l[2]===0||(isNewF(l)&&l[2]===1));
 }
+/* ===== التحقّق من التذكّر (المرحلة الأولى) =====
+   بعض بطاقات المراجعة المحسوبة يُسأل فيها سؤال اختيار قبل القلب، بدل «اضغط لإظهار الجواب». الصحيح لا يغيّر شيئًا،
+   والخطأ أو «لا أعرف» يترك زرّين فقط: «نسيت» (كما اليوم) أو «صعبة» (نصف الصندوق). يعمل فقط حين يفعّله المشرف لهذا الحساب (srsOn في core.js).
+   حالة اليوم في الجهاز: {d: اليوم, ask:{كلمة:{o:[مفاتيح الخيارات], rev, f: 1 إن فشل}}} — فلا تتغيّر الخيارات بإعادة التحميل، ويبقى الفشل فشلًا */
+const srsSt=()=>{let o=jget(K("srs"),null);if(!o||o.d!==today()||!o.ask||typeof o.ask!=="object")o={d:today(),ask:{}};return o};
+const srsSave=o=>st(K("srs"),JSON.stringify(o));
+let SRSC=null,SRSLAST={k:null,v:false};
+const srsPool=()=>uniq([...W,...Object.values(OTHERC).flat(),...ORPH]);
+function srsAsk(w,prevV){
+  if(!UID||isAdmin()||!w||!P[w.k])return null;syncFree();
+  const now=Date.now();if(!srsOn(now)||!rewarded(P[w.k],w.k,now,LOG))return null;   // المراجعة المحسوبة وحدها، لا التدريب ولا الظهور الثاني
+  const S2=srsSt(),a=S2.ask[w.k];if(a)return a;                      // سُئلت اليوم: السؤال نفسه وحالته نفسها
+  if(prevV||(P[w.k].box||0)<3)return null;                            // لا بطاقتا تحقّق متتاليتان، والصندوق 3 فأكثر
+  if(Object.keys(S2.ask).length>=CFG.srs.max)return null;             // الحدّ اليومي في هذا الجهاز
+  let last=-1;for(let i=LOG.length-1;i>=0;i--){const x=LOG[i];if(x[1]===w.k&&(x[3]===0||x[3]===3)){last=x[2];break}}
+  if(last<2)return null;                                              // ادّعى معرفتها في آخر تقييم محسوب
+  if(hrand(UID+"|"+w.k+"|"+today())>=CFG.srs.p)return null;           // النسبة ببصمة ثابتة: البطاقة نفسها في كل جهاز
+  const rev=(P[w.k].box||0)>=5,opts=pickOpts(w,srsPool().filter(x=>x.k!==w.k&&x.ar!==w.ar&&x.de!==w.de));
+  const q={o:opts.map(x=>x.k),rev,f:0};S2.ask[w.k]=q;srsSave(S2);return q;
+}
+function srsAnswer(k){   // k: مفتاح الخيار، أو null لـ«لا أعرف»
+  if(!SRSC||SRSC.done)return;SRSC.done=1;const ok=k===cur.k;
+  document.querySelectorAll("#rate .gopt").forEach(x=>{if(x.dataset.k===cur.k)x.classList.add("ok");else if(x.dataset.k===k)x.classList.add("no")});
+  if(!ok){SRSC.f=1;const S2=srsSt();if(S2.ask[cur.k]){S2.ask[cur.k].f=1;srsSave(S2)};fx("no")}else fx("ok");
+  setTimeout(()=>{flipped=false;flip()},ok?250:700);
+}
 function showCard(){
   const el=$("review");
   if(!W.length){el.innerHTML='<div class="box done"><div class="big">📚</div><h2>لا توجد كلمات بعد</h2><p>ستُضاف كلمات منهجك قريبًا، فعُد لاحقًا.</p></div>';return}
@@ -2888,22 +2914,33 @@ function showCard(){
       RES={daily:DAILY,title:(DAILY?"أنهيت مراجعة اليوم! ":"أحسنت! ")+"راجعت "+arN(n,"كلمة","كلمتين","كلمات"),xp:Math.max(0,econ().xp-(D.xp0||0)),acc:(n-D.fail.size)/n,ms:Date.now()-(D.t0||Date.now())};RVDONE=null}
     reviewHome();if(ended)toCur();return}
   cur=queue[0];flipped=false;
+  const prevV=cur.k===SRSLAST.k?SRSLAST.pv:SRSLAST.v,VQ=srsAsk(cur,prevV);SRSC=VQ?{...VQ}:null;if(cur.k!==SRSLAST.k)SRSLAST={k:cur.k,v:!!VQ,pv:prevV};
   const isNew=!P[cur.k],tc="t-"+cur.t,stk=isNew?`<span class="sttag cardtag">${TI("sparkles")} كلمة جديدة</span>`:lastMiss(cur.k)?`<span class="sttag cardtag stmiss">${TI("repeat")} خطأ سابق</span>`:"";
-  const front=S.dir==="de"?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;
+  const front=(VQ?!VQ.rev:S.dir==="de")?`<div class="word de">${bigDe(cur.de)}</div>`:`<div class="ar">${esc(cur.ar)}</div>`;   // التحقّق: الألمانية أولًا، أو العربية من الصندوق 5
   const pct=sessTotal?sessDone/sessTotal*100:0;
   el.innerHTML=reviewPills()+`<div class="sess"><div class="sbar"><i style="width:${pct}%"></i></div><span>${isAdmin()?(isNew?"🆕 جديدة":"🔁 مراجعة"):(isNew?LIC("sparkles")+" جديدة":LIC("repeat")+" مراجعة")} · بقي ${queue.length}</span><button class="link" id="rvQuit">إنهاء</button></div>
   <div class="scene fr-${E.frame}"><div class="flip" id="flip">
-   <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">اضغط لإظهار الجواب</div></div>
+   <div class="face front ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span>${front}<div class="tags">${tags(cur)}</div><div class="hint">${VQ?"تحقّق سريع: اختر الجواب":"اضغط لإظهار الجواب"}</div></div>
    <div class="face back ${tc}">${stk}<span class="typedot">● ${TYPE[cur.t]||""}</span><div class="word de">${bigDe(cur.de)}</div><div class="ar">${esc(cur.ar)}</div>
     ${exPairs(cur)}</div>
   </div></div><div id="rate"></div>`+settingsHTML();
-  $("flip").onclick=flip;bindSettings();$("rvQuit").onclick=()=>{queue=[];RVDONE=null;sessTotal=0;reviewHome()};
+  if(VQ&&!VQ.f){const by=new Map(srsPool().map(x=>[x.k,x]));by.set(cur.k,cur);const os=VQ.o.map(k=>by.get(k)).filter(Boolean);
+    $("rate").innerHTML=`<div class="box srsq">${os.map(o=>`<button class="btn gopt${VQ.rev?" de":""}" ${VQ.rev?'lang="de" style="text-align:left"':""} data-k="${esc(o.k)}">${VQ.rev?artHTML(o.de):esc(o.ar)}</button>`).join("")}${IDK}</div>`;
+    $("rate").querySelectorAll(".gopt").forEach(b=>b.onclick=()=>srsAnswer(b.dataset.k));$("idk").onclick=()=>srsAnswer(null)}
+  else $("flip").onclick=flip;
+  if(VQ&&VQ.f)flip();   // فشل اليوم من قبل (أُعيد التحميل): البطاقة مقلوبة بزرّين فقط
+  bindSettings();$("rvQuit").onclick=()=>{queue=[];RVDONE=null;sessTotal=0;reviewHome()};
 }
 function flip(){
   if(flipped)return;flipped=true;$("flip").classList.add("on");
   const b=(P[cur.k]||{box:0}).box,d0=n=>n<1?"الآن":n===1?"غدًا":n===2?"بعد يومين":"بعد "+n+" أيام";
   // مراجعة قبل موعدها: تدريب لا يغيّر موعد الكلمة، فلا نعرض مواعيد تحت الأزرار
   const prac=!!(P[cur.k]&&P[cur.k].box>0&&!rewarded(P[cur.k],cur.k,Date.now(),LOG)),d=n=>prac?"تدريب":d0(n);
+  if(SRSC&&SRSC.f&&!prac){   // فشل التحقّق: «نسيت» كما اليوم، أو «صعبة» بنصف الصندوق
+    $("rate").innerHTML=`<p class="rnote pracnote">${isAdmin()?"🎯":LIC("target")} لم يكن الجواب صحيحًا. اختر «نسيت» أو «صعبة».</p><div class="rate">
+     <button class="btn r0" data-r="0">نسيت<small>الآن</small></button>
+     <button class="btn r1" data-r="1">صعبة<small>${d0(IV[vfBox(b)])}</small></button></div>`;
+    document.querySelectorAll(".rate button").forEach(x=>x.onclick=()=>rate(+x.dataset.r,x));return}
   $("rate").innerHTML=`${prac?'<p class="rnote pracnote">'+(isAdmin()?"🔁":LIC("repeat"))+(isAdmin()?' تدريب: لم يحن موعد هذه الكلمة، فمراجعتها الآن لا تغيّر موعدها ولا تعطي خبرة.':' تدريب فقط: لم يحن موعدها، بلا خبرة.')+'</p>':""}<div class="rate">
    <button class="btn r0" data-r="0">نسيت<small>${prac?"تدريب":"الآن"}</small></button>
    <button class="btn r1" data-r="1">صعبة<small>${d(IV[Math.max(1,b)])}</small></button>
@@ -2915,7 +2952,8 @@ function rate(r,btn){
   const now=Date.now(),old=P[cur.k],prev=EC||econ();
   if(!old)S.newCount=(S.newCount||0)+1;
   const en0=enNow();
-  if(ev({type:"rate",k:cur.k,r,t:now})!==true)return;
+  const vf=!!(SRSC&&SRSC.f);if(vf&&r>1)return;   // بعد فشل التحقّق: «نسيت» أو «صعبة» فقط
+  if(ev({type:"rate",k:cur.k,r,t:now,...(vf?{v:-1}:{})})!==true)return;SRSC=null;
   const sc=document.querySelector(".scene .flip");if(sc)sc.parentElement.classList.add(r===0?"flash-no":"flash-ok");
   queue.shift();sessDone++;
   if(RVDONE&&RVDONE.mode==="review"){rvRated++;if(r<2&&RVDONE.fail)RVDONE.fail.add(cur.k)}
