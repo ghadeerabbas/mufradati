@@ -1074,6 +1074,14 @@ async function handleRd(fs, user, body, env) {
   return { status: 400, json: { error: "op" } };
 }
 
+/* ---------- تراجع err-guard: صنف البوّابة باقٍ خاملًا فقط لأن ترحيل الكائن الدائم يمنع حذفه دون محو بياناته ----------
+   الخادم هنا هو نسخة main المنشورة نفسها (b778034)؛ لا شيء يستدعي هذا الصنف. */
+export class ErrGate {
+  constructor(ctx, env) { }
+  async fetch(req) { return new Response("off", { status: 503 }) }
+  async alarm() { }
+}
+
 export default {
   async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
   async fetch(req, env, ctx) {
