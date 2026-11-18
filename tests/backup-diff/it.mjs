@@ -21,6 +21,8 @@ const DB=new Map();let UT=0;const cl=x=>JSON.parse(JSON.stringify(x));
 const memfs={async get(p){const d=DB.get(p);return d?{data:cl(d.data),updateTime:d.ut}:null},
   async where(c,f,v){for(const [p,d] of DB)if(p.startsWith(c+'/')&&p.split('/').length===2&&d.data[f]===v)return p.split('/')[1];return ''},
   async many(ps){const o={};for(const p of ps)if(DB.has(p))o[p]=cl(DB.get(p).data);return o},
+  async manyT(ps){const o={};for(const p of ps){const d=DB.get(p);o[p]=d?{data:cl(d.data),updateTime:d.ut}:null}return o},   // مثل makeFS.manyT
+  async group(c){const o=[];for(const [p,d] of DB){const s=p.split('/');if(s.length>=4&&s.length%2===0&&s[s.length-2]===c)o.push({path:p,data:cl(d.data),updateTime:d.ut})}return o},   // مثل makeFS.group
   async list(c){const n=c.split('/').length+1,o=[];for(const [p,d] of DB)if(p.startsWith(c+'/')&&p.split('/').length===n)o.push({id:p.split('/').pop(),...cl(d.data)});return o},
   async page(c,ob,n){return {items:(await this.list(c)).slice(0,n),tok:''}},
   async commit(ws){for(const w of ws){const d=DB.get(w.path);if(w.ifUpdateTime&&(!d||d.ut!==w.ifUpdateTime)){const e=new Error('conflict');e.conflict=true;throw e}if(w.ifMissing&&d){const e=new Error('conflict');e.conflict=true;throw e}}

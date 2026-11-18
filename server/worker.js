@@ -693,6 +693,31 @@ function makeFS(env) {
       if (!r.ok) throw new Error("fs many " + r.status);
       const out = {}; for (const x of await r.json()) if (x.found) out[x.found.name.split("/documents/")[1]] = docData(x.found); return out;
     },
+    // قراءة مجمّعة لوثائق بأسمائها مع وقت آخر تعديل: {مسار: {data, updateTime}} أو null إن لم توجد. 100 وثيقة في الطلب.
+    // كل وثيقة مطلوبة يجب أن تعود «موجودة» أو «غير موجودة»؛ أي ردّ ناقص أو خطأ = استثناء، فلا تُبنى مقارنة على قراءة ناقصة
+    async manyT(paths) {
+      const want = [...new Set(paths)], out = {};
+      for (let i = 0; i < want.length; i += 100) {
+        const part = want.slice(i, i + 100), seen = new Set();
+        const r = await fetch(FS_BASE + ":batchGet", { method: "POST", headers: await H(), body: JSON.stringify({ documents: part.map(p => `projects/${PROJECT}/databases/(default)/documents/${p}`) }) });
+        if (!r.ok) throw new Error("fs manyT " + r.status);
+        const j = await r.json(); if (!Array.isArray(j)) throw new Error("fs manyT: ردّ غير متوقع");
+        for (const x of j) {
+          if (x.found) { const p = x.found.name.split("/documents/")[1]; out[p] = { data: docData(x.found), updateTime: x.found.updateTime }; seen.add(p) }
+          else if (x.missing) { const p = String(x.missing).split("/documents/")[1]; out[p] = null; seen.add(p) }
+        }
+        for (const p of part) if (!seen.has(p)) throw new Error("fs manyT: ردّ ناقص (" + p + ")");
+      }
+      return out;
+    },
+    // كل وثائق المجموعات التي اسمها coll في القاعدة كلها (الاستعلام نفسه الذي تأخذ به النسخة الاحتياطية الهدايا): [{path, data, updateTime}]
+    async group(coll) {
+      const r = await fetch(FS_BASE + ":runQuery", { method: "POST", headers: await H(), body: JSON.stringify({ structuredQuery: { from: [{ collectionId: coll, allDescendants: true }] } }) });
+      if (!r.ok) throw new Error("fs group " + r.status);
+      const j = await r.json(); if (!Array.isArray(j)) throw new Error("fs group: ردّ غير متوقع");
+      const out = []; for (const x of j) { if (x.error) throw new Error("fs group: " + JSON.stringify(x.error).slice(0, 120)); if (x.document) out.push({ path: x.document.name.split("/documents/")[1], data: docData(x.document), updateTime: x.document.updateTime }) }
+      return out;
+    },
     async list(coll) {
       const out = []; let tok = "";
       do {
@@ -1247,8 +1272,12 @@ async function verifyBak(fs, b, key) {
   const uids = new Set([...B.keys()].map(p => (p.match(/^users\/([^/]+)\/data\/core$/) || [])[1]).filter(Boolean));
   for (const u of await fs.list("users")) uids.add(u.id);
   const K = ["core", "log", "qa", "ck"], L = {};
+  // القراءة الحيّة مجمّعة: كل وثائق الحسابات في طلبات batchGet (100 وثيقة في الطلب)، وكل الهدايا باستعلام واحد.
+  // كانت 8 طلبات لكل حساب، فتجاوزت حدّ Cloudflare (نحو 50 في الاستدعاء) عند الحساب السابع. الآن: قائمة المستخدمين + ⌈7×الحسابات/100⌉ + 1
+  const U = [...uids], docs = await fs.manyT(U.flatMap(uid => [...K.map(k => `users/${uid}/data/${k}`), `names/${uid}`, `users/${uid}`, `members/${uid}`]));
+  const GF = {}; for (const x of await fs.group("g")) { const m = x.path.match(/^gifts\/([^/]+)\/g\/([^/]+)$/); if (m) (GF[m[1]] = GF[m[1]] || []).push({ id: m[2], ...x.data }) }
   for (const uid of uids) {
-    const g = await Promise.all([...K.map(k => fs.get(`users/${uid}/data/${k}`)), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`), fs.get(`users/${uid}`), fs.get(`members/${uid}`)]);
+    const g = [...K.map(k => docs[`users/${uid}/data/${k}`] || null), GF[uid] || [], docs[`names/${uid}`] || null, docs[`users/${uid}`] || null, docs[`members/${uid}`] || null];
     // الاسم من وثيقة الأسماء، وإن لم تكن (كبعض الحسابات القديمة) فمن وثيقة المستخدم كما في قائمة المستخدمين و«لقطة الحسابات»؛ ورقم الحساب من وثيقة التفعيل
     L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[4], name: g[5] && g[5].data.name || g[6] && g[6].data.name || "", user: !!g[6], no: g[7] && g[7].data.no != null ? +g[7].data.no : null };
   }
