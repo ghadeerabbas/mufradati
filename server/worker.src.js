@@ -7,7 +7,7 @@
    =========================================================== */
 const PROJECT = "mufradati-406bd";
 const ADMIN = "admin@mufradati.app";
-const ORIGINS = ["https://ghadeerabbas.github.io", "http://localhost:8765"];
+const ORIGINS = ["https://ghadeerabbas.github.io"];
 const SITE = "https://ghadeerabbas.github.io/mufradati/";
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
 
@@ -472,7 +472,7 @@ async function handleAi(fs, user, body, env) {
   if (used >= AI_DAY) return { status: 429, json: { error: "limit", left: 0, max: AI_DAY } };
   const cs = as && Array.isArray(as.data.courses) ? as.data.courses : [], grade = cs.includes("k4") ? 4 : cs.includes("k3") ? 3 : 0;
   const name = String(nm && nm.data.name || "").split(/\s+/)[0].slice(0, 30);
-  const isQuota = m => /4006|daily|neuron|quota|limit/i.test(m), fail = e => { const m = String(e && e.message || e); return { status: isQuota(m) ? 429 : 502, json: { error: isQuota(m) ? "quota" : "ai", detail: m.slice(0, 200) } } };
+  const isQuota = m => /4006|daily|neuron|quota|limit/i.test(m), fail = e => { const m = String(e && e.message || e); return { status: isQuota(m) ? 429 : 502, json: { error: isQuota(m) ? "quota" : "ai", ...(user.email === ADMIN ? { detail: m.slice(0, 200) } : {}) } } };
   // صورة جديدة لم تُقرأ بعد: يُكتب نصّها أولًا، ثم يُشرح من النص (لا يخمّن الشارح ما في الصورة)
   let ocr = "", ocrAt = -1;
   if (img) {
@@ -1047,9 +1047,20 @@ async function loginOfUid(env, uid) {
   const r = await fetch(`https://identitytoolkit.googleapis.com/v1/projects/${PROJECT}/accounts:lookup`, { method: "POST", headers: { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" }, body: JSON.stringify({ localId: [uid] }) });
   const j = await r.json().catch(() => ({})); return j.users && j.users[0] ? String(j.users[0].email || "").split("@")[0] : "";
 }
+// الحساب المفعّل: المشرف، أو له وثيقة تقدّم (users)، أو فعّله المشرف (members) — القاعدة نفسها في المزامنة وقواعد Firestore.
+// نتيجة «مفعّل» تُحفظ 10 دقائق في ذاكرة النسخة توفيرًا للقراءات (لا يوجد إلغاء تفعيل في التطبيق)؛ نتيجة «غير مفعّل» لا تُحفظ.
+const ACTIVE = new Map();
+async function isActive(fs, user) {
+  if (user.email === ADMIN) return true;
+  const c = ACTIVE.get(user.uid); if (c && Date.now() - c < 10 * 60e3) return true;
+  const ok = !!(await fs.get(`members/${user.uid}`)) || !!(await fs.get(`users/${user.uid}`));
+  if (ok) { if (ACTIVE.size > 5000) ACTIVE.clear(); ACTIVE.set(user.uid, Date.now()) }
+  return ok;
+}
 async function handleFriends(fs, user, body, env) {
   const me = user.uid, op = String(body.op || "tick"), now = Date.now();
   if (user.email === ADMIN) return { status: 403, json: { error: "admin" } };
+  if (!(await isActive(fs, user))) return { status: 403, json: { error: "inactive" } };   // حساب غير مفعّل: لا صداقة ولا ظهور
   if (op === "tick") {
     // نبضة كل بضع ثوانٍ: «أنا متصل»، وهل وصلتني دعوة تحدٍّ؟
     const w = [];
@@ -1082,7 +1093,7 @@ async function handleFriends(fs, user, body, env) {
     } else {
       if (!/^[a-z0-9][a-z0-9._-]{2,29}$/.test(login)) return { status: 400, json: { error: "login" } };
       if (login === loginOf(user) || login === "admin") return { status: 400, json: { error: "self" } };
-      o = await uidOfLogin(env, login); if (!o) return { status: 404, json: { error: "nouser" } };
+      o = await uidOfLogin(env, login); if (!o || !(await isActive(fs, { uid: o }))) return { status: 404, json: { error: "nouser" } };
     }
     const [a, b] = await Promise.all([frGet(fs, me), frGet(fs, o)]);
     if (Object.keys(a.list).length >= 100) return { status: 400, json: { error: "many" } };
@@ -1146,6 +1157,7 @@ function duelMaybeStart(d, now, force) {
 }
 async function handleDuel(fs, user, body, env) {
   const me = user.uid, op = String(body.op || "st"), now = Date.now();
+  if (!(await isActive(fs, user))) return { status: 403, json: { error: "inactive" } };
   if (op === "inv") {
     const to = [...new Set((Array.isArray(body.to) ? body.to : [body.to]).map(String))].filter(u => /^[A-Za-z0-9_-]{1,128}$/.test(u) && u !== me);
     if (!to.length || to.length > DUEL_MAX - 1) return { status: 400, json: { error: "uid" } };
@@ -1362,7 +1374,9 @@ export default {
     } catch (e) {
       const auth = /token|key/.test(e.message);
       if (!auth) { const p = srvErr(env, { msg: String(e && e.message || e), stack: String(e && e.stack || ""), where: url.pathname }, user.uid); if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p }
-      return new Response(JSON.stringify({ error: auth ? "auth" : "server", detail: String(e.message).slice(0, 200) }), { status: auth ? 401 : 500, headers: { ...H, "Content-Type": "application/json" } });
+      // التفاصيل التقنية للمشرف وحده (تظهر في رسائل أدواته)؛ المستخدم يرى «خطأ في الخادم» فقط
+      const out = { error: auth ? "auth" : "server" }; if (user.email === ADMIN) out.detail = String(e && e.message || e).slice(0, 200);
+      return new Response(JSON.stringify(out), { status: auth ? 401 : 500, headers: { ...H, "Content-Type": "application/json" } });
     }
   }
 };
