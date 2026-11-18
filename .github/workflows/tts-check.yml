@@ -1,0 +1,22 @@
+# فحص يدوي لمفتاح خدمة النطق: طلب واحد، والنتيجة نجاح أو رمز الخطأ فقط.
+# لا يولّد ملفات في المستودع، ولا يرفع إيداعًا، ولا ينشر شيئًا.
+name: فحص مفتاح النطق
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts/tts-check.sh
+          sparse-checkout-cone-mode: false
+      - name: طلب نطق واحد
+        env:
+          AZURE_SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+          AZURE_SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+        run: bash .github/scripts/tts-check.sh
