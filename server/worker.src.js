@@ -36,8 +36,9 @@ async function verifyIdToken(tok) {
   if (!sig) throw new Error("token");
   const head = JSON.parse(new TextDecoder().decode(fromB64u(h))), pay = JSON.parse(new TextDecoder().decode(fromB64u(p)));
   if (Date.now() - JWKS.at > 3600e3 || !JWKS.keys.find(k => k.kid === head.kid)) {
-    const r = await fetch("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com");
-    JWKS = { at: Date.now(), keys: (await r.json()).keys || [] };
+    // تعذّر جلب مفاتيح Google عطل مؤقت لا رمز خاطئ: يُميَّز حتى يردّ الخادم 503 (فيعيد التطبيق المحاولة) لا 401 («أعد تسجيل الدخول»)
+    try { const r = await fetch("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"); if (!r.ok) throw 0; JWKS = { at: Date.now(), keys: (await r.json()).keys || [] } }
+    catch (e) { const x = new Error("jwks unavailable"); x.transient = true; throw x }
   }
   const jwk = JWKS.keys.find(k => k.kid === head.kid);
   if (!jwk || head.alg !== "RS256") throw new Error("key");
@@ -46,6 +47,13 @@ async function verifyIdToken(tok) {
   const now = Date.now() / 1000;
   if (!ok || pay.aud !== PROJECT || pay.iss !== "https://securetoken.google.com/" + PROJECT || pay.exp < now || !pay.sub) throw new Error("token");
   return { uid: pay.sub, email: String(pay.email || "").toLowerCase() };
+}
+
+// تعذّر التحقق مؤقتًا (مفاتيح Google): يُسجَّل في صفحة الأخطاء مرة واحدة على الأكثر كل 10 دقائق لكل نسخة من الخادم، فلا يتحوّل العطل إلى كتابات متكررة
+let AUTHDOWN = 0;
+async function authDown(env, where) {
+  if (Date.now() - AUTHDOWN < 10 * 60e3) return; AUTHDOWN = Date.now();
+  try { await logErr(env.__fs || makeFS(env), { src: "server", msg: "jwks unavailable", where }) } catch (e) { }
 }
 
 /* ---------- رمز الدخول إلى Firestore بمفتاح الخدمة ---------- */
@@ -1075,8 +1083,14 @@ export default {
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
     if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd", "/mt"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    // التحقق من الهوية أولًا وبمعزل: أي فشل فيه (رمز مشوّه أو منتهٍ) ردّ 401 ولا يُسجَّل خطأً أبدًا، فلا يستطيع طلب مجهول أن يكتب في Firestore
+    let user; try { user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "")) }
+    catch (e) {
+      if (e && e.transient) { const p = authDown(env, url.pathname); if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p;
+        return new Response(JSON.stringify({ error: "server", detail: "auth unavailable" }), { status: 503, headers: { ...H, "Content-Type": "application/json" } }) }
+      return new Response(JSON.stringify({ error: "auth", detail: "token" }), { status: 401, headers: { ...H, "Content-Type": "application/json" } });
+    }
     try {
-      const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
       const fs0 = env.__fs || makeFS(env), fs = countFS(fs0);
       stAdd("req", 1);

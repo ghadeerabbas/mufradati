@@ -27,7 +27,8 @@ const memfs={async get(p){const d=DB.get(p);return d?{data:cl(d.data),updateTime
     for(const w of ws){if(w.del){DB.delete(w.path);continue}const d=DB.get(w.path);
       if(w.inc){const x=d?d.data:{};for(const k in w.inc)x[k]=(x[k]||0)+w.inc[k];DB.set(w.path,{data:x,ut:String(++UT)});continue}
       const data=cl(w.data);for(const k in data)if(data[k]&&data[k].__ts)data[k]={ms:data[k].__ts};
-      DB.set(w.path,{data:w.merge&&d?{...d.data,...data}:data,ut:String(++UT)})}}};
+      DB.set(w.path,{data:w.merge&&d?{...d.data,...data}:data,ut:String(++UT)})}
+    return ws.map(w=>w.del?'':DB.get(w.path).ut)}};   // وقت آخر تعديل لكل وثيقة كُتبت، كما يُرجعه Firestore
 const KV={m:new Map(),async put(k,v,o){this.m.set(k,{v,o})},async list(){return {keys:[...this.m.keys()].map(name=>({name}))}},async get(k){return this.m.get(k)?.v}};
 const env={__fs:memfs,BAK:KV};
 // ---- الخادمان: القديم (main) والجديد (combined-test) ----
@@ -57,5 +58,5 @@ async function station(A,{miss=false,drill=true,syncEach=true}={}){
   const ws=nextWords();A.ev({type:'stDone',words:ws,miss:miss?[ws[1]]:[]});if(syncEach)await A.sync();adv(20e3);
   if(drill){A.ev({type:'quiz',kind:'drill',ok:4,total:5,ms:9000});if(syncEach)await A.sync()}adv(30e3)}
 async function duelDoc(id,winner,other){await memfs.commit([{path:'duel/'+id,data:{st:'done',ps:[winner,other],rank:[winner,other],['p_'+winner]:{d:true,c:4,ms:9000},['p_'+other]:{d:true,c:1,ms:12000}}}])}
-export {T,out,app,user,station,adv,duelDoc,memfs,DB,post,SRV,KV};
+export {T,out,app,user,station,adv,duelDoc,memfs,DB,post,SRV,KV,env,token};
 export const ctl={get NOW(){return NOW},set NOW(v){NOW=v},set ACTIVE(v){ACTIVE=v},get ACTIVE(){return ACTIVE}};
