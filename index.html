@@ -4877,6 +4877,7 @@ function renderUser(){
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
   <div class="rsec"><label class="hidepub"><input type="checkbox" id="uAi" ${(CFG.ai||[]).includes(u.id)?"checked":""}><span><b>🦉 مساعد الوظيفة</b><small>مساعد بالذكاء الصناعي يشرح له وظيفته خطوة خطوة بالعربية والألمانية حتى يصل إلى الحل. حتى 60 سؤالًا في اليوم. ترى محادثاته من الزر تحت.</small></span></label>
    <button class="btn" id="uAiLog" style="width:100%;margin-top:6px">${I3("owl")} محادثاته مع المساعد</button><div id="aiLogBox"></div></div>
+  <div class="rsec" id="srsBox">${srsAdmHTML(u.id)}</div>
   <div class="rsec" id="rdAdmBox"><h3>${I3("book")} القراءة</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec" id="mtAdmBox"><h3>✏️ التمارين</h3><div class="empty">جارٍ التحميل…</div></div>
   <div class="rsec" id="assignBox"><h3>📘 مناهجه</h3><div class="empty">جارٍ التحميل…</div></div>
@@ -4884,6 +4885,7 @@ function renderUser(){
   $("uBack").onclick=()=>{uOpen=null;renderUserList()};
   $("uMsg").onclick=()=>{goTab("messages");openThread(u.id)};
   renderAssign(u.id);bindGiftBox(u.id);rdAdm(u.id);mtAdm(u.id);uFold(el);
+  bindSrsAdm(u.id);
   {const cb=$("uAi");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setAi(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false};$("uAiLog").onclick=()=>aiLogShow(u.id)}
   {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
     const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
@@ -5490,6 +5492,25 @@ async function aiSend(text){
   await uiAlert(err==="limit"?"انتهت أسئلة اليوم 🌙 نكمل غدًا.":err==="quota"?"المساعد متعب اليوم 😴 جرّب غدًا، أو اسأل بابا.":"لم يصل الجواب. تأكّد من الإنترنت ثم اضغط «إرسال» مرة أخرى.");
 }
 // المشرف: تفعيل المساعد لمتعلّم، وقراءة محادثاته
+/* التحقّق من التذكّر (تجريبي): خانة لكل متعلّم في لوحة المشرف. تضيفه إلى srs.u أو تحذفه، ولا تمسّ غيره.
+   on=1 ما دامت القائمة غير فارغة، وt0 = وقت أول تفعيل (ثم يبقى). «تجربة مكثّفة» تجعل p=1 بدل 0.15، وتخصّ الحسابات المفعّلة وحدها لأنها وحدها في القائمة.
+   أي خطأ في الحفظ يترك الإعدادات كما كانت (saveCfg يفشل فلا applyCfg)، ولا طريق إلى تفعيل الميزة لمن ليس في القائمة */
+function srsCfgWith(uid,on,fast){
+  const s0=CFG.srs||{},u=new Set((s0.u||[]).filter(x=>typeof x==="string"));if(on!=null){on?u.add(uid):u.delete(uid)}
+  const L=[...u];return {...CFG,srs:{on:L.length?1:0,t0:L.length?(s0.t0||Date.now()):0,u:L,p:!L.length?.15:fast!=null?(fast?1:.15):(s0.p!=null?s0.p:.15),max:s0.max!=null?s0.max:5}};
+}
+async function setSrs(uid,on,fast){
+  const c=srsCfgWith(uid,on,fast),msg=on===true?"فُعّل التحقّق من التذكّر لهذا الحساب":on===false?"أُوقف التحقّق من التذكّر لهذا الحساب":fast?"التجربة المكثّفة: كل البطاقات المؤهلة (حتى "+c.srs.max+" يوميًا)":"النسبة العادية: 15٪";
+  if(await saveCfg(c,msg)){applyCfg(c);return true}return false;
+}
+function srsAdmHTML(uid){const s=CFG.srs||{},on=!!(s.on&&(s.u||[]).includes(uid));
+  return `<label class="hidepub"><input type="checkbox" id="uSrs" ${on?"checked":""}><span><b>🎯 التحقّق من التذكّر (تجريبي)</b><small>في بعض بطاقات المراجعة يُسأل سؤال اختيار قبل القلب؛ إن أخطأ ثم ضغط «صعبة» تنزل الكلمة إلى نصف صندوقها. الإيقاف من هنا فوري، وما نزل قبله يبقى.</small></span></label>
+   ${on?`<label class="hidepub"><input type="checkbox" id="uSrsP" ${s.p>=1?"checked":""}><span><b>تجربة مكثّفة</b><small>كل البطاقات المؤهلة حتى ${s.max} أسئلة في اليوم، بدل 15٪. تخصّ الحسابات المفعّلة فقط (${(s.u||[]).length}).</small></span></label>`:""}`}
+function bindSrsAdm(uid){const box=$("srsBox");if(!box)return;
+  const re=()=>{box.innerHTML=srsAdmHTML(uid);bindSrsAdm(uid)};
+  const cb=$("uSrs");if(cb)cb.onchange=async()=>{cb.disabled=true;if(!await setSrs(uid,cb.checked))cb.checked=!cb.checked;re()};
+  const fp=$("uSrsP");if(fp)fp.onchange=async()=>{fp.disabled=true;if(!await setSrs(uid,null,fp.checked))fp.checked=!fp.checked;re()};
+}
 async function setAi(uid,on){
   const f=new Set(CFG.ai||[]);on?f.add(uid):f.delete(uid);const c={...CFG,ai:[...f]};
   if(await saveCfg(c,on?"فُعّل مساعد الوظيفة":"أُلغي مساعد الوظيفة")){applyCfg(c);return true}return false;

@@ -72,5 +72,13 @@ try{
  for(const X of [o,n]){rate(X.A,X.ks[0],1);rate(X.A,X.ks[1],3);rate(X.A,X.ks[2],0)}ctl.ACTIVE='old';await o.A.sync();ctl.ACTIVE='new';await n.A.sync();
  const a=await srv('n1'),b=await srv('n2');const box=S=>Object.values(S.P).map(p=>p.box).join(',');
  T('حساب غير مفعّل: الخادم الجديد = الخادم القديم (الصناديق والخبرة والجواهر)',box(a)===box(b)&&o.A.earned()===n.A.earned()&&o.A.xp()===n.A.xp(),box(a)+' / '+box(b)+' · خبرة '+o.A.xp()+'/'+n.A.xp())}
+// 10) التراجع إلى الخادم المنشور اليوم بعد أن صار في الحساب أرشيف نزول
+{ctl.ACTIVE='new';const {A,ks}=await ready('s9','new',180);rate(A,ks[0],1,-1);rate(A,ks[1],2);await A.sync();const S0=await srv('s9'),x0=A.xp();
+ const oth=await ready('n3','new',180);rate(oth.A,oth.ks[0],2);await oth.A.sync();const O0=await srv('n3');
+ ctl.ACTIVE='old';day(188);await A.sync();rate(A,ks[2],2);await A.sync();const S1=await srv('s9');
+ T('التراجع: الخادم القديم يقبل مزامنة الحساب التجريبي دون رفض، ويحفظ الأرشيف والصناديق كما هي',!A.rej.length&&JSON.stringify(S1.R.vf)===JSON.stringify(S0.R.vf)&&S1.P[ks[0]].box===S0.P[ks[0]].box,`رفض ${JSON.stringify(A.rej)} · أرشيف ${(S1.R.vf||[]).length} · صندوق ${S1.P[ks[0]].box}`);
+ await oth.A.sync();const O1=await srv('n3');T('التراجع: حساب آخر يعمل كما كان',!oth.A.rej.length&&JSON.stringify(O1.P)===JSON.stringify(O0.P));
+ out.push('INFO التراجع: خبرة الحساب التجريبي قبل '+x0+' وبعد مراجعة على الخادم القديم '+A.xp());
+ ctl.ACTIVE='new';day(189);await A.sync();const S2=await srv('s9');T('العودة إلى الخادم الجديد بعد التراجع: الأرشيف والصناديق سليمة',JSON.stringify(S2.R.vf)===JSON.stringify(S0.R.vf)&&S2.P[ks[0]].box===S0.P[ks[0]].box)}
 }catch(e){out.push('FAIL خطأ في السيناريو: '+(e&&e.stack||e).toString().split('\n').slice(0,3).join(' | '))}
 console.log(out.join('\n'));
