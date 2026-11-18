@@ -16,3 +16,12 @@ crons = ["17 2 * * *"]
 # تخزين النسخ الاحتياطية (يُنشأ تلقائيًا عند أول نشر)
 [[kv_namespaces]]
 binding = "BAK"
+
+# بوّابة أخطاء التطبيق (/err): كائن دائم واحد بتخزين SQLite (متاح في الخطة المجانية). يُنشأ عند أول نشر.
+[[durable_objects.bindings]]
+name = "ERRGATE"
+class_name = "ErrGate"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ErrGate"]

@@ -128,8 +128,10 @@ function makeFS(env) {
       const body = { writes: writes.map(w => { if (w.del) return { delete: `projects/${PROJECT}/databases/(default)/documents/${w.path}` };
         if (w.inc) return { update: { name: `projects/${PROJECT}/databases/(default)/documents/${w.path}`, fields: {} }, updateMask: { fieldPaths: [] }, updateTransforms: Object.entries(w.inc).map(([f, v]) => ({ fieldPath: f, increment: { integerValue: String(Math.round(v)) } })) }; const x = { update: { name: `projects/${PROJECT}/databases/(default)/documents/${w.path}`, fields: enc(w.data).mapValue.fields } }; if (w.merge) x.updateMask = { fieldPaths: Object.keys(w.data) }; if (w.ifUpdateTime) x.currentDocument = { updateTime: w.ifUpdateTime }; else if (w.ifMissing) x.currentDocument = { exists: false }; return x }) };
       const r = await fetch(FS_BASE + ":commit", { method: "POST", headers: await H(), body: JSON.stringify(body) });
-      if (r.status === 409 || r.status === 400 && (await r.clone().text()).includes("FAILED_PRECONDITION")) { const e = new Error("conflict"); e.conflict = true; throw e }
-      if (!r.ok) throw new Error("fs commit " + r.status + " " + (await r.text()).slice(0, 200));
+      if (r.status === 409 || r.status === 400 && (await r.clone().text()).includes("FAILED_PRECONDITION")) { const e = new Error("conflict"); e.conflict = true; e.status = r.status; throw e }
+      if (!r.ok) { const e = new Error("fs commit " + r.status + " " + (await r.text()).slice(0, 200)); e.status = r.status; throw e }
+      // وقت آخر تعديل لكل وثيقة كُتبت (تستعمله بوّابة الأخطاء شرطًا للكتابة التالية)
+      try { return ((await r.json()).writeResults || []).map(w => w.updateTime || "") } catch (e) { return [] }
     }
   };
 }
@@ -734,29 +736,275 @@ async function handleBackup(fs, user, body, env) {
 
 /* ---------- تتبّع الأخطاء: أخطاء التطبيق والخادم تُجمع هنا ويراها المشرف ---------- */
 async function errHash(s) { return [...new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s)))].slice(0, 8).map(b => b.toString(16).padStart(2, "0")).join("") }
-async function logErr(fs, e) {
-  const msg = String(e.msg || "").slice(0, 300), stack = String(e.stack || "").slice(0, 1500), src = e.src === "server" ? "server" : "app";
-  if (!msg) return;
-  const top = stack.split("\n").find(l => /:\d+:\d+/.test(l)) || "", id = await errHash(src + "|" + msg.replace(/\d+/g, "#") + "|" + top.replace(/\?[^:]*/, ""));
-  const now = Date.now(), old = await fs.get(`errs/${id}`), d = old ? old.data : null;
-  const users = [...new Set([...(d && d.users || []), e.uid || ""].filter(Boolean))].slice(-20);
-  await fs.commit([{ path: `errs/${id}`, data: { msg, stack: d && d.stack || stack, src, where: String(e.where || d && d.where || "").slice(0, 200), ua: String(e.ua || d && d.ua || "").slice(0, 200),
-    ver: String(e.ver || "").slice(0, 40), n: (d && d.n || 0) + 1, first: d && d.first ? { __ts: d.first.ms } : { __ts: now }, last: { __ts: now }, users } }]);
+
+/* تنقية نص الخطأ قبل حفظه. تزيل أنماطًا محددة فقط، وكل ما عداها يبقى كما هو:
+   - رموز الدخول (eyJ… وما بعد Bearer) ← [رمز]
+   - عناوين البريد ← [بريد]
+   - معرّفات الحسابات داخل مسارات المجموعات (users/…) أو بعد uid= ← [معرّف]
+   - معاملات الروابط ما عدا v= (رقم نسخة core.js)، وما بعد # إن لم يكن اسم صفحة قصيرًا
+   يبقى: نوع الخطأ والرسالة وأسماء الدوال والملفات وأرقام السطور والأعمدة ورقم النسخة والأرقام عمومًا.
+   حدودها: لا تكتشف الأسماء الشخصية ولا أي نص حرّ آخر داخل الرسالة؛ فهي ليست ضمانًا كاملًا لإزالة البيانات الشخصية. */
+const SAN_COLL = "users|names|pub|fr|on|gifts|members|assign|threads|feedback|rd|join|duel|bakrid|m|g|lg";
+const SAN_ID = new RegExp(`((?:^|[\\s/'"(\`])(?:${SAN_COLL})/)([A-Za-z0-9]{20,40})(?=$|[\\s/'"\`)?#.,:;])`, "g");
+function sanErr(s, tags) {
+  s = String(s == null ? "" : s); const add = (k, n) => { if (n) tags[k] = (tags[k] || 0) + n }; let n = 0;
+  // الروابط أولًا: يبقى العنوان والمسار ورقم النسخة v= والسطر والعمود؛ تُحذف بقية المعاملات وما بعد # إن لم يكن اسم صفحة
+  s = s.replace(/(https?:\/\/[^\s?#'"()<>`]+)(\?[^\s#'"()<>`]*?)?(#[^\s'"()<>`]*?)?((?::\d+){0,2})(?=$|[\s'"()<>`,;])/g, (m, u, q, h, lc) => {
+    let o = u;
+    if (q) { const ps = q.slice(1).split("&").filter(Boolean), keep = ps.filter(p => /^v=[0-9A-Za-z._-]{1,24}$/.test(p)); if (keep.length) o += "?" + keep.join("&"); if (keep.length !== ps.length) n++ }
+    if (h) { if (/^#[A-Za-z0-9_-]{0,30}$/.test(h)) o += h; else { o += "#[…]"; n++ } }
+    return o + (lc || "");
+  }); add("رابط", n); n = 0;
+  s = s.replace(/eyJ[\w-]{5,}\.[\w-]{5,}\.[\w-]{5,}/g, () => (n++, "[رمز]"));
+  s = s.replace(/\b(Bearer)\s+(?!\[رمز\])[\w.~+\/-]+=*/gi, (m, b) => (n++, b + " [رمز]")); add("رمز", n); n = 0;
+  s = s.replace(/[\w.%+-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/g, () => (n++, "[بريد]")); add("بريد", n); n = 0;
+  s = s.replace(SAN_ID, (m, a) => (n++, a + "[معرّف]"));
+  s = s.replace(/\b(uid|userId|user)([=:]\s*)([A-Za-z0-9]{20,40})\b/g, (m, a, b) => (n++, a + b + "[معرّف]")); add("معرّف", n);
+  return s;
 }
-let ERRN = { t: 0, n: 0 };   // حماية من الإغراق: 30 خطأ في الدقيقة على الأكثر لكل نسخة من الخادم
+const sanWhere = (w, tags) => { w = sanErr(w, tags); if (/^#/.test(w) && !/^#[A-Za-z0-9_-]{0,30}$/.test(w)) { tags["رابط"] = (tags["رابط"] || 0) + 1; return "#[…]" } return w };
+const sanTag = tags => Object.entries(tags).map(([k, v]) => k + ":" + v).join("،");
+// حقول الخطأ بعد القصّ والتنقية، والبصمة من النص المنقّى (فالخطأ نفسه لحسابين مختلفين مجموعة واحدة)
+async function errFields(e, src) {
+  const tags = {}, msg = sanErr(String(e.msg || "").slice(0, 300), tags).slice(0, 300);
+  if (!msg) return null;
+  const stack = sanErr(String(e.stack || "").slice(0, 1500), tags).slice(0, 1500), where = sanWhere(String(e.where || "").slice(0, 200), tags).slice(0, 200);
+  const top = stack.split("\n").find(l => /:\d+:\d+/.test(l)) || "";
+  const id = await errHash(src + "|" + msg.replace(/\d+/g, "#") + "|" + top.replace(/\?[^:]*/, ""));
+  return { id, msg, stack, src, where, ua: sanErr(String(e.ua || "").slice(0, 200), tags).slice(0, 200), ver: String(e.ver || "").slice(0, 40), san: sanTag(tags) };
+}
+// أخطاء الخادم نفسه: تُسجَّل مباشرة كما كانت (خارج البوّابة)، بعد التنقية
+async function logErr(fs, e) {
+  const f = await errFields(e, e.src === "server" ? "server" : "app"); if (!f) return;
+  const now = Date.now(), old = await fs.get(`errs/${f.id}`), d = old ? old.data : null;
+  const users = [...new Set([...(d && d.users || []), e.uid || ""].filter(Boolean))].slice(-20);
+  await fs.commit([{ path: `errs/${f.id}`, data: { msg: f.msg, stack: d && d.stack || f.stack, src: f.src, where: f.where || d && d.where || "", ua: f.ua || d && d.ua || "",
+    ver: f.ver, san: f.san, n: (d && d.n || 0) + 1, first: d && d.first ? { __ts: d.first.ms } : { __ts: now }, last: { __ts: now }, users } }]);
+}
+
+/* ---------- بوّابة الأخطاء (Durable Object واحد للعالم) ----------
+   أخطاء التطبيق (/err) لا تُكتب في Firestore مباشرة ولا يُقرأ Firestore في مسارها: البوّابة تقرّر وتعدّ وتكتب على دفعات.
+   - السقوف اليومية (يوم برلين): المجهولون 30 مجموعة جديدة و300 بلاغ؛ كل مستخدم مسجّل 30 مجموعة و200 بلاغ؛ الكل 2000 بلاغ.
+     ما زاد للمسجّلين يُجمع في «ملخّص اليوم» (لا يُحجب بصمت)؛ وما زاد للمجهولين يُعدّ فقط.
+   - الكتابة في Firestore: من المنبّه وحده، بقيمة مطلقة للعدد (لا زيادة)، مشروطة بوقت آخر تعديل تعرفه البوّابة،
+     فلا تُكرَّر الأعداد عند إعادة المحاولة، ولا تُنزلها كتابة متأخرة.
+   - محاولات الكتابة والقراءة في Firestore: 2000 على الأكثر في أي 24 ساعة متتالية (مجموعات 1880، ملخّص 96، سجلّ errq 24).
+   - حذف المشرف: تُبلَّغ البوّابة أولًا (تنسى ما رآه المشرف، وتحتفظ بالبلاغات التي لم تصل إليه بعد)، ولا يرجع الردّ قبل أن تنتهي أي كتابة جارية. */
+const EG = { anNew: 30, anRep: 300, uNew: 30, uRep: 200, allRep: 2000, wb: { g: 1880, s: 96, q: 24 }, rb: 2000, anGap: 30 * 60e3, flushGap: 60e3, slowAfter: 60, slowGap: 15 * 60e3, sumGap: 15 * 60e3,
+  users: 20, ru: 50, sumMax: 50, perAlarm: 15, backoff: [60e3, 120e3, 300e3, 900e3, 3600e3], delWait: 5 * 60e3 };
+const egStub = env => env.ERRGATE.get(env.ERRGATE.idFromName("errgate"));
+async function egCall(env, op, body) { const r = await egStub(env).fetch("https://errgate/" + op, { method: "POST", body: JSON.stringify(body || {}) }); if (!r.ok) throw new Error("errgate " + r.status); return r.json() }
+const egSumId = day => errHash("summary|" + day);
+
+export class ErrGate {
+  constructor(ctx, env) {
+    this.ctx = ctx; this.env = env; this.sql = ctx.storage.sql; this.anonMem = new Map(); this.anonDrop = 0; this.inflight = null;
+    for (const q of [
+      "CREATE TABLE IF NOT EXISTS g(id TEXT PRIMARY KEY, kind TEXT, msg TEXT, stack TEXT, src TEXT, wh TEXT, ua TEXT, ver TEXT, san TEXT, first INTEGER, last INTEGER, users TEXT, total INTEGER, base INTEGER, conf INTEGER, sent INTEGER, ut TEXT, st TEXT, gen INTEGER, delAt INTEGER, lastAn INTEGER, ru TEXT, rf INTEGER, wday TEXT, wn INTEGER, lastW INTEGER)",
+      "CREATE TABLE IF NOT EXISTS q(day TEXT PRIMARY KEY, an INTEGER, aw INTEGER, tw INTEGER, sm INTEGER)",
+      "CREATE TABLE IF NOT EXISTS qu(day TEXT, uid TEXT, ng INTEGER, w INTEGER, PRIMARY KEY(day, uid))",
+      "CREATE TABLE IF NOT EXISTS wb(h INTEGER, k TEXT, n INTEGER, PRIMARY KEY(h, k))",
+      "CREATE TABLE IF NOT EXISTS sx(day TEXT PRIMARY KEY, data TEXT, n INTEGER, ver INTEGER)",
+      "CREATE TABLE IF NOT EXISTS meta(k TEXT PRIMARY KEY, v TEXT)"]) this.sql.exec(q);
+  }
+  rows(q, ...a) { return this.sql.exec(q, ...a).toArray() }
+  row(q, ...a) { return this.rows(q, ...a)[0] || null }
+  meta(k, v) { if (v === undefined) { const r = this.row("SELECT v FROM meta WHERE k=?", k); return r ? r.v : null } this.sql.exec("INSERT INTO meta(k,v) VALUES(?,?) ON CONFLICT(k) DO UPDATE SET v=excluded.v", k, String(v)) }
+  ensureAlarm(at) { const cur = +this.meta("alarm") || 0; if (cur && cur <= at) return; this.meta("alarm", at); const p = this.ctx.storage.setAlarm(at); if (p && p.catch) p.catch(() => { }) }
+  async fetch(req) {
+    const op = new URL(req.url).pathname.slice(1), b = await req.json().catch(() => ({}));
+    try {
+      if (op === "report") return Response.json(this.report(b));
+      if (op === "del") return Response.json(await this.del(b));
+      if (op === "state") return Response.json(this.state());
+      return new Response("op", { status: 400 });
+    } catch (e) { return new Response(String(e && e.message || e), { status: 500 }) }
+  }
+  // بلاغ واحد: كل ما هنا متزامن (بلا await)، فيُنفَّذ كاملًا قبل أي حدث آخر ويُحفظ كمعاملة واحدة
+  report(b) {
+    const now = Date.now(), day = dkey(now), anon = !b.uid, id = String(b.id || "");
+    if (!/^[0-9a-f]{16}$/.test(id)) return { r: "id" };
+    const q = this.row("SELECT * FROM q WHERE day=?", day) || { day, an: 0, aw: 0, tw: 0, sm: 0 };
+    let g = this.row("SELECT * FROM g WHERE id=?", id);
+    const fresh = !g || (g.st === "gone" && !g.total);
+    const saveQ = () => this.sql.exec("INSERT INTO q(day,an,aw,tw,sm) VALUES(?,?,?,?,?) ON CONFLICT(day) DO UPDATE SET an=excluded.an,aw=excluded.aw,tw=excluded.tw,sm=excluded.sm", day, q.an, q.aw, q.tw, q.sm);
+    if (anon) {
+      if (!fresh && now - (g.lastAn || 0) < EG.anGap) { this.anonMem.set(id, (this.anonMem.get(id) || 0) + 1); this.ensureAlarm(now + EG.flushGap); return { r: "mem" } }
+      if ((fresh && q.an >= EG.anNew) || q.aw >= EG.anRep || q.tw >= EG.allRep) { this.anonDrop++; return { r: "drop" } }
+      if (fresh) q.an++; q.aw++;
+    } else {
+      const u = this.row("SELECT * FROM qu WHERE day=? AND uid=?", day, b.uid) || { ng: 0, w: 0 };
+      if ((fresh && u.ng >= EG.uNew) || u.w >= EG.uRep || q.tw >= EG.allRep) { this.toSum(day, b, now); q.sm++; saveQ(); this.ensureAlarm(now + EG.flushGap); return { r: "sum" } }
+      if (fresh) u.ng++; u.w++;
+      this.sql.exec("INSERT INTO qu(day,uid,ng,w) VALUES(?,?,?,?) ON CONFLICT(day,uid) DO UPDATE SET ng=excluded.ng,w=excluded.w", day, b.uid, u.ng, u.w);
+    }
+    q.tw++; saveQ();
+    if (!g) {
+      this.sql.exec("INSERT INTO g(id,kind,msg,stack,src,wh,ua,ver,san,first,last,users,total,base,conf,sent,ut,st,gen,delAt,lastAn,ru,rf,wday,wn,lastW) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        id, "err", b.msg || "", b.stack || "", b.src || "app", b.where || "", b.ua || "", b.ver || "", b.san || "", now, now, JSON.stringify(b.uid ? [b.uid] : []), 1, 0, 0, -1, "", "new", 0, 0, anon ? now : 0,
+        JSON.stringify(b.uid ? [b.uid] : []), now, day, 0, 0);
+    } else {
+      if (g.st === "gone") { g.st = "new"; g.total = 0; g.base = 0; g.conf = 0; g.sent = -1; g.users = "[]"; g.first = now; g.ru = "[]"; g.rf = 0; g.msg = b.msg || g.msg; g.stack = b.stack || g.stack }
+      const users = JSON.parse(g.users || "[]"), ru = JSON.parse(g.ru || "[]");
+      if (b.uid && !users.includes(b.uid)) { users.push(b.uid); if (users.length > EG.users) users.shift() }
+      if (b.uid && !ru.includes(b.uid) && ru.length < EG.ru) ru.push(b.uid);
+      const rf = g.total > g.conf ? g.rf : now;   // أول بلاغ لم يصل إلى المشرف بعد
+      this.sql.exec("UPDATE g SET st=?,msg=?,stack=?,first=?,last=?,users=?,total=?,base=?,conf=?,sent=?,wh=?,ua=?,ver=?,san=?,lastAn=?,ru=?,rf=? WHERE id=?",
+        g.st, g.msg, g.stack || b.stack || "", g.first, now, JSON.stringify(users), g.total + 1, g.base, g.conf, g.sent, b.where || g.wh, b.ua || g.ua, b.ver || g.ver, b.san || g.san, anon ? now : g.lastAn, JSON.stringify(ru), rf, id);
+    }
+    this.ensureAlarm(now + EG.flushGap);
+    return { r: "ok" };
+  }
+  // بلاغ مسجّل فوق السقف: يُعدّ في ملخّص اليوم (البصمة والرسالة المنقّاة وأول ملف:سطر، وعدد المستخدمين لا معرّفاتهم)
+  toSum(day, b, now) {
+    const r = this.row("SELECT * FROM sx WHERE day=?", day), d = r ? JSON.parse(r.data) : { g: {}, more: 0, an: 0, first: now, last: now };
+    const top = (String(b.stack || "").split("\n").find(l => /:\d+:\d+/.test(l)) || b.where || "").trim().slice(0, 120);
+    let x = d.g[b.id];
+    if (!x) { if (Object.keys(d.g).length >= EG.sumMax) { d.more++; x = null } else x = d.g[b.id] = { m: String(b.msg || "").slice(0, 120), f: top, n: 0, u: [] } }
+    if (x) { x.n++; if (b.uid && !x.u.includes(b.uid) && x.u.length < 50) x.u.push(b.uid) }
+    d.last = now;
+    this.sql.exec("INSERT INTO sx(day,data,n,ver) VALUES(?,?,?,?) ON CONFLICT(day) DO UPDATE SET data=excluded.data,n=excluded.n,ver=excluded.ver", day, JSON.stringify(d), (r ? r.n : 0) + 1, (r ? r.ver : 0) + 1);
+  }
+  // حذف المشرف: تُنسى الأعداد التي وصلت إليه، وتبقى البلاغات التي لم تُكتب بعد (لم يرها)، ولا نرد قبل انتهاء أي كتابة جارية
+  async del(b) {
+    const now = Date.now(), ids = b.all ? this.rows("SELECT id FROM g").map(r => r.id) : (b.ids || []).filter(x => /^[0-9a-f]{16}$/.test(x));
+    for (const id of ids) {
+      const g = this.row("SELECT * FROM g WHERE id=?", id); if (!g) continue;
+      const keep = Math.max(0, g.total - g.conf) + (this.anonMem.get(id) || 0); this.anonMem.delete(id);
+      const ru = JSON.parse(g.ru || "[]");
+      this.sql.exec("UPDATE g SET st=?,total=?,base=0,conf=0,sent=-1,ut='',users=?,first=?,gen=gen+1,delAt=?,ru='[]',rf=0 WHERE id=?",
+        keep ? "new" : "gone", keep, JSON.stringify(keep ? ru : []), keep ? (g.rf || now) : now, now, id);
+    }
+    if (b.all) { this.sql.exec("DELETE FROM sx"); this.anonDrop = 0 }
+    else for (const id of ids) { const g = this.row("SELECT kind,msg FROM g WHERE id=?", id); if (g && g.kind === "sum") this.sql.exec("DELETE FROM sx WHERE day=?", g.msg) }
+    if (this.inflight) { try { await this.inflight } catch (e) { } }
+    return { ok: true, n: ids.length };
+  }
+  state() { return { g: this.rows("SELECT * FROM g"), q: this.rows("SELECT * FROM q"), qu: this.rows("SELECT * FROM qu"), wb: this.rows("SELECT * FROM wb"), sx: this.rows("SELECT * FROM sx"), anonMem: [...this.anonMem], anonDrop: this.anonDrop, alarm: +this.meta("alarm") || 0 } }
+  // ميزانية Firestore: المحاولات في آخر 24 ساعة (سلال ساعية)
+  used(k) { const h = Math.floor(Date.now() / 3600e3); const r = this.row("SELECT SUM(n) s FROM wb WHERE k=? AND h>?", k, h - 24); return r && r.s || 0 }
+  spend(k) { const h = Math.floor(Date.now() / 3600e3); this.sql.exec("INSERT INTO wb(h,k,n) VALUES(?,?,1) ON CONFLICT(h,k) DO UPDATE SET n=n+1", h, k); this.sql.exec("DELETE FROM wb WHERE h<?", h - 48) }
+  can(k) { return k === "r" ? this.used("r") < EG.rb : this.used(k) < EG.wb[k] }
+  docOf(g) { return { msg: g.msg, stack: g.stack, src: g.src, where: g.wh, ua: g.ua, ver: g.ver, san: g.san, n: g.base + g.total, first: { __ts: g.first }, last: { __ts: g.last }, users: JSON.parse(g.users || "[]") } }
+  // كتابة واحدة بشرط: «غير موجودة» للجديدة، أو «لم تتغير منذ وقت آخر تعديل نعرفه». تعيد: ok | conflict | error
+  async put(fs, path, data, g) {
+    const w = g.st === "live" && g.ut ? { path, data, ifUpdateTime: g.ut } : { path, data, ifMissing: true };
+    try { const r = await fs.commit([w]); return { r: "ok", ut: r && r[0] || "" } }
+    catch (e) { return { r: e && (e.conflict || e.status === 404) ? "conflict" : "error", e } }
+  }
+  async alarm() {
+    this.meta("alarm", 0);
+    let p; this.inflight = p = this.flush().finally(() => { if (this.inflight === p) this.inflight = null });
+    let res; try { res = await p } catch (e) { res = { failed: true } }
+    const fails = res && res.failed ? (+this.meta("fails") || 0) + 1 : 0; this.meta("fails", fails);
+    const now = Date.now();
+    if (res && (res.pending || res.failed)) this.ensureAlarm(now + (fails ? EG.backoff[Math.min(fails - 1, EG.backoff.length - 1)] : res.wait || EG.flushGap));
+  }
+  pending() { return this.rows("SELECT * FROM g WHERE kind='err' AND st!='gone' AND total>0 AND (base+total)!=sent ORDER BY last") }
+  async flush() {
+    const fs = this.env.__fs || makeFS(this.env), now = Date.now(); let failed = false, pending = false, done = 0, wait = 0;
+    // البلاغات المجهولة المقيّدة (في الذاكرة) تُضاف الآن إلى أعداد مجموعاتها
+    for (const [id, n] of this.anonMem) this.sql.exec("UPDATE g SET total=total+?, last=? WHERE id=? AND st!='gone'", n, now, id); this.anonMem.clear();
+    if (this.anonDrop) { const day = dkey(now), r = this.row("SELECT * FROM sx WHERE day=?", day), d = r ? JSON.parse(r.data) : { g: {}, more: 0, an: 0, first: now, last: now }; d.an += this.anonDrop; d.last = now; this.anonDrop = 0;
+      this.sql.exec("INSERT INTO sx(day,data,n,ver) VALUES(?,?,?,?) ON CONFLICT(day) DO UPDATE SET data=excluded.data,n=excluded.n,ver=excluded.ver", day, JSON.stringify(d), (r ? r.n : 0), (r ? r.ver : 0) + 1) }
+    // 1) المجموعات
+    for (const g0 of this.pending()) {
+      if (done >= EG.perAlarm) { pending = true; break }
+      const day = dkey(now), wn = g0.wday === day ? g0.wn : 0;
+      if (wn >= EG.slowAfter && now - g0.lastW < EG.slowGap) { pending = true; continue }
+      if (!this.can("g")) { pending = true; wait = 3600e3; break }
+      const snap = { total: g0.total, base: g0.base, gen: g0.gen }, data = this.docOf(g0);
+      this.spend("g"); done++; this.sql.exec("UPDATE g SET wday=?, wn=?, lastW=? WHERE id=?", day, wn + 1, now, g0.id);
+      const r = await this.put(fs, `errs/${g0.id}`, data, g0);
+      const g = this.row("SELECT * FROM g WHERE id=?", g0.id);
+      if (!g || g.gen !== snap.gen) continue;            // حُذفت أثناء الكتابة: النتيجة لا تُعتمد
+      if (r.r === "ok") { const caught = g.total === snap.total; this.sql.exec("UPDATE g SET st='live', ut=?, sent=?, conf=?, ru=? WHERE id=?", r.ut, snap.base + snap.total, snap.total, caught ? "[]" : g.ru, g.id); if (!caught) pending = true; continue }
+      if (r.r === "error") { failed = true; pending = true; break }
+      // تعارض: نقرأ الوثيقة وحدها
+      if (!this.can("r")) { pending = true; wait = 3600e3; continue }
+      this.spend("r"); let cur; try { cur = await fs.get(`errs/${g.id}`) } catch (e) { failed = true; pending = true; break }
+      const g2 = this.row("SELECT * FROM g WHERE id=?", g.id); if (!g2 || g2.gen !== snap.gen) continue;
+      if (!cur) {
+        if (g2.st === "live") {                          // حذفها المشرف دون أن تصلنا رسالته: نعاملها كحذف
+          const keep = Math.max(0, g2.total - g2.conf);
+          this.sql.exec("UPDATE g SET st=?,total=?,base=0,conf=0,sent=-1,ut='',users=?,first=?,gen=gen+1,delAt=?,ru='[]',rf=0 WHERE id=?", keep ? "new" : "gone", keep, keep ? g2.ru : "[]", keep ? (g2.rf || now) : now, now, g2.id);
+        }
+        pending = true; continue;                        // الجديدة تُعاد بشرط «غير موجودة»
+      }
+      const n = +cur.data.n || 0;
+      if (g2.st === "live") {                            // كتابة سابقة لنا وصلت متأخرة: نأخذ وقتها، والعدد لا ينزل أبدًا
+        const mine = g2.base + g2.total; this.sql.exec("UPDATE g SET ut=?, sent=?, base=? WHERE id=?", cur.updateTime, n, n > mine ? g2.base + (n - mine) : g2.base, g2.id); pending = true; continue;
+      }
+      if (g2.gen > 0) {                                  // بعد حذف المشرف: الوثيقة القديمة لم تُحذف بعد من Firestore
+        if (now - (g2.delAt || 0) < EG.delWait) { pending = true; continue }
+        this.sql.exec("UPDATE g SET st='live', ut=?, sent=? WHERE id=?", cur.updateTime, n, g2.id); pending = true; continue;   // تعذّر حذفها: نكتب فوقها بأعداد ما بعد الحذف
+      }
+      // وثيقة موجودة من قبل البوّابة: نبدأ من عددها، ونجمع المستخدمين، ونأخذ أول ظهور
+      const users = [...new Set([...(cur.data.users || []), ...JSON.parse(g2.users || "[]")])].slice(-EG.users), first = Math.min(g2.first, cur.data.first && cur.data.first.ms || g2.first);
+      this.sql.exec("UPDATE g SET st='live', ut=?, sent=?, base=?, users=?, first=?, stack=? WHERE id=?", cur.updateTime, n, n, JSON.stringify(users), first, cur.data.stack || g2.stack, g2.id); pending = true;
+    }
+    // 2) ملخّص الأيام: كل 15 دقيقة على الأكثر، وفقط إن تغيّر
+    for (const s of this.rows("SELECT * FROM sx ORDER BY day")) {
+      const id = await egSumId(s.day); let g = this.row("SELECT * FROM g WHERE id=?", id);
+      if (!g) { this.sql.exec("INSERT INTO g(id,kind,msg,stack,src,wh,ua,ver,san,first,last,users,total,base,conf,sent,ut,st,gen,delAt,lastAn,ru,rf,wday,wn,lastW) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        id, "sum", s.day, "", "app", "summary", "", "", "", now, now, "[]", 0, 0, 0, -1, "", "new", 0, 0, 0, "[]", 0, "", 0, 0); g = this.row("SELECT * FROM g WHERE id=?", id) }
+      if (g.sent === s.ver) continue;
+      if (now - g.lastW < EG.sumGap) { pending = true; continue }
+      if (!this.can("s")) { pending = true; wait = 3600e3; continue }
+      const d = JSON.parse(s.data), list = Object.values(d.g).sort((a, b) => b.n - a.n), tot = list.reduce((a, x) => a + x.n, 0) + d.an;
+      const lines = list.map(x => `${x.n}× [مسجّل، ${x.u.length} مستخدم] ${x.m}${x.f ? " — " + x.f : ""}`);
+      if (d.more) lines.push(`… و${d.more} خطأ آخر لم يُفصَّل`); if (d.an) lines.push(`${d.an} بلاغ من غير مسجّلين حُجب (العدد فقط)`);
+      const data = { msg: `⚠️ بلاغات فوق السقف يوم ${s.day}: ${tot}`, stack: lines.join("\n").slice(0, 6000), src: "app", where: "summary", ua: "", ver: "", san: "", n: tot, first: { __ts: d.first }, last: { __ts: d.last }, users: [] };
+      const ver = s.ver, gen = g.gen; this.spend("s"); this.sql.exec("UPDATE g SET lastW=? WHERE id=?", now, id);
+      const r = await this.put(fs, `errs/${id}`, data, g);
+      const g2 = this.row("SELECT * FROM g WHERE id=?", id); if (!g2 || g2.gen !== gen) continue;
+      if (r.r === "ok") { this.sql.exec("UPDATE g SET st='live', ut=?, sent=? WHERE id=?", r.ut, ver, id); continue }
+      if (r.r === "error") { failed = true; pending = true; break }
+      if (!this.can("r")) { pending = true; continue }
+      this.spend("r"); let cur; try { cur = await fs.get(`errs/${id}`) } catch (e) { failed = true; pending = true; break }
+      const g3 = this.row("SELECT * FROM g WHERE id=?", id); if (!g3 || g3.gen !== gen) continue;
+      this.sql.exec("UPDATE g SET st=?, ut=? WHERE id=?", cur ? "live" : "new", cur ? cur.updateTime : "", id); pending = true;
+    }
+    // 3) سجلّ اليوم السابق في errq (مرة واحدة لكل يوم، بلا معرّفات)
+    const today = dkey(now);
+    for (const d of this.rows("SELECT * FROM q WHERE day<? ORDER BY day", today)) {
+      if (this.meta("errq:" + d.day)) continue;
+      if (!this.can("q")) { pending = true; break }
+      this.spend("q");
+      const users = this.row("SELECT COUNT(*) c FROM qu WHERE day=?", d.day).c;
+      try { await fs.commit([{ path: `errq/${d.day}`, data: { day: d.day, anonNew: d.an, anonReports: d.aw, reports: d.tw, overCap: d.sm, users }, ifMissing: true }]); this.meta("errq:" + d.day, 1) }
+      catch (e) { if (e && e.conflict) this.meta("errq:" + d.day, 1); else { failed = true; pending = true; break } }
+    }
+    if (!failed && this.pending().length) pending = true;
+    return { pending, failed, wait };
+  }
+}
+
+let ERRN = { t: 0, n: 0 };   // طبقة أولى رخيصة: 30 خطأ في الدقيقة على الأكثر لكل نسخة من الخادم
 async function handleErr(req, env, H) {
+  const ok = () => new Response("{}", { headers: { ...H, "Content-Type": "application/json" } });
+  if (!ORIGINS.includes(req.headers.get("Origin") || "")) return new Response("{}", { status: 403, headers: H });
   if (Date.now() - ERRN.t > 60e3) ERRN = { t: Date.now(), n: 0 };
   if (++ERRN.n > 30) return new Response("{}", { status: 429, headers: H });
   const txt = await req.text(); if (txt.length > 6000) return new Response("{}", { status: 413, headers: H });
-  let b = {}; try { b = JSON.parse(txt) } catch (e) { }
+  let b = {}; try { b = JSON.parse(txt) } catch (e) { return ok() }
+  const f = await errFields(b || {}, "app"); if (!f) return ok();
   let uid = ""; try { uid = (await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""))).uid } catch (e) { }
-  try { await logErr(env.__fs || makeFS(env), { ...b, uid, src: "app" }) } catch (e) { }
-  return new Response("{}", { headers: { ...H, "Content-Type": "application/json" } });
+  if (!env.ERRGATE) return ok();                 // بلا بوّابة لا كتابة أبدًا (الفشل مغلق)
+  try { await egCall(env, "report", { ...f, uid }) } catch (e) { }
+  return ok();
 }
 async function handleErrs(fs, user, body, env) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
-  if (body.del) { const all = body.del === "all" ? (await fs.list("errs")).map(x => x.id) : [String(body.del)].filter(x => /^[0-9a-f]{16}$/.test(x)); for (let k = 0; k < all.length; k += 400) await fs.commit(all.slice(k, k + 400).map(id => ({ path: `errs/${id}`, del: true }))); return { status: 200, json: { ok: true } } }
-  const l = (await fs.list("errs")).map(x => ({ id: x.id, msg: x.msg, stack: x.stack, src: x.src, where: x.where, ua: x.ua, ver: x.ver, n: x.n, first: x.first && x.first.ms || 0, last: x.last && x.last.ms || 0, users: x.users || [] })).sort((a, b) => b.last - a.last).slice(0, 100);
+  if (body.del) {
+    const all = body.del === "all", ids = all ? [] : [String(body.del)].filter(x => /^[0-9a-f]{16}$/.test(x));
+    // البوّابة أولًا: إن لم تؤكّد فلا حذف (لا حالة نصفها محذوف)
+    if (env.ERRGATE && (all || ids.length)) { try { await egCall(env, "del", all ? { all: true } : { ids }) } catch (e) { return { status: 503, json: { error: "gate" } } } }
+    const del = all ? (await fs.list("errs")).map(x => x.id) : ids;
+    for (let k = 0; k < del.length; k += 400) await fs.commit(del.slice(k, k + 400).map(id => ({ path: `errs/${id}`, del: true })));
+    return { status: 200, json: { ok: true } };
+  }
+  const l = (await fs.list("errs")).map(x => ({ id: x.id, msg: x.msg, stack: x.stack, src: x.src, where: x.where, ua: x.ua, ver: x.ver, san: x.san || "", n: x.n, first: x.first && x.first.ms || 0, last: x.last && x.last.ms || 0, users: x.users || [] })).sort((a, b) => b.last - a.last).slice(0, 100);
   return { status: 200, json: { items: l } };
 }
 
