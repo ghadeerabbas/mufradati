@@ -221,11 +221,12 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
-  FREEU = false; STMAXU = 0;
+  FREEU = false; STMAXU = 0; SRSU = false;
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
+  SRSU = !admin && ((CFG.srs || {}).u || []).includes(uid);   // التحقّق من التذكّر: للحسابات التي يختارها المشرف فقط (ومع on وt0 في srsOn)
   const [uDoc, coreD, logD, qaD, nameD, gifts, ckD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
     fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`)]);
