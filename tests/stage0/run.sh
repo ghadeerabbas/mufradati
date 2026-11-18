@@ -5,4 +5,4 @@ B=$(base PRE_VER); oldfile "$B" server/worker.js "$W/w_old.mjs"; cp "$R/server/w
 oldfile "$B" core.js "$W/core_old.js"; cp "$R/core.js" "$W/core_new.js"
 ! grep -q "CORE_V" "$W/w_old.mjs" || { echo "FAIL PRE_VER=$B فيه رقم النسخة: ليس خادمًا قديمًا"; exit 1; }
 cp "$D/../integration/it.mjs" "$D/server.mjs" "$W/"
-{ echo "== الخادم القديم: $B"; cd "$W" && node server.mjs "$W" "$R"; } | verdict
+{ echo "== الخادم القديم: $B"; cd "$W" && node server.mjs "$W" "$R"; echo __END; } | verdict

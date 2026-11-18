@@ -9,4 +9,4 @@ for a in ["if(R.dw.length>2000)R.dw=R.dw.slice(-2000)","if(R.dd.length>400)R.dd=
 open(w+'/core_ref.js','w',encoding='utf8').write(s)
 P
 cp "$D/sim.js" "$D/sync.js" "$W/"; cd "$W"
-{ echo "== المرجع: $B بلا قصّ"; echo "== محاكاة 10 سنوات"; node sim.js; echo "== الترحيل والمزامنة"; node sync.js | grep -v '^DBG'; } | verdict
+{ echo "== المرجع: $B بلا قصّ"; echo "== محاكاة 10 سنوات"; node sim.js; echo "== الترحيل والمزامنة"; node sync.js | grep -v '^DBG'; echo __END; } | verdict

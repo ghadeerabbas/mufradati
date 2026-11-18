@@ -620,8 +620,9 @@ async function verifyIdToken(tok) {
   if (!sig) throw new Error("token");
   const head = JSON.parse(new TextDecoder().decode(fromB64u(h))), pay = JSON.parse(new TextDecoder().decode(fromB64u(p)));
   if (Date.now() - JWKS.at > 3600e3 || !JWKS.keys.find(k => k.kid === head.kid)) {
-    const r = await fetch("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com");
-    JWKS = { at: Date.now(), keys: (await r.json()).keys || [] };
+    // تعذّر جلب مفاتيح Google عطل مؤقت لا رمز خاطئ: يُميَّز حتى يردّ الخادم 503 (فيعيد التطبيق المحاولة) لا 401 («أعد تسجيل الدخول»)
+    try { const r = await fetch("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com"); if (!r.ok) throw 0; JWKS = { at: Date.now(), keys: (await r.json()).keys || [] } }
+    catch (e) { const x = new Error("jwks unavailable"); x.transient = true; throw x }
   }
   const jwk = JWKS.keys.find(k => k.kid === head.kid);
   if (!jwk || head.alg !== "RS256") throw new Error("key");
@@ -1366,6 +1367,20 @@ async function logErr(fs, e) {
     ver: f.ver, san: f.san, n: (d && d.n || 0) + 1, first: d && d.first ? { __ts: d.first.ms } : { __ts: now }, last: { __ts: now }, users } }]);
 }
 
+// أخطاء الخادم نفسه تمرّ بالبوّابة أيضًا (السقوف نفسها: المستخدم الذي سبّبها، أو «server» للأعمال المجدولة).
+// إن تعذّرت البوّابة: كتابة مباشرة مرة واحدة على الأكثر كل 10 دقائق لكل نسخة من الخادم (حتى لا يختفي عطل النسخ الاحتياطي مثلًا).
+// ERR_MODE=off (متغيّر في لوحة Cloudflare): إيقاف تسجيل الأخطاء كله فورًا دون نشر شيفرة (للتراجع السريع).
+let SRVDIRECT = 0;
+async function srvErr(env, e, uid) {
+  try {
+    if (env.ERR_MODE === "off") return;
+    const f = await errFields(e, "server"); if (!f) return;
+    if (env.ERRGATE) { try { await egCall(env, "report", { ...f, uid: uid || "server" }); return } catch (x) { } }
+    if (Date.now() - SRVDIRECT < 10 * 60e3) return; SRVDIRECT = Date.now();
+    await logErr(env.__fs || makeFS(env), { ...e, src: "server", uid: uid && uid !== "server" ? uid : "" });
+  } catch (x) { }
+}
+
 /* ---------- بوّابة الأخطاء (Durable Object واحد للعالم) ----------
    أخطاء التطبيق (/err) لا تُكتب في Firestore مباشرة ولا يُقرأ Firestore في مسارها: البوّابة تقرّر وتعدّ وتكتب على دفعات.
    - السقوف اليومية (يوم برلين): المجهولون 30 مجموعة جديدة و300 بلاغ؛ كل مستخدم مسجّل 30 مجموعة و200 بلاغ؛ الكل 2000 بلاغ.
@@ -1567,6 +1582,7 @@ export class ErrGate {
 let ERRN = { t: 0, n: 0 };   // طبقة أولى رخيصة: 30 خطأ في الدقيقة على الأكثر لكل نسخة من الخادم
 async function handleErr(req, env, H) {
   const ok = () => new Response("{}", { headers: { ...H, "Content-Type": "application/json" } });
+  if (env.ERR_MODE === "off") return ok();     // مفتاح الإيقاف: لا تسجيل ولا Firestore ولا بوّابة
   if (!ORIGINS.includes(req.headers.get("Origin") || "")) return new Response("{}", { status: 403, headers: H });
   if (Date.now() - ERRN.t > 60e3) ERRN = { t: Date.now(), n: 0 };
   if (++ERRN.n > 30) return new Response("{}", { status: 429, headers: H });
@@ -1899,7 +1915,7 @@ async function handleRd(fs, user, body, env) {
 }
 
 export default {
-  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { try { await logErr(makeFS(env), { src: "server", msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }) } catch (_) { } } })()) },
+  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { await srvErr(env, { msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }, "server") } })()) },
   async fetch(req, env, ctx) {
     env.__ctx = ctx;
     const H = cors(req), url = new URL(req.url);
@@ -1907,8 +1923,14 @@ export default {
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
     if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd", "/mt"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    // التحقق من الهوية أولًا وبمعزل: أي فشل فيه (رمز مشوّه أو منتهٍ) ردّ 401 ولا يُسجَّل خطأً أبدًا، فلا يستطيع طلب مجهول أن يكتب في Firestore
+    let user; try { user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "")) }
+    catch (e) {
+      if (e && e.transient) { const p = srvErr(env, { msg: e.message, where: url.pathname }, "server"); if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p;
+        return new Response(JSON.stringify({ error: "server", detail: "auth unavailable" }), { status: 503, headers: { ...H, "Content-Type": "application/json" } }) }
+      return new Response(JSON.stringify({ error: "auth", detail: "token" }), { status: 401, headers: { ...H, "Content-Type": "application/json" } });
+    }
     try {
-      const user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, ""));
       const body = await req.json().catch(() => ({}));
       const fs0 = env.__fs || makeFS(env), fs = countFS(fs0);
       stAdd("req", 1);
@@ -1923,7 +1945,7 @@ export default {
       return new Response(JSON.stringify(out.json), { status: out.status, headers: { ...H, "Content-Type": "application/json" } });
     } catch (e) {
       const auth = /token|key/.test(e.message);
-      if (!auth) { const p = (async () => { try { await logErr(env.__fs || makeFS(env), { src: "server", msg: String(e && e.message || e), stack: String(e && e.stack || ""), where: url.pathname }) } catch (_) { } })(); if (ctx && ctx.waitUntil) ctx.waitUntil(p) }
+      if (!auth) { const p = srvErr(env, { msg: String(e && e.message || e), stack: String(e && e.stack || ""), where: url.pathname }, user.uid); if (ctx && ctx.waitUntil) ctx.waitUntil(p); else await p }
       return new Response(JSON.stringify({ error: auth ? "auth" : "server", detail: String(e.message).slice(0, 200) }), { status: auth ? 401 : 500, headers: { ...H, "Content-Type": "application/json" } });
     }
   }

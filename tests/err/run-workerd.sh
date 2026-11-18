@@ -5,4 +5,4 @@
 D=$(cd "$(dirname "$0")" && pwd); . "$D/../lib.sh"
 M=${MF_DIR:-$HOME/.cache/muf-miniflare}
 [ -d "$M/node_modules/miniflare" ] || { echo "SKIP لا يوجد Miniflare في $M"; exit 3; }
-node "$D/workerd.mjs" "$R/server/worker.js" "$M" | verdict
+{ node "$D/workerd.mjs" "$R/server/worker.js" "$M"; echo __END; } | verdict

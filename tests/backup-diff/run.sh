@@ -2,4 +2,4 @@
 # فروق «تحقق كامل»: شيفرة الخادم الحالية مع قاعدة وتخزين في الذاكرة. لا شبكة ولا مفاتيح ولا بيانات حقيقية.
 D=$(cd "$(dirname "$0")" && pwd); . "$D/../lib.sh"; W=$(mktemp -d)
 cp "$R/server/worker.js" "$W/w_old.mjs";cp "$R/server/worker.js" "$W/w_new.mjs";cp "$R/core.js" "$W/core_old.js";cp "$R/core.js" "$W/core_new.js"
-{ cd "$D" && node diff.mjs "$W" "$R" && node verify2.mjs "$W" "$R" && node twoali.mjs "$W" "$R"; } | verdict
+{ cd "$D" && node diff.mjs "$W" "$R" && node verify2.mjs "$W" "$R" && node twoali.mjs "$W" "$R"; echo __END; } | verdict

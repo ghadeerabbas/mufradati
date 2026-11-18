@@ -1,5 +1,6 @@
 // بوّابة الأخطاء: شيفرة الخادم الحقيقية (worker.js الجديد) + كائن دائم مُحاكى + قاعدة في الذاكرة مع حقن أعطال. لا شبكة ولا مفاتيح.
 import {T,out,memfs,DB,SRV,ctl,env,token,user,post} from './it.mjs';
+const INFO=(n,x)=>out.push('INFO '+n+(x!==undefined?' → '+x:''));
 import {newDB,makeCtx} from './dostub.mjs';
 import path from 'node:path';import {pathToFileURL} from 'node:url';
 const DIR=process.argv[2];
@@ -197,4 +198,59 @@ reset();
 {await rep('u1',S(13),{stack:ST('syncNow',2201)});await tick(61e3);const r=await admin({});
  T('صفحة الأخطاء تعرض الوثائق كما كانت (مع حقل التنقية)',r.status===200&&r.j.items.length===1&&'san' in r.j.items[0]&&r.j.items[0].n===1);
  const j=await post('/sync','u1',{evs:[]});T('المزامنة تعمل كما كانت',!!j.core)}
+
+// ===== 14) أخطاء الخادم المباشرة: لا استنزاف =====
+{reset();const bad=['a.b.c','!!.!!.!!','eyJ.e30.x','e30.e30.sig','x','..','a.b.','%%.%%.%%','eyJhbGciOiJSUzI1NiJ9.!!.x'];
+ const hit=async(Wk,tok)=>(await Wk.fetch(new Request('https://api.test/sync',{method:'POST',headers:{Authorization:'Bearer '+tok,Origin:ORIGIN,'Content-Type':'application/json'},body:'{}'}),env,{})).status;
+ const wo=()=>OPS.filter(o=>o.k==='write'&&o.p.startsWith('errs/')).length;
+ const o0=wo();const so={};for(let i=0;i<200;i++){const s=await hit(SRV.old,bad[i%bad.length]);so[s]=(so[s]||0)+1}
+ await new Promise(r=>setTimeout(r,300));const oldW=wo()-o0;   // الخادم القديم يكتب في الخلفية
+ INFO('[خلل في الخادم المنشور، يصلحه هذا الفرع] 200 طلب مجهول برمز مشوّه: كتابات أخطاء في Firestore',oldW+' كتابة · الردود '+JSON.stringify(so));
+ reset();const o1=wo(),r1=OPS.length;const sn={};for(let i=0;i<200;i++){const s=await hit(W,bad[i%bad.length]);sn[s]=(sn[s]||0)+1}await tick(3600e3);
+ T('الخادم الجديد: 200 طلب برمز مشوّه → 401 كلها، وصفر عملية في Firestore حتى بعد ساعة من المنبّهات',sn[401]===200&&OPS.length===r1&&G.state().g.length===0,JSON.stringify(sn)+' · عمليات '+(OPS.length-r1));
+ // مستخدم مسجّل يسبّب خطأ خادم مرارًا
+ HOOK=async(k,p)=>k==='get'&&p==='users/u7/data/core'?'err':null;const r2=OPS.length;let e5=0;
+ for(let i=0;i<300;i++){if(i%29===0)ctl.NOW+=61e3;try{await post('/sync','u7',{evs:[]})}catch(e){if(/500/.test(e.message))e5++}}
+ const during=OPS.slice(r2).filter(o=>o.k==='write').length;HOOK=null;await tick(3600e3);
+ const sv=errs().filter(e=>e.src==='server');const q=G.state().qu.find(x=>x.uid==='u7');
+ T('300 خطأ خادم من مستخدم واحد: صفر كتابة أثناءها، والبوّابة تعدّ بسقف المستخدم (200)',e5===300&&during===0&&q.w===200,'أخطاء '+e5+' · كتابات أثناءها '+during+' · مقبول '+q.w);
+ T('وبعد المنبّه: مجموعة خطأ خادم واحدة n=200 وملخّص بالباقي',sv.length===1&&sv[0].n===200&&errs().some(e=>e.where==='summary'&&e.n===100),sv.map(x=>x.n)+' · '+errs().filter(e=>e.where==='summary').map(x=>x.n));
+ // عطل النسخ الاحتياطي المجدول
+ const waits=[];const ctxw={waitUntil:p=>waits.push(p)};env.BAK={...env.BAK,list:async()=>{throw new Error('kv down')},put:async()=>{throw new Error('kv down')},get:async()=>null};
+ await W.scheduled({},env,ctxw);await Promise.all(waits);await tick(61e3);
+ T('عطل النسخ الاحتياطي المجدول يمرّ بالبوّابة ويظهر في صفحة الأخطاء',errs().some(e=>e.src==='server'&&/النسخ الاحتياطي فشل/.test(e.msg)),errs().map(e=>e.msg.slice(0,30)).join(' | '));
+ // البوّابة معطّلة: كتابة مباشرة مرة واحدة كل 10 دقائق على الأكثر
+ const g0=env.ERRGATE;env.ERRGATE={idFromName:()=>'x',get:()=>({fetch:async()=>new Response('x',{status:500})})};HOOK=async(k,p)=>k==='get'&&p==='users/u6/data/core'?'err':null;
+ const r3=OPS.filter(o=>o.k==='write').length;for(let i=0;i<50;i++){if(i%29===0)ctl.NOW+=1e3;try{await post('/sync','u6',{evs:[]})}catch(e){}}
+ const direct=OPS.filter(o=>o.k==='write').length-r3;HOOK=null;env.ERRGATE=g0;
+ T('البوّابة معطّلة: 50 خطأ خادم → كتابة مباشرة واحدة فقط (مرة كل 10 دقائق لكل نسخة)',direct===1,direct+' كتابة')}
+// ===== 14ب) تعذّر جلب مفاتيح Google: 503 (يعيد التطبيق المحاولة) لا 401، وتسجيل محدود عبر البوّابة =====
+{reset();const f0=globalThis.fetch;globalThis.fetch=async(u,o)=>{if(String(u).includes('securetoken@system.gserviceaccount.com'))throw new TypeError('network down');return f0(u,o)};
+ const b64=x=>Buffer.from(JSON.stringify(x)).toString('base64url');const tok=b64({alg:'RS256',kid:'rotated-key'})+'.'+b64({sub:'u1'})+'.c2ln';
+ const r0=OPS.length;const codes={};for(let i=0;i<40;i++){const r=await W.fetch(new Request('https://api.test/sync',{method:'POST',headers:{Authorization:'Bearer '+tok,Origin:ORIGIN},body:'{}'}),env,{});codes[r.status]=(codes[r.status]||0)+1}
+ globalThis.fetch=f0;const during=OPS.length-r0;await tick(61e3);const sv=errs().filter(e=>e.src==='server');
+ T('مفاتيح Google غير متاحة: 503 لا 401 (لا يُطلب من الطفل إعادة الدخول)، وصفر عملية Firestore أثناءها',codes[503]===40&&during===0,JSON.stringify(codes)+' · عمليات '+during);
+ T('… ويظهر خطأ خادم واحد بعدد البلاغات عبر البوّابة',sv.length===1&&sv[0].n===40&&/jwks unavailable/.test(sv[0].msg),sv.map(x=>x.msg+' '+x.n).join())}
+// ===== 15) مفتاح الإيقاف ERR_MODE=off =====
+{reset();env.ERR_MODE='off';const r0=OPS.length;let c=0;const f0=G.fetch.bind(G);G.fetch=(...a)=>(c++,f0(...a));
+ for(let i=0;i<20;i++)await rep('u1',S(150));HOOK=async(k,p)=>k==='get'&&p==='users/u5/data/core'?'err':null;try{await post('/sync','u5',{evs:[]})}catch(e){}HOOK=null;
+ await tick(3600e3);T('ERR_MODE=off: لا بوّابة ولا Firestore لبلاغات التطبيق ولا لأخطاء الخادم',c===0&&OPS.slice(r0).every(o=>!o.p.startsWith('errs/')),'طلبات البوّابة '+c+' · كتابات أخطاء '+OPS.slice(r0).filter(o=>o.p.startsWith('errs/')).length);
+ delete env.ERR_MODE;G.fetch=f0}
+// ===== 16) أول تشغيل مع أخطاء قديمة =====
+{reset();for(let i=0;i<100;i++)await memfs.commit([{path:'errs/'+(0xa000+i).toString(16).padStart(16,'0'),data:{msg:'old '+i,stack:'',src:'app',where:'',ua:'',ver:'',n:i+1,first:{__ts:Date.parse('2026-10-01')},last:{__ts:Date.parse('2026-10-02')},users:['u1']}}]);
+ const r0=OPS.length;for(let i=0;i<5;i++)await rep('u2',S(160+i));await tick(6*3600e3);
+ T('100 وثيقة قديمة لم تتكرر: لا تُقرأ ولا تُكتب ولا تتغيّر (لا استيراد جماعي)',!OPS.slice(r0).some(o=>/errs\/000000000000a/.test(o.p))&&[...Array(100)].every((_,i)=>doc((0xa000+i).toString(16).padStart(16,'0')).n===i+1));
+ // وثيقة قديمة بحقول ناقصة (بلا users ولا first)
+ await rep('u3',S(170));const id=G.state().g.find(g=>g.msg===S(170)).id;reset();
+ await memfs.commit([{path:'errs/'+id,data:{msg:S(170),n:12}}]);await rep('u3',S(170));await tick(61e3);await tick(61e3);
+ T('وثيقة قديمة بلا مستخدمين ولا أول ظهور: تُدمج دون خطأ (n=13)',doc(id).n===13&&doc(id).users.join()==='u3'&&doc(id).first&&doc(id).first.ms>0,JSON.stringify([doc(id).n,doc(id).users]));
+ // الخادم القديم (أثناء الانتقال) يكتب عددًا أقل فوق كتابة البوّابة
+ await rep('u4',S(170));await tick(61e3);const d=DB.get('errs/'+id);DB.set('errs/'+id,{data:{...d.data,n:5},ut:'77'+d.ut});
+ await rep('u5',S(170));await tick(61e3);await tick(61e3);
+ T('كتابة أقل من خادم قديم أثناء الانتقال: تُصحَّح، والعدد لا ينزل (n=15)',doc(id).n===15,doc(id).n);
+ // وثيقة قديمة مفتاحها من نص غير منقّى (فيه بريد): تبقى كما هي، والجديدة مجموعة مستقلة
+ const raw='Error: login failed for ali@mufradati.app';const oldId=[...new Uint8Array(await crypto.subtle.digest('SHA-1',new TextEncoder().encode('app|'+raw.replace(/\d+/g,'#')+'|')))].slice(0,8).map(b=>b.toString(16).padStart(2,'0')).join('');
+ await memfs.commit([{path:'errs/'+oldId,data:{msg:raw,n:9,users:['u1'],first:{__ts:1},last:{__ts:2}}}]);await rep('u1',raw);await tick(61e3);
+ const nw=errs().find(e=>e.msg==='Error: login failed for [بريد]');
+ T('وثيقة قديمة بنص غير منقّى: لا تُلمس، والبلاغ الجديد مجموعة منقّاة مستقلة (ظهور مكرر مرة واحدة)',doc(oldId).n===9&&nw&&nw.id!==oldId&&nw.n===1,'قديمة '+doc(oldId).n+' · جديدة '+(nw&&nw.n))}
 globalThis.__printed=1;console.log(out.join('\n'));
