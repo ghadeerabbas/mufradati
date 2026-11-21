@@ -512,6 +512,8 @@ body:not(.adm) .unit>div{display:flex;flex-direction:column;align-items:center}
 .mbar{display:flex;align-items:center;gap:8px;font-size:.8rem;margin:4px 0}.mbar span{width:46%}.mbar i{flex:1;height:8px;border-radius:4px;background:var(--soft);position:relative;overflow:hidden}.mbar i b{position:absolute;inset:0 auto 0 0;background:var(--navy2);border-radius:4px}.mbar em{font-style:normal;width:44px;text-align:left}
 /* ===== التقارير ===== */
 .rnote{font-size:.8rem;color:var(--muted);margin-bottom:10px}
+.xptbl{width:100%;border-collapse:collapse;font-size:.86rem;margin:6px 0}.xptbl th,.xptbl td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:right}.xptbl th{color:var(--muted);font-weight:700;font-size:.8rem}
+.xph{font-size:.9rem;margin:12px 0 4px}.xprt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center;font-size:.8rem}.xprt span{background:var(--soft);border-radius:10px;padding:6px 2px}.xprt b{display:block;font-size:1.05rem}
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
 .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
 .kpi b{display:block;font-size:1.5rem;color:var(--hd);line-height:1.3}
@@ -4875,6 +4877,9 @@ function renderUser(){
    <label class="hidepub"><input type="checkbox" id="uOffAll" ${CFG.off&&CFG.off.all?"checked":""}><span><b>لكل المتعلّمين</b><small>الإلغاء من هنا يوقفه عند الجميع (إلا من فُعّل له وحده)</small></span></label></div>
   <div class="rsec"><h3>🛤️ عدد محطاته اليومية</h3><p class="rnote">بعد كل محطة تدريبها، وفي آخر المسار تحدٍّ قصير مجاني. اتركه «افتراضي» ليأخذ العدد العام (${ST_MAX}).</p>
    <div class="numpicks" id="uStn"><button type="button" class="numpick${(CFG.stn||{})[u.id]?"":" on"}" data-v="0">افتراضي</button>${[1,2,3,4,5,6,7,8,10].map(n=>`<button type="button" class="numpick${(CFG.stn||{})[u.id]===n?" on":""}" data-v="${n}">${n}</button>`).join("")}</div></div>
+  <div class="rsec"><h3>✨ سجل الخبرة</h3><p class="rnote">من أين جاءت خبرته في الأسبوع: يومًا بيوم ومصدرًا بمصدر، وكيف قيّم مراجعاته. يُحسب من سجلّه بقواعد التطبيق نفسها، ولا يغيّر شيئًا.</p>
+   <div class="numpicks" id="xpW"><button type="button" class="numpick on" data-w="0">هذا الأسبوع</button><button type="button" class="numpick" data-w="1">الأسبوع الماضي</button><button type="button" class="numpick" data-w="2">قبل أسبوعين</button></div>
+   <div id="xpLogBox"></div></div>
   <div class="rsec" id="giftBox">${giftBoxHTML(u.id)}</div>
   <div class="rsec"><h3>${I3("trash")} حذف كل بياناته</h3><p class="rnote">يبدأ من الصفر بكل شيء: التقدّم، والخبرة، والجواهر، والمشتريات، والهدايا، والدوري، والمظهر. يبقى حسابه وتفعيله واسمه الظاهر ورسائله. لا يمكن التراجع.</p>
    <button class="btn" id="uWipe" style="width:100%;margin-top:6px;background:var(--red);color:#fff">حذف كل بياناته</button><div class="stmsg" id="uWipeMsg"></div></div>
@@ -4890,6 +4895,8 @@ function renderUser(){
   renderAssign(u.id);bindGiftBox(u.id);rdAdm(u.id);mtAdm(u.id);uFold(el);
   bindSrsAdm(u.id);
   {const cb=$("uAi");if(cb)cb.onchange=async()=>{cb.disabled=true;const ok=await setAi(u.id,cb.checked);if(!ok)cb.checked=!cb.checked;cb.disabled=false};$("uAiLog").onclick=()=>aiLogShow(u.id)}
+  {const w=$("xpW");if(w)w.onclick=e=>{const b=e.target.closest(".numpick");if(!b)return;w.querySelectorAll(".numpick").forEach(x=>x.classList.toggle("on",x===b));xpLogShow(u.id,+b.dataset.w)};
+   const h=w&&w.closest(".rsec").querySelector("h3");if(h)h.addEventListener("click",()=>{if(!$("xpLogBox").innerHTML)xpLogShow(u.id,0)})}
   {const sp=$("uStn");if(sp)sp.onclick=async e=>{const b=e.target.closest(".numpick");if(!b||b.disabled)return;const v=+b.dataset.v;
     const m={...(CFG.stn||{})};if(v)m[u.id]=v;else delete m[u.id];const c={...CFG,stn:m};
     sp.querySelectorAll(".numpick").forEach(x=>x.disabled=true);
@@ -5517,6 +5524,49 @@ function bindSrsAdm(uid){const box=$("srsBox");if(!box)return;
 async function setAi(uid,on){
   const f=new Set(CFG.ai||[]);on?f.add(uid):f.delete(uid);const c={...CFG,ai:[...f]};
   if(await saveCfg(c,on?"فُعّل مساعد الوظيفة":"أُلغي مساعد الوظيفة")){applyCfg(c);return true}return false;
+}
+// سجل الخبرة عند المشرف: يقرأ سجلّ المتعلّم (core وlog وck) ويعيد الحساب بقواعد replayLog وweekXP في core.js، للعرض فقط
+let XPLC=null;   // {uid,at,L,Q,ck,vf}
+const nA=(n,sg,du,pl)=>n===2?du:n>=3&&n<=10?n+" "+pl:n+" "+sg;   // 0 كلمة، 1 كلمة، كلمتان، 5 كلمات، 115 كلمة
+async function xpLogShow(uid,back){
+  const box=$("xpLogBox");if(!box)return;
+  if(!XPLC||XPLC.uid!==uid||Date.now()-XPLC.at>60000){
+    box.innerHTML='<div class="empty">جارٍ التحميل…</div>';
+    try{const ref=db.collection("users").doc(uid).collection("data");
+      const [c,l,k]=await Promise.all(["core","log","ck"].map(n=>ref.doc(n).get()));
+      const core=JSON.parse((c.exists&&c.data().v)||"{}")||{},ck=k.exists&&k.data().v?JSON.parse(k.data().v):null;
+      XPLC={uid,at:Date.now(),L:unpackLog(JSON.parse((l.exists&&l.data().v)||"null")).sort((a,b)=>a[0]-b[0]),Q:core.QLOG||[],ck,vf:(core.R&&Array.isArray(core.R.vf))?core.R.vf:[]}}
+    catch(e){box.innerHTML='<div class="empty">تعذّر التحميل، تحقّق من الاتصال.</div>';return}
+  }
+  const {L,Q,ck,vf}=XPLC,ws=weekStart(weekStart(Date.now())-back*7*DAY+DAY*0.5),we=ws+7*DAY;
+  // حالة البداية من نقطة الحفظ كما في ckState
+  const box_={},r4=new Set,r7=new Set;if(ck)for(const k in ck.w||{}){const v=ck.w[k];box_[k]=v>>2;if(v&1)r4.add(k);if(v&2)r7.add(k)}
+  const VF=new Set;for(const x of vf)if(Array.isArray(x))VF.add(x[0]+"|"+x[1]);
+  const D={},day=d=>D[d]=D[d]||{st:0,stN:0,rev:0,revN:0,mem:0,memN:0,sol:0,solN:0,qz:0,qzN:0,cnt:0,rt:[0,0,0,0],pr:0,fr:0};
+  for(const [t,k,r,nw] of L){
+    if(ck&&ck.t&&t<ck.t)continue;const inW=t>=ws&&t<we,d=dkey(t);
+    if(nw===2){box_[k]=boxStep(box_[k]||0,r,true);if(inW)day(d).pr++;continue}
+    const fr=nw>=3;
+    if(inW){const x=day(d);if(nw===1){x.st+=xpOf(r,nw);x.stN++}else if(nw===0){x.rev+=xpOf(r,nw);x.revN++;x.rt[r]++}else x.fr++;if(nw<2)x.cnt++}
+    const b=nw===1||nw===4?1:r===1&&VF.size&&VF.has(Math.round(t/1000)+"|"+k)?vfBox(box_[k]):boxStep(box_[k]||0,r,false);box_[k]=b;
+    if(b>=4&&!r4.has(k)){r4.add(k);if(!fr&&inW){day(d).mem+=CFG.xp.mem;day(d).memN++}}
+    if(b>=7&&!r7.has(k)){r7.add(k);if(!fr&&inW){day(d).sol+=CFG.xp.solid;day(d).solN++}}
+  }
+  for(const q of Q)if(q[0]>=ws&&q[0]<we){const x=day(dkey(q[0]));x.qz+=qXp(q);x.qzN++}
+  const days=Object.keys(D).sort(),T={st:0,stN:0,rev:0,revN:0,mem:0,memN:0,sol:0,solN:0,qz:0,qzN:0,bon:0,bonN:0,rt:[0,0,0,0],pr:0,fr:0};
+  const rows=days.map(d=>{const x=D[d],bon=x.cnt>=CFG.xp.dayN?CFG.xp.dayXp:0,tot=x.st+x.rev+x.mem+x.sol+x.qz+bon;
+    for(const f of ["st","stN","rev","revN","mem","memN","sol","solN","qz","qzN","pr","fr"])T[f]+=x[f];T.bon+=bon;if(bon)T.bonN++;x.rt.forEach((v,i)=>T.rt[i]+=v);
+    const lb=new Date(d+"T12:00:00Z").toLocaleDateString("ar-u-nu-latn",{weekday:"long",day:"numeric",month:"numeric",timeZone:"UTC"});
+    return `<tr><td>${lb}</td><td><b>${tot}</b></td><td>${x.revN}</td><td>${x.memN+x.solN?`${x.memN}·${x.solN}`:"—"}</td></tr>`}).join("");
+  const all=T.st+T.rev+T.mem+T.sol+T.qz+T.bon,rn=T.rt.reduce((a,b)=>a+b,0),pc=v=>rn?Math.round(v/rn*100):0;
+  const wl=t=>new Date(t+DAY/2).toLocaleDateString("ar-SY-u-nu-latn",{day:"numeric",month:"long",timeZone:"Europe/Berlin"});
+  const src=[["كلمات وصلت إلى «راسخة»",nA(T.solN,"كلمة","كلمتان","كلمات"),T.sol],["كلمات وصلت إلى «محفوظة»",nA(T.memN,"كلمة","كلمتان","كلمات"),T.mem],["مراجعات في موعدها",nA(T.revN,"مراجعة","مراجعتان","مراجعات"),T.rev],["خطوات المحطات (كلمات جديدة)",nA(T.stN,"خطوة","خطوتان","خطوات"),T.st],["الاختبارات والتدريبات",nA(T.qzN,"مرة","مرتان","مرات"),T.qz],["مكافأة "+CFG.xp.dayN+" مراجعة في اليوم",nA(T.bonN,"يوم","يومان","أيام"),T.bon]];
+  box.innerHTML=`<p class="rnote">من ${wl(ws)} إلى ${wl(we-DAY)} · المجموع <b>${all}</b> خبرة</p>
+   ${all?`<table class="xptbl"><tr><th>المصدر</th><th>العدد</th><th>الخبرة</th></tr>${src.map(([a,b,c])=>`<tr><td>${a}</td><td>${b}</td><td><b>${c}</b></td></tr>`).join("")}</table>
+   <h4 class="xph">يومًا بيوم</h4><table class="xptbl"><tr><th>اليوم</th><th>الخبرة</th><th>مراجعات</th><th>محفوظة·راسخة</th></tr>${rows}</table>
+   <h4 class="xph">تقييمه للمراجعات في موعدها (${rn})</h4><div class="xprt">${["نسيت","صعبة","جيدة","سهلة"].map((n,i)=>`<span><b>${T.rt[i]}</b>${n} · ${pc(T.rt[i])}%</span>`).join("")}</div>
+   ${rn>=20&&pc(T.rt[3])>=90?`<p class="rnote" style="color:var(--red)">⚠️ ضغط «سهلة» في ${pc(T.rt[3])}% من مراجعاته. كل «سهلة» ترفع الكلمة مرحلتين، فتصل كلماته بسرعة إلى «محفوظة» و«راسخة» وتعطيه مكافآتهما.</p>`:""}
+   ${T.pr||T.fr?`<p class="rnote">بلا خبرة: ${T.pr?T.pr+" تدريب":""}${T.pr&&T.fr?" · ":""}${T.fr?T.fr+" في الدراسة الحرّة":""}</p>`:""}`:'<div class="empty">لا خبرة في هذا الأسبوع.</div>'}`;
 }
 async function aiLogShow(uid,more){
   const box=$("aiLogBox");if(!box)return;const btn=$("uAiLog");
