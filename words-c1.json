@@ -115,7 +115,7 @@
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"B2","core":1,"de":"die Qualifizierung","ar":"التأهيل","ex":"Die Qualifizierung läuft in Vollzeit.","exar":"يجري التأهيل بدوامٍ كامل."},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"B2","core":0,"de":"laufen (hier)","ar":"يجري / يسير (عن دورة أو مشروع)","ex":"Die Qualifizierung läuft in Vollzeit.","exar":"يجري التأهيل بدوامٍ كامل."},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":1,"de":"in Vollzeit","ar":"بدوام كامل","ex":"Die Qualifizierung läuft in Vollzeit.","exar":"يجري التأهيل بدوامٍ كامل."},
- {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":1,"de":"in Teilzeit","ar":"بدوام جزئي","ex":"Die Qualifizierung läuft in Teilzeit.","exar":"يجري التأهيل بدوامٍ جزئي."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":1,"de":"in Teilzeit","ar":"بدوام جزئي","ex":"","exar":""},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"B1","core":0,"de":"die Kursform","ar":"شكل الدورة","ex":"Kursform: Live-Online-Kurs in unserem Lernportal","exar":"شكل الدورة: دورة مباشرة عبر الإنترنت في بوابة التعلّم لدينا"},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"B1","core":0,"de":"das Lernportal","ar":"بوابة التعلّم","ex":"Live-Online-Kurs in unserem Lernportal","exar":"دورة مباشرة عبر الإنترنت في بوابة التعلّم لدينا"},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"B2","core":1,"de":"die Fördermöglichkeit","ar":"إمكانية التمويل","ex":"Fördermöglichkeit: IHK, Bildungsgutschein","exar":"إمكانية التمويل: غرفة الصناعة والتجارة، قسيمة التعليم"},
@@ -259,6 +259,22 @@
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":0,"de":"Warum das denn?","ar":"ولماذا ذلك؟","ex":"Warum das denn?","exar":"ولماذا ذلك؟"},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":0,"de":"am Ende des Tages","ar":"في نهاية اليوم","ex":"Am Ende des Tages wird ein Feedbackgespräch","exar":"في نهاية اليوم … جلسة تقييم"},
  {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":0,"de":"das Richtige finden","ar":"يجد الشيء المناسب","ex":"es ist gar nicht so einfach, da das Richtige zu finden.","exar":"وليس من السهل أبدًا أن يجد المرء بينها ما يناسبه."},
- {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":0,"de":"gar nicht so einfach","ar":"ليس سهلًا أبدًا","ex":"es ist gar nicht so einfach, da das Richtige zu finden.","exar":"وليس من السهل أبدًا أن يجد المرء بينها ما يناسبه."}
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"e","lvl":"B1","core":0,"de":"gar nicht so einfach","ar":"ليس سهلًا أبدًا","ex":"es ist gar nicht so einfach, da das Richtige zu finden.","exar":"وليس من السهل أبدًا أن يجد المرء بينها ما يناسبه."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A1","core":0,"de":"suchen","ar":"يبحث عن","ex":"eine neue … suchen","exar":"البحث عن … جديدة"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A1","core":0,"de":"schreiben","ar":"يكتب","ex":"eine … schreiben","exar":"كتابة …"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A1","core":0,"de":"besuchen","ar":"يحضر / يلتحق بـ؛ يزور","ex":"eine … besuchen","exar":"حضور …"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A1","core":0,"de":"zeigen","ar":"يُري / يعرض","ex":"","exar":""},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A2","core":0,"de":"planen","ar":"يخطّط","ex":"Clara plant, sich mit einer Praxis für Physiotherapie selbstständig zu machen.","exar":"تخطّط كلارا لأن تفتح عملها الخاص بعيادة علاجٍ فيزيائي."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A2","core":0,"de":"hoffen","ar":"يأمل","ex":"Ich hoffe, ich bekomme bald einen positiven (8) …","exar":"آمل أن أحصل قريبًا على (٨) … إيجابي."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"v","lvl":"A2","core":0,"de":"studieren","ar":"يدرس (في الجامعة)","ex":"Ich habe Pädagogik studiert","exar":"درستُ التربية"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"a","lvl":"A2","core":0,"de":"positiv","ar":"إيجابي","ex":"Ich hoffe, ich bekomme bald einen positiven (8) …","exar":"آمل أن أحصل قريبًا على (٨) … إيجابي."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"a","lvl":"A2","core":0,"de":"endlich","ar":"أخيرًا","ex":"ich kann jetzt endlich alle Schritte bei den Abrechnungen allein","exar":"صار بإمكاني الآن أخيرًا … كلّ خطوات الحسابات وحدي"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"a","lvl":"A2","core":0,"de":"allein","ar":"وحده / لوحده","ex":"ich kann jetzt endlich alle Schritte bei den Abrechnungen allein","exar":"صار بإمكاني الآن أخيرًا … كلّ خطوات الحسابات وحدي"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"A2","core":0,"de":"die Firma, Firmen","ar":"الشركة","ex":"Der erste Arbeitstag in der neuen Firma.","exar":"يوم العمل الأول في الشركة الجديدة."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"A2","core":0,"de":"das Team, -s","ar":"الفريق","ex":"Das Team wird","exar":"الفريق …"},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"A1","core":0,"de":"das Handy, -s","ar":"الموبايل","ex":"","exar":""},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"A1","core":0,"de":"die Arbeit","ar":"العمل","ex":"","exar":""},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"A2","core":0,"de":"der Artikel, -","ar":"أداة التعريف","ex":"Schreiben Sie die Nomen mit Artikel.","exar":"اكتبوا الأسماء مع أداة التعريف."},
+ {"day":1,"s":["Kapitel 1 · Auftakt"],"t":"n","lvl":"A2","core":0,"de":"das Nomen, -","ar":"الاسم","ex":"Markieren Sie zehn Nomen.","exar":"حدّدوا عشرة أسماء."}
 ]
 }
