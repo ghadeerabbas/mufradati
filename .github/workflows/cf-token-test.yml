@@ -1,7 +1,9 @@
-# اختبار مفتاح Cloudflare الجديد (CLOUDFLARE_API_TOKEN_TEST): قراءة وتجميع تجريبي فقط.
-# يعمل عند الدفع إلى الفرع cf-token-test وحده. لا ينشر، ولا يرفع نسخًا، ولا يضع أسرارًا، ولا يكتب أي شيء في Cloudflare:
-# كل طلب إلى Cloudflare هنا من نوع GET، والتجميع التجريبي يعمل بلا أي مفتاح.
-name: اختبار مفتاح Cloudflare (قراءة فقط)
+# اختبار مفتاح Cloudflare الجديد (CLOUDFLARE_API_TOKEN_TEST) — الفحصان «و» و«ز».
+# يعمل عند الدفع إلى الفرع cf-token-test وحده.
+# و: رفع نسخة غير مفعّلة (wrangler versions upload) بإعدادات فيها معرّف BAK المثبّت. لا نشر، ولا أسرار، ولا تغيير في توزيع الزيارات.
+# ز: مقارنة حالة الخادم قبل الرفع وبعده: النسخة العاملة ونسبتها، والروابط، وأسماء الأسرار، والمهمة المجدولة، وإعدادات الرابط.
+# أي شرط غير مضمون قبل الرفع (روابط المعاينة مفعّلة مثلًا) يوقف الاختبار قبل الرفع. وعند فشل الرفع: توقّف بلا إعادة محاولة.
+name: اختبار مفتاح Cloudflare (و، ز)
 on:
   push:
     branches: [cf-token-test]
@@ -12,6 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       SCRIPT: mufradati-api
+      BAK_ID: 996b07debe664499a8a67a936a85d249
     steps:
       - uses: actions/checkout@v4
       - name: تجهيز المفتاح المؤقت
@@ -23,46 +26,61 @@ jobs:
           [ -n "$T" ] || { echo "::error::السرّ CLOUDFLARE_API_TOKEN_TEST غير موجود"; exit 1; }
           [ -n "$A" ] || { echo "::error::السرّ CLOUDFLARE_ACCOUNT_ID غير موجود"; exit 1; }
           { echo "CFT=$(printf %s "$T" | tr -d '[:space:]"')"; echo "CFA=$(printf %s "$A" | tr -d '[:space:]')"; } >> "$GITHUB_ENV"
-      # دالة واحدة لكل الطلبات: GET فقط، وتطبع رمز الحالة ونجاح الطلب دون أي قيمة سرّية
-      - name: الفحوص أ–د (قراءة فقط)
-        run: |
-          set -uo pipefail
-          get(){ curl -s -X GET -o "$2" -w '%{http_code}' -H "Authorization: Bearer $CFT" "https://api.cloudflare.com/client/v4$1"; }
-          ok(){ jq -r '.success' "$1"; }
-          errs(){ jq -c '[.errors[]?|{code,message}]' "$1"; }
-          FAIL=0
-          echo "== أ. صلاحية المفتاح"
-          c=$(get /user/tokens/verify a.json); echo "HTTP $c · success=$(ok a.json) · status=$(jq -r '.result.status' a.json) · expires=$(jq -r '.result.expires_on // "بلا انتهاء"' a.json)"
-          [ "$(ok a.json)" = true ] && [ "$(jq -r '.result.status' a.json)" = active ] || { echo "::error::المفتاح غير صالح أو غير نشط $(errs a.json)"; FAIL=1; }
-          echo "== ب. معلومات الحساب والمستخدم"
-          c=$(get "/accounts/$CFA" b1.json); echo "الحساب (Account Settings: Read): HTTP $c · success=$(ok b1.json)"; [ "$(ok b1.json)" = true ] || { echo "::error::قراءة الحساب مرفوضة $(errs b1.json)"; FAIL=1; }
-          c=$(get /memberships b2.json); echo "العضويات (Memberships: Read): HTTP $c · success=$(ok b2.json) · عدد الحسابات المرئية=$(jq '.result|length' b2.json 2>/dev/null)"; [ "$(ok b2.json)" = true ] || { echo "::error::قراءة العضويات مرفوضة $(errs b2.json)"; FAIL=1; }
-          c=$(get /user b3.json); echo "المستخدم (User Details: Read): HTTP $c · success=$(ok b3.json)"; [ "$(ok b3.json)" = true ] || { echo "::error::قراءة المستخدم مرفوضة $(errs b3.json)"; FAIL=1; }
-          echo "== ج. إعدادات الخادم المنشور $SCRIPT (عبر Workers Scripts)"
-          c=$(get "/accounts/$CFA/workers/scripts/$SCRIPT/settings" c1.json); echo "الإعدادات: HTTP $c · success=$(ok c1.json)"
-          if [ "$(ok c1.json)" = true ]; then
-            echo "الروابط:"; jq -r '.result.bindings[]|"  - \(.type) \(.name) \(.namespace_id // .class_name // "")"' c1.json
-            echo "BAK_ID=$(jq -r '.result.bindings[]|select(.name=="BAK")|.namespace_id' c1.json)"
-          else echo "::error::قراءة إعدادات الخادم مرفوضة $(errs c1.json)"; FAIL=1; fi
-          c=$(get "/accounts/$CFA/workers/scripts/$SCRIPT/schedules" c2.json); echo "المهمة المجدولة: HTTP $c · $(jq -c '[.result.schedules[]?.cron]' c2.json)"
-          c=$(get "/accounts/$CFA/workers/scripts/$SCRIPT/deployments" c3.json); echo "النشر الحالي: HTTP $c · success=$(ok c3.json)"
-          jq -r '.result.deployments[0]|"  الأحدث: \(.created_on) · \([.versions[]|"\(.version_id[0:8]) \(.percentage)%"]|join(", "))"' c3.json 2>/dev/null || true
-          jq -r '.result.deployments[0].versions[0].version_id' c3.json > ver_before.txt 2>/dev/null || true
-          echo "== د. قائمة تخازين KV (المتوقّع: رفض، لأن المفتاح بلا صلاحية KV)"
-          c=$(get "/accounts/$CFA/storage/kv/namespaces" d.json); echo "HTTP $c · success=$(ok d.json) · $(errs d.json)"
-          if [ "$(ok d.json)" = true ]; then echo "::warning::قراءة KV مسموحة: المفتاح فيه صلاحية KV لم تكن متوقّعة"; else echo "::notice::قراءة KV مرفوضة كما هو متوقّع"; fi
-          # التحقّق أن لا شيء تغيّر: النسخة العاملة قبل الفحوص وبعدها
-          get "/accounts/$CFA/workers/scripts/$SCRIPT/deployments" c4.json >/dev/null
-          B=$(cat ver_before.txt 2>/dev/null); Aa=$(jq -r '.result.deployments[0].versions[0].version_id' c4.json 2>/dev/null)
-          echo "النسخة العاملة قبل: ${B:0:8} · بعد: ${Aa:0:8}"; [ "$B" = "$Aa" ] || { echo "::error::تغيّرت النسخة العاملة"; FAIL=1; }
-          rm -f ./*.json ver_before.txt
-          exit $FAIL
-      # هـ. التجميع التجريبي: بلا أي مفتاح، فلا اتصال كتابة بـ Cloudflare ممكن
-      - name: هـ. التجميع التجريبي (dry-run، بلا مفتاح)
-        working-directory: server
+
+      # لقطة الحالة: كل الطلبات GET. أسماء الأسرار فقط (الواجهة لا تعطي القيم)
+      - name: لقطة الحالة قبل الرفع، والشروط المسبقة
         run: |
           set -euo pipefail
-          unset CFT CLOUDFLARE_API_TOKEN || true
-          python3 build.py
-          npx --yes wrangler@4 deploy --dry-run --outdir /tmp/dist 2>&1 | tail -25
-          ls -la /tmp/dist
+          mkdir -p /tmp/snap
+          cat > /tmp/snap.sh <<'EOF'
+          set -euo pipefail
+          D=$1
+          get(){ curl -sf -X GET -H "Authorization: Bearer $CFT" "https://api.cloudflare.com/client/v4/accounts/$CFA/workers/scripts/$SCRIPT$1"; }
+          get /deployments | jq '[.result.deployments[0]|{id, versions:[.versions[]|{version_id,percentage}]}]' > $D/deploy.json
+          get /settings    | jq '[.result.bindings[]|{type,name,id:(.namespace_id // .class_name // "")}]|sort_by(.name)' > $D/bindings.json
+          get /schedules   | jq '[.result.schedules[]?.cron]|sort' > $D/schedules.json
+          get /subdomain   | jq '.result' > $D/subdomain.json
+          get /versions    | jq '[.result.items[]?.id]' > $D/versions.json
+          EOF
+          bash /tmp/snap.sh /tmp/snap
+          echo "== النشر العامل (المعرّف الكامل ونسبة الزيارات)"; cat /tmp/snap/deploy.json
+          echo "== الروابط"; jq -c '.[]' /tmp/snap/bindings.json
+          echo "== المهمة المجدولة"; cat /tmp/snap/schedules.json
+          echo "== رابط workers.dev وروابط المعاينة"; cat /tmp/snap/subdomain.json
+          echo "== عدد النسخ المرئية: $(jq length /tmp/snap/versions.json)"
+          # الشروط المسبقة
+          [ "$(jq -r '.[]|select(.name=="BAK")|.id' /tmp/snap/bindings.json)" = "$BAK_ID" ] || { echo "::error::معرّف BAK المربوط فعلًا لا يطابق المعرّف المثبّت. توقّف قبل الرفع"; exit 1; }
+          grep -q "id = \"$BAK_ID\"" server/wrangler.toml || { echo "::error::المعرّف غير مثبّت في wrangler.toml. توقّف قبل الرفع"; exit 1; }
+          PV=$(jq -r '.previews_enabled // "غير معروف"' /tmp/snap/subdomain.json)
+          if [ "$PV" != "false" ]; then echo "::error::روابط المعاينة ليست معطّلة (previews_enabled=$PV): رفع النسخة قد ينشئ رابط معاينة عامًا. توقّف قبل الرفع"; exit 1; fi
+          echo "::notice::الشروط المسبقة متحقّقة: BAK مطابق ومثبّت، وروابط المعاينة معطّلة"
+
+      - name: بناء الخادم
+        run: python3 server/build.py
+
+      # و. رفع نسخة غير مفعّلة، مرة واحدة فقط
+      - name: و. رفع نسخة غير مفعّلة (versions upload)
+        id: up
+        working-directory: server
+        run: |
+          set -uo pipefail
+          export CLOUDFLARE_API_TOKEN="$CFT" CLOUDFLARE_ACCOUNT_ID="$CFA"
+          npx --yes wrangler@4 versions upload --message "cf-token-test: اختبار صلاحيات، غير مفعّلة" --tag cf-token-test > /tmp/up.txt 2>&1; code=$?
+          grep -vE '^\s*$' /tmp/up.txt | tail -30
+          if [ $code -ne 0 ]; then echo "::error::فشل رفع النسخة (رمز $code). توقّف دون إعادة محاولة"; exit 1; fi
+          echo "::notice::رُفعت النسخة بنجاح دون تفعيلها"
+
+      # ز. المقارنة: تعمل دائمًا، حتى بعد فشل الرفع
+      - name: ز. التحقق من عدم تغيّر الخادم العامل
+        if: always()
+        run: |
+          set -uo pipefail
+          mkdir -p /tmp/after; bash /tmp/snap.sh /tmp/after || { echo "::error::تعذّرت لقطة ما بعد الرفع"; exit 1; }
+          F=0
+          for f in deploy bindings schedules subdomain; do
+            if cmp -s /tmp/snap/$f.json /tmp/after/$f.json; then echo "✓ $f: دون تغيير"; else echo "::error::$f تغيّر"; diff /tmp/snap/$f.json /tmp/after/$f.json; F=1; fi
+          done
+          NEW=$(jq -r --slurpfile b /tmp/snap/versions.json '[.[]|select(. as $v|$b[0]|index($v)|not)]|join(", ")' /tmp/after/versions.json)
+          echo "النسخ الجديدة غير المفعّلة: ${NEW:-لا شيء}"
+          echo "== النشر العامل بعد الاختبار"; cat /tmp/after/deploy.json
+          exit $F
