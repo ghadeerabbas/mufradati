@@ -3,6 +3,8 @@ name = "mufradati-api"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 workers_dev = true
+# روابط المعاينة معطّلة صراحةً، فلا يعيد أي نشر أو رفع تفعيلها (الرابط الأساسي workers.dev يبقى مفعّلًا)
+preview_urls = false
 keep_vars = true
 
 # الذكاء الصناعي المجاني من Cloudflare (لمساعد الوظيفة)
