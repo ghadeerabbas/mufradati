@@ -1933,7 +1933,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=9da130c6b5"></script>
+<script src="core.js?v=69d35d818a"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -4020,7 +4020,8 @@ async function syncNow(manual){
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
     FSC.r-=stSent.r;FSC.w-=stSent.w;
-    EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ
+    // الإقرار: الأحداث المرسلة تُحذف من الهاتف فقط إن أعاد الخادم حالة لكل واحد منها (أو كان الخادم القديم الذي لا يعيد حالات)
+    if(!j.st||(Array.isArray(j.st)&&j.st.length===sent.length))EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ
     lastSync=Date.now();syncErr="";ok=true;syncFails=0;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}

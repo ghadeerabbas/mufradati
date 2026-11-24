@@ -55,7 +55,9 @@ function applyCfg(c){
     off:{all:c.off&&c.off.all?1:0,u:c.off&&Array.isArray(c.off.u)?c.off.u.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]},   // «العمل بلا إنترنت»: للجميع أو لمتعلّمين بأعيانهم
     // التحقّق من التذكّر (المرحلة الأولى): مطفأ ما لم يضعه المشرف، ولا يعمل إلا للحسابات في u ولأحداث بعد t0
     srs:(()=>{const x=c.srs&&typeof c.srs==="object"?c.srs:{};return {on:x.on?1:0,t0:_num(x.t0,0,0,1e14),u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,50):[],p:_num(x.p,.15,0,1),max:_num(x.max,5,0,50)}})(),
-    sx:(()=>{const x=c.sx&&typeof c.sx==="object"?c.sx:{};return {on:x.on?1:0,u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,500):[]}})(),   // المزامنة الجديدة: للجميع أو لحسابات بأعيانها
+    // المزامنة الجديدة: للجميع أو لحسابات بأعيانها، ومدّة القبول بالأيام لكل نوع (st: بدء المحطة وإنهاؤها والخروج منها؛ def: ما سوى ذلك، كما اليوم)
+    sx:(()=>{const x=c.sx&&typeof c.sx==="object"?c.sx:{},w=x.w&&typeof x.w==="object"?x.w:{};return {on:x.on?1:0,u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,500):[],
+      w:{rate:_num(w.rate,30,1,90),st:_num(w.st,30,1,90),quiz:_num(w.quiz,30,1,90),def:_num(w.def,7,1,90)}}})(),   // المزامنة الجديدة: للجميع أو لحسابات بأعيانها
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
@@ -501,12 +503,15 @@ function applyEv(ev,now,ctx){
 // ===== المزامنة الجديدة (docs/sync-design.md) =====
 // dv: سجلّ جهاز الحدث في وثيقة sx {lt: وقت آخر حدث قُبل منه، r0: وقت هاتفه لآخر مراجعة، q: وقت آخر تمرين}.
 // وقت الدراسة = وقت الهاتف، لا يتجاوز وقت الاستلام، ولا يسبق آخر حدث قُبل من الجهاز نفسه (لا من أي جهاز).
-// مدّة القبول: 30 يومًا للمراجعات، و7 أيام لغيرها؛ ما يتجاوزها يعود بسبب «old» فيُحفظ في الحجر.
+// مدّة القبول تُقاس على وقت الهاتف (لا على الوقت بعد رفعه)، وتُضبط لكل نوع من الإعدادات CFG.sx.w؛ ما يتجاوزها يعود «old» فيُحفظ في الحجر.
 // «متأخّر» = أقدم من آخر حدث قُبل من أي جهاز (EN.lt). المراجعة المتأخّرة لكلمة لها مراجعة أحدث تعود «late»: نشاط يوم فقط.
-const SX_WIN={rate:30};
+const sxWin=T=>{const w=(CFG.sx||{}).w||{rate:30,st:30,quiz:30,def:7};return (T==="rate"?w.rate:T==="stStart"||T==="stDone"||T==="stQuit"?w.st:T==="quiz"?w.quiz:w.def)*DAY};
+const sxWinMax=()=>{const w=(CFG.sx||{}).w||{};return Math.max(w.rate||30,w.st||30,w.quiz||30,w.def||7)*DAY};
 function applySx(ev,T,now,ctx){
-  const dv=ctx.dv,t0=+ev.t||now;let t=Math.min(t0,now);if(dv.lt&&t<=dv.lt)t=dv.lt+1;
-  if(now-t>(SX_WIN[T]||7)*DAY)return "old";
+  const dv=ctx.dv,t0=+ev.t||now,tc=Math.min(t0,now);
+  if(now-tc>sxWin(T))return "old";
+  // الوقت: لا يسبق آخر حدث من الجهاز نفسه، ولا يتجاوز وقت الخادم (وكلمات المحطة تأخذ t…t+4، فتُترك لها مسافتها)
+  const t=Math.min(Math.max(tc,dv.lt||0),now-(T==="stDone"?ST_WORDS:0));
   if(T==="rate"&&dv.r0&&t0>=dv.r0&&t0-dv.r0<=500)return "time";   // قاعدة نصف الثانية على أوقات الهاتف نفسه
   const late=t<(EN.lt||0);
   if(late&&T==="reset")return "lreset";   // تصفير وصل بعد دراسة أحدث منه من جهاز آخر: لا يُطبَّق تلقائيًا
@@ -527,7 +532,10 @@ function applyAt(ev,T,now,ctx){
   // هدية الطاقة اليومية: مرة واحدة لكل يوم جديد (R.eg = آخر يوم أُخذت فيه)، بالكمية التي يحدّدها المشرف
   if(T==="eday"){
     if(FREEU)return "free";if(!CFG.energy.daily)return "off";
-    const d=dkey(now);if(R.eg===d)return "dup";R.eg=d;enAdd(CFG.energy.daily,ET);return true;
+    const d=dkey(now);if(R.eg===d)return "dup";
+    // المزامنة الجديدة: الأيام قد تصل بغير ترتيبها، فيُحفظ كل يوم أُخذت هديته (R.egl، آخر 100 يوم) لا آخر يوم وحده
+    if(sx){const L=Array.isArray(R.egl)?R.egl:[];if(L.includes(d))return "dup";R.egl=[...L,d].sort().slice(-100);R.eg=R.eg&&R.eg>d?R.eg:d}else R.eg=d;
+    enAdd(CFG.energy.daily,ET);return true;
   }
   if(T==="rate"){
     const k=String(ev.k||""),r=ev.r|0;if(!(r>=0&&r<=3)||!P[k])return "word";
@@ -618,9 +626,14 @@ function applyAt(ev,T,now,ctx){
   // طاقة الإجابات المتتالية: كل 5 إجابات صحيحة متتالية في الدرس، بحدّ أقصى في اليوم
   if(T==="combo"){
     if(FREEU||unlAt(now))return "free";const c=CFG.energy.combo,m=CFG.energy.comboMax;if(!c||!m)return "off";
-    const d=dkey(now),cb=Array.isArray(R.cb)&&R.cb[0]===d?R.cb:[d,0,0];
-    if(cb[1]>=m)return "cap";if(ctx.server&&(!sx||now>=cb[2])&&now-cb[2]<10000)return "time";if(enAt(ET)>=EN_MAX)return "full";
-    R.cb=[d,cb[1]+1,Math.max(now,cb[2])];enAdd(c,ET);return true;
+    const d=dkey(now);
+    // المزامنة الجديدة: عدّاد لكل يوم (R.cbd = {يوم:[عدد، وقت آخر مرة]}، آخر 100 يوم)، لأن الأيام قد تصل متداخلة
+    const D=sx?(R.cbd&&typeof R.cbd==="object"?{...R.cbd}:{}):null;if(sx&&Array.isArray(R.cb)&&!D[R.cb[0]])D[R.cb[0]]=[R.cb[1],R.cb[2]];
+    const cb=sx?[d,...(D[d]||[0,0])]:Array.isArray(R.cb)&&R.cb[0]===d?R.cb:[d,0,0];
+    if(cb[1]>=m)return "cap";if(ctx.server&&now>=cb[2]&&now-cb[2]<10000)return "time";if(enAt(ET)>=EN_MAX)return "full";
+    if(sx){D[d]=[cb[1]+1,Math.max(now,cb[2])];R.cbd=Object.fromEntries(Object.keys(D).sort().slice(-100).map(k=>[k,D[k]]));const last=Object.keys(R.cbd).sort().pop();R.cb=[last,...R.cbd[last]]}
+    else R.cb=[d,cb[1]+1,now];
+    enAdd(c,ET);return true;
   }
   if(T==="reset"){
     // تصفير الكلمات فقط: تعود كل الكلمات جديدة، وتبقى السلسلة والخبرة (المستوى) والدوري والجواهر والمشتريات والإنجازات

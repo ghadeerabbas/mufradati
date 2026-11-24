@@ -49,7 +49,7 @@ function app(kind,uid){const c={console,Math,Date:FD,JSON,Array,Object,String,Nu
   this.A={ev(e){e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:false});if(r===true){if(SXU){e.d=DEV;e.n=SEQ=Math.max(SEQ,Date.now())+1}EVQ.push(e)}EC=null;return r},dev(){return DEV},take(){const q=EVQ;return q},done(n){EVQ=EVQ.slice(n)},applyServer,
     quest(id){const d=today(),q=QUESTS.find(x=>x.id===id);return {v:Math.min(q.f(d),q.goal),got:questGot(d,id)}},gems(){EC=null;return econ().gems},earned(){EC=null;return econ().earned},
     pz(m){return [...pzMonth(m).have].sort()},table(w,docs,prev,prog){return tableFor("${uid}",w,docs,prev,prog)},get R(){return R},get LG(){return LG},get P(){return P},get LOG(){return LOG},get LATE(){return LATE},cfg(x){applyCfg(x);EC=null},xp(){EC=null;return econ().xp},srsU(v){SRSU=v},get q(){return EVQ.length},E(){EC=null;return econ()},get EVQ(){return EVQ},get QLOG(){return QLOG},get STN(){return STN},enNow(t){return enAt(t)},weekId,dkey,today};`,c);
-  const A=c.A;A.kind=kind;A.uid=uid;A.sync=async()=>{const q=A.take().slice(0,300);const j=await post('/sync',uid,{evs:q,dev:A.dev()});A.done(q.length);A.applyServer(j);A.rej=j.rej;return j};return A}
+  const A=c.A;A.kind=kind;A.uid=uid;A.sync=async()=>{const q=A.take().slice(0,300);const j=await post('/sync',uid,{evs:q,dev:A.dev()});if(!j.st||j.st.length===q.length)A.done(q.length);A.applyServer(j);A.rej=j.rej;return j};return A}
 // ---- أدوات ----
 const out=[],T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
 const words=JSON.parse(fs.readFileSync(path.join(SITE_DIR,'words-a1.json'),'utf8')).words.map(w=>String(w.de).trim().toLowerCase());let wi=0;

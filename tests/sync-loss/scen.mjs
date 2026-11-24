@@ -20,7 +20,10 @@ async function learner(uid, days = 3) {
 }
 async function srv(uid) {
   const B = app('new', uid); await B.sync(); const e = B.E();
-  return { xp: e.xp, gems: e.gems, streak: e.s.streak, reviews: e.s.reviews, words: Object.keys(B.P).length, quizzes: B.QLOG.length, stations: B.STN.length, energy: B.enNow(ctl.NOW) };
+  // مصادر الجواهر مفصّلة (لدراسة الفروق): الدوري، والمحطات، والمستويات وغيرها = الباقي
+  const lg = (B.LG.hist || []).reduce((a, h) => a + (h.g || 0), 0) + (+B.LG.hg || 0), stg = B.STN.filter(x => x[2] !== 0).length;
+  return { xp: e.xp, gems: e.gems, streak: e.s.streak, reviews: e.s.reviews, words: Object.keys(B.P).length, quizzes: B.QLOG.length, stations: B.STN.length, energy: B.enNow(ctl.NOW),
+    gLeague: lg, gStations: stg, gOther: e.gems - lg - stg, lgWeeks: (B.LG.hist || []).length, lgHist: JSON.stringify((B.LG.hist || []).map(h => [h.w, h.tier, h.rank, h.xp, h.mv, h.g])) };
 }
 async function drain(A) {
   let n = 0, syncs = 0; const why = {};
@@ -55,9 +58,9 @@ const S = {
   async offline(m, n) { const on = m === 'ctrl', uid = 'of' + n + m, A = await learner(uid); const day0 = ctl.NOW; let rej = 0;
     for (let d = 0; d < n; d++) { ctl.NOW = day0 + d * DAY + 3 * 36e5; for (const k of due(A).slice(0, 5)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) }
       await station(A, { syncEach: false }); if (on) rej += (await drain(A)).rejected }
-    ctl.NOW = day0 + (n - 1) * DAY + 10 * 36e5; if (!on) { ST.expOld = A.EVQ.filter(e => e.type !== 'rate' && ctl.NOW - e.t > 7 * DAY).length;
+    ctl.NOW = day0 + (n - 1) * DAY + 10 * 36e5; if (!on) { const win = e => (['rate','stStart','stDone','stQuit','quiz'].includes(e.type) ? 30 : 7) * DAY; ST.expOld = A.EVQ.filter(e => ctl.NOW - Math.min(e.t, ctl.NOW) > win(e)).length;
       // المحطة في الحجر: كلماتها غير معروفة للخادم، فمراجعاتها اللاحقة تذهب إلى الحجر أيضًا بسبب «word»
-      const ow = new Set(A.EVQ.filter(e => e.type === 'stDone' && ctl.NOW - e.t > 7 * DAY).flatMap(e => e.words)); ST.oldSt = A.EVQ.filter(e => e.type === 'stDone' && ctl.NOW - e.t > 7 * DAY).length;
+      const ow = new Set(A.EVQ.filter(e => e.type === 'stDone' && ctl.NOW - e.t > win(e)).flatMap(e => e.words)); ST.oldSt = A.EVQ.filter(e => e.type === 'stDone' && ctl.NOW - e.t > win(e)).length;
       ST.expWord = A.EVQ.filter(e => e.type === 'rate' && ow.has(e.k)).length; rej += (await drain(A)).rejected }
     return { rejected: rej, ...(await srv(uid)) } },
   offline8(m) { return S.offline(m, 8) }, offline30(m) { return S.offline(m, 30) },

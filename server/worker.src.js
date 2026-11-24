@@ -243,7 +243,7 @@ async function handleSync(fs, user, body) {
   if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
   // وثيقة sx المستقلّة (لا يقرؤها الخادم القديم ولا يكتبها): أرقام كل جهاز، والمراجعات المتأخّرة، والحجر
-  const sx = sxLoad(sxD), sxBefore = JSON.stringify(sx); if (SXU) { LATE = sx.late; LATEF = sx.lf }
+  const sx = sxLoad(sxD), sxBefore = sxSave(sx); if (SXU) { LATE = sx.late; LATEF = sx.lf }
   const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
   const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [];
@@ -252,7 +252,7 @@ async function handleSync(fs, user, body) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
     // المزامنة الجديدة: الحدث المعروف (الجهاز والرقم نفسهما) «وصل سابقًا» فلا يُطبَّق مرة ثانية
     const dv = SXU ? sxDev(sx, e) : null, n = SXU && Number.isInteger(e.n) && e.n > 0 ? e.n : 0;
-    if (dv && n && (n <= dv.f || dv.ids.includes(n))) { st.push("dup"); continue }
+    if (dv && n && sxHas(dv, n)) { st.push("dup"); continue }
     if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); st.push("wiped"); if (dv && n) sxSeen(dv, n); continue }      // أحداث من قبل حذف المشرف لا تُقبل
     if (e.type === "stDone" && !words) words = await wordSet();
     let duelOk = false, dwinOk = false;
@@ -265,10 +265,11 @@ async function handleSync(fs, user, body) {
     // لا حذف بصمت: ما لم يُقبل يُحفظ في الحجر مع سببه، ويُسجَّل رقمه فلا يتكرّر في الحجر عند إعادة الإرسال
     if (n) sxSeen(dv, n);
     if (r === true) st.push("ok"); else if (r === "late") st.push("late");
-    else { sx.qz.push([now, String(r), sxClip(e)]); rej.push([i, r]); st.push("q") }
+    else { sx.qz.push([now, String(r), sxKeep(e)]); rej.push([i, r]); st.push("q") }
   }
+  let sxArch = [];
   if (SXU) { for (let i = 1; i < LOG.length; i++) if (LOG[i][0] < LOG[i - 1][0]) { LOG.sort((a, b) => a[0] - b[0]); break }   // احتياط: السجلّ مرتّب دائمًا
-    sxTrim(sx, now) }
+    sxArch = sxTrim(sx, now, uid) }
   // المظهر الذي اختاره المتعلّم (يُتحقّق من ملكيّته)
   const pr = parseJ(u.prefs, {}), E = pr.E || {};
   const avIt = SHOP.find(x => x.cat === "avatar" && x.val === E.avatar), lf = E.lgFrame ?? E.frame, ls = E.lgSticker ?? E.sticker;
@@ -306,8 +307,8 @@ async function handleSync(fs, user, body) {
   if (ckT !== before.ck) cw.push({ path: `users/${uid}/data/ck`, data: { v: ckJ } });
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
-  const sxJ = JSON.stringify(sx);
-  if (SXU && sxJ !== sxBefore) cw.push({ path: `users/${uid}/data/sx`, data: { v: sxJ }, ...(sxD ? { ifUpdateTime: sxD.updateTime } : { ifMissing: true }) });
+  const sxJ = sxSave(sx);
+  if (SXU && sxJ !== sxBefore) cw.push({ path: `users/${uid}/data/sx`, data: { v: sxJ }, ...(sxD ? { ifUpdateTime: sxD.updateTime } : { ifMissing: true }) }, ...sxArch);
   await fs.commit([...cw, ...writes]);
   // آلية رقم النسخة: إن أرسل التطبيق رقم نسخة مختلفًا، نرسل له الأرقام كما يحسبها الخادم ليعرضها بدل حسابه هو (لا تغيير في أي قاعدة)
   let sum;
@@ -319,29 +320,51 @@ async function handleSync(fs, user, body) {
 }
 
 /* ---------- وثيقة sx (المزامنة الجديدة) ---------- */
-// dv: {جهاز: {f: كل رقم ≤ f وصل سابقًا, ids: آخر الأرقام المقبولة فوق f (≤ 500), lt, r0, q}}، late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث]]
+// dv: {جهاز: {ids: كل أرقام أحداثه التي وصلت (مقبولة أو متأخّرة أو في الحجر)، lt, r0, q}}، late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث كاملًا]]، ax: عدد وثائق الأرشيف
+// منع التكرار بالرقم نفسه فقط (لا «كل ما دون رقم كذا»)، فالفجوات والوصول بغير الترتيب لا تُفقد شيئًا.
+// الرقم n ≥ وقت إنشاء الحدث على الهاتف نفسه ≥ وقت الحدث t. فالرقم الأقدم من أطول مدّة قبول (+ يومين) يُحذف من القائمة بأمان:
+// لو أُعيد إرسال حدثه لرُفض بمدّة القبول (وقت الحدث أقدم منه)، فذهب إلى الحجر بسبب «old» ولم يُطبَّق مرة ثانية.
+// سجلّ الجهاز لا يُحذف إلا حين تفرغ قائمته وآخر حدث منه أقدم من المدّة نفسها (لا عددًا).
 function sxLoad(d) {
-  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [] };
-  if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (v && typeof v === "object") o.dv[k] = { f: +v.f || 0, ids: Array.isArray(v.ids) ? v.ids.filter(Number.isInteger) : [], lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0 } }
+  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0 };
+  if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (v && typeof v === "object") o.dv[k] = { ids: sxUnpack(v.i), lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0 } }
   if (Array.isArray(x.late)) o.late = x.late.filter(a => Array.isArray(a) && a.length === 3);
   if (x.lf && typeof x.lf === "object") o.lf = x.lf;
   if (Array.isArray(x.qz)) o.qz = x.qz.filter(a => Array.isArray(a) && a.length === 3);
   return o;
 }
+// الأرقام مرتّبة تُحفظ فروقًا بالأساس 36 (أصغر بنحو النصف من الأرقام كاملة)
+function sxPack(ids) { let p = 0; return ids.map(n => { const d = (n - p).toString(36); p = n; return d }).join(",") }
+function sxUnpack(s) { if (typeof s !== "string" || !s) return []; let p = 0; const o = []; for (const d of s.split(",")) { const v = parseInt(d, 36); if (!Number.isFinite(v)) return o; p += v; o.push(p) } return o }
+function sxSave(sx) { const dv = {}; for (const k in sx.dv) { const v = sx.dv[k]; dv[k] = { i: sxPack(v.ids), lt: v.lt, r0: v.r0, q: v.q } }
+  return JSON.stringify({ dv, late: sx.late, lf: sx.lf, qz: sx.qz, ax: sx.ax }) }
 const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/;
-function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { f: 0, ids: [], lt: 0, r0: 0, q: 0 }) }
-function sxSeen(dv, n) { if (n <= dv.f || dv.ids.includes(n)) return; dv.ids.push(n); if (dv.ids.length > 500) { dv.ids.sort((a, b) => a - b); dv.f = Math.max(dv.f, dv.ids.shift()) } }
-function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; return v ? Math.max(v.f, ...v.ids, 0) : 0 }
-// الحدث في الحجر كما وصل، مقصوصًا (الكلمات والإجابات بحدود معقولة)
-function sxClip(e) { const o = {}; for (const k of ["type", "t", "d", "n", "k", "r", "v", "kind", "ok", "total", "ms", "full", "id", "cat", "bid"]) if (e[k] !== undefined) o[k] = typeof e[k] === "string" ? e[k].slice(0, 60) : e[k];
-  if (Array.isArray(e.words)) o.words = e.words.slice(0, 20).map(x => String(x).slice(0, 60)); if (Array.isArray(e.miss)) o.miss = e.miss.slice(0, 20).map(x => String(x).slice(0, 60));
-  if (Array.isArray(e.qa)) o.qa = e.qa.slice(0, 300); return o }
-// الحدود: الحجر 1000 حدث أو 90 يومًا، والمتأخّرات 5000 (الأقدم يُطوى في lf عددًا لكل يوم فلا ينقص نشاط يومه)، والأجهزة 50 (الأقدم نشاطًا يُحذف)
-function sxTrim(sx, now) {
-  sx.qz = sx.qz.filter(x => now - x[0] < 90 * 864e5).slice(-1000);
-  if (LATE.length > 5000) { LATE.sort((a, b) => a[0] - b[0]); for (const x of LATE.splice(0, LATE.length - 5000)) { const d = dkey(x[0]); LATEF[d] = (+LATEF[d] || 0) + 1 } }
+function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { ids: [], lt: 0, r0: 0, q: 0 }) }
+function sxIdx(a, n) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < n) lo = m + 1; else hi = m } return lo }
+function sxHas(dv, n) { const i = sxIdx(dv.ids, n); return dv.ids[i] === n }
+function sxSeen(dv, n) { const i = sxIdx(dv.ids, n); if (dv.ids[i] !== n) dv.ids.splice(i, 0, n) }
+function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; return v && v.ids.length ? v.ids[v.ids.length - 1] : 0 }
+// الحدث في الحجر كما وصل تمامًا (نسخة JSON). حدث أكبر من 32 كيلوبايت (لا يرسله التطبيق) يُحفظ مقصوصًا مع علامة big وحجمه الأصلي
+function sxKeep(e) { const j = JSON.stringify(e); if (j.length <= 32768) return JSON.parse(j);
+  const o = { big: j.length }; for (const k of ["type", "t", "d", "n", "k", "r", "kind", "ok", "total", "id"]) if (e[k] !== undefined) o[k] = typeof e[k] === "string" ? e[k].slice(0, 200) : e[k]; return o }
+// الحدود دون حذف: إن زاد الحجر على 300 حدث أو المتأخّرات على 3000 أو حجم الوثيقة على 400 كيلوبايت، يُنقل الأقدم إلى وثيقة أرشيف جديدة
+// users/{uid}/data/sxa{رقم} (تُكتب مرة واحدة بشرط عدم وجودها، في الدفعة الذرّية نفسها، ولا تُحذف). المتأخّرات المنقولة تبقى محسوبة في lf.
+const SX_QZ = 300, SX_LATE = 3000, SX_MAXB = 400000, SX_AXB = 700000;
+function sxTrim(sx, now, uid) {
+  const cut = now - sxWinMax() - 2 * 864e5;
+  for (const k of Object.keys(sx.dv)) { const v = sx.dv[k]; const j = sxIdx(v.ids, cut); if (j) v.ids.splice(0, j); if (!v.ids.length && v.lt < cut) delete sx.dv[k] }
   sx.late = LATE; sx.lf = LATEF;
-  const ks = Object.keys(sx.dv); if (ks.length > 50) ks.sort((a, b) => sx.dv[b].lt - sx.dv[a].lt).slice(50).forEach(k => delete sx.dv[k]);
+  const out = []; let qz = [], late = [], size = sxSave(sx).length, ab = 0;   // الأحجام تُحسب بالتقريب تدريجيًا (لا إعادة تحويل الوثيقة كلها في كل خطوة)
+  if (sx.late.length > SX_LATE || size > SX_MAXB) sx.late.sort((a, b) => a[0] - b[0]);
+  while ((sx.qz.length > SX_QZ || sx.late.length > SX_LATE || size > SX_MAXB) && (sx.qz.length || sx.late.length)) {
+    let x;
+    if (sx.qz.length && (sx.qz.length > SX_QZ || sx.late.length <= SX_LATE)) { x = sx.qz.shift(); qz.push(x) }
+    else { x = sx.late.shift(); late.push(x); const d = dkey(x[0]); LATEF[d] = (+LATEF[d] || 0) + 1 }
+    const n = JSON.stringify(x).length + 1; size -= n; ab += n;
+    if (ab > SX_AXB) { out.push({ qz, late }); qz = []; late = []; ab = 0 }
+  }
+  if (qz.length || late.length) out.push({ qz, late });
+  return out.map(a => ({ path: `users/${uid}/data/sxa${++sx.ax}`, data: { v: JSON.stringify({ ...a, at: now }) }, ifMissing: true }));
 }
 
 /* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */
