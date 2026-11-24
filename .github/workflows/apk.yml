@@ -10,6 +10,10 @@ on:
         type: choice
         options: [verify, publish]
         default: verify
+      test_missing_pass:
+        description: "اختبار فقط: محاكاة غياب KS_PASS للتأكد من أن التشغيل يفشل (لا يمسّ السرّ الحقيقي)"
+        type: boolean
+        default: false
 permissions:
   contents: write   # للنشر في الإصدار apk-latest فقط (لا يُستعمل في وضع الفحص)
 jobs:
@@ -28,12 +32,17 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
+      # غياب كلمة سرّ المفتاح يُفشل التشغيل صراحةً (علامة حمراء)، في وضعي الفحص والنشر، بدل تجاوز الخطوات بعلامة خضراء
       - name: Check signing password
         id: ks
         env:
           KS_PASS: ${{ secrets.KS_PASS }}
+          TEST_MISSING: ${{ github.event_name == 'workflow_dispatch' && inputs.test_missing_pass }}
         run: |
-          if [ -z "$KS_PASS" ]; then echo "::warning::أضف السرّ KS_PASS في إعدادات المستودع ليُبنى التطبيق"; echo "ok=0" >> $GITHUB_OUTPUT; else echo "ok=1" >> $GITHUB_OUTPUT; fi
+          set -euo pipefail
+          if [ "$TEST_MISSING" = "true" ]; then KS_PASS=""; echo "::notice::اختبار: محاكاة غياب KS_PASS (السرّ الحقيقي لم يُمسّ)"; fi
+          if [ -z "$KS_PASS" ]; then echo "::error::السرّ KS_PASS غير موجود: توقّف البناء، ولن يُبنى أو يُنشر أي تطبيق"; exit 1; fi
+          echo "ok=1" >> "$GITHUB_OUTPUT"
       # المفتاح لا يُنشأ ولا يُرفع إلى المستودع أبدًا.
       # المصدر: السرّ KS_B64 (ملف المفتاح نفسه مرمّزًا نصًّا). في وضع الفحص يُحذف ملف المستودع أولًا فلا يُستعمل إطلاقًا.
       # خارج وضع الفحص، وإلى أن يُحذف الملف من المستودع: يُستعمل الملف إن غاب السرّ، مع تحذير.
