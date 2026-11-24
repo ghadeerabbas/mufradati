@@ -11,8 +11,18 @@ function run(Q,pre,evN,logN){const localStorage=mkLS(Q);for(const[k,v]of pre)loc
  const f=new Function(...Object.keys(env),stLine+';'+code.replace(/\blet STFAIL=0,STWARN=false,LSZ=-1;/,'var STFAIL=0,STWARN=false,LSZ=-1;')+';save();save();return {STFAIL,STWARN}');
  const r=f(...Object.values(env));const evq=JSON.parse(localStorage.getItem('muf_U_evq')||'[]').length;
  return {evqInMemory:evN,evqPersisted:evq,logPersisted:JSON.parse(localStorage.getItem('muf_U_log')||'[]').length,courseCurKept:localStorage.m.has('muf_w_words-k3.json'),otherCourseKept:localStorage.m.has('muf_w_words-a1.json'),...r,calls}}
-const big=n=>'x'.repeat(n);
-console.log('1 normal       ',JSON.stringify(run(5e6,[],20,30000)));
-console.log('2 near-full    ',JSON.stringify(run(1.6e6+100,[['muf_w_words-k3.json',big(180000)],['muf_w_words-a1.json',big(170000)],['muf_shell',big(50000)],['muf_U_log',big(1.2e6)]],20,28000)));
-console.log('3 full,no cache',JSON.stringify(run(1.25e6+100,[['muf_w_words-k3.json',big(180000)],['muf_U_log',big(1.07e6)]],20,25000)));
-console.log('4 impossible   ',JSON.stringify(run(2000,[],200,10)));
+const big=n=>'x'.repeat(n);const out=[];const T=(n,c,x)=>out.push((c?'PASS ':'FAIL ')+n+(x!==undefined?' → '+x:''));
+let r=run(5e6,[],20,30000);T('عادي: كل الأحداث المنتظرة والسجل محفوظة',r.evqPersisted===20&&r.logPersisted===30000&&!r.STFAIL,r.evqPersisted);
+r=run(1.6e6+100,[['muf_w_words-k3.json',big(180000)],['muf_w_words-a1.json',big(170000)],['muf_shell',big(50000)],['muf_U_log',big(1.2e6)]],20,28000);
+T('شبه ممتلئ: الأحداث محفوظة بعد تفريغ نسخ المناهج الأخرى والواجهة',r.evqPersisted===20&&!r.STFAIL&&r.courseCurKept&&!r.otherCourseKept,JSON.stringify({e:r.evqPersisted,cur:r.courseCurKept,oth:r.otherCourseKept}));
+r=run(1.25e6+100,[['muf_w_words-k3.json',big(180000)],['muf_U_log',big(1.07e6)]],20,25000);
+T('ممتلئ بلا نسخ مناهج أخرى: الأحداث محفوظة بعد تفريغ نسخة السجل المحلية',r.evqPersisted===20&&!r.STFAIL&&r.courseCurKept,r.evqPersisted);
+r=run(2000,[],200,10);
+T('مستحيل: تنبيه واحد، وتقرير واحد، ومزامنة فورية',r.STFAIL===2&&r.STWARN&&r.calls.toast===1&&r.calls.rep===1&&r.calls.sync===2,JSON.stringify(r.calls));
+// الترتيب: الأحداث المنتظرة تُكتب قبل أي مفتاح آخر
+{const localStorage=mkLS(5e6);const order=[];const _s=localStorage.setItem.bind(localStorage);localStorage.setItem=(k,v)=>{order.push(k);_s(k,v)};
+ const env={localStorage,UID:'U',COURSE:'k3',COURSES:{k3:{file:'words-k3.json'}},K:x=>'muf_U_'+x,toast:()=>{},repErr:()=>{},schedSync:()=>{},EVQ:[{type:'rate'}],P:{},EN:{},STN:[],STV:0,R:{},S:{},CK:null,QLOG:[],BUY:[],E:{},LG:{},LOG:[],QA:[]};
+ new Function(...Object.keys(env),stLine+';'+code.replace(/\blet STFAIL=0,STWARN=false,LSZ=-1;/,'var STFAIL=0,STWARN=false,LSZ=-1;')+';save()')(...Object.values(env));
+ T('الترتيب: الأحداث المنتظرة أول ما يُكتب',order[0]==='muf_U_evq',order.slice(0,3).join(','));
+ const keys=['reset','progress','settings','log','ck','qlog','qa','buy','equip','league','energy','stations','stv','evq'];T('كل مفاتيح الحفظ السابقة ما زالت تُكتب',keys.every(k=>order.includes('muf_U_'+k)),keys.filter(k=>!order.includes('muf_U_'+k)).join(',')||'كلها');}
+console.log(out.join('\n'));if(out.some(l=>l.startsWith('FAIL')))process.exit(1);
