@@ -220,14 +220,16 @@ let LOCK = Promise.resolve();
 function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () => { }); return p }
 
 /* ---------- معالجة طلب المزامنة ---------- */
-async function handleSync(fs, user, body) {
+// opts.reapply (من handleSxq وحدها، لا من جسم الطلب): إعادة تطبيق حدث من الحجر بأمر المشرف. انظر sxReapply
+async function handleSync(fs, user, body, opts) {
+  const RE = opts && opts.reapply ? opts : null;
   FREEU = false; STMAXU = 0; SRSU = false; SXU = false; LATE = []; LATEF = {};
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
   SRSU = !admin && ((CFG.srs || {}).u || []).includes(uid);   // التحقّق من التذكّر: للحسابات التي يختارها المشرف فقط (ومع on وt0 في srsOn)
-  SXU = !!(CFG.sx && (CFG.sx.on || CFG.sx.u.includes(uid)));   // المزامنة الجديدة (مفتاح الإيقاف): للجميع أو لحسابات بأعيانها
+  SXU = !!(RE || CFG.sx && (CFG.sx.on || CFG.sx.u.includes(uid)));   // المزامنة الجديدة (مفتاح الإيقاف): للجميع أو لحسابات بأعيانها
   const SXI = SXU || !!(CFG.sx && CFG.sx.ids);   // أرقام الأحداث ومنع التكرار: مع المزامنة الجديدة، أو وحدهما بالقواعد القديمة (وضع التراجع الآمن)
   const [uDoc, coreD, logD, qaD, nameD, gifts, ckD, sxD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
@@ -253,6 +255,9 @@ async function handleSync(fs, user, body) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
     // المزامنة الجديدة: الحدث المعروف (الجهاز والرقم نفسهما) «وصل سابقًا» فلا يُطبَّق مرة ثانية
     const dv = SXI ? sxDev(sx, e) : null, n = SXI && Number.isInteger(e.n) && e.n > 0 ? e.n : 0;
+    if (RE && CW && (+e.t || 0) < CW) { st.push("wiped"); rej.push([i, "wiped"]); continue }   // ما قبل حذف بيانات الحساب لا يُعاد
+    if (RE) { const r = sxReapply(sx, dv, e, now, { server: true, admin, words: e.type === "stDone" ? await wordSet() : null, duelOk: false, dwinOk: false }, RE);
+      st.push(r === true ? "ok" : r === "late" ? "late" : "q"); if (r !== true && r !== "late") rej.push([i, r]); continue }
     if (dv && n && sxHas(dv, n)) { st.push("dup"); continue }
     // رقم لا يزيد على أرض الجهاز lo: حدث أُنشئ قبل حدثٍ وصل قبل أكثر من أطول مدّة قبول، فهو أقدم منها مهما قالت ساعة الهاتف → الحجر «old»
     const below = dv && n && n <= dv.lo;
@@ -328,6 +333,49 @@ async function handleSync(fs, user, body) {
   return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...sxOut, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
 }
 
+/* ---------- الحجر: لوحة المشرف وإعادة التطبيق ---------- */
+// مفتاح الحدث: الجهاز والرقم، أو بصمة محتواه إن لم يكن له رقم. sx.ap: مفاتيح ما أُعيد تطبيقه (لا يُعاد مرتين أبدًا)
+const sxKey = e => e && e.n ? `${e.d || "_"}:${e.n}` : "h:" + JSON.stringify(e).length + ":" + [...JSON.stringify(e)].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7).toString(36);
+// إعادة التطبيق: مرة واحدة لكل حدث، بقواعد المتأخّر كلها (انظر applySx: re)، والنتيجة تُسجَّل على مدخل الحجر نفسه
+function sxReapply(sx, dv, e, now, ctx, RE) {
+  const key = sxKey(e); if (sx.ap.includes(key)) return "applied";
+  if (e.type === "dwin" || e.type === "duel") return "noverify";   // يحتاج تحقّقًا من وثيقة التحدّي: لا يُعاد من هنا
+  EC = null; const r = applyEv(e, now, { ...ctx, dv, reapply: true });
+  if (r === true || r === "late") sx.ap.push(key);
+  const mark = { ap: now, r: r === true ? "ok" : String(r) };
+  if (RE.src === "qz" && sx.qz[RE.i]) sx.qz[RE.i][3] = mark; else (sx.am = sx.am || {})[RE.src + "#" + RE.i] = mark;
+  return r;
+}
+// /sxq (المشرف): users | list | arch | apply
+async function handleSxq(fs, user, body) {
+  if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
+  const op = String(body.op || "users"), uid = String(body.uid || "");
+  if (op !== "users" && !/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
+  const ev = x => x && x.ref ? { type: "(كبير)", ref: x.ref, bytes: x.bytes } : x;
+  const row = (src, i, q, m) => { const e = ev(q[2]) || {}; return { src, i, at: q[0], why: q[1], type: e.type, t: e.t, n: e.n, d: e.d, k: e.k, kind: e.kind, ref: e.ref, ap: m || null } };
+  if (op === "users") {
+    const us = await fs.list("users"), D = await fs.manyT(us.map(u => `users/${u.id}/data/sx`)), N = await fs.manyT(us.map(u => `names/${u.id}`)), out = [];
+    for (const u of us) { const d = D[`users/${u.id}/data/sx`]; if (!d) continue; const x = sxLoad(d);
+      out.push({ uid: u.id, name: (N[`names/${u.id}`] || { data: {} }).data.name || u.name || "", qz: x.qz.length, open: x.qz.filter(q => !q[3]).length, an: x.an.length, ap: x.ap.length, dev: Object.keys(x.dv).length }) }
+    return { status: 200, json: { users: out } } }
+  const d = await fs.get(`users/${uid}/data/sx`); if (!d) return { status: 404, json: { error: "nosx" } }; const sx = sxLoad(d);
+  if (op === "list") return { status: 200, json: { qz: sx.qz.map((q, i) => row("qz", i, q, q[3])), an: sx.an } };
+  if (op === "arch") { const name = String(body.name || ""); if (!sx.an.includes(name)) return { status: 404, json: { error: "noarch" } };
+    const a = await fs.get(`users/${uid}/data/${name}`); const x = parseJ(a && a.data.v, {}) || {};
+    if (x.ev) return { status: 200, json: { big: 1, ev: x.ev, why: x.why, at: x.at } };
+    return { status: 200, json: { qz: (x.qz || []).map((q, i) => row(name, i, q, (sx.am || {})[name + "#" + i])), late: (x.late || []).length } } }
+  if (op === "apply") {
+    const src = String(body.src || ""), i = Math.floor(+body.i); let q = null;
+    if (src === "qz") q = sx.qz[i];
+    else if (sx.an.includes(src)) { const a = await fs.get(`users/${uid}/data/${src}`); const x = parseJ(a && a.data.v, {}) || {}; q = (x.qz || [])[i] }
+    if (!q) return { status: 404, json: { error: "noentry" } };
+    let e = q[2];
+    if (e && e.ref) { const a = await fs.get(`users/${uid}/data/${e.ref}`); e = (parseJ(a && a.data.v, {}) || {}).ev; if (!e) return { status: 404, json: { error: "noref" } } }
+    const r = await handleSync(fs, { uid, email: "(reapply)" }, { evs: [e] }, { reapply: true, src, i });
+    return { status: 200, json: { st: r.json.st && r.json.st[0], rej: r.json.rej } } }
+  return { status: 400, json: { error: "op" } };
+}
+
 /* ---------- وثيقة sx (المزامنة الجديدة) ---------- */
 // dv: {جهاز: {g: {يوم الاستلام (بتوقيت الخادم): أرقام الأحداث التي وصلت فيه}, lo: أرض الجهاز, lt, r0, q}}
 // late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث كاملًا أو {ref, bytes}]]، ax: عدد وثائق الأرشيف
@@ -342,13 +390,14 @@ async function handleSync(fs, user, body) {
 const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/, SX_IDN = 15000, SX_IDB = 300000, SX_QZ = 300, SX_LATE = 3000, SX_MAXB = 400000, SX_AXB = 700000, SX_EVDOC = 32768, SX_EVMAX = 900000, SX_HARD = 1000000;
 const sxBytes = s => new TextEncoder().encode(s).length;   // الحدود بالبايت (UTF-8) كما يحسبها Firestore، لا بعدد المحارف
 function sxLoad(d) {
-  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0, an: Array.isArray(x.an) ? x.an.filter(a => typeof a === "string" && /^sxa-[a-z0-9-]+$/.test(a)) : [] };
+  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0, an: Array.isArray(x.an) ? x.an.filter(a => typeof a === "string" && /^sxa-[a-z0-9-]+$/.test(a)) : [],
+    ap: Array.isArray(x.ap) ? x.ap.filter(a => typeof a === "string") : [], am: x.am && typeof x.am === "object" ? x.am : {} };
   if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (!v || typeof v !== "object") continue;
     const g = {}; if (v.g && typeof v.g === "object") for (const day in v.g) g[day] = sxUnpack(v.g[day]);
     o.dv[k] = { g, lo: +v.lo || 0, lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0, rt: +v.rt || 0, rr: +v.rr || 0 } }
   if (Array.isArray(x.late)) o.late = x.late.filter(a => Array.isArray(a) && a.length === 3);
   if (x.lf && typeof x.lf === "object") o.lf = x.lf;
-  if (Array.isArray(x.qz)) o.qz = x.qz.filter(a => Array.isArray(a) && a.length === 3);
+  if (Array.isArray(x.qz)) o.qz = x.qz.filter(a => Array.isArray(a) && (a.length === 3 || a.length === 4));
   return o;
 }
 // الأرقام مرتّبة تُحفظ فروقًا بالأساس 36 (أصغر بنحو النصف من الأرقام كاملة)
@@ -356,7 +405,7 @@ function sxPack(ids) { let p = 0; return ids.map(n => { const d = (n - p).toStri
 function sxUnpack(s) { if (typeof s !== "string" || !s) return []; let p = 0; const o = []; for (const d of s.split(",")) { const v = parseInt(d, 36); if (!Number.isFinite(v)) return o; p += v; o.push(p) } return o }
 function sxSave(sx) { const dv = {}; for (const k in sx.dv) { const v = sx.dv[k], g = {}; for (const day in v.g) if (v.g[day].length) g[day] = sxPack(v.g[day]);
     dv[k] = Object.keys(g).length || v.lt ? { g, lo: v.lo, lt: v.lt, r0: v.r0, q: v.q, rt: v.rt || 0, rr: v.rr || 0 } : { lo: v.lo } }
-  return JSON.stringify({ dv, late: sx.late, lf: sx.lf, qz: sx.qz, ax: sx.ax, an: sx.an }) }
+  return JSON.stringify({ dv, late: sx.late, lf: sx.lf, qz: sx.qz, ax: sx.ax, an: sx.an, ap: sx.ap, am: sx.am }) }
 function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { g: {}, lo: 0, lt: 0, r0: 0, q: 0, rt: 0, rr: 0 }) }
 function sxIdx(a, n) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < n) lo = m + 1; else hi = m } return lo }
 function sxHas(dv, n) { for (const day in dv.g) { const a = dv.g[day], i = sxIdx(a, n); if (a[i] === n) return true } return false }
@@ -1491,7 +1540,7 @@ export default {
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });
     if (url.pathname === "/err" && req.method === "POST") return handleErr(req, env, H);
-    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd", "/mt"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
+    if (!["/sync", "/wipe", "/report", "/stats", "/create", "/pass", "/fix", "/sxq", "/msg", "/ai", "/ailog", "/aidel", "/backup", "/errs", "/fr", "/duel", "/rd", "/mt"].includes(url.pathname) || req.method !== "POST") return new Response("not found", { status: 404, headers: H });
     // التحقق من الهوية أولًا وبمعزل: أي فشل فيه (رمز مشوّه أو منتهٍ) ردّ 401 ولا يُسجَّل خطأً أبدًا، فلا يستطيع طلب مجهول أن يكتب في Firestore
     let user; try { user = await verifyIdToken((req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "")) }
     catch (e) {
@@ -1507,7 +1556,7 @@ export default {
       if (body.st && typeof body.st === "object") { stAdd("cr", Math.min(20000, Math.max(0, +body.st.r || 0))); stAdd("cw", Math.min(5000, Math.max(0, +body.st.w || 0))) }
       let out;
       for (let attempt = 0; attempt < 3; attempt++) {
-        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await serial(() => handleBackup(fs0, user, body, env)) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/mt" ? await handleMt(fs0, user, body) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
+        try { out = url.pathname === "/ai" ? await handleAi(fs, user, body, env) : url.pathname === "/ailog" ? await handleAiLog(fs0, user, body, env) : url.pathname === "/aidel" ? await handleAiDel(fs0, user, body, env) : url.pathname === "/backup" ? await serial(() => handleBackup(fs0, user, body, env)) : url.pathname === "/errs" ? await handleErrs(fs0, user, body, env) : url.pathname === "/fr" ? await handleFriends(fs0, user, body, env) : url.pathname === "/duel" ? await handleDuel(fs0, user, body, env) : url.pathname === "/rd" ? await handleRd(fs0, user, body, env) : url.pathname === "/mt" ? await handleMt(fs0, user, body) : url.pathname === "/msg" ? await handleMsg(fs, user, body) : url.pathname === "/create" ? await handleCreate(fs, user, body, env) : url.pathname === "/pass" ? await handlePass(fs, user, body, env) : url.pathname === "/fix" ? await serial(() => handleFix(fs, user, body, env)) : url.pathname === "/sxq" ? await serial(() => handleSxq(fs0, user, body)) : url.pathname === "/stats" ? await handleStats(fs0, user, body) : url.pathname === "/report" ? await handleReport(fs, user, body) : await serial(() => url.pathname === "/wipe" ? handleWipe(fs, user, body) : handleSync(fs, user, body)); break }
         catch (e) { if (!e.conflict || attempt === 2) throw e }       // تعديل متزامن من جهازين: نعيد المحاولة
       }
       const fl = stFlush(fs0); if (ctx && ctx.waitUntil) ctx.waitUntil(fl); else await fl;

@@ -152,5 +152,52 @@ const C = {
     const before = ids(uid, dev); await post('/wipe', 'admin', { uid }); const sx = sxDoc(uid);
     T('بعد حذف بيانات الحساب: الحجر فارغ ووثائق الأرشيف محذوفة، وأرقام الأجهزة باقية', !sx.qz.length && !archDocs(uid).length && ids(uid, dev).ids.length === before.ids.length, { qz: sx.qz.length, arch: archDocs(uid).length, ids: ids(uid, dev).ids.length });
     v = await post('/backup', 'admin', { op: 'verify', key }); T('التحقق بعد الحذف يرى الفرق في sx والأرشيف', v.accts[uid].docs.sx === 'diff' && v.accts[uid].docs.sxa === 'diff', v.accts[uid].docs) },
+
+  // البند 2: استعادة أحداث حقيقية دون أرض الجهاز، وإعادة التطبيق من الحجر دون تكرار المكافآت
+  async reapply() { const uid = 'ra', A = await learner(uid); const dev = A.dev(); ctl.NOW += 3 * 36e5;
+    const ks = due(A); A.ev({ type: 'rate', k: ks[0], r: 2 }); const E1 = JSON.parse(JSON.stringify(A.EVQ[0])); adv(20e3);
+    A.ev({ type: 'quiz', kind: 's2', ok: 9, total: 10, ms: 30777, full: true }); const Q1 = JSON.parse(JSON.stringify(A.EVQ[1])); await A.sync();
+    ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync(); const lo = ids(uid, dev).lo;
+    const b = await srv(uid);
+    // أ) حدث حقيقي لم يصل، رقمه دون الأرض (جهاز فقد رقمه وساعته مُرجَعة): الحجر، ثم إعادة تطبيق = مراجعة مرة واحدة
+    const G = { type: 'rate', k: ks[1], r: 2, t: ctl.NOW - 3600e3, n: lo - 7, d: dev }; let j = await send(uid, [G], dev); T('حقيقي دون الأرض: في الحجر «old»', j.st[0] === 'q' && j.rej[0][1] === 'old', [j.st, j.rej]);
+    // ب) الحدثان الأصليان (طُبّقا قبل 40 يومًا) يُعادان بعد حذف رقميهما: الحجر
+    j = await send(uid, [E1, Q1], dev); T('إعادة حدثين طُبّقا قبل 40 يومًا: في الحجر', j.st.every(x => x === 'q'), [j.st, j.rej]);
+    let L = await post('/sxq', 'admin', { op: 'list', uid }); const find = f => L.qz.find(f);
+    const eG = find(r => r.n === G.n), eE = find(r => r.n === E1.n), eQ = find(r => r.n === Q1.n);
+    T('لوحة الحجر تعرض الثلاثة', !!(eG && eE && eQ), L.qz.length);
+    let r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eG.i }); let a = await srv(uid);
+    T('إعادة الحقيقي: مقبول، والمراجعات +1', r.st === 'ok' && a.reviews - b.reviews === 1, [r, a.reviews - b.reviews]);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eG.i }); a = await srv(uid);
+    T('إعادته مرة ثانية: «applied»، ولا تغيير', r.st === 'q' && r.rej[0][1] === 'applied' && a.reviews - b.reviews === 1, [r, a.reviews - b.reviews]);
+    const x0 = a.xp; r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eE.i }); a = await srv(uid);
+    T('إعادة مراجعة طُبّقت من قبل: «late» (نشاط فقط)، بلا خبرة ولا مراجعة', r.st === 'late' && a.xp === x0 && a.reviews - b.reviews === 1, [r, a.xp - x0]);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eQ.i }); a = await srv(uid);
+    T('إعادة تمرين طُبّق من قبل: «dupc»، والتمارين كما هي', r.st === 'q' && r.rej[0][1] === 'dupc' && a.quizzes === b.quizzes, [r, a.quizzes - b.quizzes]);
+    L = await post('/sxq', 'admin', { op: 'list', uid }); T('نتيجة كل محاولة مسجّلة على مدخلها', L.qz.find(q => q.n === G.n).ap.r === 'ok' && L.qz.find(q => q.n === Q1.n).ap.r === 'dupc');
+    // ج) حدث في وثيقة أرشيف
+    const G2 = { type: 'rate', k: ks[2], r: 2, t: ctl.NOW - 1800e3, n: lo - 3, d: dev }; await send(uid, [G2], dev); let n = ctl.NOW * 10;
+    for (let k = 0; k < 2; k++) await send(uid, Array.from({ length: 160 }, () => ({ type: 'zz', t: ctl.NOW, n: ++n, d: dev })), dev);
+    L = await post('/sxq', 'admin', { op: 'list', uid }); let hit = null;
+    for (const nm of L.an) { const x = await post('/sxq', 'admin', { op: 'arch', uid, name: nm }); const q = (x.qz || []).find(r => r.n === G2.n); if (q) hit = q }
+    T('الحدث انتقل إلى وثيقة أرشيف وتعرضه اللوحة', !!hit, L.an.length);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, src: hit.src, i: hit.i }); a = await srv(uid);
+    T('إعادة تطبيقه من الأرشيف: مقبول، والمراجعات +1 (المجموع 2)', r.st === 'ok' && a.reviews - b.reviews === 2, [r, a.reviews - b.reviews]);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, src: hit.src, i: hit.i }); T('ومرة ثانية: «applied»', r.rej && r.rej[0][1] === 'applied', r);
+    let err = ''; try { await post('/sxq', uid, { op: 'users' }) } catch (e) { err = e.message } T('متعلّم عادي لا يصل إلى اللوحة', / 403 /.test(err), err.slice(0, 30));
+    const U = await post('/sxq', 'admin', { op: 'users' }); T('قائمة الحسابات تعرض حسابه', U.users.some(u => u.uid === uid), U.users.length) },
+
+  // البند 1: عدّاد الصفحة توقّف أثناء نوم الهاتف (المرساة متأخّرة 10 ساعات) والساعة صحيحة → الحدث في وقته الصحيح لا في الماضي
+  async anchorSleep() { const uid = 'as', A = await learner(uid); ctl.NOW += 2 * DAY + 12 * 36e5; const dev = A.dev(); let n = ctl.NOW * 10;
+    const evs = due(A).slice(0, 10).map((k, i) => ({ type: 'rate', k, r: 2, t: ctl.NOW + i * 20e3, a: ctl.NOW - 10 * 36e5 + i * 20e3, n: ++n, d: dev })); adv(300e3);
+    await send(uid, evs, dev); const a = await srv(uid), tk = new Date(ctl.NOW).toISOString().slice(0, 10), yk = new Date(ctl.NOW - DAY).toISOString().slice(0, 10);
+    T('المراجعات العشر حُسبت في اليوم الصحيح (لا أمس)', (a.e.per[tk] || { n: 0 }).n === 10 && !(a.e.per[yk] || { n: 0 }).n, { today: (a.e.per[tk] || {}).n, yesterday: (a.e.per[yk] || {}).n }) },
+
+  // البند 3 (الخادم): حدث «big» بين حدثين في الدفعة نفسها: لا يوقف الباقي
+  async bigMiddle() { const uid = 'bm', A = await learner(uid); const dev = A.dev(); let n = ctl.NOW * 10; const ks = due(A);
+    const evs = [{ type: 'rate', k: ks[0], r: 2, t: ctl.NOW, n: ++n, d: dev }, { type: 'quiz', kind: 's2', ok: 1, total: 10, ms: 1, t: ctl.NOW + 1e3, n: ++n, d: dev, blob: 'ع'.repeat(500000) },
+      { type: 'rate', k: ks[1], r: 2, t: ctl.NOW + 20e3, n: ++n, d: dev }]; adv(60e3);
+    const j = await send(uid, evs, dev); T('الحالات: مقبول، كبير، مقبول', j.st.join() === 'ok,big,ok', j.st) },
 };
+C.anchorMissedTZ = C.anchorMissed;   // الحالة نفسها بمنطقة زمنية أخرى للعملية (TZ في run.sh): النتيجة يجب أن تكون نفسها
 await C[CASE](); console.log(out.join('\n'));

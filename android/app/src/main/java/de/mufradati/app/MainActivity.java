@@ -126,6 +126,7 @@ public class MainActivity extends Activity {
 
         Reminder.schedule(this);   // تذكيرات نهاية اليوم مفعّلة افتراضيًّا (لا تصل إلا إن سمح المستخدم بالإشعارات)
         if (state != null) web.restoreState(state);
+        else if (BuildConfig.ANCHOR_TEST) web.loadUrl("file:///android_asset/anchor-test.html");   // نسخة الاختبار المحلية وحدها
         else web.loadUrl(HOME + "?t=" + System.currentTimeMillis());   // دائمًا آخر نسخة من الموقع
     }
 

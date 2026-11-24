@@ -513,26 +513,34 @@ const sxWinMax=()=>{const w=(CFG.sx||{}).w||{};return Math.max(w.rate||30,w.st||
 // a لا يُصدَّق إن تجاوز وقت الاستلام. بلا مرساة وبالسياسة "day": لا يُنسب الحدث إلى يوم قبل يوم الاستلام.
 // بالسياسة "day" يُنقل الحدث إلى بداية يوم الاستلام مع الإبقاء على الفواصل بين أحداث الجهاز نفسه (dv.rt: ساعة الهاتف لآخر حدث قُبل منه)،
 // فلا تتصادم أحداث جلسة كاملة في لحظة واحدة (قاعدة نصف الثانية، ومدّة المحطة)
-function sxT0(ev,now,dv){const a=+ev.a;if(Number.isFinite(a)&&a>0)return Math.min(a,now);const t=+ev.t||now;
+// مع المرساة: الأحدث من وقتها ووقت ساعة الهاتف. فإرجاع الساعة لا يُرجع الحدث (المرساة أحدث)، وعدّاد صفحة توقّف أثناء نوم الهاتف
+// (قد يحدث في المتصفح) لا يُرجعه أيضًا (الساعة أحدث). تقديم الساعة لا ينفع: كل وقت يُقصّ إلى وقت الاستلام.
+function sxT0(ev,now,dv){const a=+ev.a,t=+ev.t||now;if(Number.isFinite(a)&&a>0)return Math.min(Math.max(a,t),now);
   if((CFG.sx||{}).uv==="day"&&dkey(t)<dkey(now)){const d=new Date(now+tzOff(now)),m0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()),mid=m0-tzOff(m0);
     const step=dv&&dv.rt&&t>=dv.rt?t-dv.rt:0;return Math.min(now,Math.max(mid,(dv&&dv.lt||0)+step))}
   return t}
 function applySx(ev,T,now,ctx){
-  const dv=ctx.dv,t0=sxT0(ev,now,dv),tc=Math.min(t0,now),raw=+ev.t||now;
-  if(now-tc>sxWin(T))return "old";
+  const dv=ctx.dv,t0=sxT0(ev,now,dv),tc=Math.min(t0,now),raw=+ev.t||now,re=!!ctx.reapply;
+  // إعادة التطبيق من الحجر (المشرف): لا مدّة قبول، والحدث في وقته الأصلي لا بعد آخر حدث من الجهاز، فيمرّ بقواعد المتأخّر كلها:
+  // مراجعة كلمة لها مراجعة في وقتها أو بعده → نشاط فقط بلا خبرة؛ تمرين موجود بمحتواه → «dupc»؛ كلمات محطة معروفة → «word»
+  if(!re&&now-tc>sxWin(T))return "old";
   // الوقت: لا يسبق آخر حدث من الجهاز نفسه، ولا يتجاوز وقت الخادم (وكلمات المحطة تأخذ t…t+4، فتُترك لها مسافتها)
-  const t=Math.min(Math.max(tc,dv.lt||0),now-(T==="stDone"?ST_WORDS:0));
-  if(T==="rate"&&dv.r0&&t0>=dv.r0&&t0-dv.r0<=500&&!(raw-(dv.rr||0)>500))return "time";   // قاعدة نصف الثانية على أوقات الهاتف نفسه (والساعة الأصلية إن نُقل الوقت)
+  const t=Math.min(re?tc:Math.max(tc,dv.lt||0),now-(T==="stDone"?ST_WORDS:0));
+  if(!re&&T==="rate"&&dv.r0&&t0>=dv.r0&&t0-dv.r0<=500&&!(raw-(dv.rr||0)>500))return "time";   // قاعدة نصف الثانية على أوقات الهاتف نفسه (والساعة الأصلية إن نُقل الوقت)
   const late=t<(EN.lt||0);
   if(late&&T==="reset")return "lreset";
+  if(re&&T==="reset")return "noreset";   // التصفير لا يُعاد تطبيقه من الحجر
+  // الشراء: معرّفه bid لا يُشترى به مرتين (إعادة تطبيق، أو إعادة إرسال بعد حذف رقمه)
+  if(T==="buy"&&ev.bid&&BUY.some(b=>b.id===String(ev.bid).slice(0,20)))return "dupc";
   // تمرين قبله خادم قديم (لا يعرف أرقام الأحداث) ثم أُعيد بعد ضياع ردّه: يُعرف بمحتواه (النوع والنتيجة والعدد ومدّته بالملّي ثانية)
   // مسجّلًا في وقت لا يسبق وقته. يذهب إلى الحجر «dupc» (يُستعاد إن ثبت خطأ)، لا يُطبَّق مرة ثانية
   if(T==="quiz"){const k=String(ev.kind||"quiz").slice(0,8),ms=Math.max(0,+ev.ms|0);if(ms&&QLOG.some(q=>q[3]===k&&q[1]===(ev.ok|0)&&q[2]===(ev.total|0)&&q[4]===ms&&q[0]>=tc-1000&&q[0]<=now))return "dupc"}   // تصفير وصل بعد دراسة أحدث منه من جهاز آخر: لا يُطبَّق تلقائيًا
   if(late&&T==="rate"){const k=String(ev.k||""),r=ev.r|0;
     if(!(r>=0&&r<=3)||!P[k])return "word";
-    if((CK&&CK.t>t)||LOG.some(x=>x[1]===k&&x[0]>=t)){LATE.push([t,k,r]);dv.lt=Math.max(dv.lt||0,t);dv.r0=t0;return "late"}}
+    if((CK&&CK.t>t)||LOG.some(x=>x[1]===k&&x[0]>=t)){LATE.push([t,k,r]);if(!re){dv.lt=Math.max(dv.lt||0,t);dv.r0=t0}return "late"}}
   const r=applyAt(ev,T,t,{...ctx,sx:true});
-  if(r===true){dv.lt=Math.max(dv.lt||0,t);dv.rt=raw;if(T==="rate"){dv.r0=t0;dv.rr=raw}if(T==="quiz")dv.q=t;EN.lt=Math.max(EN.lt||0,t)}
+  if(r===true&&!re){dv.lt=Math.max(dv.lt||0,t);dv.rt=raw;if(T==="rate"){dv.r0=t0;dv.rr=raw}if(T==="quiz")dv.q=t}
+  if(r===true)EN.lt=Math.max(EN.lt||0,t);
   return r;
 }
 // إدراج في السجلّ مرتّبًا بالوقت (الحدث المتأخّر يقع في وسطه؛ غير ذلك إضافة في آخره كما اليوم)
@@ -586,7 +594,7 @@ function applyAt(ev,T,now,ctx){
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
     if(!(total>=1&&total<=300&&ok>=0&&ok<=total))return "bad";
-    if(ctx.server){const lq=sx?(ctx.dv&&ctx.dv.q||0):QLOG.length?QLOG[QLOG.length-1][0]:0;if(now-lq<Math.min(total,20)*800)return "time";
+    if(ctx.server){const lq=sx?(ctx.reapply?0:ctx.dv&&ctx.dv.q||0):QLOG.length?QLOG[QLOG.length-1][0]:0;if(now-lq<Math.min(total,20)*800)return "time";
       if(QLOG.filter(q=>dkey(q[0])===dkey(now)).length>=60)return "cap"}
     if(kind==="chal"){if(total>12)return "bad";if(!chalOpenAt(now))return "lock"}   // التحدي: بعد آخر محطة وتدريبها، مرة في اليوم، بلا طاقة
     if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(!FREEU&&!unlAt(now)){if(enAt(ET)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,ET)}}
