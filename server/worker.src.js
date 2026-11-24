@@ -221,15 +221,16 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
-  FREEU = false; STMAXU = 0; SRSU = false;
+  FREEU = false; STMAXU = 0; SRSU = false; SXU = false; LATE = []; LATEF = {};
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
   SRSU = !admin && ((CFG.srs || {}).u || []).includes(uid);   // التحقّق من التذكّر: للحسابات التي يختارها المشرف فقط (ومع on وt0 في srsOn)
-  const [uDoc, coreD, logD, qaD, nameD, gifts, ckD] = await Promise.all([
+  SXU = !!(CFG.sx && (CFG.sx.on || CFG.sx.u.includes(uid)));   // المزامنة الجديدة (مفتاح الإيقاف): للجميع أو لحسابات بأعيانها
+  const [uDoc, coreD, logD, qaD, nameD, gifts, ckD, sxD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
-    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`)]);
+    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`), SXU ? fs.get(`users/${uid}/data/sx`) : null]);
   // الحساب المفعّل فقط
   if (!admin && !uDoc && !(await fs.get(`members/${uid}`))) return { status: 403, json: { error: "inactive" } };
   const u = uDoc ? uDoc.data : {};
@@ -241,22 +242,33 @@ async function handleSync(fs, user, body) {
   // مستخدم جديد تمامًا (أول دخول، بلا بيانات سابقة): طاقة بلا حدود أول 24 ساعة، ليتعلّم ما يكفي فتكون له كلمات يراجعها في اليوم التالي
   if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
+  // وثيقة sx المستقلّة (لا يقرؤها الخادم القديم ولا يكتبها): أرقام كل جهاز، والمراجعات المتأخّرة، والحجر
+  const sx = sxLoad(sxD), sxBefore = JSON.stringify(sx); if (SXU) { LATE = sx.late; LATEF = sx.lf }
   const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
-  const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [];
+  const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [];
   let words = null;
   for (let i = 0; i < evs.length; i++) {
-    const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); continue }
-    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); continue }      // أحداث من قبل حذف المشرف لا تُقبل
+    const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
+    // المزامنة الجديدة: الحدث المعروف (الجهاز والرقم نفسهما) «وصل سابقًا» فلا يُطبَّق مرة ثانية
+    const dv = SXU ? sxDev(sx, e) : null, n = SXU && Number.isInteger(e.n) && e.n > 0 ? e.n : 0;
+    if (dv && n && (n <= dv.f || dv.ids.includes(n))) { st.push("dup"); continue }
+    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); st.push("wiped"); if (dv && n) sxSeen(dv, n); continue }      // أحداث من قبل حذف المشرف لا تُقبل
     if (e.type === "stDone" && !words) words = await wordSet();
     let duelOk = false, dwinOk = false;
     if (e.type === "dwin") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       dwinOk = !!(dd && duelWinner(dd.data) === uid) }   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
-    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk });
-    if (r !== true) rej.push([i, r]);
+    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(dv ? { dv } : {}) });
+    if (!dv) { if (r !== true) rej.push([i, r]); st.push(r === true ? "ok" : "rej"); continue }
+    // لا حذف بصمت: ما لم يُقبل يُحفظ في الحجر مع سببه، ويُسجَّل رقمه فلا يتكرّر في الحجر عند إعادة الإرسال
+    if (n) sxSeen(dv, n);
+    if (r === true) st.push("ok"); else if (r === "late") st.push("late");
+    else { sx.qz.push([now, String(r), sxClip(e)]); rej.push([i, r]); st.push("q") }
   }
+  if (SXU) { for (let i = 1; i < LOG.length; i++) if (LOG[i][0] < LOG[i - 1][0]) { LOG.sort((a, b) => a[0] - b[0]); break }   // احتياط: السجلّ مرتّب دائمًا
+    sxTrim(sx, now) }
   // المظهر الذي اختاره المتعلّم (يُتحقّق من ملكيّته)
   const pr = parseJ(u.prefs, {}), E = pr.E || {};
   const avIt = SHOP.find(x => x.cat === "avatar" && x.val === E.avatar), lf = E.lgFrame ?? E.frame, ls = E.lgSticker ?? E.sticker;
@@ -294,12 +306,42 @@ async function handleSync(fs, user, body) {
   if (ckT !== before.ck) cw.push({ path: `users/${uid}/data/ck`, data: { v: ckJ } });
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
+  const sxJ = JSON.stringify(sx);
+  if (SXU && sxJ !== sxBefore) cw.push({ path: `users/${uid}/data/sx`, data: { v: sxJ }, ...(sxD ? { ifUpdateTime: sxD.updateTime } : { ifMissing: true }) });
   await fs.commit([...cw, ...writes]);
   // آلية رقم النسخة: إن أرسل التطبيق رقم نسخة مختلفًا، نرسل له الأرقام كما يحسبها الخادم ليعرضها بدل حسابه هو (لا تغيير في أي قاعدة)
   let sum;
   if (body.cv && body.cv !== CORE_V) { EC = null; const x = econ(); sum = { gems: x.gems, xp: x.xp, lv: x.lv, rest: x.rest, need: x.need, streak: x.s.streak, today: !!x.s.today } }
   // نقطة الحفظ تُرسل للتطبيق فقط حين تختلف عمّا عنده (يرسل وقتها ckt)
-  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
+  // المزامنة الجديدة: حالة كل حدث (ok | late | dup | q | wiped | bad)، والمراجعات المتأخّرة، وأعلى رقم يعرفه الخادم لهذا الجهاز
+  const sxOut = SXU ? { st, late: JSON.stringify({ L: LATE, F: LATEF }), dn: sxMax(sx, body.dev) } : {};
+  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...sxOut, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
+}
+
+/* ---------- وثيقة sx (المزامنة الجديدة) ---------- */
+// dv: {جهاز: {f: كل رقم ≤ f وصل سابقًا, ids: آخر الأرقام المقبولة فوق f (≤ 500), lt, r0, q}}، late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث]]
+function sxLoad(d) {
+  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [] };
+  if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (v && typeof v === "object") o.dv[k] = { f: +v.f || 0, ids: Array.isArray(v.ids) ? v.ids.filter(Number.isInteger) : [], lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0 } }
+  if (Array.isArray(x.late)) o.late = x.late.filter(a => Array.isArray(a) && a.length === 3);
+  if (x.lf && typeof x.lf === "object") o.lf = x.lf;
+  if (Array.isArray(x.qz)) o.qz = x.qz.filter(a => Array.isArray(a) && a.length === 3);
+  return o;
+}
+const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/;
+function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { f: 0, ids: [], lt: 0, r0: 0, q: 0 }) }
+function sxSeen(dv, n) { if (n <= dv.f || dv.ids.includes(n)) return; dv.ids.push(n); if (dv.ids.length > 500) { dv.ids.sort((a, b) => a - b); dv.f = Math.max(dv.f, dv.ids.shift()) } }
+function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; return v ? Math.max(v.f, ...v.ids, 0) : 0 }
+// الحدث في الحجر كما وصل، مقصوصًا (الكلمات والإجابات بحدود معقولة)
+function sxClip(e) { const o = {}; for (const k of ["type", "t", "d", "n", "k", "r", "v", "kind", "ok", "total", "ms", "full", "id", "cat", "bid"]) if (e[k] !== undefined) o[k] = typeof e[k] === "string" ? e[k].slice(0, 60) : e[k];
+  if (Array.isArray(e.words)) o.words = e.words.slice(0, 20).map(x => String(x).slice(0, 60)); if (Array.isArray(e.miss)) o.miss = e.miss.slice(0, 20).map(x => String(x).slice(0, 60));
+  if (Array.isArray(e.qa)) o.qa = e.qa.slice(0, 300); return o }
+// الحدود: الحجر 1000 حدث أو 90 يومًا، والمتأخّرات 5000 (الأقدم يُطوى في lf عددًا لكل يوم فلا ينقص نشاط يومه)، والأجهزة 50 (الأقدم نشاطًا يُحذف)
+function sxTrim(sx, now) {
+  sx.qz = sx.qz.filter(x => now - x[0] < 90 * 864e5).slice(-1000);
+  if (LATE.length > 5000) { LATE.sort((a, b) => a[0] - b[0]); for (const x of LATE.splice(0, LATE.length - 5000)) { const d = dkey(x[0]); LATEF[d] = (+LATEF[d] || 0) + 1 } }
+  sx.late = LATE; sx.lf = LATEF;
+  const ks = Object.keys(sx.dv); if (ks.length > 50) ks.sort((a, b) => sx.dv[b].lt - sx.dv[a].lt).slice(50).forEach(k => delete sx.dv[k]);
 }
 
 /* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */

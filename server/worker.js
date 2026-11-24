@@ -41,6 +41,10 @@ let FREEU=false,STMAXU=0;   // STMAXU: عدد محطات هذا المتعلّم
 // التحقّق من التذكّر لهذا الحساب: يضبطه التطبيق للمستخدم المسجّل، والخادم لكل طلب (مثل FREEU)
 let SRSU=false;
 const srsOn=t=>!!(SRSU&&CFG.srs&&CFG.srs.on&&t>=CFG.srs.t0);
+// المزامنة الجديدة لهذا الحساب (مفتاح الإيقاف CFG.sx): يضبطها التطبيق للمستخدم المسجّل، والخادم لكل طلب. انظر docs/sync-design.md
+// LATE: مراجعات متأخّرة لكلمة لها مراجعة أحدث [وقت، كلمة، تقييم] — نشاط يومها فقط، بلا خبرة ولا تغيير حالة الكلمة.
+// LATEF: ما طُوي منها {يوم: عدد}. الاثنان في وثيقة sx المستقلّة، ويرسلهما الخادم للتطبيق.
+let SXU=false,LATE=[],LATEF={};
 // النزول الجزئي بعد فشل التحقّق ثم «صعبة»: نصف الصندوق مقرّبًا للأسفل، و1 على الأقل
 const vfBox=b=>Math.max(1,Math.floor((b||0)/2));
 // أرشيف النزول الدائم R.vf = [[وقت التقييم بالثواني, الكلمة]]: تقرؤه إعادة الحساب (replayLog) فتطابق صناديقُها P، حتى بعد إيقاف الميزة
@@ -69,6 +73,7 @@ function applyCfg(c){
     off:{all:c.off&&c.off.all?1:0,u:c.off&&Array.isArray(c.off.u)?c.off.u.filter(x=>typeof x==="string"&&x.length<130).slice(0,500):[]},   // «العمل بلا إنترنت»: للجميع أو لمتعلّمين بأعيانهم
     // التحقّق من التذكّر (المرحلة الأولى): مطفأ ما لم يضعه المشرف، ولا يعمل إلا للحسابات في u ولأحداث بعد t0
     srs:(()=>{const x=c.srs&&typeof c.srs==="object"?c.srs:{};return {on:x.on?1:0,t0:_num(x.t0,0,0,1e14),u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,50):[],p:_num(x.p,.15,0,1),max:_num(x.max,5,0,50)}})(),
+    sx:(()=>{const x=c.sx&&typeof c.sx==="object"?c.sx:{};return {on:x.on?1:0,u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,500):[]}})(),   // المزامنة الجديدة: للجميع أو لحسابات بأعيانها
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
@@ -310,8 +315,11 @@ function econ(){
   for(const q of QLOG){xp+=qXp(q);if(q[2]>=5&&q[1]===q[2])s.qfull++}
   // السلسلة مع التجميد
   const fz=[...BUY.filter(b=>b.item==="power:freeze").map(b=>dkey(b.ts)),...(typeof GIFTS!=="undefined"&&GIFTS?GIFTS:[]).filter(isFzGift).map(g=>dkey(giftTs(g)||Date.now()))].sort();
-  const stDays=new Set([...STN.map(x=>dkey(x[0])),...duelDays()]),cd=carryDays(),qd=d=>cd.has(d)||(d<"2026-10-16"?!!per[d]:((per[d]&&per[d].n>=10)||stDays.has(d)));
-  const days=[...new Set([...Object.keys(per),...cd,...duelDays()])].sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
+  // المراجعات المتأخّرة (LATE وLATEF): تُحسب في نشاط يومها فقط (عدد مراجعات اليوم للسلسلة)، بلا خبرة ولا صندوق
+  const ln={...(LATEF&&typeof LATEF==="object"?LATEF:{})};for(const x of Array.isArray(LATE)?LATE:[])if(Array.isArray(x)){const d=dkey(x[0]);ln[d]=(+ln[d]||0)+1}
+  const pn=d=>(per[d]?per[d].n:0)+(+ln[d]||0);
+  const stDays=new Set([...STN.map(x=>dkey(x[0])),...duelDays()]),cd=carryDays(),qd=d=>cd.has(d)||(d<"2026-10-16"?pn(d)>0:(pn(d)>=10||stDays.has(d)));
+  const days=[...new Set([...Object.keys(per),...Object.keys(ln),...cd,...duelDays()])].sort();let fi=0,avail=FZ_START;          // كل متعلّم يبدأ بـ3 تجميدات
   if(days.length){
     let t=new Date(days[0]+"T12:00:00").getTime(),gap=0,gapUsed=0;const end=today();
     for(;;t+=DAY){const d=dkey(t);while(fi<fz.length&&fz[fi]<=d){avail++;fi++}
@@ -502,59 +510,88 @@ function pzDraw(d){
 const questGot=(d,id)=>(Array.isArray(R.qd)?R.qd:[]).some(x=>x[0]===d&&x[1]===id);
 function applyEv(ev,now,ctx){
   ctx=ctx||{};const T=ev&&ev.type;
+  if(ctx.server&&ctx.dv)return applySx(ev,T,now,ctx);   // المزامنة الجديدة (الخادم وحده يمرّر سجلّ الجهاز dv)
   // وقت الحدث: وقت الهاتف، لكن الخادم لا يقبل وقتًا في المستقبل ولا أقدم من أسبوع ولا أقدم من آخر حدث
   const t0=+ev.t||now,t=ctx.server?Math.max(EN.lt||0,Math.min(t0,now)):t0;
   if(ctx.server&&t<now-7*DAY)return "time";
   const r_=applyAt(ev,T,t,ctx);if(r_===true&&ctx.server)EN.lt=t;return r_;
 }
+// ===== المزامنة الجديدة (docs/sync-design.md) =====
+// dv: سجلّ جهاز الحدث في وثيقة sx {lt: وقت آخر حدث قُبل منه، r0: وقت هاتفه لآخر مراجعة، q: وقت آخر تمرين}.
+// وقت الدراسة = وقت الهاتف، لا يتجاوز وقت الاستلام، ولا يسبق آخر حدث قُبل من الجهاز نفسه (لا من أي جهاز).
+// مدّة القبول: 30 يومًا للمراجعات، و7 أيام لغيرها؛ ما يتجاوزها يعود بسبب «old» فيُحفظ في الحجر.
+// «متأخّر» = أقدم من آخر حدث قُبل من أي جهاز (EN.lt). المراجعة المتأخّرة لكلمة لها مراجعة أحدث تعود «late»: نشاط يوم فقط.
+const SX_WIN={rate:30};
+function applySx(ev,T,now,ctx){
+  const dv=ctx.dv,t0=+ev.t||now;let t=Math.min(t0,now);if(dv.lt&&t<=dv.lt)t=dv.lt+1;
+  if(now-t>(SX_WIN[T]||7)*DAY)return "old";
+  if(T==="rate"&&dv.r0&&t0>=dv.r0&&t0-dv.r0<=500)return "time";   // قاعدة نصف الثانية على أوقات الهاتف نفسه
+  const late=t<(EN.lt||0);
+  if(late&&T==="reset")return "lreset";   // تصفير وصل بعد دراسة أحدث منه من جهاز آخر: لا يُطبَّق تلقائيًا
+  if(late&&T==="rate"){const k=String(ev.k||""),r=ev.r|0;
+    if(!(r>=0&&r<=3)||!P[k])return "word";
+    if((CK&&CK.t>t)||LOG.some(x=>x[1]===k&&x[0]>=t)){LATE.push([t,k,r]);dv.lt=Math.max(dv.lt||0,t);dv.r0=t0;return "late"}}
+  const r=applyAt(ev,T,t,{...ctx,sx:true});
+  if(r===true){dv.lt=Math.max(dv.lt||0,t);if(T==="rate")dv.r0=t0;if(T==="quiz")dv.q=t;EN.lt=Math.max(EN.lt||0,t)}
+  return r;
+}
+// إدراج في السجلّ مرتّبًا بالوقت (الحدث المتأخّر يقع في وسطه؛ غير ذلك إضافة في آخره كما اليوم)
+function logIns(x){const L=LOG;if(!L.length||L[L.length-1][0]<=x[0]){L.push(x);return}
+  let a=0,b=L.length;while(a<b){const m=(a+b)>>1;if(L[m][0]<=x[0])a=m+1;else b=m}L.splice(a,0,x)}
+const byT=(a,b)=>a[0]-b[0];
 function applyAt(ev,T,now,ctx){
+  // sx: المزامنة الجديدة. الطاقة لا تُحسب بأثر رجعي: كل عملية طاقة عند الأحدث من وقت الحدث وآخر تحديث للطاقة
+  const sx=!!ctx.sx,ET=sx?Math.max(now,EN.t||0):now;
   // هدية الطاقة اليومية: مرة واحدة لكل يوم جديد (R.eg = آخر يوم أُخذت فيه)، بالكمية التي يحدّدها المشرف
   if(T==="eday"){
     if(FREEU)return "free";if(!CFG.energy.daily)return "off";
-    const d=dkey(now);if(R.eg===d)return "dup";R.eg=d;enAdd(CFG.energy.daily,now);return true;
+    const d=dkey(now);if(R.eg===d)return "dup";R.eg=d;enAdd(CFG.energy.daily,ET);return true;
   }
   if(T==="rate"){
     const k=String(ev.k||""),r=ev.r|0;if(!(r>=0&&r<=3)||!P[k])return "word";
     const t=now,last=LOG.length?LOG[LOG.length-1][0]:0;
-    if(ctx.server&&t<=last+500)return "time";
+    if(ctx.server&&!sx&&t<=last+500)return "time";
     // v=-1: فشل التحقّق من التذكّر قبل التقييم (لا يُقبل معه إلا «نسيت» أو «صعبة»). يُتجاهل إن لم تكن الميزة مفعّلة لهذا الحساب أو كان الحدث قبل t0
     // تنبيه: v=-1 مؤشّر يرسله التطبيق عن جواب المتعلّم في سؤال الاختيار، لا إثبات يتحقّق منه الخادم بنفسه (الخادم لا يرى السؤال ولا الجواب).
     // لذلك لا يمنح أي مكافأة، وأقصى أثره نزول جزئي يختاره المتعلّم بـ«صعبة»؛ والخادم يفرض فقط اتّساقه (لا «عرفتها» ولا «سهلة» معه) وأنه مرة واحدة في المراجعة المحسوبة.
     const vOn=ev.v===-1&&srsOn(t);if(vOn&&r>1)return "verify";
     const ok=rewarded(P[k],k,t,LOG),b0=P[k].box||0,vf=vOn&&ok&&r===1,box=vf?vfBox(b0):boxStep(b0,r,!ok);   // النزول الجزئي في المراجعة المحسوبة وحدها، مرة واحدة
-    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};LOG.push([t,k,r,ok?(FREEU?3:0):2]);
+    P[k]={box,due:r===0?t:ok||b0===0?t+IV[box]*DAY:P[k].due,t};(sx?logIns:x=>LOG.push(x))([t,k,r,ok?(FREEU?3:0):2]);
     if(vf){R.vf=Array.isArray(R.vf)?R.vf:[];R.vf.push([Math.round(t/1000),k])}
     ckFold();
-    if(ok&&!FREEU&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,t)}      // التدريب لا يشحن الطاقة
+    if(ok&&!FREEU&&CFG.energy.perReviews){EN.rc=(EN.rc||0)+1;if(EN.rc%CFG.energy.perReviews===0)enAdd(1,ET)}      // التدريب لا يشحن الطاقة
     return true;
   }
   if(T==="stStart"){
+    // المزامنة الجديدة: بدء محطة والمحطة السابقة ما زالت مفتوحة في اليوم نفسه وخلال ساعة = متابعة لها بلا تكلفة ثانية؛
+    // وإن كانت قديمة فتُعامل كالخروج منها أولًا (كما يفعل التطبيق عند فتحه)
+    if(SXU&&STV){if(now>=STV&&dkey(STV)===dkey(now)&&now-STV<36e5){STV=now;return true}if(stCostAt(STV)&&!FREEU)enAdd(CFG.energy.refund,ET);STV=0}
     const cost=stCostAt(now);if(stMaxHit(now))return "max";
     if(CFG.station.drillReq&&drillsTodayAt(now)<stTodayAt(now))return "drill";   // التدريب بعد كل محطة شرط لفتح التالية
-    if(enAt(now)<cost)return "energy";
-    if(cost)enAdd(-cost,now);STV=now;return true;
+    if(enAt(ET)<cost)return "energy";   // المحطة المتأخّرة: الطاقة تُسوّى عند الاستلام، وإن لم تكفِ فإلى الحجر
+    if(cost)enAdd(-cost,ET);STV=now;return true;
   }
-  if(T==="stQuit"){if(!STV)return "none";if(stCostAt(STV)&&!FREEU)enAdd(CFG.energy.refund,now);STV=0;return true}   // المحطة المجانية لا يُستعاد منها شيء
+  if(T==="stQuit"){if(!STV)return "none";if(stCostAt(STV)&&!FREEU)enAdd(CFG.energy.refund,ET);STV=0;return true}   // المحطة المجانية لا يُستعاد منها شيء
   if(T==="stDone"){
     if(!STV)return "none";if(ctx.server&&now-STV<10000)return "time";
     const ws=[...new Set((ev.words||[]).map(String))].slice(0,ST_WORDS);
     if(!ws.length||ws.some(k=>P[k]||(ctx.words&&!ctx.words.has(k))))return "word";
     const miss=new Set((ev.miss||[]).map(String));
     const pw=new Set(R.pw||[]);   // كلمة كوفئ عليها قبل التصفير: تُعلَّم 4 فلا خبرة لها مرة ثانية
-    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};LOG.push([now+i,k,miss.has(k)?1:2,FREEU||pw.has(k)?4:1])});ckFold();STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
+    ws.forEach((k,i)=>{P[k]={box:1,due:now+IV[1]*DAY,t:now+i};(sx?logIns:x=>LOG.push(x))([now+i,k,miss.has(k)?1:2,FREEU||pw.has(k)?4:1])});ckFold();STN.push([now,ws.length,!FREEU&&ws.some(k=>!pw.has(k))?1:0]);if(sx&&STN.length>1&&STN[STN.length-2][0]>now)STN.sort(byT);STV=0;return true;   // الدراسة الحرّة بلا جوهرة
   }
   if(T==="quiz"){
     const total=ev.total|0,ok=ev.ok|0,kind=String(ev.kind||"quiz").slice(0,8);
     if(!(total>=1&&total<=300&&ok>=0&&ok<=total))return "bad";
-    if(ctx.server){const lq=QLOG.length?QLOG[QLOG.length-1][0]:0;if(now-lq<Math.min(total,20)*800)return "time";
+    if(ctx.server){const lq=sx?(ctx.dv&&ctx.dv.q||0):QLOG.length?QLOG[QLOG.length-1][0]:0;if(now-lq<Math.min(total,20)*800)return "time";
       if(QLOG.filter(q=>dkey(q[0])===dkey(now)).length>=60)return "cap"}
     if(kind==="chal"){if(total>12)return "bad";if(!chalOpenAt(now))return "lock"}   // التحدي: بعد آخر محطة وتدريبها، مرة في اليوم، بلا طاقة
-    if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(!FREEU&&!unlAt(now)){if(enAt(now)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,now)}}
+    if(kind==="drill"){if(total>ST_WORDS)return "bad";if(drillsTodayAt(now)>=stTodayAt(now))return "none";if(!FREEU&&!unlAt(now)){if(enAt(ET)<CFG.energy.drill)return "energy";if(CFG.energy.drill)enAdd(-CFG.energy.drill,ET)}}
     const q=[now,ok,total,kind,Math.max(0,+ev.ms|0)];
     // طاقة التمارين: لكل تمرين أكمله حتى آخره، بحدّ أقصى في اليوم (الاختبار لا يعطي طاقة)
-    if(ev.full&&!FREEU&&kind!=="quiz"&&kind!=="chal"&&CFG.energy.game&&gamesEnToday(now)<CFG.energy.gameMax){enAdd(CFG.energy.game,now);q.push(1)}
+    if(ev.full&&!FREEU&&kind!=="quiz"&&kind!=="chal"&&CFG.energy.game&&gamesEnToday(now)<CFG.energy.gameMax){enAdd(CFG.energy.game,ET);q.push(1)}
     if(FREEU){while(q.length<6)q.push(0);q.push(1)}   // q[6]=1: بلا خبرة
-    QLOG.push(q);
+    QLOG.push(q);if(sx&&QLOG.length>1&&QLOG[QLOG.length-2][0]>now)QLOG.sort(byT);
     for(const a of (ev.qa||[]).slice(0,300))if(Array.isArray(a))QA.push([now,String(a[0]),a[1]?1:0]);
     if(QA.length>30000)QA=QA.slice(-30000);
     return true;
@@ -600,8 +637,8 @@ function applyAt(ev,T,now,ctx){
   if(T==="combo"){
     if(FREEU||unlAt(now))return "free";const c=CFG.energy.combo,m=CFG.energy.comboMax;if(!c||!m)return "off";
     const d=dkey(now),cb=Array.isArray(R.cb)&&R.cb[0]===d?R.cb:[d,0,0];
-    if(cb[1]>=m)return "cap";if(ctx.server&&now-cb[2]<10000)return "time";if(enAt(now)>=EN_MAX)return "full";
-    R.cb=[d,cb[1]+1,now];enAdd(c,now);return true;
+    if(cb[1]>=m)return "cap";if(ctx.server&&(!sx||now>=cb[2])&&now-cb[2]<10000)return "time";if(enAt(ET)>=EN_MAX)return "full";
+    R.cb=[d,cb[1]+1,Math.max(now,cb[2])];enAdd(c,ET);return true;
   }
   if(T==="reset"){
     // تصفير الكلمات فقط: تعود كل الكلمات جديدة، وتبقى السلسلة والخبرة (المستوى) والدوري والجواهر والمشتريات والإنجازات
@@ -615,7 +652,7 @@ function applyAt(ev,T,now,ctx){
 
 applyCfg(null);
 
-const CORE_V = "f02599b3d0";
+const CORE_V = "9da130c6b5";
 
 /* ---------- ضغط السجلّات (الصيغة نفسها التي في التطبيق) ---------- */
 function packLog(L) { const K = [], ix = {}, F = []; let p = 0; for (const [t, k, r, n] of L) { if (ix[k] === undefined) { ix[k] = K.length; K.push(k) } const s = Math.round(t / 1000); F.push(s - p, ix[k], r, n); p = s } return { K, F } }
@@ -820,15 +857,16 @@ function serial(fn) { const p = LOCK.then(fn, fn); LOCK = p.then(() => { }, () =
 
 /* ---------- معالجة طلب المزامنة ---------- */
 async function handleSync(fs, user, body) {
-  FREEU = false; STMAXU = 0; SRSU = false;
+  FREEU = false; STMAXU = 0; SRSU = false; SXU = false; LATE = []; LATEF = {};
   const now = Date.now(), uid = user.uid, admin = user.email === ADMIN;
   await loadCfg(fs);
   FREEU = CFG.free.includes(uid);   // الدراسة الحرّة لهذا الحساب
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
   SRSU = !admin && ((CFG.srs || {}).u || []).includes(uid);   // التحقّق من التذكّر: للحسابات التي يختارها المشرف فقط (ومع on وt0 في srsOn)
-  const [uDoc, coreD, logD, qaD, nameD, gifts, ckD] = await Promise.all([
+  SXU = !!(CFG.sx && (CFG.sx.on || CFG.sx.u.includes(uid)));   // المزامنة الجديدة (مفتاح الإيقاف): للجميع أو لحسابات بأعيانها
+  const [uDoc, coreD, logD, qaD, nameD, gifts, ckD, sxD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
-    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`)]);
+    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`), SXU ? fs.get(`users/${uid}/data/sx`) : null]);
   // الحساب المفعّل فقط
   if (!admin && !uDoc && !(await fs.get(`members/${uid}`))) return { status: 403, json: { error: "inactive" } };
   const u = uDoc ? uDoc.data : {};
@@ -840,22 +878,33 @@ async function handleSync(fs, user, body) {
   // مستخدم جديد تمامًا (أول دخول، بلا بيانات سابقة): طاقة بلا حدود أول 24 ساعة، ليتعلّم ما يكفي فتكون له كلمات يراجعها في اليوم التالي
   if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
+  // وثيقة sx المستقلّة (لا يقرؤها الخادم القديم ولا يكتبها): أرقام كل جهاز، والمراجعات المتأخّرة، والحجر
+  const sx = sxLoad(sxD), sxBefore = JSON.stringify(sx); if (SXU) { LATE = sx.late; LATEF = sx.lf }
   const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
-  const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [];
+  const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [];
   let words = null;
   for (let i = 0; i < evs.length; i++) {
-    const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); continue }
-    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); continue }      // أحداث من قبل حذف المشرف لا تُقبل
+    const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
+    // المزامنة الجديدة: الحدث المعروف (الجهاز والرقم نفسهما) «وصل سابقًا» فلا يُطبَّق مرة ثانية
+    const dv = SXU ? sxDev(sx, e) : null, n = SXU && Number.isInteger(e.n) && e.n > 0 ? e.n : 0;
+    if (dv && n && (n <= dv.f || dv.ids.includes(n))) { st.push("dup"); continue }
+    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); st.push("wiped"); if (dv && n) sxSeen(dv, n); continue }      // أحداث من قبل حذف المشرف لا تُقبل
     if (e.type === "stDone" && !words) words = await wordSet();
     let duelOk = false, dwinOk = false;
     if (e.type === "dwin") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       dwinOk = !!(dd && duelWinner(dd.data) === uid) }   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
-    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk });
-    if (r !== true) rej.push([i, r]);
+    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(dv ? { dv } : {}) });
+    if (!dv) { if (r !== true) rej.push([i, r]); st.push(r === true ? "ok" : "rej"); continue }
+    // لا حذف بصمت: ما لم يُقبل يُحفظ في الحجر مع سببه، ويُسجَّل رقمه فلا يتكرّر في الحجر عند إعادة الإرسال
+    if (n) sxSeen(dv, n);
+    if (r === true) st.push("ok"); else if (r === "late") st.push("late");
+    else { sx.qz.push([now, String(r), sxClip(e)]); rej.push([i, r]); st.push("q") }
   }
+  if (SXU) { for (let i = 1; i < LOG.length; i++) if (LOG[i][0] < LOG[i - 1][0]) { LOG.sort((a, b) => a[0] - b[0]); break }   // احتياط: السجلّ مرتّب دائمًا
+    sxTrim(sx, now) }
   // المظهر الذي اختاره المتعلّم (يُتحقّق من ملكيّته)
   const pr = parseJ(u.prefs, {}), E = pr.E || {};
   const avIt = SHOP.find(x => x.cat === "avatar" && x.val === E.avatar), lf = E.lgFrame ?? E.frame, ls = E.lgSticker ?? E.sticker;
@@ -893,12 +942,42 @@ async function handleSync(fs, user, body) {
   if (ckT !== before.ck) cw.push({ path: `users/${uid}/data/ck`, data: { v: ckJ } });
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
+  const sxJ = JSON.stringify(sx);
+  if (SXU && sxJ !== sxBefore) cw.push({ path: `users/${uid}/data/sx`, data: { v: sxJ }, ...(sxD ? { ifUpdateTime: sxD.updateTime } : { ifMissing: true }) });
   await fs.commit([...cw, ...writes]);
   // آلية رقم النسخة: إن أرسل التطبيق رقم نسخة مختلفًا، نرسل له الأرقام كما يحسبها الخادم ليعرضها بدل حسابه هو (لا تغيير في أي قاعدة)
   let sum;
   if (body.cv && body.cv !== CORE_V) { EC = null; const x = econ(); sum = { gems: x.gems, xp: x.xp, lv: x.lv, rest: x.rest, need: x.need, streak: x.s.streak, today: !!x.s.today } }
   // نقطة الحفظ تُرسل للتطبيق فقط حين تختلف عمّا عنده (يرسل وقتها ckt)
-  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
+  // المزامنة الجديدة: حالة كل حدث (ok | late | dup | q | wiped | bad)، والمراجعات المتأخّرة، وأعلى رقم يعرفه الخادم لهذا الجهاز
+  const sxOut = SXU ? { st, late: JSON.stringify({ L: LATE, F: LATEF }), dn: sxMax(sx, body.dev) } : {};
+  return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...sxOut, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
+}
+
+/* ---------- وثيقة sx (المزامنة الجديدة) ---------- */
+// dv: {جهاز: {f: كل رقم ≤ f وصل سابقًا, ids: آخر الأرقام المقبولة فوق f (≤ 500), lt, r0, q}}، late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث]]
+function sxLoad(d) {
+  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [] };
+  if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (v && typeof v === "object") o.dv[k] = { f: +v.f || 0, ids: Array.isArray(v.ids) ? v.ids.filter(Number.isInteger) : [], lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0 } }
+  if (Array.isArray(x.late)) o.late = x.late.filter(a => Array.isArray(a) && a.length === 3);
+  if (x.lf && typeof x.lf === "object") o.lf = x.lf;
+  if (Array.isArray(x.qz)) o.qz = x.qz.filter(a => Array.isArray(a) && a.length === 3);
+  return o;
+}
+const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/;
+function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { f: 0, ids: [], lt: 0, r0: 0, q: 0 }) }
+function sxSeen(dv, n) { if (n <= dv.f || dv.ids.includes(n)) return; dv.ids.push(n); if (dv.ids.length > 500) { dv.ids.sort((a, b) => a - b); dv.f = Math.max(dv.f, dv.ids.shift()) } }
+function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; return v ? Math.max(v.f, ...v.ids, 0) : 0 }
+// الحدث في الحجر كما وصل، مقصوصًا (الكلمات والإجابات بحدود معقولة)
+function sxClip(e) { const o = {}; for (const k of ["type", "t", "d", "n", "k", "r", "v", "kind", "ok", "total", "ms", "full", "id", "cat", "bid"]) if (e[k] !== undefined) o[k] = typeof e[k] === "string" ? e[k].slice(0, 60) : e[k];
+  if (Array.isArray(e.words)) o.words = e.words.slice(0, 20).map(x => String(x).slice(0, 60)); if (Array.isArray(e.miss)) o.miss = e.miss.slice(0, 20).map(x => String(x).slice(0, 60));
+  if (Array.isArray(e.qa)) o.qa = e.qa.slice(0, 300); return o }
+// الحدود: الحجر 1000 حدث أو 90 يومًا، والمتأخّرات 5000 (الأقدم يُطوى في lf عددًا لكل يوم فلا ينقص نشاط يومه)، والأجهزة 50 (الأقدم نشاطًا يُحذف)
+function sxTrim(sx, now) {
+  sx.qz = sx.qz.filter(x => now - x[0] < 90 * 864e5).slice(-1000);
+  if (LATE.length > 5000) { LATE.sort((a, b) => a[0] - b[0]); for (const x of LATE.splice(0, LATE.length - 5000)) { const d = dkey(x[0]); LATEF[d] = (+LATEF[d] || 0) + 1 } }
+  sx.late = LATE; sx.lf = LATEF;
+  const ks = Object.keys(sx.dv); if (ks.length > 50) ks.sort((a, b) => sx.dv[b].lt - sx.dv[a].lt).slice(50).forEach(k => delete sx.dv[k]);
 }
 
 /* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */

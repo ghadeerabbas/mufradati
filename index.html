@@ -1933,7 +1933,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=f02599b3d0"></script>
+<script src="core.js?v=9da130c6b5"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -1998,11 +1998,11 @@ let EN={v:30,t:0},STN=[],STV=0,EVQ=[];   // الطاقة، والمحطات ال
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};{const x=jget(K("late"),{});LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}SEQ=0;
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
 const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));st(K("ck"),JSON.stringify(CK));
-  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG));st(K("energy"),JSON.stringify(EN));st(K("stations"),JSON.stringify(STN));st(K("stv"),String(STV||0));st(K("evq"),JSON.stringify(EVQ))};
+  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("late"),JSON.stringify({L:LATE,F:LATEF}));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG));st(K("energy"),JSON.stringify(EN));st(K("stations"),JSON.stringify(STN));st(K("stv"),String(STV||0));st(K("evq"),JSON.stringify(EVQ))};
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
@@ -2504,7 +2504,7 @@ function lessonPop(o){
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
-const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));SRSU=!!(UID&&!isAdmin()&&CFG.srs&&(CFG.srs.u||[]).includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
+const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));SXU=!!(UID&&CFG.sx&&(CFG.sx.on||(CFG.sx.u||[]).includes(UID)));SRSU=!!(UID&&!isAdmin()&&CFG.srs&&(CFG.srs.u||[]).includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
 // مدة بالعربية: 15 دقيقة، ساعة، ساعتان و30 دقيقة…
 function durAr(m){m=Math.round(m);const h=Math.floor(m/60),mm=m%60;
   const hs=h===0?"":h===1?"ساعة":h===2?"ساعتان":h<=10?h+" ساعات":h+" ساعة",ms=mm===0?"":mm===1?"دقيقة":mm===2?"دقيقتان":mm<=10?mm+" دقائق":mm+" دقيقة";
@@ -3902,10 +3902,15 @@ function unpackQA(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let 
 const uref=()=>db.collection("users").doc(UID);
 const API="https://mufradati-api.afunogrv.workers.dev";
 // حدث جديد: يُطبَّق فورًا للعرض، ويُرسل إلى الخادم الذي يتحقّق منه ويحفظه
+// هوية الحدث للمزامنة الجديدة: معرّف هذا التثبيت (عشوائي، مشترك بين الحسابات) ورقم متزايد لكل حساب.
+// الرقم لا يقلّ أبدًا عمّا حُفظ، ولا عن أي حدث منتظر، ولا عن أعلى رقم أكّده الخادم لهذا الجهاز (dn)، ولا عن الوقت بالملّي ثانية
+let DEVID="",SEQ=0;
+function devId(){if(DEVID)return DEVID;let d=st("muf_dev");if(!d||!/^[A-Za-z0-9_-]{4,40}$/.test(d)){d="w"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);st("muf_dev",d)}return DEVID=d}
+function nextSeq(){SEQ=Math.max(SEQ,+st(K("seq"))||0,...EVQ.map(x=>+x.n||0),Date.now())+1;st(K("seq"),String(SEQ));return SEQ}
 function ev(e){
   syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
-  EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);
+  e.d=devId();e.n=nextSeq();EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);
   if(e.type==="stDone"||e.type==="rate"||e.type==="quiz")setTimeout(questWatch,50);return true;
 }
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
@@ -3917,6 +3922,8 @@ function applyServer(j){
   LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;
   LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));
   if(j.ck!==undefined)CK=j.ck?JSON.parse(j.ck):null;   // نقطة حفظ السجل: تصل فقط حين تختلف
+  if(j.late!==undefined){try{const x=JSON.parse(j.late)||{};LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}catch(e){}}   // المراجعات المتأخّرة (المزامنة الجديدة)
+  if(+j.dn>SEQ){SEQ=+j.dn;st(K("seq"),String(SEQ))}
   for(const e of EVQ)applyEv(e,e.t,{admin:isAdmin()});
   let pr={};try{pr=JSON.parse(j.prefs||"{}")||{}}catch(e){}
   if(pr.E&&(pr.E.ts||0)>(E.ts||0))E=Object.assign({},DEF_E,pr.E);
@@ -4009,7 +4016,7 @@ async function syncNow(manual){
     if(key!==PREFLAST){if(await tmo(uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),15000,"slow")!=="slow")PREFLAST=key}   // كتابة بطيئة لا توقف الحفظ: تكمل وحدها، وتُعاد في المرة القادمة
     const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();VSIG=viewSig();
     const ac=new AbortController(),to=setTimeout(()=>ac.abort(),30000);   // في سفاري قد يعلق الطلب بلا جواب بعد مغادرة الصفحة والعودة: يُلغى بعد 30 ث ويُعاد لاحقًا
-    let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0,cv:CORE_V})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
+    let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0,cv:CORE_V,dev:devId()})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
     FSC.r-=stSent.r;FSC.w-=stSent.w;
