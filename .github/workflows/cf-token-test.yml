@@ -1,22 +1,26 @@
-# اختبار مفتاح Cloudflare الجديد (CLOUDFLARE_API_TOKEN_TEST) — الفحصان «و» و«ز».
-# يعمل عند الدفع إلى الفرع cf-token-test وحده.
-# و: رفع نسخة غير مفعّلة (wrangler versions upload) بإعدادات فيها معرّف BAK المثبّت. لا نشر، ولا أسرار، ولا تغيير في توزيع الزيارات.
-# ز: مقارنة حالة الخادم قبل الرفع وبعده: النسخة العاملة ونسبتها، والروابط، وأسماء الأسرار، والمهمة المجدولة، وإعدادات الرابط.
-# أي شرط غير مضمون قبل الرفع (روابط المعاينة مفعّلة مثلًا) يوقف الاختبار قبل الرفع. وعند فشل الرفع: توقّف بلا إعادة محاولة.
-name: اختبار مفتاح Cloudflare (و، ز)
+# لقطة قراءة فقط لحالة الخادم mufradati-api (قبل النشر وبعده، وبعد أي فشل أو تراجع).
+# يعمل عند الدفع إلى الفرع cf-token-test وحده، بالمفتاح المحدود CLOUDFLARE_API_TOKEN_TEST.
+# لا ينشر، ولا يرفع نسخًا، ولا يضع أسرارًا، ولا يبني شيئًا: كل الطلبات من نوع GET.
+# يطبع الحالة كاملة، ويقارن الثوابت (الروابط، وأسماء الأسرار، والمهمة، وإعدادات الرابط) بالقيم المسجّلة قبل النشر.
+# النسخة العاملة تُطبع للمقارنة اليدوية، لأنها تتغيّر بالنشر عمدًا.
+name: لقطة حالة الخادم (قراءة فقط)
 on:
   push:
     branches: [cf-token-test]
 permissions:
   contents: read
 jobs:
-  check:
+  snapshot:
     runs-on: ubuntu-latest
     env:
       SCRIPT: mufradati-api
-      BAK_ID: 996b07debe664499a8a67a936a85d249
+      HEALTH_URL: https://mufradati-api.afunogrv.workers.dev/
+      # القيم المسجّلة قبل النشر (24 تشرين الثاني 2026)
+      EXP_BINDINGS: '[{"type":"ai","name":"AI","id":""},{"type":"secret_text","name":"AZURE_SPEECH_KEY","id":""},{"type":"secret_text","name":"AZURE_SPEECH_REGION","id":""},{"type":"kv_namespace","name":"BAK","id":"996b07debe664499a8a67a936a85d249"},{"type":"durable_object_namespace","name":"ERRGATE","id":"524f6a86e531466ab8cda06c5df0dacc"},{"type":"secret_text","name":"SA","id":""}]'
+      EXP_SCHEDULES: '["17 2 * * *"]'
+      EXP_SUBDOMAIN: '{"enabled":true,"previews_enabled":false}'
+      BEFORE_VERSION: 53a8db4b-bc63-49ea-a6d2-1c7909c9bae9
     steps:
-      - uses: actions/checkout@v4
       - name: تجهيز المفتاح المؤقت
         env:
           T: ${{ secrets.CLOUDFLARE_API_TOKEN_TEST }}
@@ -26,65 +30,22 @@ jobs:
           [ -n "$T" ] || { echo "::error::السرّ CLOUDFLARE_API_TOKEN_TEST غير موجود"; exit 1; }
           [ -n "$A" ] || { echo "::error::السرّ CLOUDFLARE_ACCOUNT_ID غير موجود"; exit 1; }
           { echo "CFT=$(printf %s "$T" | tr -d '[:space:]"')"; echo "CFA=$(printf %s "$A" | tr -d '[:space:]')"; } >> "$GITHUB_ENV"
-
-      # لقطة الحالة: كل الطلبات GET. أسماء الأسرار فقط (الواجهة لا تعطي القيم)
-      - name: لقطة الحالة قبل الرفع، والشروط المسبقة
+      - name: اللقطة والمقارنة
         run: |
-          set -euo pipefail
-          mkdir -p /tmp/snap
-          cat > /tmp/snap.sh <<'EOF'
-          set -euo pipefail
-          D=$1
+          set -uo pipefail
           get(){ curl -sf -X GET -H "Authorization: Bearer $CFT" "https://api.cloudflare.com/client/v4/accounts/$CFA/workers/scripts/$SCRIPT$1"; }
-          get /deployments | jq '[.result.deployments[0]|{id, versions:[.versions[]|{version_id,percentage}]}]' > $D/deploy.json
-          get /settings    | jq '[.result.bindings[]|{type,name,id:(.namespace_id // .class_name // "")}]|sort_by(.name)' > $D/bindings.json
-          get /schedules   | jq '[.result.schedules[]?.cron]|sort' > $D/schedules.json
-          get /subdomain   | jq '.result' > $D/subdomain.json
-          get /versions    | jq '[.result.items[]?.id]' > $D/versions.json
-          EOF
-          bash /tmp/snap.sh /tmp/snap
-          echo "== النشر العامل (المعرّف الكامل ونسبة الزيارات)"; cat /tmp/snap/deploy.json
-          echo "== الروابط"; jq -c '.[]' /tmp/snap/bindings.json
-          echo "== المهمة المجدولة"; cat /tmp/snap/schedules.json
-          echo "== رابط workers.dev وروابط المعاينة"; cat /tmp/snap/subdomain.json
-          echo "== عدد النسخ المرئية: $(jq length /tmp/snap/versions.json)"
-          # الشروط المسبقة
-          [ "$(jq -r '.[]|select(.name=="BAK")|.id' /tmp/snap/bindings.json)" = "$BAK_ID" ] || { echo "::error::معرّف BAK المربوط فعلًا لا يطابق المعرّف المثبّت. توقّف قبل الرفع"; exit 1; }
-          grep -q "id = \"$BAK_ID\"" server/wrangler.toml || { echo "::error::المعرّف غير مثبّت في wrangler.toml. توقّف قبل الرفع"; exit 1; }
-          [ "$(jq -r '.enabled' /tmp/snap/subdomain.json)" = "true" ] || { echo "::error::الرابط الأساسي workers.dev غير مفعّل. توقّف قبل الرفع"; exit 1; }
-          grep -qx 'workers_dev = true' server/wrangler.toml || { echo "::error::workers_dev = true غير موجود في wrangler.toml. توقّف قبل الرفع"; exit 1; }
-          grep -qx 'preview_urls = false' server/wrangler.toml || { echo "::error::preview_urls = false غير موجود في wrangler.toml. توقّف قبل الرفع"; exit 1; }
-          # القيمة كما هي حرفيًا: لا يُسمح بالمتابعة إلا إذا كانت false صراحةً (غيابها أو أي قيمة أخرى توقف الاختبار)
-          PV=$(jq -r 'if has("previews_enabled") then (.previews_enabled|tostring) else "غائبة" end' /tmp/snap/subdomain.json)
-          if [ "$PV" != "false" ]; then echo "::error::روابط المعاينة ليست معطّلة (previews_enabled=$PV): رفع النسخة قد ينشئ رابط معاينة عامًا. توقّف قبل الرفع"; exit 1; fi
-          echo "::notice::الشروط المسبقة متحقّقة: BAK مطابق ومثبّت، والرابط الأساسي مفعّل، وروابط المعاينة معطّلة"
-
-      - name: بناء الخادم
-        run: python3 server/build.py
-
-      # و. رفع نسخة غير مفعّلة، مرة واحدة فقط
-      - name: و. رفع نسخة غير مفعّلة (versions upload)
-        id: up
-        working-directory: server
-        run: |
-          set -uo pipefail
-          export CLOUDFLARE_API_TOKEN="$CFT" CLOUDFLARE_ACCOUNT_ID="$CFA"
-          npx --yes wrangler@4 versions upload --message "cf-token-test: اختبار صلاحيات، غير مفعّلة" --tag cf-token-test > /tmp/up.txt 2>&1; code=$?
-          grep -vE '^\s*$' /tmp/up.txt | tail -30
-          if [ $code -ne 0 ]; then echo "::error::فشل رفع النسخة (رمز $code). توقّف دون إعادة محاولة"; exit 1; fi
-          echo "::notice::رُفعت النسخة بنجاح دون تفعيلها"
-
-      # ز. المقارنة: تعمل دائمًا، حتى بعد فشل الرفع
-      - name: ز. التحقق من عدم تغيّر الخادم العامل
-        if: always()
-        run: |
-          set -uo pipefail
-          mkdir -p /tmp/after; bash /tmp/snap.sh /tmp/after || { echo "::error::تعذّرت لقطة ما بعد الرفع"; exit 1; }
           F=0
-          for f in deploy bindings schedules subdomain; do
-            if cmp -s /tmp/snap/$f.json /tmp/after/$f.json; then echo "✓ $f: دون تغيير"; else echo "::error::$f تغيّر"; diff /tmp/snap/$f.json /tmp/after/$f.json; F=1; fi
+          D=$(get /deployments) || { echo "::error::تعذّرت قراءة النشر"; exit 1; }
+          echo "== النشر العامل"; echo "$D" | jq '.result.deployments[0]|{id, created_on, versions:[.versions[]|{version_id,percentage}]}'
+          LIVE=$(echo "$D" | jq -r '.result.deployments[0].versions|map(select(.percentage==100))[0].version_id // "مقسّم"')
+          if [ "$LIVE" = "$BEFORE_VERSION" ]; then echo "::notice::النسخة العاملة هي نسخة ما قبل النشر ($BEFORE_VERSION)"; else echo "::notice::النسخة العاملة: $LIVE (تختلف عن نسخة ما قبل النشر)"; fi
+          echo "== آخر 5 نسخ"; get /versions | jq -r '.result.items[0:5][]|"  \(.id) · \(.metadata.created_on) · \(.metadata.source // "")"'
+          B=$(get /settings | jq -c '[.result.bindings[]|{type,name,id:(.namespace_id // .class_name // "")}]|sort_by(.name)')
+          S=$(get /schedules | jq -c '[.result.schedules[]?.cron]|sort')
+          U=$(get /subdomain | jq -c '{enabled:.result.enabled, previews_enabled:.result.previews_enabled}')
+          for x in "الروابط وأسماء الأسرار|$B|$EXP_BINDINGS" "المهمة المجدولة|$S|$EXP_SCHEDULES" "workers.dev وروابط المعاينة|$U|$EXP_SUBDOMAIN"; do
+            n=${x%%|*}; r=${x#*|}; got=${r%%|*}; exp=${r#*|}
+            if [ "$(echo "$got" | jq -cS .)" = "$(echo "$exp" | jq -cS .)" ]; then echo "✓ $n: مطابق"; else echo "::error::$n تغيّر"; echo "  الآن:     $got"; echo "  المتوقّع: $exp"; F=1; fi
           done
-          NEW=$(jq -r --slurpfile b /tmp/snap/versions.json '[.[]|select(. as $v|$b[0]|index($v)|not)]|join(", ")' /tmp/after/versions.json)
-          echo "النسخ الجديدة غير المفعّلة: ${NEW:-لا شيء}"
-          echo "== النشر العامل بعد الاختبار"; cat /tmp/after/deploy.json
+          H=$(curl -s -m 20 "$HEALTH_URL"); if [ "$H" = "mufradati-api ✓" ]; then echo "✓ الرابط الأساسي يردّ: $H"; else echo "::error::الرابط الأساسي لا يردّ كما يجب: ${H:0:80}"; F=1; fi
           exit $F
