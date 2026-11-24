@@ -3,6 +3,8 @@ name = "mufradati-api"
 main = "worker.js"
 compatibility_date = "2025-01-01"
 workers_dev = true
+# روابط المعاينة معطّلة صراحةً، فلا يعيد أي نشر أو رفع تفعيلها (الرابط الأساسي workers.dev يبقى مفعّلًا)
+preview_urls = false
 keep_vars = true
 
 # الذكاء الصناعي المجاني من Cloudflare (لمساعد الوظيفة)
@@ -13,9 +15,10 @@ binding = "AI"
 [triggers]
 crons = ["17 2 * * *"]
 
-# تخزين النسخ الاحتياطية (يُنشأ تلقائيًا عند أول نشر)
+# تخزين النسخ الاحتياطية: معرّفه مثبّت، فلا يبحث Wrangler عنه ولا ينشئ تخزينًا جديدًا عند النشر
 [[kv_namespaces]]
 binding = "BAK"
+id = "996b07debe664499a8a67a936a85d249"
 
 # بوّابة أخطاء التطبيق (/err): كائن دائم واحد بتخزين SQLite (متاح في الخطة المجانية). يُنشأ عند أول نشر.
 [[durable_objects.bindings]]

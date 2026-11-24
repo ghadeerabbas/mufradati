@@ -5,6 +5,17 @@ on:
     branches: [main]
     paths: ["core.js", "server/**", ".github/workflows/worker.yml"]
   workflow_dispatch:
+    inputs:
+      azure_secrets:
+        description: "تحديث مفتاحي Azure في الخادم بعد النشر؟ (لا حاجة إلا عند تغيّر المفتاح: الأسرار تبقى بين النشرات)"
+        type: boolean
+        default: false
+      expected_bundle:
+        description: "بصمة SHA-256 المتوقّعة للحزمة (اختيارية). إن أُعطيت: لا نشر إلا بمطابقتها، وتُطابَق الحزمة المرفوعة فعلًا بعد النشر. فارغة = تُطبع البصمة فقط"
+        type: string
+        default: ""
+# المفتاح: CLOUDFLARE_API_TOKEN_TEST (صلاحيات محدودة: Workers Scripts Edit، وAccount Settings Read، وMemberships Read، وUser Details Read).
+# المفتاح القديم وسرّه CLOUDFLARE_API_TOKEN باقيان دون تعديل للتراجع.
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -13,16 +24,31 @@ jobs:
       - name: التحقّق من وجود المفتاح
         id: chk
         env:
-          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: if [ -n "$T" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "لم يُضف مفتاح Cloudflare بعد"; fi
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN_TEST }}
+        run: |
+          if [ -n "$T" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"; else echo "::error::السرّ CLOUDFLARE_API_TOKEN_TEST غير موجود، فلا نشر"; exit 1; fi
       - name: بناء الخادم من المنطق المشترك
         if: steps.chk.outputs.ok == '1'
         run: python3 server/build.py && cp server/worker.js /tmp/w.mjs && node --check /tmp/w.mjs
+      # إن أُعطيت بصمة في التشغيل اليدوي: الحزمة المبنية يجب أن تطابقها، وإلا لا نشر.
+      # بلا بصمة (والنشر التلقائي عند الدفع): تُطبع البصمة فقط. لا قيمة افتراضية، فلا تبقى بصمة قديمة تعطّل نشرًا قادمًا
+      - name: مطابقة بصمة الحزمة
+        if: steps.chk.outputs.ok == '1'
+        working-directory: server
+        env:
+          EXPECTED_BUNDLE: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_bundle || '' }}
+        run: |
+          set -euo pipefail
+          if [ -z "$EXPECTED_BUNDLE" ]; then npx --yes wrangler@4.168.0 deploy --dry-run --outdir /tmp/dist > /tmp/dry.txt 2>&1 || { cat /tmp/dry.txt; exit 1; }; echo "::notice::بصمة الحزمة (بلا مطابقة): $(sha256sum /tmp/dist/worker.js | cut -d' ' -f1)"; exit 0; fi
+          npx --yes wrangler@4.168.0 deploy --dry-run --outdir /tmp/dist > /tmp/dry.txt 2>&1 || { cat /tmp/dry.txt; echo "::error::فشل التجميع التجريبي"; exit 1; }
+          GOT=$(sha256sum /tmp/dist/worker.js | cut -d' ' -f1)
+          if [ "$GOT" != "$EXPECTED_BUNDLE" ]; then echo "::error::بصمة الحزمة ($GOT) لا تطابق الحزمة المختبرة ($EXPECTED_BUNDLE). لا نشر"; exit 1; fi
+          echo "::notice::بصمة الحزمة مطابقة للحزمة المختبرة: $GOT"
       - name: النشر
         if: steps.chk.outputs.ok == '1'
         working-directory: server
         env:
-          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN_TEST }}
           A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set +e
@@ -30,20 +56,31 @@ jobs:
           # إن نُسخ أمر الاختبار كاملًا بدل المفتاح، نأخذ المفتاح الذي بعد كلمة Bearer
           if printf %s "$T" | grep -q 'Bearer'; then T=$(printf %s "$T" | sed -E 's/.*Bearer[[:space:]]+([A-Za-z0-9_-]+).*/\1/'); fi
           export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]"')
-          echo "::notice::token length ${#CLOUDFLARE_API_TOKEN}, account length $(printf %s "$A" | tr -d '[:space:]' | wc -c)"
           export CLOUDFLARE_ACCOUNT_ID=$(printf %s "$A" | tr -d '[:space:]')
-          npx --yes wrangler@4 deploy > out.txt 2>&1; code=$?
+          npx --yes wrangler@4.168.0 deploy --outdir /tmp/deployed > out.txt 2>&1; code=$?
           cat out.txt
           if [ $code -ne 0 ]; then
             # ملخّص الخطأ يظهر في صفحة التشغيل
             grep -vE '^\s*$' out.txt | tail -12 | tr '\n' ' ' | sed 's/^/::error::/' ; echo
             exit $code
           fi
-      - name: مفتاح النطق للخادم (صوت جمل القراءة) من أسرار المستودع
+      # الحزمة التي رُفعت فعلًا (يكتبها Wrangler أثناء النشر نفسه) يجب أن تطابق البصمة المعطاة. عدم المطابقة هنا يعني: تراجع فوري
+      - name: مطابقة الحزمة المرفوعة فعلًا
         if: steps.chk.outputs.ok == '1'
+        env:
+          EXPECTED_BUNDLE: ${{ github.event_name == 'workflow_dispatch' && inputs.expected_bundle || '' }}
+        run: |
+          set -euo pipefail
+          GOT=$(sha256sum /tmp/deployed/worker.js | cut -d' ' -f1)
+          if [ -z "$EXPECTED_BUNDLE" ]; then echo "::notice::بصمة الحزمة المرفوعة: $GOT"; exit 0; fi
+          if [ "$GOT" != "$EXPECTED_BUNDLE" ]; then echo "::error::الحزمة المرفوعة ($GOT) لا تطابق البصمة المعطاة ($EXPECTED_BUNDLE). تراجع فورًا إلى النسخة السابقة"; exit 1; fi
+          echo "::notice::الحزمة المرفوعة فعلًا مطابقة للبصمة: $GOT"
+      # اختيارية: تعمل فقط في التشغيل اليدوي مع اختيار «تحديث مفتاحي Azure». النشر العادي لا يمسّ أسرار الخادم
+      - name: مفتاح النطق للخادم (صوت جمل القراءة) من أسرار المستودع
+        if: steps.chk.outputs.ok == '1' && github.event_name == 'workflow_dispatch' && inputs.azure_secrets
         working-directory: server
         env:
-          T: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          T: ${{ secrets.CLOUDFLARE_API_TOKEN_TEST }}
           A: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           AK: ${{ secrets.AZURE_SPEECH_KEY }}
           AR: ${{ secrets.AZURE_SPEECH_REGION }}
@@ -51,6 +88,10 @@ jobs:
           if printf %s "$T" | grep -q 'Bearer'; then T=$(printf %s "$T" | sed -E 's/.*Bearer[[:space:]]+([A-Za-z0-9_-]+).*/\1/'); fi
           export CLOUDFLARE_API_TOKEN=$(printf %s "$T" | tr -d '[:space:]"')
           export CLOUDFLARE_ACCOUNT_ID=$(printf %s "$A" | tr -d '[:space:]')
-          if [ -z "$AK" ]; then echo "::warning::لا يوجد AZURE_SPEECH_KEY"; exit 0; fi
-          printf %s "$AK" | tr -d '[:space:]' | npx --yes wrangler@4 secret put AZURE_SPEECH_KEY
-          if [ -n "$AR" ]; then printf %s "$AR" | tr -d '[:space:]' | npx --yes wrangler@4 secret put AZURE_SPEECH_REGION; fi
+          set -euo pipefail
+          # الاثنان معًا قبل تعديل أي منهما: لا يُحدَّث أحدهما دون الآخر
+          K=$(printf %s "$AK" | tr -d '[:space:]'); R=$(printf %s "$AR" | tr -d '[:space:]')
+          if [ -z "$K" ] || [ -z "$R" ]; then echo "::error::AZURE_SPEECH_KEY أو AZURE_SPEECH_REGION غير موجود في أسرار GitHub. لم يُعدَّل أي سرّ في الخادم"; exit 1; fi
+          printf %s "$K" | npx --yes wrangler@4.168.0 secret put AZURE_SPEECH_KEY || { echo "::error::فشل وضع AZURE_SPEECH_KEY. لم يُعدَّل AZURE_SPEECH_REGION"; exit 1; }
+          printf %s "$R" | npx --yes wrangler@4.168.0 secret put AZURE_SPEECH_REGION || { echo "::error::فشل وضع AZURE_SPEECH_REGION بعد تحديث AZURE_SPEECH_KEY"; exit 1; }
+          echo "::notice::حُدِّث مفتاحا Azure"
