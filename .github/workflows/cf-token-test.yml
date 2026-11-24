@@ -51,9 +51,10 @@ jobs:
           # الشروط المسبقة
           [ "$(jq -r '.[]|select(.name=="BAK")|.id' /tmp/snap/bindings.json)" = "$BAK_ID" ] || { echo "::error::معرّف BAK المربوط فعلًا لا يطابق المعرّف المثبّت. توقّف قبل الرفع"; exit 1; }
           grep -q "id = \"$BAK_ID\"" server/wrangler.toml || { echo "::error::المعرّف غير مثبّت في wrangler.toml. توقّف قبل الرفع"; exit 1; }
+          [ "$(jq -r '.enabled' /tmp/snap/subdomain.json)" = "true" ] || { echo "::error::الرابط الأساسي workers.dev غير مفعّل. توقّف قبل الرفع"; exit 1; }
           PV=$(jq -r '.previews_enabled // "غير معروف"' /tmp/snap/subdomain.json)
           if [ "$PV" != "false" ]; then echo "::error::روابط المعاينة ليست معطّلة (previews_enabled=$PV): رفع النسخة قد ينشئ رابط معاينة عامًا. توقّف قبل الرفع"; exit 1; fi
-          echo "::notice::الشروط المسبقة متحقّقة: BAK مطابق ومثبّت، وروابط المعاينة معطّلة"
+          echo "::notice::الشروط المسبقة متحقّقة: BAK مطابق ومثبّت، والرابط الأساسي مفعّل، وروابط المعاينة معطّلة"
 
       - name: بناء الخادم
         run: python3 server/build.py
