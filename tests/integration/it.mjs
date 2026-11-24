@@ -25,7 +25,11 @@ const memfs={async get(p){const d=DB.get(p);return d?{data:cl(d.data),updateTime
   async group(c){const o=[];for(const [p,d] of DB){const s=p.split('/');if(s.length>=4&&s.length%2===0&&s[s.length-2]===c)o.push({path:p,data:cl(d.data),updateTime:d.ut})}return o},   // مثل makeFS.group
   async list(c){const n=c.split('/').length+1,o=[];for(const [p,d] of DB)if(p.startsWith(c+'/')&&p.split('/').length===n)o.push({id:p.split('/').pop(),...cl(d.data)});return o},
   async page(c,ob,n){return {items:(await this.list(c)).slice(0,n),tok:''}},
-  async commit(ws){for(const w of ws){const d=DB.get(w.path);if(w.ifUpdateTime&&(!d||d.ut!==w.ifUpdateTime)){const e=new Error('conflict');e.conflict=true;throw e}if(w.ifMissing&&d){const e=new Error('conflict');e.conflict=true;throw e}}
+  async commit(ws){
+    // حدّ Firestore: الوثيقة ≤ 1048576 بايت (اسمها + أسماء حقولها + قيمها بالبايت UTF-8 + 32)، والدفعة ≤ 500 كتابة. يرفض الدفعة كلها كما يفعل Firestore
+    if(ws.length>500)throw new Error('Firestore: أكثر من 500 كتابة');const B=x=>Buffer.byteLength(String(x),'utf8');
+    for(const w of ws)if(!w.del&&w.data){let n=B(w.path)+16+32;for(const [k,v] of Object.entries(w.data))n+=B(k)+1+(typeof v==='string'?B(v)+1:B(JSON.stringify(v)));if(n>1048576){const e=new Error('Firestore: وثيقة أكبر من 1 ميغابايت '+w.path+' '+n);e.status=400;throw e}}
+    for(const w of ws){const d=DB.get(w.path);if(w.ifUpdateTime&&(!d||d.ut!==w.ifUpdateTime)){const e=new Error('conflict');e.conflict=true;throw e}if(w.ifMissing&&d){const e=new Error('conflict');e.conflict=true;throw e}}
     for(const w of ws){if(w.del){DB.delete(w.path);continue}const d=DB.get(w.path);
       if(w.inc){const x=d?d.data:{};for(const k in w.inc)x[k]=(x[k]||0)+w.inc[k];DB.set(w.path,{data:x,ut:String(++UT)});continue}
       const data=cl(w.data);for(const k in data)if(data[k]&&data[k].__ts)data[k]={ms:data[k].__ts};
@@ -46,7 +50,7 @@ function app(kind,uid){const c={console,Math,Date:FD,JSON,Array,Object,String,Nu
     LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));
     if(j.late!==undefined){const x=JSON.parse(j.late)||{};LATE=x.L||[];LATEF=x.F||{}}if(+j.dn>SEQ)SEQ=+j.dn;
     for(const e of EVQ)applyEv(e,e.t,{admin:false});EC=null}
-  this.A={ev(e){e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:false});if(r===true){if(SXU){e.d=DEV;e.n=SEQ=Math.max(SEQ,Date.now())+1}EVQ.push(e)}EC=null;return r},dev(){return DEV},take(){const q=EVQ;return q},done(n){EVQ=EVQ.slice(n)},applyServer,
+  this.A={ev(e){e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:false});if(r===true){if(SXU){e.d=DEV;e.n=SEQ=Math.max(SEQ,Date.now())+1;if(this.anchor)e.a=Date.now()}EVQ.push(e)}EC=null;return r},dev(){return DEV},take(){const q=EVQ;return q},done(n){EVQ=EVQ.slice(n)},applyServer,
     quest(id){const d=today(),q=QUESTS.find(x=>x.id===id);return {v:Math.min(q.f(d),q.goal),got:questGot(d,id)}},gems(){EC=null;return econ().gems},earned(){EC=null;return econ().earned},
     pz(m){return [...pzMonth(m).have].sort()},table(w,docs,prev,prog){return tableFor("${uid}",w,docs,prev,prog)},get R(){return R},get LG(){return LG},get P(){return P},get LOG(){return LOG},get LATE(){return LATE},cfg(x){applyCfg(x);EC=null},xp(){EC=null;return econ().xp},srsU(v){SRSU=v},get q(){return EVQ.length},E(){EC=null;return econ()},get EVQ(){return EVQ},get QLOG(){return QLOG},get STN(){return STN},enNow(t){return enAt(t)},weekId,dkey,today};`,c);
   const A=c.A;A.kind=kind;A.uid=uid;A.sync=async()=>{const q=A.take().slice(0,300);const j=await post('/sync',uid,{evs:q,dev:A.dev()});if(!j.st||j.st.length===q.length)A.done(q.length);A.applyServer(j);A.rej=j.rej;return j};return A}

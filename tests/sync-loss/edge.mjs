@@ -11,6 +11,7 @@ async function learner(uid, days = 3) { await user(uid); const A = app('new', ui
 const doc = p => { const d = DB.get(p); return d ? d.data.v : null };
 const sxDoc = uid => JSON.parse(doc(`users/${uid}/data/sx`) || '{}');
 const unpack = s => { let p = 0; return (s || '').split(',').filter(Boolean).map(d => p += parseInt(d, 36)) };
+const idsOf = v => v ? Object.values(v.g || {}).flatMap(unpack) : [];   // الأرقام مجموعة بيوم استلامها
 async function srv(uid) { const B = app('new', uid); await B.sync(); const e = B.E();
   return { xp: e.xp, gems: e.gems, streak: e.s.streak, reviews: e.s.reviews, words: Object.keys(B.P).length, quizzes: B.QLOG.length, stations: B.STN.length, energy: B.enNow(ctl.NOW), B, e } }
 const send = (uid, evs, dev) => post('/sync', uid, { evs, dev });
@@ -33,7 +34,7 @@ const C = {
     const late = { type: 'eday', t: ctl.NOW, n: base + 370, d: dev }; const j = await send(uid, [late], dev);
     T('الحدث رقم 37 يصل بعد 599 رقمًا أكبر منه: يُطبَّق (ليس مكرّرًا)', j.st[0] === 'ok', j.st);
     const j2 = await send(uid, [late], dev); T('إعادته: «وصل سابقًا»', j2.st[0] === 'dup', j2.st);
-    const sx = sxDoc(uid), ids = unpack(sx.dv[dev].i); T('كل الأرقام الستمئة محفوظة بالضبط', ids.length === 600 && new Set(ids).size === 600, ids.length) },
+    const sx = sxDoc(uid), ids = idsOf(sx.dv[dev]); T('كل الأرقام الستمئة محفوظة بالضبط', ids.length === 600 && new Set(ids).size === 600, ids.length) },
 
   // إعادة تثبيت التطبيق: معرّف جهاز جديد. ما لم يُرسل من التثبيت القديم لا يعرفه الخادم (لا يمكن منعه)،
   // لكن إن بقي الهاتف القديم وأرسل لاحقًا، يُقبل مرة واحدة
@@ -66,7 +67,7 @@ const C = {
     fails = 0; let conf = 1; memfs.commit = async function (ws) { if (conf-- > 0) { const e = new Error('conflict'); e.conflict = true; throw e } return orig.call(this, ws) };
     const j2 = await A.sync(); memfs.commit = orig; T('تعارض كتابة (جهاز آخر كتب في اللحظة نفسها): الخادم يعيد الطلب كله، والحدثان مقبولان مرة واحدة', j2.st.join() === 'ok,ok', j2.st);
     const a = await srv(uid); T('المراجعات زادت 5 بالضبط', a.reviews - b.reviews === 5, a.reviews - b.reviews);
-    const sx = sxDoc(uid), ids = unpack(sx.dv[A.dev()].i); T('أرقام الأحداث الخمسة محفوظة في sx مع التقدّم نفسه', A.EVQ.length === 0 && ids.length >= 5, ids.length) },
+    const sx = sxDoc(uid), ids = idsOf(sx.dv[A.dev()]); T('أرقام الأحداث الخمسة محفوظة في sx مع التقدّم نفسه', A.EVQ.length === 0 && ids.length >= 5, ids.length) },
 
   // التراجع: الخادم الجديد ← القديم (المنشور) ← الجديد، والتطبيق الجديد طوال الوقت
   async rollback() { const uid = 'rb', A = await learner(uid); const b = await srv(uid); let ks = due(A), p = 0; const pick = n => ks.slice(p, p += n);
@@ -109,8 +110,8 @@ const C = {
       ...due(A).slice(0, 4).map((k, i) => rate(k, fut + 3e3 + i * 20e3, ++n, dev))];
     const j = await send(uid, evs, dev); const a = await srv(uid);
     const B = a.B, maxT = Math.max(...B.LOG.map(x => x[0]), ...B.QLOG.map(x => x[0]), ...B.STN.map(x => x[0]), 0);
-    T('لا وقت في السجلات بعد وقت الخادم', maxT <= srvT + 1, [maxT - srvT]);
-    T('لا أيام من المستقبل في نشاطه، والسلسلة كما يحسبها اليوم', a.streak <= s0.streak + 1 && !B.LOG.some(x => x[0] > srvT + 1), [s0.streak, a.streak]);
+    T('لا وقت في السجلات بعد وقت الخادم (السجلّ يُحفظ بالثانية مقرّبًا، فالهامش نصف ثانية كما في المنشور)', maxT <= srvT + 500, [maxT - srvT]);
+    T('لا أيام من المستقبل في نشاطه، والسلسلة كما يحسبها اليوم', a.streak <= s0.streak + 1 && !B.LOG.some(x => x[0] > srvT + 500), [s0.streak, a.streak]);
     T('الطاقة لم تُحسب في المستقبل: لا تتجاوز ما يسمح به وقت الخادم', a.energy <= s0.energy + 10 + 2 + 1, { before: s0.energy, after: a.energy, st: j.st });
     I('حالات الأحداث', j.st) },
 
@@ -150,7 +151,7 @@ const C = {
 
   // تقليم الأرقام بعد مدّة القبول آمن: إعادة حدث قديم جدًا لا تُطبَّق مرة ثانية
   async prune() { const uid = 'pr', A = await learner(uid); const b = await srv(uid); const k = due(A)[0]; A.ev({ type: 'rate', k, r: 2 }); const e = { ...A.EVQ[0] }; await A.sync();
-    ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync(); const ids = unpack(sxDoc(uid).dv[A.dev()].i);
+    ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync(); const ids = idsOf(sxDoc(uid).dv[A.dev()]);
     T('بعد 40 يومًا: رقم الحدث القديم حُذف من القائمة', !ids.includes(e.n), ids.length);
     const j = await send(uid, [e], A.dev()); T('إعادة إرساله: إلى الحجر بسبب «old»، لا تطبيق ثانٍ', j.st[0] === 'q' && j.rej[0][1] === 'old', [j.st, j.rej]);
     const a = await srv(uid); T('المراجعات زادت 1 فقط', a.reviews - b.reviews === 1, a.reviews - b.reviews) },

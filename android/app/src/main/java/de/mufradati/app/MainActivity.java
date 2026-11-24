@@ -15,6 +15,8 @@ import android.webkit.JavascriptInterface;
 import android.speech.tts.TextToSpeech;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.SystemClock;
+import android.provider.Settings;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
@@ -128,6 +130,13 @@ public class MainActivity extends Activity {
     }
 
     public class Bridge {
+        // المرساة الزمنية للمزامنة: عدّاد رتيب منذ تشغيل الهاتف (لا يتأثّر بتغيير الساعة، ويستمر بعد إغلاق التطبيق)،
+        // ورقم مرات تشغيل الهاتف (يتغيّر بإعادة التشغيل، فتبطل المرساة). بلا رقم تشغيل (أندرويد أقدم من 7): نص فارغ، فلا مرساة دائمة
+        @JavascriptInterface public double elapsed() { return (double) SystemClock.elapsedRealtime(); }
+        @JavascriptInterface public String bootId() {
+            if (Build.VERSION.SDK_INT < 24) return "";
+            try { return String.valueOf(Settings.Global.getInt(getContentResolver(), Settings.Global.BOOT_COUNT)); } catch (Exception e) { return ""; }
+        }
         @JavascriptInterface public void speak(String text) { speakRate(text, 0.9f); }
         // النطق البطيء: السرعة بين 0.3 و 1.5
         @JavascriptInterface public void speakRate(String text, float rate) {

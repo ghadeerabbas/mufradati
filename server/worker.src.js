@@ -228,9 +228,10 @@ async function handleSync(fs, user, body) {
   STMAXU = (CFG.stn || {})[uid] || 0;   // عدد محطاته اليومية إن حدّده المشرف
   SRSU = !admin && ((CFG.srs || {}).u || []).includes(uid);   // التحقّق من التذكّر: للحسابات التي يختارها المشرف فقط (ومع on وt0 في srsOn)
   SXU = !!(CFG.sx && (CFG.sx.on || CFG.sx.u.includes(uid)));   // المزامنة الجديدة (مفتاح الإيقاف): للجميع أو لحسابات بأعيانها
+  const SXI = SXU || !!(CFG.sx && CFG.sx.ids);   // أرقام الأحداث ومنع التكرار: مع المزامنة الجديدة، أو وحدهما بالقواعد القديمة (وضع التراجع الآمن)
   const [uDoc, coreD, logD, qaD, nameD, gifts, ckD, sxD] = await Promise.all([
     fs.get(`users/${uid}`), fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`),
-    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`), SXU ? fs.get(`users/${uid}/data/sx`) : null]);
+    fs.get(`names/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/ck`), SXI ? fs.get(`users/${uid}/data/sx`) : null]);
   // الحساب المفعّل فقط
   if (!admin && !uDoc && !(await fs.get(`members/${uid}`))) return { status: 403, json: { error: "inactive" } };
   const u = uDoc ? uDoc.data : {};
@@ -243,33 +244,40 @@ async function handleSync(fs, user, body) {
   if (!coreD && !u.main) EN.u = Math.max(EN.u || 0, now + 24 * 3600e3);
   GIFTS = gifts.map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
   // وثيقة sx المستقلّة (لا يقرؤها الخادم القديم ولا يكتبها): أرقام كل جهاز، والمراجعات المتأخّرة، والحجر
-  const sx = sxLoad(sxD), sxBefore = sxSave(sx); if (SXU) { LATE = sx.late; LATEF = sx.lf }
+  const sx = sxLoad(sxD), sxBefore = sxSave(sx); if (SXI) { LATE = sx.late; LATEF = sx.lf }
   const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
-  const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [];
+  const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [], sxArch = [];
   let words = null;
   for (let i = 0; i < evs.length; i++) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
     // المزامنة الجديدة: الحدث المعروف (الجهاز والرقم نفسهما) «وصل سابقًا» فلا يُطبَّق مرة ثانية
-    const dv = SXU ? sxDev(sx, e) : null, n = SXU && Number.isInteger(e.n) && e.n > 0 ? e.n : 0;
+    const dv = SXI ? sxDev(sx, e) : null, n = SXI && Number.isInteger(e.n) && e.n > 0 ? e.n : 0;
     if (dv && n && sxHas(dv, n)) { st.push("dup"); continue }
-    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); st.push("wiped"); if (dv && n) sxSeen(dv, n); continue }      // أحداث من قبل حذف المشرف لا تُقبل
+    // رقم لا يزيد على أرض الجهاز lo: حدث أُنشئ قبل حدثٍ وصل قبل أكثر من أطول مدّة قبول، فهو أقدم منها مهما قالت ساعة الهاتف → الحجر «old»
+    const below = dv && n && n <= dv.lo;
+    if (CW && (+e.t || 0) < CW) { rej.push([i, "wiped"]); st.push("wiped"); if (dv && n) sxSeen(dv, n, now); continue }      // أحداث من قبل حذف المشرف لا تُقبل
+    // حدث أكبر مما تتّسع له وثيقة واحدة: لا يُقرّ باستلامه (لا يحذفه الهاتف)، ولا يُطبَّق
+    const eb = SXI ? sxBytes(JSON.stringify(e)) : 0;
+    if (eb > SX_EVMAX) { st.push("big"); rej.push([i, "big"]); continue }
     if (e.type === "stDone" && !words) words = await wordSet();
     let duelOk = false, dwinOk = false;
     if (e.type === "dwin") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       dwinOk = !!(dd && duelWinner(dd.data) === uid) }   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
-    EC = null; const r = applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(dv ? { dv } : {}) });
-    if (!dv) { if (r !== true) rej.push([i, r]); st.push(r === true ? "ok" : "rej"); continue }
+    EC = null; const r = below ? "old" : applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(SXU && dv ? { dv } : {}) });
+    if (!SXU) { if (dv && n) sxSeen(dv, n, now); if (r !== true) rej.push([i, r]); st.push(r === true ? "ok" : "rej"); continue }   // وضع الأرقام وحدها: القواعد القديمة
     // لا حذف بصمت: ما لم يُقبل يُحفظ في الحجر مع سببه، ويُسجَّل رقمه فلا يتكرّر في الحجر عند إعادة الإرسال
-    if (n) sxSeen(dv, n);
+    if (n) sxSeen(dv, n, now);
     if (r === true) st.push("ok"); else if (r === "late") st.push("late");
-    else { sx.qz.push([now, String(r), sxKeep(e)]); rej.push([i, r]); st.push("q") }
+    else { if (eb > SX_EVDOC) { const ref = sxArchName(now, sxArch.length); sxArch.push({ path: `users/${uid}/data/${ref}`, data: { v: JSON.stringify({ ev: e, why: String(r), at: now }) }, ifMissing: true }); sx.an.push(ref); sx.qz.push([now, String(r), { ref, bytes: eb }]) }
+      else sx.qz.push([now, String(r), JSON.parse(JSON.stringify(e))]);
+      rej.push([i, r]); st.push("q") }
   }
-  let sxArch = [];
   if (SXU) { for (let i = 1; i < LOG.length; i++) if (LOG[i][0] < LOG[i - 1][0]) { LOG.sort((a, b) => a[0] - b[0]); break }   // احتياط: السجلّ مرتّب دائمًا
-    sxArch = sxTrim(sx, now, uid) }
+    }
+  if (SXI) sxArch.push(...sxTrim(sx, now, uid, sxArch.length));
   // المظهر الذي اختاره المتعلّم (يُتحقّق من ملكيّته)
   const pr = parseJ(u.prefs, {}), E = pr.E || {};
   const avIt = SHOP.find(x => x.cat === "avatar" && x.val === E.avatar), lf = E.lgFrame ?? E.frame, ls = E.lgSticker ?? E.sticker;
@@ -308,26 +316,36 @@ async function handleSync(fs, user, body) {
   if (!qaD || QA.length !== before.qa || evs.some(x => x && x.type === "reset")) cw.push({ path: `users/${uid}/data/qa`, data: { v: qaJ } });
   if (c.pubJ !== pubJ) cw.push({ path: `pub/${uid}`, data: { ...pub, ts: { __ts: now } } });
   const sxJ = sxSave(sx);
-  if (SXU && sxJ !== sxBefore) cw.push({ path: `users/${uid}/data/sx`, data: { v: sxJ }, ...(sxD ? { ifUpdateTime: sxD.updateTime } : { ifMissing: true }) }, ...sxArch);
+  if (sxBytes(sxJ) > SX_HARD) throw new Error("sx too big " + sxBytes(sxJ));   // لا تُكتب وثيقة تتجاوز حدّ Firestore (يُرفض الطلب كله، ولا يُقرّ بشيء)
+  if (SXI && sxJ !== sxBefore) cw.push({ path: `users/${uid}/data/sx`, data: { v: sxJ }, ...(sxD ? { ifUpdateTime: sxD.updateTime } : { ifMissing: true }) }, ...sxArch);
   await fs.commit([...cw, ...writes]);
   // آلية رقم النسخة: إن أرسل التطبيق رقم نسخة مختلفًا، نرسل له الأرقام كما يحسبها الخادم ليعرضها بدل حسابه هو (لا تغيير في أي قاعدة)
   let sum;
   if (body.cv && body.cv !== CORE_V) { EC = null; const x = econ(); sum = { gems: x.gems, xp: x.xp, lv: x.lv, rest: x.rest, need: x.need, streak: x.s.streak, today: !!x.s.today } }
   // نقطة الحفظ تُرسل للتطبيق فقط حين تختلف عمّا عنده (يرسل وقتها ckt)
   // المزامنة الجديدة: حالة كل حدث (ok | late | dup | q | wiped | bad)، والمراجعات المتأخّرة، وأعلى رقم يعرفه الخادم لهذا الجهاز
-  const sxOut = SXU ? { st, late: JSON.stringify({ L: LATE, F: LATEF }), dn: sxMax(sx, body.dev) } : {};
+  const sxOut = SXI ? { st, dn: sxMax(sx, body.dev), now, ...(SXU ? { late: JSON.stringify({ L: LATE, F: LATEF }) } : {}) } : {};
   return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...sxOut, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
 }
 
 /* ---------- وثيقة sx (المزامنة الجديدة) ---------- */
-// dv: {جهاز: {ids: كل أرقام أحداثه التي وصلت (مقبولة أو متأخّرة أو في الحجر)، lt, r0, q}}، late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث كاملًا]]، ax: عدد وثائق الأرشيف
-// منع التكرار بالرقم نفسه فقط (لا «كل ما دون رقم كذا»)، فالفجوات والوصول بغير الترتيب لا تُفقد شيئًا.
-// الرقم n ≥ وقت إنشاء الحدث على الهاتف نفسه ≥ وقت الحدث t. فالرقم الأقدم من أطول مدّة قبول (+ يومين) يُحذف من القائمة بأمان:
-// لو أُعيد إرسال حدثه لرُفض بمدّة القبول (وقت الحدث أقدم منه)، فذهب إلى الحجر بسبب «old» ولم يُطبَّق مرة ثانية.
-// سجلّ الجهاز لا يُحذف إلا حين تفرغ قائمته وآخر حدث منه أقدم من المدّة نفسها (لا عددًا).
+// dv: {جهاز: {g: {يوم الاستلام (بتوقيت الخادم): أرقام الأحداث التي وصلت فيه}, lo: أرض الجهاز, lt, r0, q}}
+// late/lf: المراجعات المتأخّرة، qz: الحجر [[وقت الاستلام، السبب، الحدث كاملًا أو {ref, bytes}]]، ax: عدد وثائق الأرشيف
+//
+// منع التكرار بالرقم نفسه (لا «كل ما دون رقم»). الأرقام تُجمع بيوم استلامها في الخادم، وتُحذف مجموعة اليوم بعد أطول مدّة قبول + يومين
+// (بساعة الخادم وحدها). عند حذفها ترتفع أرض الجهاز lo إلى أكبر رقم فيها. والحدث برقم ≤ lo لا يُطبَّق أبدًا (الحجر «old»).
+// لماذا هذا آمن مهما فعلت ساعة الهاتف: كل رقم حُذف ≤ lo، فإعادته لا تُطبَّق؛ وكل رقم > lo وصل في آخر 32 يومًا محفوظ بعينه.
+// والحدث الحقيقي الذي لم يصل ورقمه ≤ lo أُنشئ (بترتيب الأرقام المتزايد على الجهاز) قبل حدثٍ وصل قبل أكثر من 32 يومًا، فهو أقدم من كل مدّة قبول.
+// الاستثناء الوحيد: جهاز فقد رقمه المحفوظ وساعته مُرجَعة معًا؛ عندها يذهب الحدث إلى الحجر (يُستعاد)، ولا يضيع ولا يتكرّر.
+// سجلّ الجهاز لا يُحذف أبدًا؛ حين تفرغ مجموعاته يصغر إلى {lo} وحده (نحو 30 بايتًا).
+// التضخّم: إن زادت أرقام جهاز على SX_IDN، أو أرقام كل الأجهزة على SX_IDB بايت، تُحذف أقدم مجموعة مبكّرًا وترتفع lo (المعادلة نفسها: لا تطبيق مرتين).
+const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/, SX_IDN = 15000, SX_IDB = 300000, SX_QZ = 300, SX_LATE = 3000, SX_MAXB = 400000, SX_AXB = 700000, SX_EVDOC = 32768, SX_EVMAX = 900000, SX_HARD = 1000000;
+const sxBytes = s => new TextEncoder().encode(s).length;   // الحدود بالبايت (UTF-8) كما يحسبها Firestore، لا بعدد المحارف
 function sxLoad(d) {
-  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0 };
-  if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (v && typeof v === "object") o.dv[k] = { ids: sxUnpack(v.i), lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0 } }
+  const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0, an: Array.isArray(x.an) ? x.an.filter(a => typeof a === "string" && /^sxa-[a-z0-9-]+$/.test(a)) : [] };
+  if (x.dv && typeof x.dv === "object") for (const k in x.dv) { const v = x.dv[k]; if (!v || typeof v !== "object") continue;
+    const g = {}; if (v.g && typeof v.g === "object") for (const day in v.g) g[day] = sxUnpack(v.g[day]);
+    o.dv[k] = { g, lo: +v.lo || 0, lt: +v.lt || 0, r0: +v.r0 || 0, q: +v.q || 0, rt: +v.rt || 0, rr: +v.rr || 0 } }
   if (Array.isArray(x.late)) o.late = x.late.filter(a => Array.isArray(a) && a.length === 3);
   if (x.lf && typeof x.lf === "object") o.lf = x.lf;
   if (Array.isArray(x.qz)) o.qz = x.qz.filter(a => Array.isArray(a) && a.length === 3);
@@ -336,35 +354,40 @@ function sxLoad(d) {
 // الأرقام مرتّبة تُحفظ فروقًا بالأساس 36 (أصغر بنحو النصف من الأرقام كاملة)
 function sxPack(ids) { let p = 0; return ids.map(n => { const d = (n - p).toString(36); p = n; return d }).join(",") }
 function sxUnpack(s) { if (typeof s !== "string" || !s) return []; let p = 0; const o = []; for (const d of s.split(",")) { const v = parseInt(d, 36); if (!Number.isFinite(v)) return o; p += v; o.push(p) } return o }
-function sxSave(sx) { const dv = {}; for (const k in sx.dv) { const v = sx.dv[k]; dv[k] = { i: sxPack(v.ids), lt: v.lt, r0: v.r0, q: v.q } }
-  return JSON.stringify({ dv, late: sx.late, lf: sx.lf, qz: sx.qz, ax: sx.ax }) }
-const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/;
-function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { ids: [], lt: 0, r0: 0, q: 0 }) }
+function sxSave(sx) { const dv = {}; for (const k in sx.dv) { const v = sx.dv[k], g = {}; for (const day in v.g) if (v.g[day].length) g[day] = sxPack(v.g[day]);
+    dv[k] = Object.keys(g).length || v.lt ? { g, lo: v.lo, lt: v.lt, r0: v.r0, q: v.q, rt: v.rt || 0, rr: v.rr || 0 } : { lo: v.lo } }
+  return JSON.stringify({ dv, late: sx.late, lf: sx.lf, qz: sx.qz, ax: sx.ax, an: sx.an }) }
+function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { g: {}, lo: 0, lt: 0, r0: 0, q: 0, rt: 0, rr: 0 }) }
 function sxIdx(a, n) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < n) lo = m + 1; else hi = m } return lo }
-function sxHas(dv, n) { const i = sxIdx(dv.ids, n); return dv.ids[i] === n }
-function sxSeen(dv, n) { const i = sxIdx(dv.ids, n); if (dv.ids[i] !== n) dv.ids.splice(i, 0, n) }
-function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; return v && v.ids.length ? v.ids[v.ids.length - 1] : 0 }
-// الحدث في الحجر كما وصل تمامًا (نسخة JSON). حدث أكبر من 32 كيلوبايت (لا يرسله التطبيق) يُحفظ مقصوصًا مع علامة big وحجمه الأصلي
-function sxKeep(e) { const j = JSON.stringify(e); if (j.length <= 32768) return JSON.parse(j);
-  const o = { big: j.length }; for (const k of ["type", "t", "d", "n", "k", "r", "kind", "ok", "total", "id"]) if (e[k] !== undefined) o[k] = typeof e[k] === "string" ? e[k].slice(0, 200) : e[k]; return o }
-// الحدود دون حذف: إن زاد الحجر على 300 حدث أو المتأخّرات على 3000 أو حجم الوثيقة على 400 كيلوبايت، يُنقل الأقدم إلى وثيقة أرشيف جديدة
-// users/{uid}/data/sxa{رقم} (تُكتب مرة واحدة بشرط عدم وجودها، في الدفعة الذرّية نفسها، ولا تُحذف). المتأخّرات المنقولة تبقى محسوبة في lf.
-const SX_QZ = 300, SX_LATE = 3000, SX_MAXB = 400000, SX_AXB = 700000;
-function sxTrim(sx, now, uid) {
-  const cut = now - sxWinMax() - 2 * 864e5;
-  for (const k of Object.keys(sx.dv)) { const v = sx.dv[k]; const j = sxIdx(v.ids, cut); if (j) v.ids.splice(0, j); if (!v.ids.length && v.lt < cut) delete sx.dv[k] }
+function sxHas(dv, n) { for (const day in dv.g) { const a = dv.g[day], i = sxIdx(a, n); if (a[i] === n) return true } return false }
+function sxSeen(dv, n, now) { if (sxHas(dv, n)) return; const day = String(Math.floor(now / 864e5)), a = dv.g[day] || (dv.g[day] = []), i = sxIdx(a, n); a.splice(i, 0, n) }
+function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; if (!v) return 0; let m = v.lo; for (const day in v.g || {}) { const a = v.g[day]; if (a.length) m = Math.max(m, a[a.length - 1]) } return m }
+function sxDrop(v, day) { const a = v.g[day]; if (a && a.length) v.lo = Math.max(v.lo, a[a.length - 1]); delete v.g[day] }
+// اسم وثيقة أرشيف فريد (وقت الخادم + ترتيبها في الطلب + عشوائي): لا يتصادم بعد استرجاع نسخة احتياطية أعادت العدّاد إلى الوراء
+const sxArchName = (now, k) => "sxa-" + now.toString(36) + "-" + k + "-" + Math.random().toString(36).slice(2, 8);
+// الحدود دون حذف: الحجر فوق 300، أو المتأخّرات فوق 3000، أو الوثيقة فوق 400 كيلوبايت → الأقدم إلى وثائق أرشيف جديدة
+// (كل واحدة ≤ 700 كيلوبايت، تُكتب مرة واحدة بشرط عدم وجودها، في الدفعة الذرّية نفسها، ولا تُحذف). المتأخّرات المنقولة تبقى محسوبة في lf.
+function sxTrim(sx, now, uid, k0) {
+  const cutDay = Math.floor((now - sxWinMax() - 2 * 864e5) / 864e5);
+  let idb = 0; const all = [];
+  for (const k of Object.keys(sx.dv)) { const v = sx.dv[k];
+    for (const day of Object.keys(v.g)) if (+day < cutDay) sxDrop(v, day);
+    let n = 0; for (const day in v.g) n += v.g[day].length;
+    while (n > SX_IDN) { const d0 = Object.keys(v.g).sort((a, b) => a - b)[0]; n -= v.g[d0].length; sxDrop(v, d0) }
+    for (const day in v.g) { const b = sxPack(v.g[day]).length + 12; idb += b; all.push([+day, k, b]) } }
+  if (idb > SX_IDB) { all.sort((a, b) => a[0] - b[0]); for (const [day, k, b] of all) { if (idb <= SX_IDB) break; sxDrop(sx.dv[k], String(day)); idb -= b } }
   sx.late = LATE; sx.lf = LATEF;
-  const out = []; let qz = [], late = [], size = sxSave(sx).length, ab = 0;   // الأحجام تُحسب بالتقريب تدريجيًا (لا إعادة تحويل الوثيقة كلها في كل خطوة)
+  const out = []; let qz = [], late = [], size = sxBytes(sxSave(sx)), ab = 0;
   if (sx.late.length > SX_LATE || size > SX_MAXB) sx.late.sort((a, b) => a[0] - b[0]);
   while ((sx.qz.length > SX_QZ || sx.late.length > SX_LATE || size > SX_MAXB) && (sx.qz.length || sx.late.length)) {
     let x;
     if (sx.qz.length && (sx.qz.length > SX_QZ || sx.late.length <= SX_LATE)) { x = sx.qz.shift(); qz.push(x) }
     else { x = sx.late.shift(); late.push(x); const d = dkey(x[0]); LATEF[d] = (+LATEF[d] || 0) + 1 }
-    const n = JSON.stringify(x).length + 1; size -= n; ab += n;
+    const n = sxBytes(JSON.stringify(x)) + 1; size -= n; ab += n;
     if (ab > SX_AXB) { out.push({ qz, late }); qz = []; late = []; ab = 0 }
   }
   if (qz.length || late.length) out.push({ qz, late });
-  return out.map(a => ({ path: `users/${uid}/data/sxa${++sx.ax}`, data: { v: JSON.stringify({ ...a, at: now }) }, ifMissing: true }));
+  return out.map((a, i) => { sx.ax++; const nm = sxArchName(now, k0 + i); sx.an.push(nm); return { path: `users/${uid}/data/${nm}`, data: { v: JSON.stringify({ ...a, at: now }) }, ifMissing: true } });
 }
 
 /* ---------- المشرف: حذف كل بيانات مستخدم ليبدأ من الصفر ---------- */
@@ -372,7 +395,10 @@ function sxTrim(sx, now, uid) {
 async function handleWipe(fs, user, body) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
   const uid = String(body.uid || ""); if (!/^[A-Za-z0-9_-]{1,128}$/.test(uid)) return { status: 400, json: { error: "uid" } };
-  const now = Date.now(), [uDoc, gifts] = await Promise.all([fs.get(`users/${uid}`), fs.list(`gifts/${uid}/g`)]);
+  const now = Date.now(), [uDoc, gifts, sxD] = await Promise.all([fs.get(`users/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/sx`)]);
+  // وثيقة sx: يبقى سجلّ الأجهزة (أرقام الأحداث، فلا يُطبَّق حدث قديم أُعيد إرساله)، ويُحذف الحجر والمتأخّرات ووثائق أرشيفها مع بقية البيانات
+  const sx0 = sxD ? sxLoad(sxD) : null, arch = sx0 ? sx0.an.map(a => ({ path: `users/${uid}/data/${a}`, del: true })) : [];
+  const sxW = sx0 ? (() => { sx0.late = []; sx0.lf = {}; sx0.qz = []; sx0.an = []; return [{ path: `users/${uid}/data/sx`, data: { v: sxSave(sx0) } }] })() : [];
   const core = { P: {}, QLOG: [], BUY: [], R: { bank: 0, ach: [], lv: 1, ts: now }, LG: { tier: 0, w: "", hist: [], ts: now, v: 2, best: 0 }, EN: { v: 30, t: 0 }, STN: [], STV: 0, ver: 1, lf: 1, wiped: now };
   const empty = JSON.stringify({ K: [], F: [] });
   await fs.commit([
@@ -381,6 +407,7 @@ async function handleWipe(fs, user, body) {
     { path: `users/${uid}/data/log`, data: { v: empty } },
     { path: `users/${uid}/data/qa`, data: { v: empty } },
     { path: `users/${uid}/data/ck`, data: { v: "" } },
+    ...sxW, ...arch,
     { path: `pub/${uid}`, del: true },
     { path: `lg/${weekId(now)}/m/${uid}`, del: true },
     ...gifts.map(g => ({ path: `gifts/${uid}/g/${g.id}`, del: true }))]);
@@ -702,6 +729,14 @@ async function bakPrune(env) {
   for (const k of del) await env.BAK.delete(k.name);
   return del.map(k => k.name);
 }
+// ما يُكتب عند الاسترجاع لوثائق ليست في النسخة: نقطة حفظ السجل (وإلا اختلطت بسجلّ أقدم منها)، ووثيقة sx
+// (تُصفَّر لتطابق الحالة المسترجَعة: لو بقيت أرقام أحداث طُبّقت بعد النسخة ثم ألغاها الاسترجاع، لعُدّت إعادةُ إرسالها مكرّرة فضاعت).
+// وثائق أرشيف sx تبقى كما هي (أسماؤها فريدة، ولا تُحذف).
+function restoreExtra(inBak, uids) {
+  const W = [];
+  for (const id of uids) for (const [k, v] of [["ck", ""], ["sx", "{}"]]) { const n = `${DOCROOT}/users/${id}/data/${k}`; if (!inBak.has(n)) W.push({ update: { name: n, fields: { v: { stringValue: v } } } }) }
+  return W;
+}
 // تفكّ النسخة وتعيد وثائقها: [{name, fields}]
 async function loadBak(env, key) {
   if (!/^bak-[0-9TZ-]+$/.test(key)) throw new Error("key");
@@ -711,8 +746,10 @@ async function loadBak(env, key) {
   return { at: j.at, docs: [...docs].map(([name, d]) => ({ name, fields: d.fields, ut: d.ut })) };
 }
 // ملخّص حساب واحد كما يحسبه الخادم: للتوثيق قبل التحديث وبعده، وللتحقق من النسخة الاحتياطية. لا يكتب شيئًا
-function acctSum(c, log, qa, ck, gifts) {
-  setState(c, log, qa, ck); GIFTS = (gifts || []).map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts })); EC = null;
+function acctSum(c, log, qa, ck, gifts, sxv) {
+  setState(c, log, qa, ck); GIFTS = (gifts || []).map(g => ({ id: g.id, g: g.g || 0, note: g.note || "", ts: g.ts }));
+  { const x = sxLoad(sxv ? { data: { v: sxv } } : null); LATE = x.late; LATEF = x.lf }   // المراجعات المتأخّرة تدخل السلسلة كما في المزامنة
+  EC = null;
   const e = econ(), ms = new Set([...(Array.isArray(R.pz) ? R.pz : []).map(x => String(x[0]).slice(0, 7)), ...Object.keys(R.pza || {})]);
   const pz = {}; for (const m of [...ms].sort()) pz[m] = pzMonth(m).have.size;
   return { gems: e.gems, earned: e.earned, xp: e.xp, lv: e.lv, streak: e.s.streak, best: e.s.best, reviews: e.s.reviews, mem: e.s.mem, mast: e.s.mast,
@@ -727,9 +764,9 @@ function acctSum(c, log, qa, ck, gifts) {
 async function liveSums(fs) {
   const us = await fs.list("users"), out = {};
   for (const u of us) {
-    const uid = u.id, [coreD, logD, qaD, ckD, gifts, nm] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`), fs.get(`users/${uid}/data/ck`), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`)]);
+    const uid = u.id, [coreD, logD, qaD, ckD, gifts, nm, sxD] = await Promise.all([fs.get(`users/${uid}/data/core`), fs.get(`users/${uid}/data/log`), fs.get(`users/${uid}/data/qa`), fs.get(`users/${uid}/data/ck`), fs.list(`gifts/${uid}/g`), fs.get(`names/${uid}`), fs.get(`users/${uid}/data/sx`)]);
     if (!coreD) continue;
-    out[uid] = { name: (nm && nm.data.name) || u.name || "", ...acctSum(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null), gifts) };
+    out[uid] = { name: (nm && nm.data.name) || u.name || "", ...acctSum(parseJ(coreD.data.v, {}), parseJ(logD && logD.data.v, null), parseJ(qaD && qaD.data.v, null), parseJ(ckD && ckD.data.v, null), gifts, sxD && sxD.data.v) };
   }
   return out;
 }
@@ -741,7 +778,7 @@ function bakSums(b) {
   for (const [p, v] of docs) {
     const m = p.match(/^users\/([^/]+)\/data\/core$/); if (!m) continue; const uid = m[1], g = k => docs.get(`users/${uid}/data/${k}`);
     const gifts = [...docs].filter(([q]) => q.startsWith(`gifts/${uid}/g/`)).map(([q, x]) => ({ id: q.split("/").pop(), ...x }));
-    out[uid] = { name: (docs.get(`names/${uid}`) || {}).name || "", ...acctSum(parseJ(v.v, {}), parseJ(g("log") && g("log").v, null), parseJ(g("qa") && g("qa").v, null), parseJ(g("ck") && g("ck").v, null), gifts) };
+    out[uid] = { name: (docs.get(`names/${uid}`) || {}).name || "", ...acctSum(parseJ(v.v, {}), parseJ(g("log") && g("log").v, null), parseJ(g("qa") && g("qa").v, null), parseJ(g("ck") && g("ck").v, null), gifts, g("sx") && g("sx").v) };
   }
   return out;
 }
@@ -753,15 +790,21 @@ async function verifyBak(fs, b, key) {
   for (const d of b.docs) { const o = {}; for (const k in d.fields) o[k] = dec(d.fields[k]); B.set(at(d), { data: o, ut: d.ut || "" }) }
   const uids = new Set([...B.keys()].map(p => (p.match(/^users\/([^/]+)\/data\/core$/) || [])[1]).filter(Boolean));
   for (const u of await fs.list("users")) uids.add(u.id);
-  const K = ["core", "log", "qa", "ck"], L = {};
+  const K = ["core", "log", "qa", "ck", "sx"], L = {};   // sx: أرقام الأحداث والمتأخّرات والحجر (المزامنة الجديدة)
   // القراءة الحيّة مجمّعة: كل وثائق الحسابات في طلبات batchGet (100 وثيقة في الطلب)، وكل الهدايا باستعلام واحد.
   // كانت 8 طلبات لكل حساب، فتجاوزت حدّ Cloudflare (نحو 50 في الاستدعاء) عند الحساب السابع. الآن: قائمة المستخدمين + ⌈7×الحسابات/100⌉ + 1
   const U = [...uids], docs = await fs.manyT(U.flatMap(uid => [...K.map(k => `users/${uid}/data/${k}`), `names/${uid}`, `users/${uid}`, `members/${uid}`]));
   const GF = {}; for (const x of await fs.group("g")) { const m = x.path.match(/^gifts\/([^/]+)\/g\/([^/]+)$/); if (m) (GF[m[1]] = GF[m[1]] || []).push({ id: m[2], ...x.data }) }
+  // وثائق أرشيف sx (sxa-…): أسماؤها في قائمة sx.an (في النسخة والحالة الآن)، فتُقرأ بأسمائها في طلب واحد وتُقارن كاملة
+  const anOf = d => d && d.data ? sxLoad({ data: d.data }).an : [], AN = {};
+  for (const uid of uids) AN[uid] = [...new Set([...anOf(docs[`users/${uid}/data/sx`]), ...anOf(B.get(`users/${uid}/data/sx`))])];
+  const ARD = await fs.manyT(Object.entries(AN).flatMap(([u, a]) => a.map(n => `users/${u}/data/${n}`))), AR = {};
+  for (const [p, d] of Object.entries(ARD)) { const m = p.match(/^users\/([^/]+)\/data\/(sxa-[^/]+)$/); if (m && d) (AR[m[1]] = AR[m[1]] || {})[m[2]] = d.data }
   for (const uid of uids) {
     const g = [...K.map(k => docs[`users/${uid}/data/${k}`] || null), GF[uid] || [], docs[`names/${uid}`] || null, docs[`users/${uid}`] || null, docs[`members/${uid}`] || null];
     // الاسم من وثيقة الأسماء، وإن لم تكن (كبعض الحسابات القديمة) فمن وثيقة المستخدم كما في قائمة المستخدمين و«لقطة الحسابات»؛ ورقم الحساب من وثيقة التفعيل
-    L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[4], name: g[5] && g[5].data.name || g[6] && g[6].data.name || "", user: !!g[6], no: g[7] && g[7].data.no != null ? +g[7].data.no : null };
+    const j = K.length;   // ما بعد وثائق الحساب: الهدايا، ثم الاسم، ثم وثيقة المستخدم، ثم العضوية (المواضع نسبية، فإضافة وثيقة إلى K لا تزيحها)
+    L[uid] = { d: Object.fromEntries(K.map((k, i) => [k, g[i]])), gifts: g[j], name: g[j + 1] && g[j + 1].data.name || g[j + 2] && g[j + 2].data.name || "", user: !!g[j + 2], no: g[j + 3] && g[j + 3].data.no != null ? +g[j + 3].data.no : null };
   }
   await loadCfg(fs);   // إعدادات المشرف، كما يحسبها التطبيق والمزامنة
   const accts = {}; let same = true;
@@ -771,7 +814,10 @@ async function verifyBak(fs, b, key) {
     const bg = [...B].filter(([p]) => p.startsWith(`gifts/${uid}/g/`)).map(([p, x]) => ({ id: p.split("/").pop(), ...x.data })).sort((a, c) => a.id < c.id ? -1 : 1);
     const lg = [...l.gifts].sort((a, c) => a.id < c.id ? -1 : 1);
     docs.gifts = stab(bg) === stab(lg) ? "same" : "diff";
-    const sum = (d, gifts) => d.core ? acctSum(parseJ(d.core.v, {}), parseJ(d.log && d.log.v, null), parseJ(d.qa && d.qa.v, null), parseJ(d.ck && d.ck.v, null), gifts) : null;
+    const ba = {}; for (const [p, x] of B) { const m = p.match(new RegExp(`^users/${uid}/data/(sxa-[^/]+)$`)); if (m) ba[m[1]] = x.data }
+    const la = AR[uid] || {}; docs.sxa = !Object.keys(ba).length && !Object.keys(la).length ? "none" : stab(ba) === stab(la) ? "same" : "diff";
+    if (docs.sx === "none") delete docs.sx; if (docs.sxa === "none") delete docs.sxa;   // حساب بلا مزامنة جديدة: النتيجة كما كانت تمامًا
+    const sum = (d, gifts) => d.core ? acctSum(parseJ(d.core.v, {}), parseJ(d.log && d.log.v, null), parseJ(d.qa && d.qa.v, null), parseJ(d.ck && d.ck.v, null), gifts, d.sx && d.sx.v) : null;
     const bs = sum(Object.fromEntries(K.map(k => [k, bd(k) && bd(k).data])), bg), ls = sum(Object.fromEntries(K.map(k => [k, l.d[k] && l.d[k].data])), lg);
     const sd = bs && ls ? Object.keys(bs).filter(k => stab(bs[k]) !== stab(ls[k])) : [bs ? "غير موجود الآن" : "غير موجود في النسخة"];
     const docSame = Object.values(docs).every(v => v === "same" || v === "none");
@@ -823,7 +869,7 @@ async function handleBackup(fs, user, body, env) {
     const H = await gauth(env), W = b.docs.filter(d => d.name.startsWith(DOCROOT + "/")).map(d => ({ update: { name: d.name, fields: d.fields }, ...(/\/aichat\/[^/]+\/m\//.test(d.name) ? { updateMask: { fieldPaths: Object.keys(d.fields) } } : {}) }));
     // نقطة حفظ السجل التي لم تكن في النسخة تُفرَّغ: وإلا اختلطت بسجلّ أقدم منها
     const inBak = new Set(b.docs.map(d => d.name));
-    for (const u of await fs.list("users")) { const n = `${DOCROOT}/users/${u.id}/data/ck`; if (!inBak.has(n)) W.push({ update: { name: n, fields: { v: { stringValue: "" } } } }) }
+    W.push(...restoreExtra(inBak, (await fs.list("users")).map(u => u.id)));
     for (let k = 0; k < W.length; k += 400) { const r = await fetch(FS_BASE + ":commit", { method: "POST", headers: H, body: JSON.stringify({ writes: W.slice(k, k + 400) }) }); if (!r.ok) throw new Error("restore " + r.status + " " + (await r.text()).slice(0, 150)) }
     return { status: 200, json: { ok: true, n: W.length, before: before.key } };
   }

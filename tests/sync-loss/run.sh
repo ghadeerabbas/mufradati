@@ -10,7 +10,9 @@ cp "$R/server/worker.js" "$W/w_new.mjs"; cp "$R/core.js" "$W/core_new.js"
 SC="clockAhead clockBack twoDevices offline8 offline30 resend doubleStart lateSame"
 EC="gaps order reinstall resendMulti atomic rollback edayMix comboMix clockFuture clockBack missedDay fullEvent devicesArchive prune"
 for s in $SC; do for m in ctrl test; do (cd "$D" && MUF_SX=1 node scen.mjs "$W" "$R" $s $m > "$W/$s.$m.json" 2> "$W/$s.$m.err") & done; done
-for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done; wait
+for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
+E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx"
+for c in $E2; do (cd "$D" && MUF_SX=1 node edge2.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done; wait
 { for s in $SC; do node -e '
 const fs=require("fs"),[,w,s]=process.argv,rd=m=>{try{return JSON.parse(fs.readFileSync(`${w}/${s}.${m}.json`,"utf8"))}catch(e){return null}};
 const c=rd("ctrl"),t=rd("test");if(!c||!t){console.log(`FAIL ${s}: لم يكتمل التشغيل (انظر ${w}/${s}.*.err)`);process.exit()}
@@ -29,4 +31,4 @@ else P("لا حجر",t.st.q===0,JSON.stringify(t.st.qWhy));
 if(s==="lateSame"){P("المراجعة المتأخّرة: حالتها «late»، ولا خبرة، ولا مراجعة محسوبة، والكلمة كما هي، والحدث محفوظ",t.st.late===1&&t.xpAfter===t.xpBefore&&t.reviewsAfter===t.reviewsBefore&&t.wordSame&&t.lateKept,JSON.stringify({late:t.st.late,xp:[t.xpBefore,t.xpAfter],rv:[t.reviewsBefore,t.reviewsAfter],word:t.wordSame,kept:t.lateKept}))}
 if(s==="resend")P("إعادة الإرسال: كل الدفعة المعادة عُرفت «وصلت سابقًا»",t.st.dup===t.st.resent&&t.st.resent>0,t.st.dup+" / "+t.st.resent);
 const diff=keys.filter(k=>JSON.stringify(c[k])!==JSON.stringify(t[k]));
-if(keys.length)P("مطابق للضابط في "+keys.join("، "),!diff.length,diff.map(k=>k+" "+c[k]+"←"+t[k]).join("، ")||"")' "$W" $s; done; for c in $EC; do cat "$W/e_$c.out"; grep -q "^PASS" "$W/e_$c.out" || echo "FAIL $c: لا نتائج"; done; echo __END; } | verdict
+if(keys.length)P("مطابق للضابط في "+keys.join("، "),!diff.length,diff.map(k=>k+" "+c[k]+"←"+t[k]).join("، ")||"")' "$W" $s; done; for c in $EC $E2; do cat "$W/e_$c.out"; grep -q "^PASS" "$W/e_$c.out" || echo "FAIL $c: لا نتائج"; done; echo __END; } | verdict

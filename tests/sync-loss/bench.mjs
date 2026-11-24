@@ -1,33 +1,34 @@
-// قياس وقت المعالج لطلب المزامنة وحجم وثيقة sx: الخادم المنشور (القديم) مقابل الجديد (المفتاح مطفأ ومشغَّل).
-// Node أسرع من Cloudflare، فالأرقام المطلقة تقريبية؛ المهم النسبة بين القديم والجديد على الحساب نفسه والأحداث نفسها.
-// الاستعمال: node bench.mjs <DIR> <REPO>
-import { app, user, adv, ctl, post, memfs, DB } from '../integration/it.mjs';
-const DAY = 864e5, out = [];
+// قياس وقت المعالج لطلب المزامنة: الخادم المنشور (القديم) مقابل الجديد (المفتاح مطفأ، ومشغَّل)، على الحساب نفسه والأحداث نفسها.
+// الطريقة: حساب كبير (سجلّ 50000) يُعاد إلى حالته نفسها قبل كل قياس، وجمع القمامة قبل كل قياس (node --expose-gc)،
+// وقت المعالج للعملية (process.cpuUsage) لا وقت الساعة، والتشغيلات متناوبة (قديم، مطفأ، مشغَّل، …) فيصيب أي تشويش الثلاثة بالتساوي.
+// Node أسرع من Cloudflare، فالأرقام المطلقة تقريبية؛ المهم النسبة. الاستعمال: node --expose-gc bench.mjs <DIR> <REPO> [مرات]
+import { app, user, ctl, post, memfs, DB } from '../integration/it.mjs';
+const DAY = 864e5, out = [], REPS = +process.argv[4] || 40;
 const I = (n, x) => out.push('INFO bench: ' + n + ' → ' + JSON.stringify(x));
-const cfg = on => memfs.commit([{ path: 'config/app', data: { v: JSON.stringify({ sx: { on } }) } }]);
 const words = JSON.parse((await import('node:fs')).readFileSync(process.argv[3] + '/words-a1.json', 'utf8')).words.map(w => String(w.de).trim().toLowerCase());
-const uniqW = [...new Set(words)];
+const W = [...new Set(words)];
+const cfgDoc = on => ({ path: 'config/app', data: { v: JSON.stringify({ sx: { on } }) } });
 // حساب كبير: 50000 عنصر في السجلّ على 300 يوم، وكل الكلمات معروفة
-async function bigUser(uid) { await user(uid); const A = app('new', uid); await A.sync();
-  const start = ctl.NOW - 300 * DAY, L = []; for (let i = 0; i < 50000; i++) L.push([start + i * Math.floor(300 * DAY / 50000), uniqW[i % uniqW.length], 2, i < uniqW.length ? 1 : 0]);
-  const K = [], ix = {}, F = []; let p = 0; for (const [t, k, r, n] of L) { if (ix[k] === undefined) { ix[k] = K.length; K.push(k) } const s = Math.round(t / 1000); F.push(s - p, ix[k], r, n); p = s }
-  const P = {}; for (const k of uniqW) P[k] = { box: 3, due: ctl.NOW - DAY, t: start };
+const uid = 'bench'; await user(uid); { const A = app('new', uid); await A.sync() }
+{ const start = ctl.NOW - 300 * DAY, K = [], ix = {}, F = []; let p = 0;
+  for (let i = 0; i < 50000; i++) { const t = start + i * Math.floor(300 * DAY / 50000), k = W[i % W.length]; if (ix[k] === undefined) { ix[k] = K.length; K.push(k) } const s = Math.round(t / 1000); F.push(s - p, ix[k], 2, i < W.length ? 1 : 0); p = s }
+  const P = {}; for (const k of W) P[k] = { box: 3, due: ctl.NOW - DAY, t: start };
   const core = JSON.parse(DB.get(`users/${uid}/data/core`).data.v); core.P = P; core.lf = 1; core.EN = { v: 30, t: ctl.NOW - DAY, lt: ctl.NOW - 1000 };
   await memfs.commit([{ path: `users/${uid}/data/core`, data: { v: JSON.stringify(core) } }, { path: `users/${uid}/data/log`, data: { v: JSON.stringify({ K, F }) } }]) }
-const t = async f => { const a = performance.now(); await f(); return performance.now() - a };
-const med = a => [...a].sort((x, y) => x - y)[a.length >> 1];
-async function run(label, which, on, mk) { ctl.ACTIVE = which; await cfg(on); const ts = [];
-  for (let r = 0; r < 7; r++) { const uid = `b${label}${which}${on}${r}`; await bigUser(uid); const evs = mk(uid); ts.push(await t(() => post('/sync', uid, { evs, dev: 'benchdev1' }))) }
-  return +med(ts.slice(2)).toFixed(1) }
-let n = 0; const rates = (cnt, back) => uid => Array.from({ length: cnt }, (_, i) => ({ type: 'rate', k: uniqW[(i * 7) % uniqW.length], r: 2, t: ctl.NOW - back + i * 20e3, n: ctl.NOW * 10 + ++n, d: 'benchdev1' }));
-const cases = { 'مزامنة عادية: 10 مراجعات': rates(10, 300e3), 'دفعة كبيرة: 300 مراجعة': rates(300, 300 * 21e3), 'متأخّرة: 50 مراجعة أقدم من آخر حدث': rates(50, 2 * DAY) };
-for (const [name, mk] of Object.entries(cases)) I(name + ' (ملي ثانية، الوسيط) [قديم، جديد مطفأ، جديد مشغَّل]', [await run('x', 'old', 0, mk), await run('y', 'new', 0, mk), await run('z', 'new', 1, mk)]);
-// الحجم: جهازان × 30 يومًا × 150 حدثًا (أرقام بالوقت الحقيقي)، و300 في الحجر (تمرين بـ 50 إجابة)، و3000 متأخّرة
-{ const sxPack = ids => { let p = 0; return ids.map(v => { const d = (v - p).toString(36); p = v; return d }).join(',') };
-  const ids = []; let v = ctl.NOW * 1; for (let i = 0; i < 4500; i++) ids.push(v += 1000 + Math.floor(Math.random() * 600e3));
-  const dv = { a: { i: sxPack(ids), lt: v, r0: v, q: v }, b: { i: sxPack(ids), lt: v, r0: v, q: v } };
-  const qz = Array.from({ length: 300 }, (_, i) => [v, 'cap', { type: 'quiz', kind: 's2', ok: 9, total: 10, ms: 30000, full: true, t: v, n: v, d: 'dXXXXXXXXXX', qa: Array.from({ length: 50 }, (_, j) => ['wort' + j, 1]) }]);
-  const late = Array.from({ length: 3000 }, (_, i) => [v + i * 1000, uniqW[i % uniqW.length], 2]);
-  const sz = x => JSON.stringify(x).length;
-  I('حجم وثيقة sx بالبايت (حدّ Firestore 1048576؛ حدّ الأرشفة 400000)', { 'أرقام جهازين (9000 رقم)': sz(dv), 'الحجر 300 تمرين': sz(qz), 'متأخّرات 3000': sz(late), 'المجموع': sz({ dv, qz, late }) }) }
+const snap = new Map([...DB].filter(([p]) => p.startsWith(`users/${uid}`) || p === `names/${uid}`).map(([p, d]) => [p, JSON.stringify(d)]));
+const reset = () => { for (const p of [...DB.keys()]) if (p.startsWith(`users/${uid}/`) && !snap.has(p)) DB.delete(p); for (const [p, d] of snap) DB.set(p, JSON.parse(d)) };
+let n = 0; const rates = (cnt, back) => () => Array.from({ length: cnt }, (_, i) => ({ type: 'rate', k: W[(i * 7) % W.length], r: 2, t: ctl.NOW - back + i * 20e3, n: ctl.NOW * 10 + ++n, d: 'benchdev1' }));
+const cases = { 'عادية: 10 مراجعات': rates(10, 300e3), 'كبيرة: 300 مراجعة': rates(300, 300 * 21e3), 'متأخّرة: 50 مراجعة أقدم من آخر حدث': rates(50, 2 * DAY) };
+const variants = [['قديم', 'old', 0], ['جديد مطفأ', 'new', 0], ['جديد مشغَّل', 'new', 1]];
+const cpu = () => { const u = process.cpuUsage(); return (u.user + u.system) / 1000 };
+const stat = a => { const s = [...a].sort((x, y) => x - y), q = f => s[Math.min(s.length - 1, Math.floor(f * s.length))]; return { med: +q(.5).toFixed(2), p25: +q(.25).toFixed(2), p75: +q(.75).toFixed(2) } };
+for (const [name, mk] of Object.entries(cases)) {
+  const R = Object.fromEntries(variants.map(v => [v[0], []]));
+  for (let r = 0; r < REPS + 5; r++) for (const [label, which, on] of variants) {
+    reset(); await memfs.commit([cfgDoc(on)]); ctl.ACTIVE = which; const evs = mk();
+    await post('/sync', 'warm' + (r % 2), { evs: [] }).catch(() => 0);   // الإعدادات في الذاكرة (كما في الخادم الدافئ)
+    if (globalThis.gc) gc(); const a = cpu(); await post('/sync', uid, { evs, dev: 'benchdev1' }); const d = cpu() - a; if (r >= 5) R[label].push(d) }
+  const S = Object.fromEntries(Object.entries(R).map(([k, v]) => [k, stat(v)])), base = S['قديم'].med;
+  I(name + ' — وقت المعالج بالملّي ثانية (الوسيط [الربع الأول، الثالث])، ' + REPS + ' مرة', Object.fromEntries(Object.entries(S).map(([k, v]) => [k, `${v.med} [${v.p25}–${v.p75}] (${base ? ((v.med / base - 1) * 100).toFixed(0) : 0}%)`])));
+}
 console.log(out.join('\n'));

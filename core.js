@@ -57,7 +57,9 @@ function applyCfg(c){
     srs:(()=>{const x=c.srs&&typeof c.srs==="object"?c.srs:{};return {on:x.on?1:0,t0:_num(x.t0,0,0,1e14),u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,50):[],p:_num(x.p,.15,0,1),max:_num(x.max,5,0,50)}})(),
     // المزامنة الجديدة: للجميع أو لحسابات بأعيانها، ومدّة القبول بالأيام لكل نوع (st: بدء المحطة وإنهاؤها والخروج منها؛ def: ما سوى ذلك، كما اليوم)
     sx:(()=>{const x=c.sx&&typeof c.sx==="object"?c.sx:{},w=x.w&&typeof x.w==="object"?x.w:{};return {on:x.on?1:0,u:Array.isArray(x.u)?x.u.filter(y=>typeof y==="string"&&y.length<130).slice(0,500):[],
-      w:{rate:_num(w.rate,30,1,90),st:_num(w.st,30,1,90),quiz:_num(w.quiz,30,1,90),def:_num(w.def,7,1,90)}}})(),   // المزامنة الجديدة: للجميع أو لحسابات بأعيانها
+      w:{rate:_num(w.rate,30,1,90),st:_num(w.st,30,1,90),quiz:_num(w.quiz,30,1,90),quest:_num(w.quest,30,1,90),def:_num(w.def,7,1,90)},
+      ids:x.ids?1:0,   // أرقام الأحداث ومنع تكرارها وحدهما، بالقواعد القديمة: وضع التراجع الآمن (بدل الرجوع إلى خادم قديم)
+      uv:x.uv==="day"?"day":"trust"}})(),   // حدث بلا مرساة: trust = وقت الهاتف كما اليوم، day = لا يُنسب إلى يوم قبل يوم الاستلام   // المزامنة الجديدة: للجميع أو لحسابات بأعيانها
     stn:c.stn&&typeof c.stn==="object"?Object.fromEntries(Object.entries(c.stn).filter(([k,v])=>k.length<130&&+v>=1&&+v<=20).slice(0,2000).map(([k,v])=>[k,Math.floor(+v)])):{}   // عدد المحطات اليومية لكل متعلّم (وإلا فالافتراضي)
   };
   XPR=CFG.xp.review;LV_GEMS=CFG.gems.level;STREAK_G=CFG.gems.streak;PROMO_MIN=CFG.league.promoMin;UP_N=CFG.league.up;DOWN_N=CFG.league.down;
@@ -505,21 +507,32 @@ function applyEv(ev,now,ctx){
 // وقت الدراسة = وقت الهاتف، لا يتجاوز وقت الاستلام، ولا يسبق آخر حدث قُبل من الجهاز نفسه (لا من أي جهاز).
 // مدّة القبول تُقاس على وقت الهاتف (لا على الوقت بعد رفعه)، وتُضبط لكل نوع من الإعدادات CFG.sx.w؛ ما يتجاوزها يعود «old» فيُحفظ في الحجر.
 // «متأخّر» = أقدم من آخر حدث قُبل من أي جهاز (EN.lt). المراجعة المتأخّرة لكلمة لها مراجعة أحدث تعود «late»: نشاط يوم فقط.
-const sxWin=T=>{const w=(CFG.sx||{}).w||{rate:30,st:30,quiz:30,def:7};return (T==="rate"?w.rate:T==="stStart"||T==="stDone"||T==="stQuit"?w.st:T==="quiz"?w.quiz:w.def)*DAY};
-const sxWinMax=()=>{const w=(CFG.sx||{}).w||{};return Math.max(w.rate||30,w.st||30,w.quiz||30,w.def||7)*DAY};
+const sxWin=T=>{const w=(CFG.sx||{}).w||{rate:30,st:30,quiz:30,quest:30,def:7};return (T==="rate"?w.rate:T==="stStart"||T==="stDone"||T==="stQuit"?w.st:T==="quiz"?w.quiz:T==="quest"?w.quest:w.def)*DAY};
+const sxWinMax=()=>{const w=(CFG.sx||{}).w||{};return Math.max(w.rate||30,w.st||30,w.quiz||30,w.quest||30,w.def||7)*DAY};
+// وقت الهاتف للحدث: «المرساة» a إن وُجدت (وقت الخادم عند آخر مزامنة + عدّاد رتيب لا يتأثّر بتغيير الساعة)، وإلا ساعة الهاتف t.
+// a لا يُصدَّق إن تجاوز وقت الاستلام. بلا مرساة وبالسياسة "day": لا يُنسب الحدث إلى يوم قبل يوم الاستلام.
+// بالسياسة "day" يُنقل الحدث إلى بداية يوم الاستلام مع الإبقاء على الفواصل بين أحداث الجهاز نفسه (dv.rt: ساعة الهاتف لآخر حدث قُبل منه)،
+// فلا تتصادم أحداث جلسة كاملة في لحظة واحدة (قاعدة نصف الثانية، ومدّة المحطة)
+function sxT0(ev,now,dv){const a=+ev.a;if(Number.isFinite(a)&&a>0)return Math.min(a,now);const t=+ev.t||now;
+  if((CFG.sx||{}).uv==="day"&&dkey(t)<dkey(now)){const d=new Date(now+tzOff(now)),m0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()),mid=m0-tzOff(m0);
+    const step=dv&&dv.rt&&t>=dv.rt?t-dv.rt:0;return Math.min(now,Math.max(mid,(dv&&dv.lt||0)+step))}
+  return t}
 function applySx(ev,T,now,ctx){
-  const dv=ctx.dv,t0=+ev.t||now,tc=Math.min(t0,now);
+  const dv=ctx.dv,t0=sxT0(ev,now,dv),tc=Math.min(t0,now),raw=+ev.t||now;
   if(now-tc>sxWin(T))return "old";
   // الوقت: لا يسبق آخر حدث من الجهاز نفسه، ولا يتجاوز وقت الخادم (وكلمات المحطة تأخذ t…t+4، فتُترك لها مسافتها)
   const t=Math.min(Math.max(tc,dv.lt||0),now-(T==="stDone"?ST_WORDS:0));
-  if(T==="rate"&&dv.r0&&t0>=dv.r0&&t0-dv.r0<=500)return "time";   // قاعدة نصف الثانية على أوقات الهاتف نفسه
+  if(T==="rate"&&dv.r0&&t0>=dv.r0&&t0-dv.r0<=500&&!(raw-(dv.rr||0)>500))return "time";   // قاعدة نصف الثانية على أوقات الهاتف نفسه (والساعة الأصلية إن نُقل الوقت)
   const late=t<(EN.lt||0);
-  if(late&&T==="reset")return "lreset";   // تصفير وصل بعد دراسة أحدث منه من جهاز آخر: لا يُطبَّق تلقائيًا
+  if(late&&T==="reset")return "lreset";
+  // تمرين قبله خادم قديم (لا يعرف أرقام الأحداث) ثم أُعيد بعد ضياع ردّه: يُعرف بمحتواه (النوع والنتيجة والعدد ومدّته بالملّي ثانية)
+  // مسجّلًا في وقت لا يسبق وقته. يذهب إلى الحجر «dupc» (يُستعاد إن ثبت خطأ)، لا يُطبَّق مرة ثانية
+  if(T==="quiz"){const k=String(ev.kind||"quiz").slice(0,8),ms=Math.max(0,+ev.ms|0);if(ms&&QLOG.some(q=>q[3]===k&&q[1]===(ev.ok|0)&&q[2]===(ev.total|0)&&q[4]===ms&&q[0]>=tc-1000&&q[0]<=now))return "dupc"}   // تصفير وصل بعد دراسة أحدث منه من جهاز آخر: لا يُطبَّق تلقائيًا
   if(late&&T==="rate"){const k=String(ev.k||""),r=ev.r|0;
     if(!(r>=0&&r<=3)||!P[k])return "word";
     if((CK&&CK.t>t)||LOG.some(x=>x[1]===k&&x[0]>=t)){LATE.push([t,k,r]);dv.lt=Math.max(dv.lt||0,t);dv.r0=t0;return "late"}}
   const r=applyAt(ev,T,t,{...ctx,sx:true});
-  if(r===true){dv.lt=Math.max(dv.lt||0,t);if(T==="rate")dv.r0=t0;if(T==="quiz")dv.q=t;EN.lt=Math.max(EN.lt||0,t)}
+  if(r===true){dv.lt=Math.max(dv.lt||0,t);dv.rt=raw;if(T==="rate"){dv.r0=t0;dv.rr=raw}if(T==="quiz")dv.q=t;EN.lt=Math.max(EN.lt||0,t)}
   return r;
 }
 // إدراج في السجلّ مرتّبًا بالوقت (الحدث المتأخّر يقع في وسطه؛ غير ذلك إضافة في آخره كما اليوم)
