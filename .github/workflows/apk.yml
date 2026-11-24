@@ -2,13 +2,23 @@ name: Build APK
 on:
   push:
     branches: [main]
-    paths: ["android/**", ".github/workflows/apk.yml"]
+    paths: ["android/**"]   # تعديل هذا الملف وحده لا يبني ولا ينشر تطبيقًا
   workflow_dispatch:
+    inputs:
+      mode:
+        description: "verify = بناء وفحص فقط، بلا نشر · publish = بناء ونشر"
+        type: choice
+        options: [verify, publish]
+        default: verify
 permissions:
-  contents: write
+  contents: write   # للنشر في الإصدار apk-latest فقط (لا يُستعمل في وضع الفحص)
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      # وضع الفحص: أي تشغيل يدوي ما لم يُختر publish صراحةً. يمنع النشر، ويقرأ المفتاح من السرّ KS_B64 وحده
+      VERIFY: ${{ github.event_name == 'workflow_dispatch' && inputs.mode != 'publish' }}
+      EXPECTED: 6c5023ff684d699cb4b713649661f9326987e3d8de97c3514b3391fe73d50eaa
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -24,30 +34,91 @@ jobs:
           KS_PASS: ${{ secrets.KS_PASS }}
         run: |
           if [ -z "$KS_PASS" ]; then echo "::warning::أضف السرّ KS_PASS في إعدادات المستودع ليُبنى التطبيق"; echo "ok=0" >> $GITHUB_OUTPUT; else echo "ok=1" >> $GITHUB_OUTPUT; fi
-      # يُنشأ المفتاح مرة واحدة فقط، محميًّا بكلمة السرّ، ثم يُحفظ في المستودع
-      - name: Create signing key once
+      # المفتاح لا يُنشأ ولا يُرفع إلى المستودع أبدًا.
+      # المصدر: السرّ KS_B64 (ملف المفتاح نفسه مرمّزًا نصًّا). في وضع الفحص يُحذف ملف المستودع أولًا فلا يُستعمل إطلاقًا.
+      # خارج وضع الفحص، وإلى أن يُحذف الملف من المستودع: يُستعمل الملف إن غاب السرّ، مع تحذير.
+      # في كل الحالات يجب أن يطابق الملف المفتاح الحالي بايتًا ببايت، وإلا يتوقّف البناء.
+      - name: Prepare signing key
+        if: steps.ks.outputs.ok == '1'
+        env:
+          KS_B64: ${{ secrets.KS_B64 }}
+        run: |
+          set -euo pipefail
+          if [ "$VERIFY" = "true" ]; then
+            rm -f android/release.p12
+            [ -n "$KS_B64" ] || { echo "::error::وضع الفحص يحتاج السرّ KS_B64، وهو غير موجود"; exit 1; }
+          fi
+          if [ -n "$KS_B64" ]; then
+            printf %s "$KS_B64" | tr -d '[:space:]' > ks.b64
+            if ! base64 -d ks.b64 > android/release.p12 2>/dev/null; then rm -f ks.b64; echo "::error::تعذّر فكّ ترميز KS_B64: النص المنسوخ ناقص أو فيه حروف زائدة"; exit 1; fi
+            echo "::notice::المفتاح من السرّ KS_B64 ($(wc -c < ks.b64) حرفًا بعد حذف المسافات، والمتوقّع 5736)"
+            rm -f ks.b64
+          elif [ -f android/release.p12 ]; then
+            echo "::warning::المفتاح ما زال من ملف المستودع: السرّ KS_B64 غير موجود"
+          else
+            echo "::error::لا يوجد مفتاح توقيع. لن يُنشأ مفتاح جديد تلقائيًا"; exit 1
+          fi
+          SIZE=$(stat -c %s android/release.p12)
+          if [ "$(sha256sum android/release.p12 | cut -d' ' -f1)" != "$EXPECTED" ]; then
+            echo "::error::ملف المفتاح الناتج ($SIZE بايت) ليس المفتاح الحالي (4302 بايت). أعد نسخ محتوى KS_B64.txt كاملًا"; exit 1
+          fi
+          echo "::notice::ملف المفتاح مطابق للمفتاح الحالي بايتًا ببايت ($SIZE بايت)"
+      # كلمة السرّ تُمرَّر إلى keytool من متغيّر بيئة (storepass:env)، فلا تظهر في الأوامر ولا في السجل
+      - name: Open key with KS_PASS
         if: steps.ks.outputs.ok == '1'
         env:
           KS_PASS: ${{ secrets.KS_PASS }}
         run: |
-          if [ ! -f android/release.p12 ]; then
-            keytool -genkeypair -keystore android/release.p12 -storetype PKCS12 -storepass "$KS_PASS" -keypass "$KS_PASS" \
-              -alias mufradati -keyalg RSA -keysize 4096 -validity 36500 -dname "CN=Mufradati, O=Mufradati, C=DE"
-            git config user.name "github-actions"; git config user.email "actions@github.com"
-            git add android/release.p12; git commit -m "مفتاح توقيع جديد محميّ بكلمة سرّ"; git push
+          set -euo pipefail
+          if ! keytool -list -keystore android/release.p12 -storetype PKCS12 -storepass:env KS_PASS -alias mufradati > ks.log 2>&1; then
+            echo "::error::KS_PASS لا تفتح المفتاح، أو الاسم الداخلي mufradati غير موجود"; exit 1
           fi
+          CERT=$(keytool -exportcert -keystore android/release.p12 -storetype PKCS12 -storepass:env KS_PASS -alias mufradati 2>>ks.log | sha256sum | cut -d' ' -f1)
+          echo "KEYCERT=$CERT" >> "$GITHUB_ENV"
+          echo "::notice::KS_PASS تفتح المفتاح. بصمة شهادة التوقيع: $CERT"
       - name: Build
         if: steps.ks.outputs.ok == '1'
         working-directory: android
         env:
           KS_PASS: ${{ secrets.KS_PASS }}
-        run: gradle assembleRelease --no-daemon
+        run: |
+          set -o pipefail
+          gradle assembleRelease --no-daemon 2>&1 | tee ../build.log
       - if: steps.ks.outputs.ok == '1'
         run: |
           cp android/app/build/outputs/apk/primary/release/app-primary-release.apk mufradati.apk
           cp android/app/build/outputs/apk/second/release/app-second-release.apk mufradati1.apk
-      - name: Publish
+      # التوقيع: التطبيقان الناتجان وتطبيق الإصدار المنشور حاليًا يجب أن تكون بصمة شهادتها واحدة
+      - name: Verify APK signatures
         if: steps.ks.outputs.ok == '1'
+        run: |
+          set -euo pipefail
+          AS="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)/apksigner"
+          dig(){ "$AS" verify --print-certs "$1" | grep -m1 'certificate SHA-256 digest' | awk '{print $NF}'; }
+          curl -fsSL -o published.apk "https://github.com/${{ github.repository }}/releases/download/apk-latest/mufradati.apk"
+          for f in mufradati.apk mufradati1.apk published.apk; do
+            D=$(dig "$f") || { echo "::error::توقيع $f غير صالح"; exit 1; }
+            if [ "$D" != "$KEYCERT" ]; then echo "::error::بصمة $f ($D) لا تطابق المفتاح ($KEYCERT)"; exit 1; fi
+            echo "✓ $f: $D"
+          done
+          echo "::notice::بصمة التطبيقين الجديدين = بصمة التطبيق المنشور حاليًا = بصمة المفتاح: التحديث فوق المثبَّت ممكن"
+      # لا أثر لأي سرّ في مخرجات البناء والفحص (GitHub يخفي الأسرار في السجل أيضًا، وهذا فحص إضافي)
+      - name: Check logs for secrets
+        if: steps.ks.outputs.ok == '1'
+        env:
+          KS_PASS: ${{ secrets.KS_PASS }}
+          KS_B64: ${{ secrets.KS_B64 }}
+        run: |
+          set -euo pipefail
+          B=$(printf %s "$KS_B64" | tr -d '[:space:]' | cut -c1-40)
+          for f in build.log ks.log; do
+            [ -f "$f" ] || continue
+            if grep -qF -- "$KS_PASS" "$f"; then echo "::error::كلمة السرّ ظهرت في $f"; exit 1; fi
+            if [ -n "$B" ] && grep -qF -- "$B" "$f"; then echo "::error::جزء من KS_B64 ظهر في $f"; exit 1; fi
+          done
+          echo "::notice::لا أثر للسرّين في مخرجات البناء والفحص"
+      - name: Publish
+        if: steps.ks.outputs.ok == '1' && env.VERIFY != 'true'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: apk-latest
