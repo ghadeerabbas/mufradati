@@ -369,16 +369,27 @@ const C = {
     T('المعاينة: كل ما حُجر لقاعدة الكلمات يُطبَّق في جولة لاحقة، والكلمات والمحطات تزيد', !P.count.word && P.after.words > P.before.words && P.after.stations > P.before.stations, [P.count, P.before, P.after]);
     let e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P.plan }) } catch (x) { e = x.message } T('التنفيذ بلا تأكيد: مرفوض', / 400 /.test(e) && /confirm/.test(e), e.slice(0, 50));
     e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: 'x', confirm: true }) } catch (x) { e = x.message } T('ببصمة خطة مختلفة: «stale»', / 409 /.test(e), e.slice(0, 50));
-    const run = async () => { let round = 1, calls = 0; for (;;) { calls++; const r = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P.plan, confirm: true, round }); if (r.more) continue; if (r.word && round < 3) { round++; continue } return calls } };
-    // ضغطتان معًا (تُنفَّذان تباعًا في الخادم)، ثم تشغيل ثالث بعد الانتهاء
-    await Promise.all([run(), run()]); const a1 = await srv(uid); await run(); const a2 = await srv(uid);
+    // حالة التقدّم تغيّرت بعد المعاينة: مزامنة من جهاز آخر للمتعلّم (لا تغيّر خطة الجهاز) → رفض «stale-state»
+    const B = app('new', uid); B.ev({ type: 'eday' }); await B.sync();
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P.plan, state: P.state, confirm: true }) } catch (x) { e = x.message }
+    T('مزامنة جديدة للحساب بعد المعاينة: التنفيذ مرفوض «stale-state» ولا شيء طُبّق', / 409 /.test(e) && /stale-state/.test(e) && (await srv(uid)).words === P.before.words, e.slice(0, 50));
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P.plan, confirm: true }) } catch (x) { e = x.message } T('التنفيذ بلا بصمة الحالة: مرفوض', / 409 /.test(e) && /stale-state/.test(e), e.slice(0, 50));
+    // تغيّر في منتصف التنفيذ: بعد الدفعة الأولى مزامنة جديدة → الدفعة التالية مرفوضة
+    let Pm = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' }); const r1 = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: Pm.plan, state: Pm.state, confirm: true, round: 1 });
+    B.ev({ type: 'rate', k: due(B)[0], r: 2 }); adv(5e3); await B.sync(); e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: Pm.plan, state: r1.state, confirm: true, round: 1 }) } catch (x) { e = x.message }
+    T('مزامنة بين دفعتين: الدفعة التالية مرفوضة «stale-state»', r1.more && / 409 /.test(e) && /stale-state/.test(e), [r1.more, e.slice(0, 50)]);
+    const P0 = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' });   // معاينة جديدة على الحالة الحالية، ثم التنفيذ كاملًا
+    const LOGR = []; const run = async (PP, tag) => { let round = 1, calls = 0, st = PP.state; for (;;) { calls++; const r = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: PP.plan, state: st, confirm: true, round }); LOGR.push([tag, calls, r.more, (r.out || []).length]); st = r.state || st; if (r.more) continue; if (r.word && round < 3) { round++; continue } return calls } };
+    // ضغطتان معًا: الثانية ترى حالة غيّرتها الأولى → ترفض (لا تكرار)؛ ثم تشغيل ثالث بمعاينة جديدة
+    const two = await Promise.allSettled([run(P0, 'A'), run(P0, 'B')]); I('تسلسل الضغطتين', LOGR); const a1 = await srv(uid); const P3 = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' }); await run(P3); const a2 = await srv(uid);
+    T('ضغطتان معًا: واحدة تنفّذ، والأخرى ترفض «stale-state» عند أول تغيّر', two.filter(x => x.status === 'fulfilled').length === 1 && two.some(x => x.status === 'rejected' && /stale-state/.test(x.reason.message)), two.map(x => x.status));
     const pick = x => ({ xp: x.xp, reviews: x.reviews, words: x.words, stations: x.stations });
-    T('النتيجة الفعلية = المعاينة (الخبرة والمراجعات والكلمات والمحطات)', JSON.stringify(pick(a1)) === JSON.stringify(pick(P.after)), [pick(a1), pick(P.after)]);
+    T('النتيجة الفعلية = المعاينة (الخبرة والمراجعات والكلمات والمحطات)', JSON.stringify(pick(a1)) === JSON.stringify(pick(P0.after)), [pick(a1), pick(P0.after)]);
     T('ضغطتان معًا ثم تشغيل ثالث: لا شيء يُطبَّق مرتين', JSON.stringify(pick(a2)) === JSON.stringify(pick(a1)), [pick(a1), pick(a2)]);
     const P2 = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' }); T('معاينة بعد التنفيذ: لا شيء يتغيّر', JSON.stringify(P2.after) === JSON.stringify(P2.before), [P2.before, P2.after]);
     // مدخل جديد للجهاز بعد المعاينة: البصمة تتغيّر
     await send(uid, [{ type: 'rate', k: due(A)[0], r: 2, t: ctl.NOW - 40 * DAY, n: ctl.NOW - 40 * DAY, d: dev }], dev);
-    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P2.plan, confirm: true }) } catch (x) { e = x.message } T('حدث جديد للجهاز بعد المعاينة: «stale»، تُعاد المعاينة', / 409 /.test(e), e.slice(0, 50));
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P2.plan, state: P2.state, confirm: true }) } catch (x) { e = x.message } T('حدث جديد للجهاز بعد المعاينة: «stale»، تُعاد المعاينة', / 409 /.test(e) && /"stale"/.test(e), e.slice(0, 50));
     // سلامة الفهرس والأرشيف
     const D = sxDoc(uid); D.ai = ['sxi-gone-1']; await memfs.commit([{ path: `users/${uid}/data/sx`, data: { v: JSON.stringify(D) } }]);
     for (const [name, op] of [['المعاينة', { op: 'restore', uid, dev, mode: 'preview' }], ['اللوحة', { op: 'list', uid }]]) { e = ''; try { await post('/sxq', 'admin', op) } catch (x) { e = x.message } T('وثيقة فهرس مفقودة: ' + name + ' تتوقّف بخطأ واضح', / 500 /.test(e) && /sx index missing/.test(e), e.slice(0, 70)) }
