@@ -1998,7 +1998,7 @@ let EN={v:30,t:0},STN=[],STV=0,EVQ=[];   // الطاقة، والمحطات ال
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};sfLoad();
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};sfLoad();STBLK=false;STSTALE=!st(K("sok"))&&EVQ.length>0;
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
 // الحفظ المحلي: الأحداث التي لم تصل الخادم تُحفظ أولًا ويُتحقَّق أنها حُفظت فعلًا، ثم بقية المفاتيح مع التحقق أيضًا.
@@ -2007,13 +2007,20 @@ function loadState(){
 // وهذه الأخيرة لا تُحذف إلا إذا ثبت أن كل ما فيها إما وصل الخادم (علامة «srv» من آخر مزامنة) أو موجود في الأحداث المنتظرة.
 // STFAIL: عدد مرات الحفظ التي لم تُحفظ فيها الأحداث المنتظرة (تراكمي على الجهاز). STKF: عدد مرات فشل مفتاح آخر. LSZ: حجم ذاكرة الجهاز بالمحارف.
 let STFAIL=0,STKF=0,STWARN=false,LSZ=-1,LSZT=0;
+// STBLK: آخر حفظ للأحداث المنتظرة فشل، فلا يُقبل عمل جديد حتى ينجح حفظٌ أو مزامنة (فلا يتراكم عمل غير محفوظ).
+// STSTALE: الحالة المحفوظة قد تتأخّر عن الأحداث المحفوظة (فشل مفتاح بعد نجاح الأحداث): تُصحَّح بأول مزامنة
+let STBLK=false,STSTALE=false,STRESC=false,STBT=0;
 function stOk(k,v){try{localStorage.setItem(k,v);return localStorage.getItem(k)===v}catch(e){return false}}
 // علامة ما وصل الخادم: عدد عناصر السجلّ وسجلّ الإجابات في آخر حالة من الخادم، ووقت آخر عنصر في كلٍّ منهما
-function srvMark(){try{const l=LOG.length,q=QA.length;stOk(K("srv"),JSON.stringify({n:l,t:l?LOG[l-1][0]:0,q,qt:q?QA[q-1][0]:0}))}catch(e){}}
+// علامة الخادم تشمل بصمة محتوى (FNV-1a على كل عنصر بحقوله) لأول n عنصرًا من السجلّ وأول q من سجلّ الإجابات، لا العدد والوقت وحدهما:
+// أي اختلاف في المحتوى (كلمة، أو تقييم، أو علامة، أو وقت) يُبطل إذن الحذف
+function stHash(a,n){let h=2166136261>>>0;for(let i=0;i<n;i++){const s=JSON.stringify(a[i]);for(let j=0;j<s.length;j++){h^=s.charCodeAt(j);h=Math.imul(h,16777619)>>>0}h^=124;h=Math.imul(h,16777619)>>>0}return h.toString(36)}
+function srvMark(){try{const l=LOG.length,q=QA.length;stOk(K("srv"),JSON.stringify({n:l,t:l?LOG[l-1][0]:0,q,qt:q?QA[q-1][0]:0,h:stHash(LOG,l),hq:stHash(QA,q)}))}catch(e){}}
 function logSafe(){if(typeof isAdmin==="function"&&isAdmin())return false;   // المشرف لا يزامن، فسجلّه لا نسخة له في الخادم
   const m=jget(K("srv"),null);if(!m||typeof m.n!=="number")return false;
+  if(typeof m.h!=="string"||typeof m.hq!=="string")return false;   // علامة قديمة بلا بصمة: لا إذن
   const okL=LOG.length>=m.n&&(m.n?LOG[m.n-1][0]===m.t:true)&&LOG.length-m.n<=EVQ.length,okQ=QA.length>=m.q&&(m.q?QA[m.q-1][0]===m.qt:true)&&QA.length-m.q<=EVQ.length;
-  return okL&&okQ}
+  return okL&&okQ&&stHash(LOG,m.n)===m.h&&stHash(QA,m.q)===m.hq}
 function stFree(lv){try{const cur="muf_w_"+((COURSES[COURSE]||{}).file||""),ks=[];
   if(lv===2&&!logSafe())return 0;
   for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(lv===1?((/^muf_w_/.test(k)&&k!==cur)||k==="muf_shell"):(k===K("log")||k===K("qa")))ks.push(k)}
@@ -2024,15 +2031,27 @@ function lsSize(){try{let n=0;for(let i=0;i<localStorage.length;i++){const k=loc
 function lsNow(){const t=Date.now();if(LSZ<0||t-LSZT>36e5){const n=lsSize();LSZ=n<0?-1:Math.round(n/1e4)*1e4;LSZT=t}return LSZ}
 let STKW=false;
 function sfLoad(){const o=jget(K("sf"),{});STFAIL=+o.f||0;STKF=+o.k||0;STWARN=false;STKW=false;LSZ=-1}
+// لا عدم تطابق بين المحفوظ: إن تعذّر حفظ الأحداث المنتظرة لا يُكتب أي مفتاح آخر (فالتقدّم المحفوظ يطابق الأحداث المحفوظة دائمًا)،
+// ثم تُحاول مزامنة فورية تحفظ العمل في الخادم؛ وإن فشلت (لا اتصال) تُعاد الذاكرة إلى المحفوظ ويُبلَّغ المتعلّم أن آخر عمل لم يُحفظ.
+// علامة sok تُحذف قبل كتابة مفاتيح الحالة وتُكتب بعد نجاحها كلها؛ غيابها عند الفتح = الحالة قد تتأخّر عن الأحداث المحفوظة
 const save=()=>{if(!UID)return;
   const okE=saveEvq();
-  if(!okE){STFAIL++;if(!STWARN){STWARN=true;toast("⚠️","ذاكرة الهاتف ممتلئة","لا تغلق التطبيق قبل أن يُحفظ تقدّمك في حسابك");try{repErr("local storage full: evq not saved","","save")}catch(e){}}if(EVQ.length)schedSync(1000)}
-  else if(STWARN&&!EVQ.length)STWARN=false;
+  if(!okE){STFAIL++;STBLK=true;if(!STWARN){STWARN=true;try{repErr("local storage full: evq not saved","","save")}catch(e){}}
+    stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}));stRescue();return}
+  STBLK=false;if(STWARN&&!EVQ.length)STWARN=false;
+  try{localStorage.removeItem(K("sok"))}catch(e){}
   const kv=[["progress",P],["energy",EN],["stations",STN],["stv",String(STV||0)],["reset",R],["settings",S],["ck",CK],["qlog",QLOG],["buy",BUY],["equip",E],["league",LG],["log",LOG],["qa",QA]],bad=[];
   for(const [k,v] of kv){const t=typeof v==="string"?v:JSON.stringify(v);if(!stOk(K(k),t))bad.push([k,t])}
   if(bad.length&&stFree(1))for(let i=bad.length-1;i>=0;i--)if(stOk(K(bad[i][0]),bad[i][1]))bad.splice(i,1);
   if(bad.length){STKF++;if(okE&&EVQ.length)schedSync(1000);if(!STKW){STKW=true;try{repErr("local storage full: "+bad.map(x=>x[0]).join(","),"","save")}catch(e){}}}
-  if(!okE||bad.length)stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}))};
+  if(bad.length)stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}));
+  else{stOk(K("sok"),"1");STSTALE=false}};
+// الإنقاذ بعد فشل حفظ الأحداث: مزامنة فورية؛ فإن لم تنجح (أو حساب المشرف الذي لا يزامن) تعود الذاكرة إلى المحفوظ
+async function stRescue(){if(STRESC)return;STRESC=true;let ok=false;
+  try{if(!(typeof isAdmin==="function"&&isAdmin()))ok=await syncNow(true)&&!EVQ.length}catch(e){ok=false}
+  if(!ok&&STBLK){const f=STFAIL,k=STKF,w=STWARN;loadState();STFAIL=Math.max(STFAIL,f);STKF=Math.max(STKF,k);STWARN=w;EC=null;try{econ();renderHeader();refresh()}catch(e){}   // العدّادات لا تُفقد بإعادة القراءة
+    STBT=Date.now();toast("⚠️","لم يُحفظ آخر ما فعلته","ذاكرة الهاتف ممتلئة ولا اتصال بالإنترنت. اتصل بالإنترنت أو أفرغ مساحة، ثم تابع")}   // يظهر دائمًا عند الإعادة (أهمّ من تنبيه الرفض)
+  STRESC=false}
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
@@ -3938,6 +3957,8 @@ const uref=()=>db.collection("users").doc(UID);
 const API="https://mufradati-api.afunogrv.workers.dev";
 // حدث جديد: يُطبَّق فورًا للعرض، ويُرسل إلى الخادم الذي يتحقّق منه ويحفظه
 function ev(e){
+  // ما دام إنقاذ الحفظ جاريًا لا يُقبل عمل جديد؛ وبعده يُحاول كل عمل الحفظ من جديد (فإن فشل يُعاد إلى المحفوظ ولا يبقى غير محفوظ)
+  if(STRESC){if(Date.now()-STBT>8000){STBT=Date.now();toast("⚠️","لا يُسجَّل شيء الآن","ذاكرة الهاتف ممتلئة ولم يُحفظ تقدّمك بعد. اتصل بالإنترنت أو أفرغ مساحة")}return "full"}
   syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
   EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);
@@ -4543,6 +4564,7 @@ function showPending(user){
 async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
   UID=user.uid;loadState();GIFTS=jget(K("gifts"),[]);
+  if(STSTALE)setTimeout(()=>{toast("⏳","تُحدَّث أرقامك","آخر ما فعلته محفوظ، ويظهر كاملًا بعد الاتصال بالإنترنت");schedSync(0)},1500);   // الحالة المحفوظة متأخّرة عن الأحداث المحفوظة
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
   watchCfg();applyOffMode();
   await loadCourses();MY_COURSES=await myCourses();
