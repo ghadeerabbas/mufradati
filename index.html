@@ -1933,7 +1933,7 @@ try{var SHL=JSON.parse(localStorage.getItem("muf_shell")||"null");
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="core.js?v=f02599b3d0"></script>
+<script src="core.js?v=bf8c16bc57"></script>
 <script>
 // الوضع الليلي إعداد للجهاز نفسه: يبقى بعد تسجيل الخروج ومع أي حساب، ويُطبَّق قبل الدخول
 const DEV_DARK=()=>{try{return localStorage.getItem("muf_dark")}catch(e){return null}};
@@ -1998,11 +1998,63 @@ let EN={v:30,t:0},STN=[],STV=0,EVQ=[];   // الطاقة، والمحطات ال
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};sfLoad();STBLK=false;STSTALE=st(K("sok"))!==sokSig(st(K("evq"))||"[]");{const x=jget(K("late"),{});LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}SEQ=0;ANC=null;
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
-const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));st(K("ck"),JSON.stringify(CK));
-  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG));st(K("energy"),JSON.stringify(EN));st(K("stations"),JSON.stringify(STN));st(K("stv"),String(STV||0));st(K("evq"),JSON.stringify(EVQ))};
+// الحفظ المحلي: الأحداث التي لم تصل الخادم تُحفظ أولًا ويُتحقَّق أنها حُفظت فعلًا، ثم بقية المفاتيح مع التحقق أيضًا.
+// كل ما سوى الأحداث المنتظرة نسخةٌ من حالة الخادم مضافًا إليها أثر تلك الأحداث، فيعود كاملًا مع أول مزامنة.
+// إن امتلأت ذاكرة الهاتف نُفرّغ ما يُنزَّل من جديد (نسخ المناهج غير الحالية والواجهة المحفوظة)، ثم نسخة السجلّ وسجلّ الإجابات المحلية،
+// وهذه الأخيرة لا تُحذف إلا إذا ثبت أن كل ما فيها إما وصل الخادم (علامة «srv» من آخر مزامنة) أو موجود في الأحداث المنتظرة.
+// STFAIL: عدد مرات الحفظ التي لم تُحفظ فيها الأحداث المنتظرة (تراكمي على الجهاز). STKF: عدد مرات فشل مفتاح آخر. LSZ: حجم ذاكرة الجهاز بالمحارف.
+let STFAIL=0,STKF=0,STWARN=false,LSZ=-1,LSZT=0;
+// STBLK: آخر حفظ للأحداث المنتظرة فشل، فلا يُقبل عمل جديد حتى ينجح حفظٌ أو مزامنة (فلا يتراكم عمل غير محفوظ).
+// STSTALE: علامة sok غائبة عند الفتح أو لا تطابق قائمة الأحداث المحفوظة، فمفاتيح الحالة قد لا تتطابق فيما بينها أو مع الأحداث المحفوظة (إغلاق مفاجئ أثناء الحفظ، أو فشل مفتاح):
+// تُصحَّح بأول مزامنة (تُطلب فورًا دائمًا)، والتنبيه يظهر فقط إن كانت هناك أحداث منتظرة
+let STBLK=false,STSTALE=false,STRESC=false,STBT=0;
+function stOk(k,v){try{localStorage.setItem(k,v);return localStorage.getItem(k)===v}catch(e){return false}}
+// علامة ما وصل الخادم: عدد عناصر السجلّ وسجلّ الإجابات في آخر حالة من الخادم، ووقت آخر عنصر في كلٍّ منهما
+// علامة الخادم تشمل بصمة محتوى (FNV-1a على كل عنصر بحقوله) لأول n عنصرًا من السجلّ وأول q من سجلّ الإجابات، لا العدد والوقت وحدهما:
+// أي اختلاف في المحتوى (كلمة، أو تقييم، أو علامة، أو وقت) يُبطل إذن الحذف
+function stHash(a,n){let h=2166136261>>>0;for(let i=0;i<n;i++){const s=JSON.stringify(a[i]);for(let j=0;j<s.length;j++){h^=s.charCodeAt(j);h=Math.imul(h,16777619)>>>0}h^=124;h=Math.imul(h,16777619)>>>0}return h.toString(36)}
+function srvMark(){try{const l=LOG.length,q=QA.length;stOk(K("srv"),JSON.stringify({n:l,t:l?LOG[l-1][0]:0,q,qt:q?QA[q-1][0]:0,h:stHash(LOG,l),hq:stHash(QA,q)}))}catch(e){}}
+function logSafe(){if(typeof isAdmin==="function"&&isAdmin())return false;   // المشرف لا يزامن، فسجلّه لا نسخة له في الخادم
+  const m=jget(K("srv"),null);if(!m||typeof m.n!=="number")return false;
+  if(typeof m.h!=="string"||typeof m.hq!=="string")return false;   // علامة قديمة بلا بصمة: لا إذن
+  const okL=LOG.length>=m.n&&(m.n?LOG[m.n-1][0]===m.t:true)&&LOG.length-m.n<=EVQ.length,okQ=QA.length>=m.q&&(m.q?QA[m.q-1][0]===m.qt:true)&&QA.length-m.q<=EVQ.length;
+  return okL&&okQ&&stHash(LOG,m.n)===m.h&&stHash(QA,m.q)===m.hq}
+function stFree(lv){try{const cur="muf_w_"+((COURSES[COURSE]||{}).file||""),ks=[];
+  if(lv===2&&!logSafe())return 0;
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(lv===1?((/^muf_w_/.test(k)&&k!==cur)||k==="muf_shell"):(k===K("log")||k===K("qa")))ks.push(k)}
+  ks.forEach(k=>localStorage.removeItem(k));return ks.length}catch(e){return 0}}
+function saveEvq(){const v=JSON.stringify(EVQ);if(stOk(K("evq"),v))return v;for(const lv of [1,2]){if(stFree(lv)&&stOk(K("evq"),v))return v}return null}
+// علامة sok تحمل بصمة قائمة الأحداث المحفوظة التي كُتبت الحالة لأجلها: إغلاقٌ بعد حفظ قائمة جديدة وقبل تحديث العلامة يجعلها لا تطابق، فتُعلَّم الحالة
+function sokSig(v){let h=2166136261>>>0;for(let i=0;i<v.length;i++){h^=v.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return v.length+":"+h.toString(36)}
+function lsSize(){try{let n=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);n+=k.length+(localStorage.getItem(k)||"").length}return n}catch(e){return -1}}
+// للملخّص: الحجم يُقاس كل ساعة على الأكثر ويُقرَّب إلى 10 آلاف محرف، فلا يتغيّر الملخّص (ولا يُكتب من جديد) لتغيّر صغير
+function lsNow(){const t=Date.now();if(LSZ<0||t-LSZT>36e5){const n=lsSize();LSZ=n<0?-1:Math.round(n/1e4)*1e4;LSZT=t}return LSZ}
+let STKW=false;
+function sfLoad(){const o=jget(K("sf"),{});STFAIL=+o.f||0;STKF=+o.k||0;STWARN=false;STKW=false;LSZ=-1}
+// لا عدم تطابق بين المحفوظ: إن تعذّر حفظ الأحداث المنتظرة لا يُكتب أي مفتاح آخر (فالتقدّم المحفوظ يطابق الأحداث المحفوظة دائمًا)،
+// ثم تُحاول مزامنة فورية تحفظ العمل في الخادم؛ وإن فشلت (لا اتصال) تُعاد الذاكرة إلى المحفوظ ويُبلَّغ المتعلّم أن آخر عمل لم يُحفظ.
+// علامة sok تُحذف قبل كتابة مفاتيح الحالة وتُكتب بعد نجاحها كلها؛ غيابها عند الفتح = الحالة قد تتأخّر عن الأحداث المحفوظة
+const save=()=>{if(!UID)return;
+  const okE=saveEvq();
+  if(okE===null){STFAIL++;STBLK=true;if(!STWARN){STWARN=true;try{repErr("local storage full: evq not saved","","save")}catch(e){}}
+    stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}));stRescue();return}
+  STBLK=false;if(STWARN&&!EVQ.length)STWARN=false;
+  try{localStorage.removeItem(K("sok"))}catch(e){}
+  const kv=[["progress",P],["energy",EN],["stations",STN],["stv",String(STV||0)],["reset",R],["settings",S],["ck",CK],["qlog",QLOG],["buy",BUY],["equip",E],["league",LG],["log",LOG],["qa",QA],["late",{L:LATE,F:LATEF}]],bad=[];
+  for(const [k,v] of kv){const t=typeof v==="string"?v:JSON.stringify(v);if(!stOk(K(k),t))bad.push([k,t])}
+  if(bad.length&&stFree(1))for(let i=bad.length-1;i>=0;i--)if(stOk(K(bad[i][0]),bad[i][1]))bad.splice(i,1);
+  if(bad.length){STKF++;if(okE&&EVQ.length)schedSync(1000);if(!STKW){STKW=true;try{repErr("local storage full: "+bad.map(x=>x[0]).join(","),"","save")}catch(e){}}}
+  if(bad.length)stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}));
+  else{stOk(K("sok"),sokSig(okE));STSTALE=false}};
+// الإنقاذ بعد فشل حفظ الأحداث: مزامنة فورية؛ فإن لم تنجح (أو حساب المشرف الذي لا يزامن) تعود الذاكرة إلى المحفوظ
+async function stRescue(){if(STRESC)return;STRESC=true;let ok=false;
+  try{if(!(typeof isAdmin==="function"&&isAdmin()))ok=await syncNow(true)&&!evqN()}catch(e){ok=false}   // المحجوز لكبر حجمه (hold) لا يُعدّ
+  if(!ok&&STBLK){const f=STFAIL,k=STKF,w=STWARN;loadState();STFAIL=Math.max(STFAIL,f);STKF=Math.max(STKF,k);STWARN=w;EC=null;try{econ();renderHeader();refresh()}catch(e){}   // العدّادات لا تُفقد بإعادة القراءة
+    STBT=Date.now();toast("⚠️","لم يُحفظ آخر ما فعلته","ذاكرة الهاتف ممتلئة ولا اتصال بالإنترنت. اتصل بالإنترنت أو أفرغ مساحة، ثم تابع")}   // يظهر دائمًا عند الإعادة (أهمّ من تنبيه الرفض)
+  STRESC=false}
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
@@ -2043,8 +2095,8 @@ let OTHERC={},ORPH=[];
 async function loadOtherWords(){
   const o={};
   for(const c of MY_COURSES){if(c===COURSE||!COURSES[c])continue;const f=COURSES[c].file,ck="muf_w_"+f;
-    let t=st(ck);if(!t){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
-    try{const d=JSON.parse(t||"{}");o[c]=uniq((d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
+    let t=st(ck),d=t?wordsOk(t):null;if(!d){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();d=wordsOk(t);if(d)st(ck,t)}}catch(e){}}
+    if(d)o[c]=uniq(d.words.map(w=>({...w,k:key(w),oc:c})))}
   OTHERC=o;
   // كلمات تعلّمها من منهجٍ لم يعد من مناهجه: تبقى في قائمته ومراجعاته
   const known=new Set([...W,...Object.values(OTHERC).flat()].map(w=>w.k));
@@ -2072,14 +2124,19 @@ async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
   await loadWords(c);loadOtherWords();renderCourseSel();econ();renderHeader();refresh();if(!silent)toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
 }
+// ملف المنهج: يُقبل ويُحفظ فقط إن كان JSON سليمًا وبنيته صحيحة (قائمة كلمات، لكل كلمة نص ألماني ومعنى عربي، والأيام قائمة إن وُجدت)
+function wordsOk(t){let d;try{d=JSON.parse(t)}catch(e){return null}
+  if(!d||typeof d!=="object"||Array.isArray(d)||!Array.isArray(d.words))return null;if(d.days!==undefined&&!Array.isArray(d.days))return null;
+  for(const w of d.words)if(!w||typeof w!=="object"||typeof w.de!=="string"||!w.de.trim()||typeof w.ar!=="string")return null;
+  return d}
 async function loadWords(c){
   COURSE=c;const f=COURSES[c].file,ck="muf_w_"+f;
   const net=fetch(DP+f,{cache:"no-cache"}).then(r=>r.ok?r.text():null).catch(()=>null);
-  let txt=st(ck);
-  if(txt){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){st(ck,t);applyWords(JSON.parse(t));if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
-  else{txt=await net;if(txt)st(ck,txt)}
-  let d={days:[],words:[]};try{if(txt)d=JSON.parse(txt)}catch(e){}
-  applyWords(d);
+  let txt=st(ck),d=txt?wordsOk(txt):null;
+  if(txt&&!d){try{localStorage.removeItem(ck)}catch(e){}txt=null}   // نسخة محفوظة تالفة: تُحذف ويُنتظر الملف من الشبكة
+  if(d){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){const n=wordsOk(t);if(!n)return;st(ck,t);applyWords(n);if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
+  else{txt=await net;d=txt?wordsOk(txt):null;if(d)st(ck,txt)}   // لا يُحفظ ملف تالف أو ناقص أو بغير البنية المتوقعة
+  applyWords(d||{days:[],words:[]});
 }
 function applyWords(d){
   DAYS=d.days||[];const seen={};
@@ -2504,7 +2561,7 @@ function lessonPop(o){
 }
 /* ================= المحطة التدريبية: مطابقة كلمات المحطة ================= */
 const drillsToday=()=>drillsTodayAt(Date.now());
-const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));SRSU=!!(UID&&!isAdmin()&&CFG.srs&&(CFG.srs.u||[]).includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
+const syncFree=()=>{FREEU=!!(UID&&CFG.free&&CFG.free.includes(UID));SXU=!!(UID&&CFG.sx&&(CFG.sx.on||(CFG.sx.u||[]).includes(UID)));SRSU=!!(UID&&!isAdmin()&&CFG.srs&&(CFG.srs.u||[]).includes(UID));STMAXU=UID&&CFG.stn?+CFG.stn[UID]||0:0};
 // مدة بالعربية: 15 دقيقة، ساعة، ساعتان و30 دقيقة…
 function durAr(m){m=Math.round(m);const h=Math.floor(m/60),mm=m%60;
   const hs=h===0?"":h===1?"ساعة":h===2?"ساعتان":h<=10?h+" ساعات":h+" ساعة",ms=mm===0?"":mm===1?"دقيقة":mm===2?"دقيقتان":mm<=10?mm+" دقائق":mm+" دقيقة";
@@ -2518,8 +2575,8 @@ let EXTRAW=[];
 async function loadAllCourseWords(){
   const have=new Set([COURSE,...Object.keys(OTHERC)]),o=[];
   for(const c of Object.keys(COURSES)){if(have.has(c))continue;const f=COURSES[c].file,ck="muf_w_"+f;
-    let t=st(ck);if(!t){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
-    try{const d=JSON.parse(t||"{}");o.push(...(d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
+    let t=st(ck),d=t?wordsOk(t):null;if(!d){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();d=wordsOk(t);if(d)st(ck,t)}}catch(e){}}
+    if(d)o.push(...d.words.map(w=>({...w,k:key(w),oc:c})))}
   EXTRAW=uniq(o);
 }
 function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
@@ -2981,7 +3038,7 @@ async function resetProgress(){
   const v=(await uiPrompt("للتأكيد، اكتب اسم المستخدم الخاص بك: "+uname)||"").trim().toLowerCase();
   if(v!==uname.toLowerCase()){if(v)await uiAlert("اسم المستخدم غير مطابق. لم يُحذف شيء.");return}
   ev({type:"reset"});S.newCount=0;save();
-  if(!await syncNow()||EVQ.length)await uiAlert("حُذف التقدّم من هذا الجهاز، وسيُحذف من حسابك عند عودة الاتصال.");
+  if(!await syncNow()||evqN())await uiAlert("حُذف التقدّم من هذا الجهاز، وسيُحذف من حسابك عند عودة الاتصال.");
   econ();renderHeader();buildQueue();showCard();toast(I3("trash"),"تمّ تصفير التقدّم","بداية جديدة!");
 }
 function settingsHTML(){
@@ -3651,7 +3708,7 @@ async function fillLeague(){
   const fail=e=>{if(shown||!$("lgBox"))return;const b=$("lgBox");b.innerHTML=`<h3>🏆 الدوري</h3><div class="err" style="padding:12px">${e&&e.code==="permission-denied"?"الدوري غير مفعّل بعد: يجب تحديث قواعد الأمان في Firebase.":"تعذّر تحميل الدوري، تحقّق من الاتصال."}</div><button class="btn next" id="lgRetry" style="margin-top:8px">إعادة المحاولة</button>`;
     $("lgRetry").onclick=()=>{b.innerHTML=`<h3>🏆 الدوري</h3><div class="empty">جارٍ التحميل…</div>`;fillLeague()}};
   const missing=rows=>!rows.some(r=>r.id===UID)&&weekXP(weekStart(Date.now()))>0;   // كسب خبرة ولم يظهر بعد في الدوري
-  let needSync=EVQ.length||LG.w!==weekId(Date.now());
+  let needSync=evqN()||LG.w!==weekId(Date.now());
   try{const rows=await read();drawLeague(rows);shown=true;if(missing(rows))needSync=true}catch(e){if(!needSync){fail(e);return}}
   if(!needSync)return;
   // بعد الحفظ: يُقرأ الجدول من جديد (ومنه حالة من كسب خبرة ولم يظهر بعد)
@@ -3902,10 +3959,29 @@ function unpackQA(o){if(!o)return[];if(Array.isArray(o))return o;const L=[];let 
 const uref=()=>db.collection("users").doc(UID);
 const API="https://mufradati-api.afunogrv.workers.dev";
 // حدث جديد: يُطبَّق فورًا للعرض، ويُرسل إلى الخادم الذي يتحقّق منه ويحفظه
+// هوية الحدث للمزامنة الجديدة: معرّف هذا التثبيت (عشوائي، مشترك بين الحسابات) ورقم متزايد لكل حساب.
+// الرقم لا يقلّ أبدًا عمّا حُفظ، ولا عن أي حدث منتظر، ولا عن أعلى رقم أكّده الخادم لهذا الجهاز (dn)، ولا عن الوقت بالملّي ثانية
+let DEVID="",SEQ=0;
+// حدث رفض الخادم حفظه لكبر حجمه يبقى في قائمة الانتظار نفسها بعلامة hold: يُحفظ أولًا مثل كل حدث منتظر (فلا يضيع عند امتلاء الذاكرة)،
+// ولا يُرسل ولا يُعاد تطبيقه ولا يُعدّ «منتظرًا» (فلا يعطّل الحفظ ولا التحديث). evqN: عدد ما ينتظر الإرسال فعلًا
+const evqN=()=>{let n=0;for(const e of EVQ)if(!e.hold)n++;return n};
+// هوية الحدث: الجهاز، والرقم، والمرساة ومصدر عدّادها (ak: n عدّاد الهاتف، p عدّاد الصفحة)
+function evId(e){e.d=devId();e.n=nextSeq();const a=ancNow();if(a){e.a=a;e.ak=ANC.b[0]}return e}
+// المرساة الزمنية: عند كل مزامنة ناجحة يُحفظ وقت الخادم مع قراءة عدّاد رتيب. وقت الحدث = وقت الخادم + ما مضى على العدّاد،
+// فلا يتأثّر بتغيير ساعة الهاتف. العدّاد: في تطبيق أندرويد منذ تشغيل الهاتف (يبقى بعد إغلاق التطبيق، ويبطل بإعادة تشغيل الهاتف)،
+// وفي المتصفح عدّاد الصفحة (يبطل بإعادة تحميلها). بلا مرساة صالحة: لا يُرسل a، ويستعمل الخادم ساعة الهاتف t.
+const PAGEID=Math.random().toString(36).slice(2,10);let ANC=null;
+function monoNow(){try{const b=window.MufApp;if(b&&b.elapsed&&b.bootId){const id=String(b.bootId()||"");if(id)return {m:+b.elapsed(),b:"n"+id}}}catch(e){}return {m:performance.now(),b:"p"+PAGEID}}
+function ancSet(srv,rtt){const x=monoNow();ANC={s:Math.round(srv+rtt/2),m:x.m,b:x.b};st(K("anc"),JSON.stringify(ANC))}
+function ancNow(){if(!ANC)ANC=jget(K("anc"),null);const x=monoNow();return ANC&&ANC.b===x.b&&x.m>=ANC.m?Math.round(ANC.s+(x.m-ANC.m)):0}
+function devId(){if(DEVID)return DEVID;let d=st("muf_dev");if(!d||!/^[A-Za-z0-9_-]{4,40}$/.test(d)){d="w"+Date.now().toString(36)+Math.random().toString(36).slice(2,10);st("muf_dev",d)}return DEVID=d}
+function nextSeq(){SEQ=Math.max(SEQ,+st(K("seq"))||0,...EVQ.map(x=>+x.n||0),Date.now())+1;st(K("seq"),String(SEQ));return SEQ}
 function ev(e){
+  // ما دام إنقاذ الحفظ جاريًا لا يُقبل عمل جديد؛ وبعده يُحاول كل عمل الحفظ من جديد (فإن فشل يُعاد إلى المحفوظ ولا يبقى غير محفوظ)
+  if(STRESC){if(Date.now()-STBT>8000){STBT=Date.now();toast("⚠️","لا يُسجَّل شيء الآن","ذاكرة الهاتف ممتلئة ولم يُحفظ تقدّمك بعد. اتصل بالإنترنت أو أفرغ مساحة")}return "full"}
   syncFree();e.t=e.t||Date.now();const r=applyEv(e,e.t,{admin:isAdmin()});
   if(r!==true)return r;
-  EVQ.push(e);save();econ();markStudied();schedSync(EVQ.length>=100?1000:0);
+  evId(e);EVQ.push(e);save();econ();markStudied();schedSync(evqN()>=100?1000:0);
   if(e.type==="stDone"||e.type==="rate"||e.type==="quiz")setTimeout(questWatch,50);return true;
 }
 // حالة الحساب كما حفظها الخادم، ثم تُعاد عليها الأحداث التي لم تصل بعد
@@ -3915,9 +3991,11 @@ function applyServer(j){
   if(c.wiped&&c.wiped>(+st(K("wiped"))||0)){st(K("wiped"),String(c.wiped));EVQ=[];E=Object.assign({},DEF_E,{ts:Date.now()});S=Object.assign({},DEF_S,{ts:Date.now()});st(K("giftSeen"),"[]");PREFLAST="";applyLook()}
   P=c.P||{};QLOG=c.QLOG||[];BUY=c.BUY||[];R=Object.assign({bank:0,ach:[],lv:1,ts:0},c.R||{});
   LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;
-  LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));
+  LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));srvMark();
   if(j.ck!==undefined)CK=j.ck?JSON.parse(j.ck):null;   // نقطة حفظ السجل: تصل فقط حين تختلف
-  for(const e of EVQ)applyEv(e,e.t,{admin:isAdmin()});
+  if(j.late!==undefined){try{const x=JSON.parse(j.late)||{};LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}catch(e){}}   // المراجعات المتأخّرة (المزامنة الجديدة)
+  if(+j.dn>SEQ){SEQ=+j.dn;st(K("seq"),String(SEQ))}
+  for(const e of EVQ)if(!e.hold)applyEv(e,e.t,{admin:isAdmin()});   // المحجوز (hold) لم يقبله الخادم: لا يُعرض أثره
   let pr={};try{pr=JSON.parse(j.prefs||"{}")||{}}catch(e){}
   if(pr.E&&(pr.E.ts||0)>(E.ts||0))E=Object.assign({},DEF_E,pr.E);
   if(pr.S&&(pr.S.ts||0)>(S.ts||0)){S.dir=pr.S.dir||S.dir;S.ts=pr.S.ts}
@@ -3973,12 +4051,12 @@ function verBar(){let b=$("vbar");
   if(!VMIS){if(b)b.remove();return}
   if(!b){b=document.createElement("div");b.id="vbar";b.setAttribute("role","status");document.querySelector("header").appendChild(b)}   // داخل الترويسة: جزء من التخطيط يدفع المحتوى، لا يغطيه
   b.innerHTML=VMIS.tried?'يجري تحديث الخادم، والأرقام المعروضة منه':'يتوفر تحديث للتطبيق <button type="button" id="vbarGo">تحديث الآن</button>';
-  const g=$("vbarGo");if(g)g.onclick=async()=>{if(EVQ.length){await syncNow()}UPD=true;if(!reloadSafe()){toast(I3("warning"),"يُحدَّث بعد إنهاء الدرس","");return}doReload()}}
+  const g=$("vbarGo");if(g)g.onclick=async()=>{if(evqN()){await syncNow()}UPD=true;if(!reloadSafe()){toast(I3("warning"),"يُحدَّث بعد إنهاء الدرس","");return}doReload()}}
 // الأرقام المعروضة: من الخادم ما دام الاختلاف قائمًا (لا تغيّر أي حساب في الخادم)
 {const _econ=econ;econ=function(){const e=_econ.apply(this,arguments);const s=VMIS&&VMIS.sum;
   if(s){e.gems=s.gems;e.xp=s.xp;e.lv=s.lv;e.rest=s.rest;e.need=s.need;e.s={...e.s,streak:s.streak,today:s.today}}return e}}
 function reloadSafe(){
-  if(STS||DRL||GM||RES||(typeof DL!=="undefined"&&DL)||EVQ.length||syncing)return false;
+  if(STS||DRL||GM||RES||(typeof DL!=="undefined"&&DL)||evqN()||syncing)return false;
   if(document.querySelector(".uidlg,.bigfx")||$("fbModal").style.display==="flex")return false;
   const on=document.querySelector(".panel.on");if(on&&(on.id==="quiz"||on.id==="messages"||on.id==="reading"||on.id==="math"||on.id==="helper"))return false;
   return true}
@@ -3999,6 +4077,19 @@ function saveShell(){clearTimeout(SHT);SHT=setTimeout(()=>{try{
 const signOutAll=()=>{try{localStorage.removeItem("muf_shell")}catch(e){}return auth.signOut()};
 // مهلة لأي انتظار: تُرجع البديل إن طال، ولا تُلغي العملية نفسها
 const tmo=(p,ms,v)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(v),ms))]);
+// يعيد سبب الرفض، أو "" إن كان الردّ سليمًا. الخادم القديم (بلا sxv) لا يعيد حالات فلا تُطلب منه
+const SX_ST=new Set(["ok","late","dup","q","big","wiped","bad","rej"]);
+function syncChk(j,n){
+  if(!j||typeof j!=="object"||Array.isArray(j))return "body";
+  const js=(v,opt)=>{if(v===undefined||v===null)return !!opt;if(typeof v!=="string")return false;try{JSON.parse(v);return true}catch(e){return false}};
+  const obj=v=>v&&typeof v==="object"&&!Array.isArray(v);
+  let c=j.core;if(typeof c==="string"){try{c=JSON.parse(c)}catch(e){return "core"}}if(!obj(c))return "core";
+  if(!js(j.log,1))return "log";if(!js(j.qa,1))return "qa";if(j.ck!==undefined&&j.ck!==""&&!js(j.ck,1))return "ck";if(j.late!==undefined&&!js(j.late))return "late";
+  if(j.prefs!==undefined&&typeof j.prefs!=="string")return "prefs";
+  for(const k of["dn","now"])if(j[k]!==undefined&&!(Number.isSafeInteger(+j[k])&&+j[k]>=0&&typeof j[k]==="number"))return k;
+  if(j.sxv!==undefined){if(!Array.isArray(j.st)||j.st.length!==n)return "st-len";if(!j.st.every(x=>SX_ST.has(x)))return "st-val"}
+  return "";
+}
 async function syncNow(manual){
   if(!UID||isAdmin())return !!UID;
   if(syncing){await new Promise(r=>{const w=()=>syncing?setTimeout(w,200):r();w()});return !syncErr}
@@ -4007,13 +4098,21 @@ async function syncNow(manual){
     // الملخّص والاسم والتفضيلات يكتبها التطبيق، والتقدّم يكتبه الخادم وحده
     const prefs=JSON.stringify({E,S:{dir:S.dir,ts:S.ts}}),sum=summary(),key=prefs+JSON.stringify({...sum,at:0,ms:0})+UNAME;
     if(key!==PREFLAST){if(await tmo(uref().set({sum,name:UNAME,prefs,updated:firebase.firestore.FieldValue.serverTimestamp()},{merge:true}),15000,"slow")!=="slow")PREFLAST=key}   // كتابة بطيئة لا توقف الحفظ: تكمل وحدها، وتُعاد في المرة القادمة
-    const sent=EVQ.slice(0,300),tok=await auth.currentUser.getIdToken();VSIG=viewSig();
+    const sent=EVQ.filter(e=>!e.hold).slice(0,300),tok=await auth.currentUser.getIdToken();VSIG=viewSig();
     const ac=new AbortController(),to=setTimeout(()=>ac.abort(),30000);   // في سفاري قد يعلق الطلب بلا جواب بعد مغادرة الصفحة والعودة: يُلغى بعد 30 ث ويُعاد لاحقًا
-    let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0,cv:CORE_V})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
+    const t1=performance.now();let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0,cv:CORE_V,dev:devId(),ct:Date.now()})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
+    // فحص الردّ كاملًا قبل أي تغيير: ردّ ناقص أو مشوّه لا يغيّر شيئًا (لا حالة ولا حذف من قائمة الانتظار)، ويُبلَّغ، ويُعاد الإرسال لاحقًا
+    {const bad=syncChk(j,sent.length);if(bad){try{repErr("sync: bad reply ("+bad+")","","sync")}catch(e){}throw {code:"server",message:"bad reply"}}}
     FSC.r-=stSent.r;FSC.w-=stSent.w;
-    EVQ=EVQ.slice(sent.length);applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ
+    if(+j.now>0)ancSet(+j.now,performance.now()-t1);
+    // حدث رفض الخادم حفظه لكبر حجمه («big»): يبقى في قائمة الانتظار بعلامة hold (انظر evqN)، ويُبلَّغ المشرف
+    // الإقرار: ردّ من الخادم الجديد (sxv) يُحذف به ما أُرسل فقط إن جاءت حالة لكل حدث؛ وردّ بلا sxv هو الخادم القديم (يحذف ما أُرسل كما كان)
+    const full=true;   // ردّ الخادم الجديد فُحص أعلاه: حالة صالحة لكل حدث مرسل
+    if(full&&Array.isArray(j.st)&&j.st.includes("big")){let h=0;sent.forEach((x,i)=>{if(j.st[i]==="big"){x.hold=1;h++}});try{repErr("sync: event too big ("+h+")","","sync")}catch(e){}}
+    // الإقرار: تُحذف من الهاتف الأحداث المرسلة فقط، وفقط إن أعاد الخادم حالة لكل واحد منها (أو كان الخادم القديم الذي لا يعيد حالات)
+    if(full){const S=new Set(sent.filter(x=>!x.hold));EVQ=EVQ.filter(x=>!S.has(x))}applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ
     lastSync=Date.now();syncErr="";ok=true;syncFails=0;setCloud();
     applyLook();econ();renderHeader();renderEnergy();
     if(manual){buildQueue();showCard()}
@@ -4021,10 +4120,10 @@ async function syncNow(manual){
     if(on&&on.id!=="review"&&!GM&&viewSig()!==VSIG){const y=scrollY;renderPanel(on.id);requestAnimationFrame(()=>scrollTo(0,y))}
     // صفحة المسار نفسها (لا محطة ولا مراجعة جارية): تُرسم من جديد إن غيّر الخادم شيئًا، فلا تبقى حالة التحدي أو المحطات قديمة
     else if(on&&on.id==="review"&&!GM&&viewSig()!==VSIG)refreshHome();
-    if(EVQ.length)schedSync(1000);
+    if(evqN())schedSync(1000);
   }catch(e){syncErr=e.code==="permission-denied"||e.code==="inactive"?"لا صلاحية":e.code==="auth"?"أعد تسجيل الدخول":e.code==="server"?"خطأ في الخادم، سيُحفظ لاحقًا":"لا يوجد اتصال، سيُحفظ لاحقًا";setCloud();
     // إعادة المحاولة تلقائيًا بفواصل تطول: 5 ث، 15، 30، دقيقة، ثم كل دقيقتين (إلا إن كان الخطأ صلاحية أو دخولًا)
-    if(e.code!=="inactive"&&e.code!=="auth"&&e.code!=="permission-denied"&&EVQ.length){const d=[5,15,30,60,120][Math.min(syncFails,4)];syncFails++;schedSync(d*1000)}}
+    if(e.code!=="inactive"&&e.code!=="auth"&&e.code!=="permission-denied"&&evqN()){const d=[5,15,30,60,120][Math.min(syncFails,4)];syncFails++;schedSync(d*1000)}}
   syncing=false;if(ok&&VMIS&&!VMIS.tried&&UPD)tryReload();   // بعد انتهاء المزامنة: الآن يمكن إعادة التحميل إن كانت مطلوبة
   return ok;
 }
@@ -4508,6 +4607,7 @@ function showPending(user){
 async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
   UID=user.uid;loadState();GIFTS=jget(K("gifts"),[]);
+  if(STSTALE)setTimeout(()=>{if(EVQ.length)toast("⏳","تُحدَّث أرقامك","آخر ما فعلته محفوظ، ويظهر كاملًا بعد الاتصال بالإنترنت");schedSync(0)},1500);   // الحالة المحفوظة متأخّرة عن الأحداث المحفوظة
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
   watchCfg();applyOffMode();
   await loadCourses();MY_COURSES=await myCourses();
@@ -4666,7 +4766,7 @@ function summary(){
   return {login:loginName(),course:COURSE,last:LOG.length?LOG[LOG.length-1][0]:0,first:LOG.length?LOG[0][0]:0,days:days.length,
     total:e.s.reviews,acc:LOG.length?Math.round(ok/LOG.length*100):0,started:u.filter(w=>P[w.k]).length,
     mem:u.filter(w=>P[w.k]&&P[w.k].box>=4).length,words:u.length,streak:e.s.streak,best:e.s.best,sd:e.s.today?today():"",
-    lv:e.lv,gems:e.gems,fz:e.s.freezes,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier};
+    lv:e.lv,gems:e.gems,fz:e.s.freezes,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier,ls:lsNow(),sf:STFAIL,sk:STKF};
 }
 
 /* ================= تقارير المستخدمين (للمدير) ================= */
@@ -4864,7 +4964,7 @@ function renderUser(){
    <div class="kpi ${sm.acc<70?"r":"g"}"><b>${sm.acc}%</b><span>صواب المراجعة</span></div>
    <div class="kpi o"><b>${sm.total}</b><span>مجموع المراجعات</span></div>
    <div class="kpi"><b>${sm.days}</b><span>يومًا درس فيها</span></div>
-   <div class="kpi"><b>${sm.quizzes}</b><span>اختبار (صواب ${sm.qacc}%)</span></div>
+   <div class="kpi"><b>${sm.quizzes}</b><span>اختبار (صواب ${sm.qacc}%)</span></div>${sm.ls!=null&&sm.ls>=0?`<div class="kpi"><b>${(sm.ls/1e6).toFixed(2)}</b><span>مليون محرف في ذاكرة الجهاز${sm.sf?` · ⚠️ ${sm.sf} مرة لم تُحفظ الأحداث المنتظرة`:""}${sm.sk?` · ${sm.sk} مرة لم يُحفظ مفتاح آخر`:""}</span></div>`:""}
    <div class="kpi"><b>${sm.lv}</b><span>المستوى · ${sm.ach} إنجاز</span></div>
    <div class="kpi"><b>💎 ${sm.gems}</b><span>جواهر</span></div>
   </div>
@@ -5226,6 +5326,24 @@ async function renderSafe(){
    <div class="rsec"><h3>⚠️ الأخطاء</h3><p class="rnote">كل خطأ يحدث في التطبيق عند أي مستخدم، أو في الخادم، يظهر هنا مع عدد مرّاته وآخر وقت. اضغط على الخطأ لترى تفاصيله.</p>
     ${ERRS.length?`<div class="erbtns"><button class="btn" id="erCpAll">📋 نسخ كل الأخطاء</button><button class="btn" id="erAll">${I3("trash")} حذف كل الأخطاء</button></div>`+ERRS.map((x,i)=>`<div class="errwrap"><details class="errrow"><summary><b>${esc(x.msg)}</b><small>${x.src==="server"?"الخادم":"التطبيق"} · ${x.n} مرّة · آخرها ${fmt(x.last)} · ${x.users.length} مستخدم</small></summary>
       <pre>${esc(errTxt(x,1))}</pre><button class="btn erDel" data-id="${x.id}">${I3("trash")} حذف</button></details><button type="button" class="ercp" data-i="${i}" aria-label="نسخ الخطأ">📋</button></div>`).join(""):'<div class="empty">لا أخطاء 👍</div>'}</div>`;
+  el.insertAdjacentHTML("beforeend",`<div class="rsec"><h3>🧳 الحجر (المزامنة الجديدة)</h3><p class="rnote">الأحداث التي لم يقبلها الخادم لا تُحذف: تُحفظ هنا مع سببها، والأقدم في وثائق أرشيف. «إعادة التطبيق» تمرّ بالقواعد نفسها (لا مكافأة مرتين: المراجعة لكلمة لها مراجعة في وقتها أو بعده تُحسب نشاطًا فقط، والتمرين الموجود يُرفض)، ولا يُعاد الحدث نفسه مرتين أبدًا.</p>
+    <button class="btn" id="qzLoad" style="width:100%">عرض الحسابات التي لها حجر</button><div class="stmsg" id="qzMsg"></div><div id="qzOut"></div></div>`);
+  const QZW={old:"أقدم من مدّة القبول",time:"وقت غير مقبول",word:"كلمة غير معروفة",energy:"طاقة غير كافية",dup:"مكرّر",dupc:"مكرّر بمحتواه",cap:"تجاوز حدّ اليوم",none:"لا محطة مفتوحة",drill:"التدريب مطلوب",max:"حدّ المحطات",lreset:"تصفير متأخّر",type:"نوع غير معروف",bad:"بيانات تالفة",notyet:"غير مستحق",off:"معطّل",full:"الطاقة ممتلئة"};
+  const qzMsg=(t,c)=>{const m=$("qzMsg");if(m){m.textContent=t;m.className="stmsg "+(c||"")}};
+  const qzRows=(uid,rows)=>rows.map(r=>`<div class="bkrow"><div><b>${esc(r.type||"")}${r.kind?" · "+esc(r.kind):""}${r.k?" · "+esc(r.k):""}</b><small>${esc(QZW[r.why]||r.why)} · وصل ${fmt(r.at)}${r.t?" · وقته "+fmt(r.t):""}</small>${r.ap?`<small>${r.ap.r==="ok"||r.ap.r==="late"?"✓ أُعيد تطبيقه":"✗ أُعيدت المحاولة"}: ${esc(r.ap.r)} · ${fmt(r.ap.ap)}</small>`:""}</div>${r.ap&&(r.ap.r==="ok"||r.ap.r==="late"||r.ap.r==="applied")?"":`<button class="btn qzAp" data-u="${esc(uid)}" data-q="${esc(r.qid||"")}">إعادة التطبيق</button>`}</div>`).join("");
+  $("qzLoad").onclick=async()=>{qzMsg("جارٍ التحميل…");try{const j=await apiPost("/sxq",{op:"users"});qzMsg(j.users.length?"":"لا حجر عند أي حساب.","ok");
+    $("qzOut").innerHTML=j.users.map(u=>`<div class="bkrow"><div><b>${esc(u.name||u.uid)}</b><small>${u.open} مفتوح من ${u.qz} · ${u.an} أرشيف · ${u.ap} أُعيد تطبيقه · ${u.dev} جهاز</small></div><button class="btn qzU" data-u="${esc(u.uid)}">عرض</button></div><div id="qzU_${esc(u.uid)}"></div>`).join("")}
+    catch(err){qzMsg("تعذّر التحميل: "+(err.detail||err.error||""),"bad")}};
+  $("qzOut").onclick=async e=>{
+    const u=e.target.closest(".qzU"),ap=e.target.closest(".qzAp"),ar=e.target.closest(".qzA");
+    if(u){const box=$("qzU_"+u.dataset.u);box.innerHTML='<div class="empty">جارٍ التحميل…</div>';try{const j=await apiPost("/sxq",{op:"list",uid:u.dataset.u});
+      box.innerHTML=(j.qz.length?qzRows(u.dataset.u,j.qz):'<div class="empty">لا شيء في الحجر الحالي.</div>')+j.an.map(n=>`<button class="btn qzA" data-u="${esc(u.dataset.u)}" data-n="${esc(n)}" style="width:100%;margin-top:4px">أرشيف ${esc(n)}</button><div id="qzA_${esc(n)}"></div>`).join("")}catch(err){box.innerHTML='<div class="err">تعذّر التحميل.</div>'}}
+    if(ar){const box=$("qzA_"+ar.dataset.n);try{const j=await apiPost("/sxq",{op:"arch",uid:ar.dataset.u,name:ar.dataset.n});
+      box.innerHTML=j.big?`<pre>${esc(JSON.stringify(j.ev).slice(0,400))}…</pre>`:(j.qz.length?qzRows(ar.dataset.u,j.qz):'<div class="empty">لا أحداث محجورة في هذا الأرشيف'+(j.late?" ("+j.late+" مراجعة متأخّرة)":"")+'.</div>')}catch(err){box.innerHTML='<div class="err">تعذّر التحميل.</div>'}}
+    if(ap){if(!confirm("إعادة تطبيق هذا الحدث على حساب المتعلّم؟ يمرّ بالقواعد نفسها، ولا يُطبَّق مرتين."))return;ap.disabled=true;
+      try{const j=await apiPost("/sxq",{op:"apply",uid:ap.dataset.u,qid:ap.dataset.q});const ok=j.st==="ok"||j.st==="late";
+        toast(ok?"✓":"⚠️",ok?(j.st==="late"?"أُعيد: نشاط يوم فقط (للكلمة مراجعة أحدث)":"أُعيد تطبيقه"):"لم يُطبَّق",ok?"":(QZW[(j.rej&&j.rej[0]&&j.rej[0][1])]||(j.rej&&j.rej[0]&&j.rej[0][1])||""));
+        const b=document.querySelector(`.qzU[data-u="${CSS.escape(ap.dataset.u)}"]`);if(b)b.click()}catch(err){ap.disabled=false;toast("⚠️","تعذّرت إعادة التطبيق",err.detail||err.error||"")}}};
   const msg=(t,c)=>{const m=$("bkMsg");m.textContent=t;m.className="stmsg "+(c||"")};
   $("bkSnap").onclick=async e=>{e.target.disabled=true;$("bkOut").innerHTML="";msg("جارٍ أخذ اللقطة…");try{const j=await apiPost("/backup",{op:"snap"});
     $("bkOut").innerHTML=acctTable(j.accts,"الآن")+'<button class="btn" id="bkSnapDl" style="width:100%;margin-top:6px">تنزيل اللقطة ملفًّا</button>';msg("✓ لقطة "+fmt(j.at),"ok");
@@ -5891,9 +6009,9 @@ function init(){
   $("msgBtn").onclick=()=>{document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("messages").classList.add("on");renderPanel("messages");scrollTo(0,0)};
   $("hAv").onclick=()=>{if(isAdmin()){goTab("users");scrollTo(0,0);return}   // المشرف: لا ملف شخصي، بل لوحة الإشراف
     document.querySelectorAll("nav button,.panel").forEach(x=>x.classList.remove("on"));$("profile").classList.add("on");renderPanel("profile");scrollTo(0,0)};
-  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(EVQ.length||syncErr||Date.now()-lastSync>10*60e3))syncNow()});   // العودة بعد غياب طويل: مزامنة خفيفة تكشف أيضًا اختلاف النسخة
+  document.addEventListener("visibilitychange",()=>{if(document.hidden&&syncTimer)syncNow();else if(!document.hidden&&UID&&(evqN()||syncErr||Date.now()-lastSync>10*60e3))syncNow()});   // العودة بعد غياب طويل: مزامنة خفيفة تكشف أيضًا اختلاف النسخة
   // عاد الاتصال: نرسل ما تأخّر فورًا
-  addEventListener("online",()=>{if(UID&&(EVQ.length||syncErr)){syncFails=0;syncNow()}});
+  addEventListener("online",()=>{if(UID&&(evqN()||syncErr)){syncFails=0;syncNow()}});
 }
 
 /* ================= زر الرجوع في الهاتف ================= */
