@@ -21,13 +21,13 @@ const rate = (k, t, n, d, r = 2) => ({ type: 'rate', k, r, t, n, d });
 const C = {
   // فجوات في الأرقام (أحداث رفضها الهاتف نفسه): كلها تُقبل، وإعادتها كلها «وصلت سابقًا»
   async gaps() { const uid = 'gp', A = await learner(uid); const b = await srv(uid); const ks = due(A).slice(0, 6), dev = A.dev();
-    const evs = ks.map((k, i) => rate(k, ctl.NOW + i * 20e3, ctl.NOW * 10 + [0, 5, 17, 18, 400, 9999][i], dev)); adv(150e3);
+    const evs = ks.map((k, i) => rate(k, ctl.NOW + i * 20e3, (ctl.NOW + 2e9) + [0, 5, 17, 18, 400, 9999][i], dev)); adv(150e3);
     const j = await send(uid, evs, dev); T('أرقام بفجوات: الستة مقبولة', j.st.join() === 'ok,ok,ok,ok,ok,ok', j.st);
     const j2 = await send(uid, evs, dev); T('إعادتها: الستة «وصلت سابقًا»', j2.st.every(s => s === 'dup'), j2.st);
     const a = await srv(uid); T('المراجعات زادت 6 بالضبط', a.reviews - b.reviews === 6, a.reviews - b.reviews) },
 
   // ملاحظة ChatGPT 1: أكثر من 500 رقم، ثم يصل حدث برقم أصغر لم يصل من قبل (تبويبان، أو دفعة تأخّرت) → يُقبل ولا يُعدّ مكرّرًا
-  async order() { const uid = 'or', dev = 'devOrder1'; await user(uid); const A = app('new', uid); await A.sync(); const base = ctl.NOW * 10;
+  async order() { const uid = 'or', dev = 'devOrder1'; await user(uid); const A = app('new', uid); await A.sync(); const base = (ctl.NOW + 2e9);
     const evs = []; for (let i = 0; i < 600; i++) if (i !== 37) evs.push({ type: 'zz', t: ctl.NOW, n: base + i * 10, d: dev, i });
     let st = []; for (let i = 0; i < evs.length; i += 300) st.push(...(await send(uid, evs.slice(i, i + 300), dev)).st);
     T('599 حدثًا من نوع غير معروف: كلها في الحجر (لا حذف)', st.length === 599 && st.every(s => s === 'q'), [st.length, [...new Set(st)]]);
@@ -90,7 +90,7 @@ const C = {
 
   // ملاحظة ChatGPT 4: هدية الطاقة اليومية بأيام متداخلة
   // الجهاز الواحد لا يرجع قبل آخر حدث قُبل منه (فيصير «اليوم الأقدم» يومه الأخير ويُعدّ مكرّرًا)، لذلك التداخل الحقيقي بين أجهزة: جهاز مختلف لكل إرسال
-  async edayMix() { const uid = 'ed', A = await learner(uid); let n = ctl.NOW * 10, k = 0; const d0 = ctl.NOW;
+  async edayMix() { const uid = 'ed', A = await learner(uid); let n = (ctl.NOW + 2e9), k = 0; const d0 = ctl.NOW;
     const ev = d => ({ type: 'eday', t: d0 - d * DAY, n: ++n, d: 'edev' + (++k) });
     const st = []; for (const d of [0, 2, 0, 1, 2, 1, 0]) { const e = ev(d); st.push((await send(uid, [e], e.d)).st[0]); adv(1e3) }
     T('الأيام 0،2،0،1،2،1،0: تُقبل هدية كل يوم مرة واحدة فقط (الأولى من كل يوم)', st.join() === 'ok,ok,q,ok,q,q,q', st);
@@ -98,14 +98,14 @@ const C = {
 
   // ملاحظة ChatGPT 4: طاقة الإجابات المتتالية (combo) بأيام متداخلة لا تتجاوز حدّ اليوم (3)
   async comboMix() { const WHY = []; const uid = 'cm', A = await learner(uid); ctl.NOW += 3 * 36e5; await station(A); await station(A); await A.sync();
-    let n = ctl.NOW * 10; const d0 = ctl.NOW - 36e5; const ev = (d, i) => ({ type: 'combo', t: d0 - d * DAY + i * 15e3, n: ++n, d: 'cdev' + d });   // جهاز لكل يوم، والإرسال متداخل
+    let n = (ctl.NOW + 2e9); const d0 = ctl.NOW - 36e5; const ev = (d, i) => ({ type: 'combo', t: d0 - d * DAY + i * 15e3, n: ++n, d: 'cdev' + d });   // جهاز لكل يوم، والإرسال متداخل
     const st = []; for (const [d, i] of [[0, 0], [0, 1], [1, 0], [0, 2], [1, 1], [0, 3], [1, 2], [1, 3], [0, 4]]) { const e = ev(d, i); const j = await send(uid, [e], e.d); st.push(j.st[0]); if (j.rej[0]) WHY.push(j.rej[0][1]); adv(1e3) }
     const okD = d => [[0, 0], [0, 1], [1, 0], [0, 2], [1, 1], [0, 3], [1, 2], [1, 3], [0, 4]].filter((x, i) => x[0] === d && st[i] === 'ok').length;
     T('كل يوم 3 على الأكثر رغم التداخل، ولا يُمنع يوم بسبب الآخر', okD(0) === 3 && okD(1) >= 1 && okD(1) <= 3, { day0: okD(0), day1: okD(1), st, why: WHY }) },
 
   // ملاحظة ChatGPT 3 + التلاعب بالساعة: لا وقت بعد وقت الخادم، ولا طاقة ولا أيام من المستقبل
   async clockFuture() { const uid = 'cf', A = await learner(uid); ctl.NOW += 3 * 36e5; await station(A); await station(A); await A.sync();
-    const s0 = await srv(uid), srvT = ctl.NOW, dev = A.dev(); let n = ctl.NOW * 10; const fut = ctl.NOW + 3 * DAY;   // ساعة الهاتف متقدّمة 3 أيام
+    const s0 = await srv(uid), srvT = ctl.NOW, dev = A.dev(); let n = (ctl.NOW + 2e9); const fut = ctl.NOW + 3 * DAY;   // ساعة الهاتف متقدّمة 3 أيام
     const evs = [{ type: 'stStart', t: fut, n: ++n, d: dev }, { type: 'combo', t: fut + 1e3, n: ++n, d: dev }, { type: 'eday', t: fut + 2e3, n: ++n, d: dev },
       ...due(A).slice(0, 4).map((k, i) => rate(k, fut + 3e3 + i * 20e3, ++n, dev))];
     const j = await send(uid, evs, dev); const a = await srv(uid);
@@ -115,7 +115,7 @@ const C = {
     T('الطاقة لم تُحسب في المستقبل: لا تتجاوز ما يسمح به وقت الخادم', a.energy <= s0.energy + 10 + 2 + 1, { before: s0.energy, after: a.energy, st: j.st });
     I('حالات الأحداث', j.st) },
 
-  async clockBack() { const uid = 'cbk', A = await learner(uid); ctl.NOW += 3 * 36e5; await A.sync(); const s0 = await srv(uid), dev = A.dev(); let n = ctl.NOW * 10;
+  async clockBack() { const uid = 'cbk', A = await learner(uid); ctl.NOW += 3 * 36e5; await A.sync(); const s0 = await srv(uid), dev = A.dev(); let n = (ctl.NOW + 2e9);
     const back = ctl.NOW - 3 * DAY; const evs = due(A).slice(0, 10).map((k, i) => rate(k, back + i * 20e3, ++n, dev)); adv(300e3);
     const j = await send(uid, evs, dev); const a = await srv(uid), B = a.B, dl = sxDoc(uid).dv[dev].lt;
     T('ساعة راجعة 3 أيام: المراجعات العشر مقبولة ومسجّلة بعد آخر حدث من الجهاز (لا في الماضي)', j.st.every(s => s === 'ok') && B.LOG.slice(-10).every(x => x[0] >= s0.B.LOG[s0.B.LOG.length - 1][0]), j.st);
@@ -123,20 +123,20 @@ const C = {
 
   // أحداث بوقت هاتف في يوم سابق: مقارنة الخادم الجديد بالقديم (المنشور)
   async missedDay() { const res = {};
-    for (const which of ['old', 'new']) { const uid = 'md' + which; ctl.ACTIVE = 'new'; const A = await learner(uid); ctl.NOW += 2 * DAY; ctl.ACTIVE = which; const s0 = await srv(uid); let n = ctl.NOW * 10;
+    for (const which of ['old', 'new']) { const uid = 'md' + which; ctl.ACTIVE = 'new'; const A = await learner(uid); ctl.NOW += 2 * DAY; ctl.ACTIVE = which; const s0 = await srv(uid); let n = (ctl.NOW + 2e9);
       const y = ctl.NOW - DAY; const evs = due(A).slice(0, 10).map((k, i) => rate(k, y + i * 20e3, ++n, A.dev())); adv(300e3); await send(uid, evs, A.dev()); const a = await srv(uid); res[which] = [s0.streak, a.streak]; ctl.NOW += 5 * DAY }
     I('السلسلة [قبل، بعد]', res);
     T('الجديد ليس أضعف من القديم المنشور في هذه الحالة', res.new[1] <= res.old[1], res) },
 
   // ملاحظة ChatGPT 5: الحدث في الحجر محفوظ كما وصل تمامًا
   async fullEvent() { const uid = 'fe', A = await learner(uid); const dev = A.dev();
-    const e = { type: 'quiz', kind: 's2', ok: 99, total: 10, ms: 30000, full: true, t: ctl.NOW, n: ctl.NOW * 10, d: dev, qa: Array.from({ length: 300 }, (_, i) => ['wort' + i, i % 2]), extra: { a: [1, 2, { b: 'ç' }] } };
+    const e = { type: 'quiz', kind: 's2', ok: 99, total: 10, ms: 30000, full: true, t: ctl.NOW, n: (ctl.NOW + 2e9), d: dev, qa: Array.from({ length: 300 }, (_, i) => ['wort' + i, i % 2]), extra: { a: [1, 2, { b: 'ç' }] } };
     const j = await send(uid, [e], dev); const q = sxDoc(uid).qz.find(x => x[2].n === e.n);
     T('حدث تالف (ok > total) في الحجر بسبب «bad»', j.st[0] === 'q' && q && q[1] === 'bad', j.st);
     T('محفوظ كما وصل تمامًا، بكل حقوله ومنها غير المعروفة', q && JSON.stringify(q[2]) === JSON.stringify(e), q && JSON.stringify(q[2]).length) },
 
   // ملاحظة ChatGPT 2 + الحدود: 60 جهازًا لا يُحذف أيّ منها، والحجر لا يُحذف بل يُؤرشف
-  async devicesArchive() { const uid = 'da'; await user(uid); const A = app('new', uid); await A.sync(); let n = ctl.NOW * 10; const first = { type: 'zz', t: ctl.NOW, n: ++n, d: 'dev00x' };
+  async devicesArchive() { const uid = 'da'; await user(uid); const A = app('new', uid); await A.sync(); let n = (ctl.NOW + 2e9); const first = { type: 'zz', t: ctl.NOW, n: ++n, d: 'dev00x' };
     await send(uid, [first], 'dev00x'); for (let i = 1; i < 60; i++) await send(uid, [{ type: 'zz', t: ctl.NOW, n: ++n, d: 'dev' + String(i).padStart(2, '0') + 'x' }], 'x');
     T('60 جهازًا: سجلّاتها كلها باقية', Object.keys(sxDoc(uid).dv).length === 60, Object.keys(sxDoc(uid).dv).length);
     const jr = await send(uid, [first], 'dev00x'); T('الجهاز الأول بعد 59 جهازًا: إعادة حدثه «وصل سابقًا»', jr.st[0] === 'dup', jr.st);
@@ -145,7 +145,7 @@ const C = {
     const sx = sxDoc(uid), ar = archived(uid), all = [...sx.qz, ...ar.qz];
     T('الحجر: لا يُحذف شيء (760 حدثًا = في الوثيقة + في الأرشيف)', all.length === 760, { doc: sx.qz.length, archive: ar.qz.length, ax: sx.ax });
     T('الحجر في الوثيقة نفسها ضمن الحدّ (300)، والباقي في وثائق أرشيف', sx.qz.length <= 300 && sx.ax >= 1, sx.qz.length);
-    ctl.NOW += 120 * DAY; await send(uid, [{ type: 'zz', t: ctl.NOW, n: ctl.NOW * 10, d: 'dev00x' }], 'dev00x');
+    ctl.NOW += 120 * DAY; await send(uid, [{ type: 'zz', t: ctl.NOW, n: (ctl.NOW + 2e9), d: 'dev00x' }], 'dev00x');
     const sx2 = sxDoc(uid), ar2 = archived(uid); T('بعد 120 يومًا: لا حذف تلقائي (761)', sx2.qz.length + ar2.qz.length === 761, sx2.qz.length + ar2.qz.length);
     I('حجم وثيقة sx بالبايت', doc(`users/${uid}/data/sx`).length) },
 

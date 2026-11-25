@@ -4,7 +4,8 @@ const CALLS = [];
 const fake = (stOf, extra) => { window.fetch = async (u, o) => { if (!String(u).endsWith('/sync')) return new Response('{}');
   const b = JSON.parse(o.body); CALLS.push(b);
   const j = { core: JSON.stringify({ P, QLOG, BUY, R, LG, EN, STN, STV }), log: JSON.stringify(LOG), qa: JSON.stringify(QA), prefs: '', cv: CORE_V,
-    st: stOf(b.evs), now: Date.now(), dn: Math.max(0, ...b.evs.map(e => +e.n || 0)), ...(extra || {}) };
+    sxv: 1, st: stOf(b.evs), now: Date.now(), dn: Math.max(0, ...b.evs.map(e => +e.n || 0)), ...(extra || {}) };
+  if (extra && extra.__old) { delete j.sxv; delete j.st; delete j.__old } if (extra && extra.__nost) { delete j.st; delete j.__nost }
   return new Response(JSON.stringify(j), { headers: { 'Content-Type': 'application/json' } }) } };
 const realFetch = window.fetch, realRep = window.repErr; const REPS = []; window.repErr = (m) => REPS.push(m);
 CFG.sx = { on: 1, u: [], w: CFG.sx.w, ids: 0, uv: 'trust' }; syncFree();
@@ -44,10 +45,13 @@ T('المزامنة الجديدة مفعّلة لهذا الحساب في ال�
   T('المحجوز لا يمنع تحديث التطبيق (لا يُعدّ منتظرًا)', reloadSafe ? (evqN() === 0) : true);
   EVQ.length = 0; save() }
 
-// 4) الإقرار: ردّ لا يذكر حالة كل حدث → لا يُحذف شيء من الهاتف
-{ fake(evs => evs.slice(1).map(() => 'ok')); EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }, { type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() });
-  await syncNow(true); T('ردّ بحالات أقل من الأحداث: كل الأحداث باقية', EVQ.length === 2, EVQ.length);
-  fake(evs => evs.map(() => 'ok')); await syncNow(true); T('ثم ردّ كامل: حُذفت', EVQ.length === 0, EVQ.length) }
+// 4) الإقرار: يُفرَّق بين ردّ الخادم القديم (بلا sxv) وردّ ناقص من الخادم الجديد
+{ const two = () => { EVQ.length = 0; EVQ.push(evId({ type: 'zzok', t: Date.now() }), evId({ type: 'zzok', t: Date.now() })) };
+  fake(evs => evs.slice(1).map(() => 'ok')); two(); await syncNow(true); T('الخادم الجديد بحالات أقل من الأحداث: لا يُحذف شيء', EVQ.length === 2, EVQ.length);
+  fake(evs => evs.map(() => 'ok'), { __nost: 1 }); await syncNow(true); T('الخادم الجديد (sxv) بلا st إطلاقًا: لا يُحذف شيء', EVQ.length === 2, EVQ.length);
+  fake(evs => 'x', {}); await syncNow(true); T('الخادم الجديد وst ليست قائمة: لا يُحذف شيء', EVQ.length === 2, EVQ.length);
+  fake(evs => evs.map(() => 'ok')); await syncNow(true); T('ثم ردّ كامل من الخادم الجديد: حُذفت', EVQ.length === 0, EVQ.length);
+  two(); fake(evs => evs.map(() => 'ok'), { __old: 1 }); await syncNow(true); T('الخادم القديم (بلا sxv ولا st): تُحذف المرسلة كما كان', EVQ.length === 0, EVQ.length) }
 
 // 5) ما يرسله التطبيق: الجهاز في الطلب، والمرساة مع الحدث حين تكون صالحة
 { fake(evs => evs.map(() => 'ok')); CALLS.length = 0; delete window.MufApp; ANC = null; ancSet(Date.now(), 0);

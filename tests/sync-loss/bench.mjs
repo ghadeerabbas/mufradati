@@ -17,7 +17,7 @@ const uid = 'bench'; await user(uid); { const A = app('new', uid); await A.sync(
   await memfs.commit([{ path: `users/${uid}/data/core`, data: { v: JSON.stringify(core) } }, { path: `users/${uid}/data/log`, data: { v: JSON.stringify({ K, F }) } }]) }
 const snap = new Map([...DB].filter(([p]) => p.startsWith(`users/${uid}`) || p === `names/${uid}`).map(([p, d]) => [p, JSON.stringify(d)]));
 const reset = () => { for (const p of [...DB.keys()]) if (p.startsWith(`users/${uid}/`) && !snap.has(p)) DB.delete(p); for (const [p, d] of snap) DB.set(p, JSON.parse(d)) };
-let n = 0; const rates = (cnt, back) => () => Array.from({ length: cnt }, (_, i) => ({ type: 'rate', k: W[(i * 7) % W.length], r: 2, t: ctl.NOW - back + i * 20e3, n: ctl.NOW * 10 + ++n, d: 'benchdev1' }));
+let n = 0; const rates = (cnt, back) => () => Array.from({ length: cnt }, (_, i) => ({ type: 'rate', k: W[(i * 7) % W.length], r: 2, t: ctl.NOW - back + i * 20e3, n: (ctl.NOW + 2e9) + ++n, d: 'benchdev1' }));
 const cases = { 'عادية: 10 مراجعات': rates(10, 300e3), 'كبيرة: 300 مراجعة': rates(300, 300 * 21e3), 'متأخّرة: 50 مراجعة أقدم من آخر حدث': rates(50, 2 * DAY) };
 const variants = [['قديم', 'old', 0], ['جديد مطفأ', 'new', 0], ['جديد مشغَّل', 'new', 1]];
 const cpu = () => { const u = process.cpuUsage(); return (u.user + u.system) / 1000 };
