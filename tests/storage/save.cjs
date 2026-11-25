@@ -153,7 +153,7 @@ async function logCase({sync=true,admin=false,tamper=false,tamperContent=false})
  // الإغلاق المفاجئ أثناء الحفظ: يتوقّف كل شيء عند الكتابة رقم k (كل كتابة بعدها لا تصل التخزين)، لكل k من أول كتابة إلى آخرها،
  // ثم فتح من جديد: المحفوظ إما متّسق (بعلامة sok) وإما معلَّم بأنه قد يتأخّر (STSTALE)، ثم مزامنة: النتيجة صحيحة دون فقد ولا تكرار
  {const setup=()=>{const ls=mkLS(5e6),srv=server(),A=device(ls,'U',{srv,online:()=>false});A.loadState();for(let i=0;i<3;i++)A.ev(rate(i));srv.sync(A);A.ev(rate(3));A.ev(rate(4));return {ls,srv,A}};
-  const freeze=(ls,k)=>{let n=0;const si=ls.setItem.bind(ls),ri=ls.removeItem;ls.setItem=function(a,b){if(++n>=k)throw new Error('CRASH');return si(a,b)};ls.removeItem=a=>{if(++n>=k)return;ri(a)};return ()=>n};
+  let EP=0;const freeze=(ls,k)=>{let n=0;const si=ls.setItem.bind(ls),ri=ls.removeItem;ls.setItem=function(a,b){if(++n>=k)throw new Error('CRASH');if(a==='muf_U_evq'&&!EP)EP=n;return si(a,b)};ls.removeItem=a=>{if(++n>=k)return;ri(a)};return ()=>n};
   let W;{const {ls,A}=setup();const cnt=freeze(ls,1e9);A.ev(rate(5));W=cnt()}
   const bad=[];let withSok=0,stale=0,keptNew=0;
   for(let k=1;k<=W+1;k++){const {ls,srv,A}=setup();freeze(ls,k);try{A.ev(rate(5))}catch(e){}
@@ -169,7 +169,7 @@ async function logCase({sync=true,admin=false,tamper=false,tamperContent=false})
    if(JSON.stringify(B.P)!==JSON.stringify(srv.S.P)||B.LOG.length!==srv.S.log.length)bad.push(k+': الحالة بعد المزامنة لا تطابق الخادم');
    if(ls2.getItem('muf_U_sok')===null)bad.push(k+': لم تُكتب sok بعد المزامنة')}
   T('إغلاق مفاجئ عند كل كتابة أثناء الحفظ ('+W+' كتابة): المحفوظ متّسق أو معلَّم، والمزامنة تصحّحه دون فقد ولا تكرار',!bad.length,bad.slice(0,3).join(' | ')||JSON.stringify({cases:W+1,withSok,stale,keptNew}));
-  T('الحدث الجديد يبقى إن وصل الإغلاقُ بعد حفظ قائمة الأحداث',keptNew===W,keptNew+'/'+W)}
+  T('الحدث الجديد يبقى إن وصل الإغلاقُ بعد حفظ قائمة الأحداث (الكتابة رقم '+EP+')',EP>0&&keptNew===W+1-EP,keptNew+'/'+(W+1-EP))}
  // فشل بعض مفاتيح الحالة (لا إغلاق) بعد حفظ الأحداث، ثم فتح، ثم مزامنة
  for(const keys of [['log'],['progress','qa'],['energy','league','log']]){const ls=mkLS(5e6),srv=server(),A=device(ls,'U',{srv,online:()=>false});A.loadState();for(let i=0;i<3;i++)A.ev(rate(i));srv.sync(A);
   const si=ls.setItem.bind(ls);ls.setItem=function(a,b){if(keys.some(x=>a==='muf_U_'+x))throw Object.assign(new Error('Quota'),{name:'QuotaExceededError'});return si(a,b)};
