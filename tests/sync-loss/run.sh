@@ -11,7 +11,7 @@ SC="clockAhead clockBack twoDevices offline8 offline30 resend doubleStart lateSa
 EC="gaps order reinstall resendMulti atomic rollback edayMix comboMix clockFuture clockBack missedDay fullEvent devicesArchive prune"
 for s in $SC; do for m in ctrl test; do (cd "$D" && MUF_SX=1 node scen.mjs "$W" "$R" $s $m > "$W/$s.$m.json" 2> "$W/$s.$m.err") & done; done
 for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
-E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm badIdBig sxBounds replyChk"
+E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm badIdBig sxBounds replyChk aiChain rollbackLate"
 for c in $E2; do (cd "$D" && MUF_SX=1 node edge2.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
 # الحالة نفسها بمنطقة زمنية أخرى للعملية: المرساة والأيام بتوقيت برلين في الخادم لا تتأثّر
 (cd "$D" && TZ=Pacific/Kiritimati MUF_SX=1 node edge2.mjs "$W" "$R" anchorMissedTZ > "$W/e_anchorMissedTZ.out" 2> "$W/e_anchorMissedTZ.err" || echo "FAIL anchorMissedTZ: توقّف بخطأ" >> "$W/e_anchorMissedTZ.out") & wait
@@ -25,6 +25,20 @@ if(Object.values(R).some(x=>!x)){out.push("FAIL forwardClock: لم يكتمل ا
 for(const m of ["ok","plain","page","native"])out.push("INFO forwardClock: "+m+" → "+JSON.stringify(R[m]));
 for(const [m,n] of [["native","مرساة الهاتف"],["page","مرساة الصفحة"],["plain","بلا مرساة"]])P("ساعة متقدّمة يومًا ودون إنترنت 3 أيام، "+n+": مطابقة للساعة الصحيحة (الخبرة والجواهر والسلسلة والمراجعات والمحطات والطاقة، ولا حجر)",eq(R[m],ok)&&!Object.keys(R[m].q).length,R[m])}
 fs.writeFileSync(w+"/e_forwardClock.out",out.join("\n")+"\n")' "$W"
+# الأرض العامة: السيناريو نفسه في عمليتين مستقلتين بالوقت نفسه، دون طيّ الأجهزة ومعه (GF=1)، ثم المقارنة
+for g in 0 1; do (cd "$D" && GF=$g MUF_SX=1 node edge2.mjs "$W" "$R" gloOne > "$W/gl_$g.out" 2> "$W/gl_$g.err") & done; wait
+node -e '
+const fs=require("fs"),w=process.argv[1],R={};for(const g of ["0","1"]){const l=(fs.readFileSync(w+"/gl_"+g+".out","utf8").match(/^GLRES (.*)$/m)||[])[1];R[g]=l?JSON.parse(l):null}
+const out=[],P=(n,c,x)=>out.push((c?"PASS ":"FAIL ")+"gloImpact: "+n+(x!==undefined?" → "+JSON.stringify(x):""));
+if(!R[0]||!R[1])out.push("FAIL gloImpact: لم يكتمل التشغيل");else{const off=R[0],on=R[1];out.push("INFO gloImpact: دون طيّ → "+JSON.stringify(off),"INFO gloImpact: مع طيّ 700 جهاز → "+JSON.stringify(on));
+const pick=x=>JSON.stringify([x.xp,x.gems,x.streak,x.reviews,x.stations,x.words,x.st,x.q]);
+P("الطيّ حدث فعلًا، وطُوي سجلّ جهاز المتعلّم الخامل نفسه",on.aFolded&&on.devAfterFold<=502,[on.aFolded,on.devAfterFold]);
+P("الأرض العامة أقدم من كل مدّة قبول (32 يومًا)",on.glo>0&&on.glo<on.now-32*864e5,[on.glo,on.now]);
+P("45 يومًا من الدراسة دون اتصال على جهاز طُوي سجلّه: النتيجة مطابقة تمامًا لغياب الطيّ (الخبرة والجواهر والسلسلة والمراجعات والمحطات والكلمات والحالات وأسباب الحجر)",pick(on)===pick(off),[pick(off),pick(on)]);
+P("جهاز جديد بساعة صحيحة: مقبول مع الطيّ وبدونه",on.newOk==="ok"&&off.newOk==="ok",[off.newOk,on.newOk]);
+P("جهاز جديد ساعته متأخّرة 60 يومًا: مع الطيّ أول حدث إلى الحجر «old» (لا يضيع، ويُعاد تطبيقه من اللوحة)، وبدونه يُقبل",on.lag[0]==="q"&&on.lag[1]==="old"&&off.lag[0]==="ok",[off.lag,on.lag]);
+P("ويأخذ الجهاز من الردّ رقمًا بعد الأرض العامة، فيُقبل حدثه التالي",on.dnGlo&&on.lagNext==="ok",[on.dnGlo,on.lagNext])}
+fs.writeFileSync(w+"/e_gloImpact.out",out.join("\n")+"\n")' "$W"
 # تغيير الساعة عدة مرات أثناء العمل دون إنترنت (FCM=1): مرساة الهاتف مطابقة للساعة الصحيحة؛ وبدونها لا مكسب، ولا ضياع صامت
 for m in plain page native; do (cd "$D" && FCM=1 FC=$m MUF_SX=1 node edge2.mjs "$W" "$R" fcOne > "$W/fcm_$m.out" 2> "$W/fcm_$m.err") & done; wait
 node -e '
@@ -40,7 +54,7 @@ if(Object.values(R).some(x=>!x))out.push("FAIL clockMulti: لم يكتمل ال�
   P(n+": لا ضياع صامت (كل حدث له حالة: مقبول أو متأخّر أو في الحجر)",Object.values(r.st).reduce((a,b)=>a+b,0)>0,r.st)}}
 fs.writeFileSync(w+"/e_clockMulti.out",out.join("\n")+"\n")' "$W"
 E2="$E2 clockMulti"
-E2="$E2 forwardClock"
+E2="$E2 forwardClock gloImpact"
 { for s in $SC; do node -e '
 const fs=require("fs"),[,w,s]=process.argv,rd=m=>{try{return JSON.parse(fs.readFileSync(`${w}/${s}.${m}.json`,"utf8"))}catch(e){return null}};
 const c=rd("ctrl"),t=rd("test");if(!c||!t){console.log(`FAIL ${s}: لم يكتمل التشغيل (انظر ${w}/${s}.*.err)`);process.exit()}

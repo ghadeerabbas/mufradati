@@ -1008,7 +1008,7 @@ async function handleSync(fs, user, body, opts) {
   // نقطة الحفظ تُرسل للتطبيق فقط حين تختلف عمّا عنده (يرسل وقتها ckt)
   // المزامنة الجديدة: حالة كل حدث (ok | late | dup | q | wiped | bad)، والمراجعات المتأخّرة، وأعلى رقم يعرفه الخادم لهذا الجهاز
   // sxv: هذا خادم يعرف الإقرار بحالة لكل حدث، فيعيد st دائمًا (ولو كان المفتاح مطفأً). التطبيق لا يحذف شيئًا من ردّ فيه sxv دون st كاملة
-  const sxOut = { sxv: 1, st, ...(SXI ? { dn: sxMax(sx, body.dev), now } : {}), ...(SXU ? { late: JSON.stringify({ L: LATE, F: LATEF }) } : {}) };
+  const sxOut = { sxv: 1, st, ...(SXI ? { dn: sxMax(sx, body.dev), now } : {}), late: JSON.stringify(SXI ? { L: LATE, F: LATEF } : { L: [], F: {} }) };   // المتأخّرات تُرسل دائمًا كما حسبها الخادم (فارغة إن كان المفتاح مطفأً كليًّا)، فلا تبقى في الصفحة نسخة قديمة تخالفه
   return { status: 200, json: { core: coreJ, log: logJ, qa: qaJ, rej, prefs: u.prefs || "", cv: CORE_V, ...sxOut, ...(sum ? { sum } : {}), ...(+body.ckt !== ckT ? { ck: ckJ } : {}) } };
 }
 
@@ -1068,12 +1068,17 @@ async function handleSxq(fs, user, body) {
 }
 
 // الفهرس كاملًا: ما في sx مع ما نُقل إلى وثائق الفهرس (sxi-…)
+// وثائق الفهرس سلسلة: حين تبلغ قائمة ai في sx حدّها SX_AIMAX تنتقل أسماؤها كلها إلى وثيقة الفهرس الجديدة (حقل ai فيها)، فتُقرأ طبقة بعد طبقة
 async function sxIndex(fs, uid, sx) {
-  const an = [...sx.an], ap = new Set(sx.ap), am = { ...sx.am };
-  if ((sx.ai || []).length) { const D = await fs.manyT(sx.ai.map(n => `users/${uid}/data/${n}`));
-    for (const n of sx.ai) { const x = parseJ(D[`users/${uid}/data/${n}`] && D[`users/${uid}/data/${n}`].data.v, {}) || {};
-      an.unshift(...(x.an || [])); for (const k of x.ap || []) ap.add(k); Object.assign(am, x.am || {}) } }
-  return { an, ap, am };
+  const ap = new Set(sx.ap), am = {}, old = [], all = []; let q = [...(sx.ai || [])]; const seen = new Set();
+  for (let depth = 0; q.length && depth < 64; depth++) { q = q.filter(n => !seen.has(n) && seen.add(n)); if (!q.length) break;
+    const D = await fs.manyT(q.map(n => `users/${uid}/data/${n}`)), next = [];
+    for (const n of q) { all.push(n); const d = D[`users/${uid}/data/${n}`], x = parseJ(d && d.data.v, {}) || {};
+      old.unshift(...(x.an || [])); for (const k of x.ap || []) ap.add(k); for (const k in x.am || {}) if (!(k in am)) am[k] = x.am[k];
+      for (const m of x.ai || []) if (typeof m === "string" && /^sxi-[a-z0-9-]+$/.test(m)) next.push(m) }
+    q = next }
+  Object.assign(am, sx.am || {});
+  return { an: [...old, ...sx.an], ap, am, ai: all };
 }
 /* ---------- وثيقة sx (المزامنة الجديدة) ---------- */
 // dv: {جهاز: {g: {يوم الاستلام (بتوقيت الخادم): أرقام الأحداث التي وصلت فيه}, lo: أرض الجهاز, lt, r0, q}}
@@ -1091,7 +1096,7 @@ const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/, SX_IDN = 15000, SX_IDB = 300000, SX_QZ =
 const SX_QZ_LOW = 200, SX_LATE_LOW = 2000, SX_MAXB_LOW = 300000;
 // حدود بقية المكوّنات: سجلّات الأجهزة الخاملة (أرضها وحدها) ≤ 500 — الأقدم يُطوى في أرض عامة glo تبدأ بها كل الأجهزة الجديدة؛
 // وقوائم الفهارس (أسماء الأرشيف an، ومفاتيح ما أُعيد تطبيقه ap، ونتائج الأرشيف am) ≤ 60 كيلوبايت معًا — الأقدم يُنقل إلى وثيقة فهرس sxi-… (أسماؤها في ai)
-const SX_DEVMAX = 500, SX_IDX = 60000;
+const SX_DEVMAX = 500, SX_IDX = 60000, SX_AIMAX = 50;
 const sxBytes = s => new TextEncoder().encode(s).length;   // الحدود بالبايت (UTF-8) كما يحسبها Firestore، لا بعدد المحارف
 function sxLoad(d) {
   const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0, glo: +x.glo || 0, ai: Array.isArray(x.ai) ? x.ai.filter(a => typeof a === "string" && /^sxi-[a-z0-9-]+$/.test(a)) : [],
@@ -1116,7 +1121,8 @@ function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? 
 function sxIdx(a, n) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < n) lo = m + 1; else hi = m } return lo }
 function sxHas(dv, n) { for (const day in dv.g) { const a = dv.g[day], i = sxIdx(a, n); if (a[i] === n) return true } return false }
 function sxSeen(dv, n, now) { if (sxHas(dv, n)) return; const day = String(Math.floor(now / 864e5)), a = dv.g[day] || (dv.g[day] = []), i = sxIdx(a, n); a.splice(i, 0, n) }
-function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; if (!v) return 0; let m = v.lo; for (const day in v.g || {}) { const a = v.g[day]; if (a.length) m = Math.max(m, a[a.length - 1]) } return m }
+// جهاز بلا سجلّ: رقمه التالي بعد الأرض العامة glo
+function sxMax(sx, dev) { const v = typeof dev === "string" && sx.dv[dev]; if (!v) return sx.glo || 0; let m = v.lo; for (const day in v.g || {}) { const a = v.g[day]; if (a.length) m = Math.max(m, a[a.length - 1]) } return m }
 function sxDrop(v, day) { const a = v.g[day]; if (a && a.length) v.lo = Math.max(v.lo, a[a.length - 1]); delete v.g[day] }
 // اسم وثيقة أرشيف فريد (وقت الخادم + ترتيبها في الطلب + عشوائي): لا يتصادم بعد استرجاع نسخة احتياطية أعادت العدّاد إلى الوراء
 const sxArchName = (now, k) => "sxa-" + now.toString(36) + "-" + k + "-" + Math.random().toString(36).slice(2, 8);
@@ -1134,10 +1140,11 @@ function sxTrim(sx, now, uid, k0) {
     for (const day in v.g) { const b = sxPack(v.g[day]).length + 12; idb += b; all.push([+day, k, b]) } }
   if (idb > SX_IDB) { all.sort((a, b) => a[0] - b[0]); for (const [day, k, b] of all) { if (idb <= SX_IDB) break; sxDrop(sx.dv[k], String(day)); idb -= b } }
   // الأجهزة الخاملة فوق الحدّ: الأقدم أرضًا يُطوى في glo
-  // (أرضٌ في المستقبل — جهاز ساعته متقدّمة — لا تُطوى إلا فوق ضعف الحدّ: لئلا تبدأ الأجهزة الجديدة بأرض أمامها فيذهب أول ما تُرسله إلى الحجر)
+  // لا تُطوى إلا أرضٌ أقدم من أطول مدّة قبول + يومين (بساعة الخادم)، فالأرض العامة glo أقدم دائمًا من كل مدّة قبول: أي حدث برقم ≤ glo
+  // من جهاز ساعته صحيحة أو متقدّمة أُنشئ قبل مدّة القبول، فكان سيُرفض أصلًا. وأرضٌ أحدث من ذلك (أو في المستقبل) لا تُطوى إلا فوق ضعف الحدّ.
   { const idle = Object.keys(sx.dv).filter(k => !sx.dv[k].lt && !Object.keys(sx.dv[k].g).length).sort((a, b) => sx.dv[a].lo - sx.dv[b].lo);
     const fold = k => { sx.glo = Math.max(sx.glo || 0, sx.dv[k].lo); delete sx.dv[k] };
-    let over = idle.length - SX_DEVMAX; for (const k of idle) { if (over <= 0 || sx.dv[k].lo > now) break; fold(k); over-- }
+    let over = idle.length - SX_DEVMAX; for (const k of idle) { if (over <= 0 || sx.dv[k].lo > cutDay * 864e5) break; fold(k); over-- }
     if (over > SX_DEVMAX) for (const k of idle) { if (over <= SX_DEVMAX) break; if (sx.dv[k]) { fold(k); over-- } } }
   sx.late = LATE; sx.lf = LATEF;
   const out = []; let qz = [], late = [], size = sxBytes(sxSave(sx)), ab = 0;
@@ -1156,8 +1163,10 @@ function sxTrim(sx, now, uid, k0) {
   if (sxBytes(JSON.stringify([sx.an, sx.ap, sx.am])) > SX_IDX) {
     const h = a => a.splice(0, Math.ceil(a.length / 2)), ks = Object.keys(sx.am), mk = ks.slice(0, Math.ceil(ks.length / 2)), am = {};
     for (const k of mk) { am[k] = sx.am[k]; delete sx.am[k] }
-    const nm = "sxi-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 8); sx.ai = sx.ai || []; sx.ai.push(nm);
-    W.push({ path: `users/${uid}/data/${nm}`, data: { v: JSON.stringify({ an: h(sx.an), ap: h(sx.ap), am, at: now }) }, ifMissing: true }) }
+    const nm = "sxi-" + now.toString(36) + "-" + Math.random().toString(36).slice(2, 8); sx.ai = sx.ai || [];
+    const chain = sx.ai.length >= SX_AIMAX ? sx.ai.splice(0) : [];   // قائمة ai نفسها محدودة: أسماؤها تنتقل إلى الوثيقة الجديدة
+    sx.ai.push(nm);
+    W.push({ path: `users/${uid}/data/${nm}`, data: { v: JSON.stringify({ an: h(sx.an), ap: h(sx.ap), am, ai: chain, at: now }) }, ifMissing: true }) }
   return W;
 }
 
@@ -1169,7 +1178,7 @@ async function handleWipe(fs, user, body) {
   const now = Date.now(), [uDoc, gifts, sxD] = await Promise.all([fs.get(`users/${uid}`), fs.list(`gifts/${uid}/g`), fs.get(`users/${uid}/data/sx`)]);
   // وثيقة sx: يبقى سجلّ الأجهزة (أرقام الأحداث، فلا يُطبَّق حدث قديم أُعيد إرساله)، ويُحذف الحجر والمتأخّرات ووثائق أرشيفها مع بقية البيانات
   const sx0 = sxD ? sxLoad(sxD) : null, IX0 = sx0 ? await sxIndex(fs, uid, sx0) : null;
-  const arch = sx0 ? [...IX0.an, ...(sx0.ai || [])].map(a => ({ path: `users/${uid}/data/${a}`, del: true })) : [];   // الأرشيف كله ووثائق الفهرس
+  const arch = sx0 ? [...IX0.an, ...IX0.ai].map(a => ({ path: `users/${uid}/data/${a}`, del: true })) : [];   // الأرشيف كله ووثائق الفهرس
   const sxW = sx0 ? (() => { sx0.late = []; sx0.lf = {}; sx0.qz = []; sx0.an = []; sx0.ap = []; sx0.am = {}; sx0.ai = []; return [{ path: `users/${uid}/data/sx`, data: { v: sxSave(sx0) } }] })() : [];
   const core = { P: {}, QLOG: [], BUY: [], R: { bank: 0, ach: [], lv: 1, ts: now }, LG: { tier: 0, w: "", hist: [], ts: now, v: 2, best: 0 }, EN: { v: 30, t: 0 }, STN: [], STV: 0, ver: 1, lf: 1, wiped: now };
   const empty = JSON.stringify({ K: [], F: [] });
@@ -1571,8 +1580,12 @@ async function verifyBak(fs, b, key) {
   // وثائق أرشيف sx (sxa-…): أسماؤها في قائمة sx.an (في النسخة والحالة الآن)، فتُقرأ بأسمائها في طلب واحد وتُقارن كاملة
   const AN = {}, aiOf = d => d && d.data ? sxLoad({ data: d.data }).ai || [] : [], anOf = d => d && d.data ? sxLoad({ data: d.data }).an : [];
   // أسماء وثائق الفهرس (حالة الآن والنسخة)، ثم أسماء الأرشيف فيها، فتُقرأ كلها بأسمائها
-  const AI = {}; for (const uid of uids) AI[uid] = [...new Set([...aiOf(docs[`users/${uid}/data/sx`]), ...aiOf(B.get(`users/${uid}/data/sx`))])];
-  const AID = await fs.manyT(Object.entries(AI).flatMap(([u, a]) => a.map(n => `users/${u}/data/${n}`)));
+  const AI = {}, AID = {}; let Q = {}; for (const uid of uids) { AI[uid] = []; Q[uid] = [...new Set([...aiOf(docs[`users/${uid}/data/sx`]), ...aiOf(B.get(`users/${uid}/data/sx`))])] }
+  for (let depth = 0; depth < 64 && Object.values(Q).some(a => a.length); depth++) {   // سلسلة وثائق الفهرس، طبقة بعد طبقة (من الحالة الآن ومن النسخة)
+    Object.assign(AID, await fs.manyT(Object.entries(Q).flatMap(([u, a]) => a.map(n => `users/${u}/data/${n}`)))); const N = {};
+    for (const [u, a] of Object.entries(Q)) { N[u] = []; for (const n of a) { AI[u].push(n); const p = `users/${u}/data/${n}`, v = (AID[p] && AID[p].data) || (B.get(p) && B.get(p).data), x = parseJ(v && v.v, {}) || {};
+      for (const m of x.ai || []) if (typeof m === "string" && /^sxi-[a-z0-9-]+$/.test(m) && !AI[u].includes(m) && !N[u].includes(m)) N[u].push(m) } }
+    Q = N }
   for (const uid of uids) { const sp = []; for (const n of AI[uid]) { const p = `users/${uid}/data/${n}`, v = (AID[p] && AID[p].data) || (B.get(p) && B.get(p).data); const x = parseJ(v && v.v, {}) || {}; sp.push(...(x.an || []), n) }
     AN[uid] = [...new Set([...anOf(docs[`users/${uid}/data/sx`]), ...anOf(B.get(`users/${uid}/data/sx`)), ...sp])] }
   const ARD = await fs.manyT(Object.entries(AN).flatMap(([u, a]) => a.map(n => `users/${u}/data/${n}`))), AR = {};
