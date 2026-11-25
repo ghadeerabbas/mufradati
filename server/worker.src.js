@@ -412,11 +412,16 @@ function overlayFS(fs) { const M = new Map(); let ut = 0;
     async many(ps) { return this.manyT(ps) },
     async commit(ws) { for (const w of ws) { if (w.del) { M.set(w.path, null); continue } if (w.inc) continue; const o = g(w.path); M.set(w.path, { data: w.merge && o ? { ...o.data, ...w.data } : w.data, ut: "ov" + (++ut) }) } return {} } } }
 async function sxSnap(fs, uid) { await handleSync(fs, { uid, email: "(restore)" }, { evs: [] }, { reapply: true, qid: "" }); EC = null; const x = econ(); return { xp: x.xp, gems: x.gems, reviews: x.s.reviews, words: Object.keys(P).length, stations: STN.length } }
+// بصمة حالة تقدّم الحساب: أوقات آخر تعديل لوثائقه (التقدّم والسجلّ والإجابات ونقطة الحفظ وsx). أي مزامنة أو تعديل بعد المعاينة يغيّرها
+const SX_STK = ["core", "log", "qa", "ck", "sx"];
+async function sxStateTok(fs, uid) { const D = await fs.manyT(SX_STK.map(k => `users/${uid}/data/${k}`)); let h = 2166136261 >>> 0;
+  for (const k of SX_STK) { const d = D[`users/${uid}/data/${k}`]; for (const ch of k + "=" + (d ? String(d.updateTime || "") : "-") + ";") { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0 } } return h.toString(36) }
 async function sxRestore(fs, uid, sx, d, IX, body) {
   const dev = String(body.dev || ""); if (!(dev === "_" || SX_DEV.test(dev))) return { status: 400, json: { error: "dev" } };
   const mode = String(body.mode || "preview"), C = await sxCands(fs, uid, sx, IX, dev), plan = sxPlanHash(C);
   if (!C.length) return { status: 200, json: { plan, n: 0, done: true } };
   if (mode === "preview") {
+    const state = await sxStateTok(fs, uid);   // قبل أي شيء: حالة الحساب التي بُنيت عليها المعاينة
     const O = overlayFS(fs), before = await sxSnap(O, uid), res = {}; let todo = C.filter(c => !c.q[3] || !SX_RSDONE.has(c.q[3].r)); const skipped = C.length - todo.length;
     for (let pass = 1; pass <= SX_RSPASS && todo.length; pass++) { const again = [];
       for (let i = 0; i < todo.length; i += SX_RSN) { const B = todo.slice(i, i + SX_RSN);
@@ -424,17 +429,19 @@ async function sxRestore(fs, uid, sx, d, IX, body) {
         B.forEach((c, j) => { const st = r.json.st[j], why = st === "ok" || st === "late" ? st : ((r.json.rej.find(x => x[0] === j) || [])[1] || st); res[c.q[4]] = why; if (why === "word") again.push(c) }) }
       if (again.length === todo.length) break; todo = again }
     const after = await sxSnap(O, uid), count = {}; for (const k in res) count[res[k]] = (count[res[k]] || 0) + 1;
-    return { status: 200, json: { plan, n: C.length, skipped, count, before, after,
+    return { status: 200, json: { plan, state, n: C.length, skipped, count, before, after,
       rows: C.map(c => ({ qid: c.q[4], type: c.e.type, n: c.e.n, t: c.e.t, k: c.e.k, why: c.q[1], prev: c.q[3] ? c.q[3].r : null, will: res[c.q[4]] || (c.q[3] && c.q[3].r) || null })) } } }
   if (mode !== "run") return { status: 400, json: { error: "mode" } };
   if (body.confirm !== true) return { status: 400, json: { error: "confirm" } };
   if (String(body.plan || "") !== plan) return { status: 409, json: { error: "stale", plan } };
+  // تغيّرت حالة تقدّم الحساب منذ المعاينة (أو منذ الدفعة السابقة من هذا التنفيذ نفسه): رفض، وتُعاد المعاينة. كل دفعة تعيد البصمة الجديدة بعد كتابتها
+  if (String(body.state || "") !== await sxStateTok(fs, uid)) return { status: 409, json: { error: "stale-state" } };
   const rd = Math.max(1, Math.min(SX_RSPASS, +body.round || 1));
   // المعلّق في هذه الجولة: بلا نتيجة، أو «word» من جولة سابقة
   const pend = C.filter(c => !c.q[3] || (c.q[3].r === "word" && (c.q[3].rd || 0) < rd)), todo = pend.slice(0, SX_RSN);
-  if (!todo.length) return { status: 200, json: { plan, done: true, more: false, round: rd, word: C.filter(c => c.q[3] && c.q[3].r === "word").length } };
+  if (!todo.length) return { status: 200, json: { plan, state: String(body.state), done: true, more: false, round: rd, word: C.filter(c => c.q[3] && c.q[3].r === "word").length } };
   const r = await handleSync(fs, { uid, email: "(restore)" }, { evs: todo.map(c => c.e) }, { reapply: true, qids: todo.map(c => c.q[4]), apx: IX.ap, rd });
-  return { status: 200, json: { plan, done: false, more: true, round: rd, left: pend.length - todo.length,
+  return { status: 200, json: { plan, state: await sxStateTok(fs, uid), done: false, more: true, round: rd, left: pend.length - todo.length,
     out: todo.map((c, j) => ({ qid: c.q[4], st: r.json.st[j], why: (r.json.rej.find(x => x[0] === j) || [])[1] || null })) } };
 }
 // /sxq (المشرف): users | list | arch | apply | restore
