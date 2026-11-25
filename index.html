@@ -4074,6 +4074,19 @@ function saveShell(){clearTimeout(SHT);SHT=setTimeout(()=>{try{
 const signOutAll=()=>{try{localStorage.removeItem("muf_shell")}catch(e){}return auth.signOut()};
 // مهلة لأي انتظار: تُرجع البديل إن طال، ولا تُلغي العملية نفسها
 const tmo=(p,ms,v)=>Promise.race([p,new Promise(r=>setTimeout(()=>r(v),ms))]);
+// يعيد سبب الرفض، أو "" إن كان الردّ سليمًا. الخادم القديم (بلا sxv) لا يعيد حالات فلا تُطلب منه
+const SX_ST=new Set(["ok","late","dup","q","big","wiped","bad","rej"]);
+function syncChk(j,n){
+  if(!j||typeof j!=="object"||Array.isArray(j))return "body";
+  const js=(v,opt)=>{if(v===undefined||v===null)return !!opt;if(typeof v!=="string")return false;try{JSON.parse(v);return true}catch(e){return false}};
+  const obj=v=>v&&typeof v==="object"&&!Array.isArray(v);
+  let c=j.core;if(typeof c==="string"){try{c=JSON.parse(c)}catch(e){return "core"}}if(!obj(c))return "core";
+  if(!js(j.log,1))return "log";if(!js(j.qa,1))return "qa";if(j.ck!==undefined&&j.ck!==""&&!js(j.ck,1))return "ck";if(j.late!==undefined&&!js(j.late))return "late";
+  if(j.prefs!==undefined&&typeof j.prefs!=="string")return "prefs";
+  for(const k of["dn","now"])if(j[k]!==undefined&&!(Number.isSafeInteger(+j[k])&&+j[k]>=0&&typeof j[k]==="number"))return k;
+  if(j.sxv!==undefined){if(!Array.isArray(j.st)||j.st.length!==n)return "st-len";if(!j.st.every(x=>SX_ST.has(x)))return "st-val"}
+  return "";
+}
 async function syncNow(manual){
   if(!UID||isAdmin())return !!UID;
   if(syncing){await new Promise(r=>{const w=()=>syncing?setTimeout(w,200):r();w()});return !syncErr}
@@ -4087,11 +4100,13 @@ async function syncNow(manual){
     const t1=performance.now();let r;try{r=await fetch(API+"/sync",{method:"POST",signal:ac.signal,headers:{"Content-Type":"application/json","Authorization":"Bearer "+tok},body:JSON.stringify({evs:sent,st:{r:FSC.r,w:FSC.w},ckt:CK?CK.t:0,cv:CORE_V,dev:devId(),ct:Date.now()})})}finally{clearTimeout(to)}const stSent={r:FSC.r,w:FSC.w};
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw {code:r.status===403?"inactive":r.status===401?"auth":"server",message:j.error||String(r.status)};
+    // فحص الردّ كاملًا قبل أي تغيير: ردّ ناقص أو مشوّه لا يغيّر شيئًا (لا حالة ولا حذف من قائمة الانتظار)، ويُبلَّغ، ويُعاد الإرسال لاحقًا
+    {const bad=syncChk(j,sent.length);if(bad){try{repErr("sync: bad reply ("+bad+")","","sync")}catch(e){}throw {code:"server",message:"bad reply"}}}
     FSC.r-=stSent.r;FSC.w-=stSent.w;
     if(+j.now>0)ancSet(+j.now,performance.now()-t1);
     // حدث رفض الخادم حفظه لكبر حجمه («big»): يبقى في قائمة الانتظار بعلامة hold (انظر evqN)، ويُبلَّغ المشرف
     // الإقرار: ردّ من الخادم الجديد (sxv) يُحذف به ما أُرسل فقط إن جاءت حالة لكل حدث؛ وردّ بلا sxv هو الخادم القديم (يحذف ما أُرسل كما كان)
-    const full=j.sxv?(Array.isArray(j.st)&&j.st.length===sent.length):true;
+    const full=true;   // ردّ الخادم الجديد فُحص أعلاه: حالة صالحة لكل حدث مرسل
     if(full&&Array.isArray(j.st)&&j.st.includes("big")){let h=0;sent.forEach((x,i)=>{if(j.st[i]==="big"){x.hold=1;h++}});try{repErr("sync: event too big ("+h+")","","sync")}catch(e){}}
     // الإقرار: تُحذف من الهاتف الأحداث المرسلة فقط، وفقط إن أعاد الخادم حالة لكل واحد منها (أو كان الخادم القديم الذي لا يعيد حالات)
     if(full){const S=new Set(sent.filter(x=>!x.hold));EVQ=EVQ.filter(x=>!S.has(x))}applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ

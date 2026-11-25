@@ -11,7 +11,7 @@ SC="clockAhead clockBack twoDevices offline8 offline30 resend doubleStart lateSa
 EC="gaps order reinstall resendMulti atomic rollback edayMix comboMix clockFuture clockBack missedDay fullEvent devicesArchive prune"
 for s in $SC; do for m in ctrl test; do (cd "$D" && MUF_SX=1 node scen.mjs "$W" "$R" $s $m > "$W/$s.$m.json" 2> "$W/$s.$m.err") & done; done
 for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
-E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm"
+E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm badIdBig sxBounds replyChk"
 for c in $E2; do (cd "$D" && MUF_SX=1 node edge2.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
 # الحالة نفسها بمنطقة زمنية أخرى للعملية: المرساة والأيام بتوقيت برلين في الخادم لا تتأثّر
 (cd "$D" && TZ=Pacific/Kiritimati MUF_SX=1 node edge2.mjs "$W" "$R" anchorMissedTZ > "$W/e_anchorMissedTZ.out" 2> "$W/e_anchorMissedTZ.err" || echo "FAIL anchorMissedTZ: توقّف بخطأ" >> "$W/e_anchorMissedTZ.out") & wait
