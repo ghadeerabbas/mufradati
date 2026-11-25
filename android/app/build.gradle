@@ -40,8 +40,18 @@ android {
         release {
             minifyEnabled false
             signingConfig signingConfigs.release
+            buildConfigField "boolean", "ANCHOR_TEST", "false"
+        }
+        // نسخة اختبار محلية فقط (لا تُنشر ولا تُوزَّع): اسم حزمة مختلف (.test) فتُثبَّت بجانب التطبيق الحقيقي ولا تمسّه،
+        // وتوقيع اختبار Android الافتراضي (لا مفتاح النشر)، وتفتح صفحة اختبار المرساة المحلية بدل الموقع. تُبنى بـ: gradle assemblePrimaryDebug
+        debug {
+            applicationIdSuffix ".test"
+            versionNameSuffix "-test"
+            manifestPlaceholders = [appLabel: "مفرداتي تجربة"]
+            buildConfigField "boolean", "ANCHOR_TEST", "true"
         }
     }
+    buildFeatures { buildConfig true }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17

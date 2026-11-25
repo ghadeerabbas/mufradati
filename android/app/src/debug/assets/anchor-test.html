@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>اختبار المرساة</title>
+<style>body{font-family:system-ui,sans-serif;margin:12px;background:#fafaf7;color:#222}h1{font-size:1.2rem}table{border-collapse:collapse;width:100%;font-size:.85rem}
+td{border-bottom:1px solid #ddd;padding:4px}td:first-child{color:#555;width:42%}button{font-size:1rem;padding:10px;margin:4px 0;width:100%;border:0;border-radius:10px;background:#1e3a5f;color:#fff}
+.ok{color:#15803d;font-weight:bold}.bad{color:#b91c1c;font-weight:bold}pre{white-space:pre-wrap;font-size:.75rem;background:#eee;padding:6px;border-radius:6px}ol{font-size:.85rem;padding-inline-start:18px}</style></head>
+<body><h1>اختبار المرساة الزمنية (نسخة اختبار محلية)</h1>
+<table id="t"></table>
+<button id="save">1) حفظ مرساة الآن (والساعة صحيحة)</button>
+<button id="log">2) تسجيل قراءة</button>
+<button id="clear" style="background:#888">مسح كل شيء</button>
+<ol>
+<li>تأكّد أن ساعة الهاتف صحيحة، ثم اضغط «حفظ مرساة الآن».</li>
+<li>أغلق التطبيق تمامًا (من قائمة التطبيقات المفتوحة)، وافتحه بعد دقائق: «المرساة صالحة» = نعم، والفرق عن الساعة صغير.</li>
+<li>غيّر ساعة الهاتف يدويًا (أرجعها يومًا ثم قدّمها): «وقت المرساة» لا يتغيّر مع الساعة.</li>
+<li>غيّر المنطقة الزمنية: «وقت المرساة» و«ساعة الهاتف» بالتوقيت العالمي لا يتغيّران، ويتغيّر «الوقت المحلي» وحده.</li>
+<li>أعد تشغيل الهاتف وافتح التطبيق: «المرساة صالحة» = لا (رقم التشغيل تغيّر).</li>
+<li>بعد كل خطوة اضغط «تسجيل قراءة»، وفي النهاية انسخ السجل وأرسله.</li>
+</ol>
+<pre id="out"></pre>
+<script>
+// الدوال نفسها كما في index.html (monoNow وancSet وancNow)، مع وقت «الخادم» = ساعة الهاتف لحظة الحفظ (لأن الصفحة بلا شبكة)
+const st=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+const jget=(k,d)=>{try{return JSON.parse(st(k)||"null")??d}catch(e){return d}};const K=n=>"anctest_"+n;
+const PAGEID=Math.random().toString(36).slice(2,10);let ANC=null;
+function monoNow(){try{const b=window.MufApp;if(b&&b.elapsed&&b.bootId){const id=String(b.bootId()||"");if(id)return {m:+b.elapsed(),b:"n"+id}}}catch(e){}return {m:performance.now(),b:"p"+PAGEID}}
+function ancSet(srv,rtt){const x=monoNow();ANC={s:Math.round(srv+rtt/2),m:x.m,b:x.b};st(K("anc"),JSON.stringify(ANC))}
+function ancNow(){if(!ANC)ANC=jget(K("anc"),null);const x=monoNow();return ANC&&ANC.b===x.b&&x.m>=ANC.m?Math.round(ANC.s+(x.m-ANC.m)):0}
+const iso=t=>t?new Date(t).toISOString().replace("T"," ").slice(0,19)+" UTC":"—";
+function read(){const x=monoNow(),a=ancNow(),now=Date.now(),b=window.MufApp;
+  return {at:iso(now),local:new Date(now).toString().slice(0,33),tz:Intl.DateTimeFormat().resolvedOptions().timeZone,offsetMin:-new Date().getTimezoneOffset(),
+    bridge:!!(b&&b.elapsed),bootId:b&&b.bootId?String(b.bootId()):"(لا جسر)",elapsedMin:Math.round(x.m/600)/100,source:x.b[0]==="n"?"عدّاد الهاتف":"عدّاد الصفحة",
+    anchorValid:!!a,anchor:iso(a),diffSec:a?Math.round((now-a)/1000):null}}
+function show(){const r=read(),rows=[["الآن (ساعة الهاتف، عالمي)",r.at],["الوقت المحلي",r.local],["المنطقة الزمنية",r.tz+" ("+r.offsetMin+" دقيقة)"],["جسر التطبيق",r.bridge?"موجود":"غير موجود"],
+  ["رقم التشغيل",r.bootId],["العدّاد (دقائق منذ التشغيل)",r.elapsedMin],["مصدر العدّاد",r.source],["المرساة صالحة",`<span class="${r.anchorValid?"ok":"bad"}">${r.anchorValid?"نعم":"لا"}</span>`],
+  ["وقت المرساة (عالمي)",r.anchor],["الساعة ناقص المرساة (ثانية)",r.diffSec==null?"—":r.diffSec]];
+  document.getElementById("t").innerHTML=rows.map(([a,b])=>`<tr><td>${a}</td><td>${b}</td></tr>`).join("");
+  document.getElementById("out").textContent=JSON.stringify(jget(K("log"),[]),null,1)}
+document.getElementById("save").onclick=()=>{ancSet(Date.now(),0);show()};
+document.getElementById("log").onclick=()=>{const L=jget(K("log"),[]);L.push(read());st(K("log"),JSON.stringify(L));show()};
+document.getElementById("clear").onclick=()=>{if(confirm("مسح المرساة والسجل؟")){localStorage.removeItem(K("anc"));localStorage.removeItem(K("log"));ANC=null;show()}};
+show();setInterval(show,2000);
+</script></body></html>
