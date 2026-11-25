@@ -314,6 +314,47 @@ const C = {
     T('إطفاء كامل: الخادم يتجاهلها (سلوك النسخة المنشورة)، ويرسل قائمة فارغة فتطابقه الصفحة', off.n === on.n - 1 && off.L.L.length === 0, [on.n, off.n]);
     T('ولا تُحذف من sx، وتعود كاملة عند إعادة التشغيل', kept === 1 && back.n === on.n && back.L.L.length === 1, [kept, back.n]) },
 
+  // دراسة (مدّة القبول 30 يومًا كما هي): استعادة ما حُجر بعد 45 يومًا دون اتصال. RO=online: المتعلّم نفسه يزامن كل يوم (المرجع)؛
+  // RO=asis: دون استعادة؛ RO=queue: إعادة التطبيق بترتيب لوحة الحجر مرة واحدة؛ RO=seq: بترتيب أرقام الأحداث لكل جهاز، مع جولات تُعاد فيها ما رُفض لأن كلمته لم تُتعلَّم بعد
+  async roOne() { const mode = process.env.RO, uid = 'ro', A = await learner(uid, 3, true); const day0 = ctl.NOW, res = { mode, st: {}, q: {}, ap: {} };
+    for (let d = 1; d <= 45; d++) { ctl.NOW = day0 + d * DAY; for (const k of due(A).slice(0, 4)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } if (d % 5 === 0) await station(A, { syncEach: false }); if (mode === 'online') { let j; do { j = await A.sync() } while (A.q) } }
+    let j; do { j = await A.sync(); for (const x of j.st || []) res.st[x] = (res.st[x] || 0) + 1; for (const r of j.rej || []) res.q[r[1]] = (res.q[r[1]] || 0) + 1 } while (A.q);
+    if (mode === 'queue' || mode === 'seq') { const L = (await post('/sxq', 'admin', { op: 'list', uid })).qz.filter(q => !q.ap); let todo = mode === 'seq' ? L.sort((a, b) => (a.d > b.d) - (a.d < b.d) || a.n - b.n) : L;
+      for (let pass = 0; pass < (mode === 'seq' ? 5 : 1) && todo.length; pass++) { const again = [];
+        for (const q of todo) { const r = await post('/sxq', 'admin', { op: 'apply', uid, qid: q.qid }); const why = r.st === 'ok' ? 'ok' : (r.rej[0] || [])[1] || r.st; res.ap[why] = (res.ap[why] || 0) + 1; if (why === 'word') again.push(q) }
+        if (again.length === todo.length) break; todo = again; if (again.length) res.ap['word'] -= again.length } }
+    const a = await srv(uid); Object.assign(res, { xp: a.xp, gems: a.gems, streak: a.streak, reviews: a.reviews, stations: a.stations, words: a.words });
+    out.push('RORES ' + JSON.stringify(res)) },
+
+  // حدّ سجلّات الأجهزة 2000 دون طيّ أرض حديثة: أجهزة بساعات متقدّمة لا تُطوى، وجهاز جديد بعد الحدّ إلى الحجر «devmax»، ثم يُقبل حين يتجاوز الوقت أرضها
+  async devCap() { const uid = 'dc', A = await learner(uid); const k = due(A)[0]; let n = ctl.NOW + 200 * DAY; const before = Object.keys(sxDoc(uid).dv).length;
+    for (let b = 0; b < 20; b++) await send(uid, Array.from({ length: 100 }, (_, i) => ({ type: 'zz', t: ctl.NOW, n: ++n, d: 'fwd' + (b * 100 + i) })), 'fwd0');
+    ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync(); const S = sxDoc(uid), nd = Object.keys(S.dv).length;
+    T('أجهزة خاملة أرضها في المستقبل: لا تُطوى، والأرض العامة لم تتقدّم', nd >= 2000 && (S.glo || 0) < ctl.NOW, { devices: nd, glo: S.glo || 0 });
+    const r1 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW, d: 'newDev01' }], 'newDev01');
+    T('جهاز جديد بعد بلوغ الحدّ: الحجر «devmax» (لا يضيع، ولا سجلّ جديد)', r1.st[0] === 'q' && r1.rej[0][1] === 'devmax' && !sxDoc(uid).dv.newDev01, [r1.st, r1.rej]);
+    const r0 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW + 5, d: A.dev() }], A.dev()); T('الأجهزة المعروفة تعمل كالمعتاد', r0.st[0] === 'ok', r0.st);
+    T('حجم وثيقة sx محدود (أقل من 200 كيلوبايت)', bytes(doc(`users/${uid}/data/sx`)) < 200000, bytes(doc(`users/${uid}/data/sx`)));
+    const L = await post('/sxq', 'admin', { op: 'list', uid }); const q = L.qz.find(x => x.why === 'devmax' && x.type === 'rate'); const ra = await post('/sxq', 'admin', { op: 'apply', uid, qid: q.qid });
+    T('إعادة تطبيقه من اللوحة: مقبول', ra.st === 'ok', ra);
+    ctl.NOW += 200 * DAY; A.ev({ type: 'eday' }); await A.sync(); const S2 = sxDoc(uid);
+    T('بعد أن يتجاوز الوقت أرضها: تُطوى إلى 500، والأرض العامة أقدم من مدّة القبول', Object.keys(S2.dv).length <= 502 && S2.glo < ctl.NOW - 32 * DAY, { devices: Object.keys(S2.dv).length, glo: S2.glo });
+    const r2 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW, d: 'newDev02' }], 'newDev02'); T('ثم جهاز جديد: يُقبل', r2.st[0] === 'ok', r2.st) },
+
+  // سلسلة فهرس أعمق من 64 طبقة: لا تجاهل صامت — اللوحة والحذف يتوقّفان بخطأ واضح، والتحقق «incomplete»؛ و64 طبقة تعمل كاملة
+  async deepChain() { const mk = async (uid, depth) => { await user(uid); const A = app('new', uid); A.ev({ type: 'eday' }); await A.sync(); const W = [];
+      for (let i = 0; i < depth; i++) W.push({ path: `users/${uid}/data/sxi-deep-${i}`, data: { v: JSON.stringify({ an: ['sxa-deep-' + i], ap: [], am: {}, ai: i + 1 < depth ? ['sxi-deep-' + (i + 1)] : [], at: 1 }) } });
+      const D = sxDoc(uid); D.ai = ['sxi-deep-0']; W.push({ path: `users/${uid}/data/sx`, data: { v: JSON.stringify(D) } }); for (let i = 0; i < W.length; i += 400) await memfs.commit(W.slice(i, i + 400)) };
+    await mk('dp64', 64); let L = await post('/sxq', 'admin', { op: 'list', uid: 'dp64' }); T('64 طبقة: اللوحة تقرأها كلها', L.an.includes('sxa-deep-0') && L.an.includes('sxa-deep-63'), L.an.length);
+    await mk('dp65', 65); let err = ''; try { await post('/sxq', 'admin', { op: 'list', uid: 'dp65' }) } catch (e) { err = e.message }
+    T('65 طبقة: اللوحة تتوقّف بخطأ واضح (لا قائمة ناقصة)', / 500 /.test(err) && /sx index depth/.test(err), err.slice(0, 80));
+    err = ''; try { await post('/wipe', 'admin', { uid: 'dp65' }) } catch (e) { err = e.message } T('والحذف يتوقّف قبل أي كتابة (لا حذف جزئي)', / 500 /.test(err) && DB.has('users/dp65/data/sxi-deep-64') && DB.has('users/dp65/data/sxi-deep-0'), err.slice(0, 60));
+    const ROOT = 'projects/mufradati-406bd/databases/(default)/documents';
+    const enc = v => typeof v === 'string' ? { stringValue: v } : typeof v === 'number' ? (Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v }) : typeof v === 'boolean' ? { booleanValue: v } : v === null ? { nullValue: null } : Array.isArray(v) ? { arrayValue: { values: v.map(enc) } } : (v && v.ms !== undefined && Object.keys(v).length === 1) ? { timestampValue: new Date(v.ms).toISOString() } : { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) } };
+    env.__export = async () => { const arr = [...DB].map(([p, d]) => ({ document: { name: ROOT + '/' + p, fields: Object.fromEntries(Object.entries(d.data).map(([k, v]) => [k, enc(v)])), updateTime: d.ut }, readTime: '' })); return { parts: [JSON.stringify(arr)], n: arr.length, users: 1 } };
+    const key = (await post('/backup', 'admin', { op: 'now', rid: 'deepChain001' })).key; const v = await post('/backup', 'admin', { op: 'verify', key });
+    T('التحقق: 64 طبقة «same»، و65 «incomplete» والنتيجة ليست مطابقة', v.accts.dp64.docs.sxa === 'same' && v.accts.dp65.docs.sxa === 'incomplete' && v.result !== 'match', [v.accts.dp64.docs.sxa, v.accts.dp65.docs.sxa, v.result]) },
+
   // ردود الخادم الحقيقية (كل الحالات) تمرّ فحص الصفحة syncChk: لا تباعد بين الخادم والصفحة
   async replyChk() { const src = (await import('node:fs')).readFileSync(process.argv[3] + '/index.html', 'utf8');
     const syncChk = new Function(src.slice(src.indexOf('const SX_ST='), src.indexOf('async function syncNow(')) + ';return syncChk')();

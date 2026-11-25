@@ -11,7 +11,7 @@ SC="clockAhead clockBack twoDevices offline8 offline30 resend doubleStart lateSa
 EC="gaps order reinstall resendMulti atomic rollback edayMix comboMix clockFuture clockBack missedDay fullEvent devicesArchive prune"
 for s in $SC; do for m in ctrl test; do (cd "$D" && MUF_SX=1 node scen.mjs "$W" "$R" $s $m > "$W/$s.$m.json" 2> "$W/$s.$m.err") & done; done
 for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
-E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm badIdBig sxBounds replyChk aiChain rollbackLate"
+E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm badIdBig sxBounds replyChk aiChain rollbackLate devCap deepChain"
 for c in $E2; do (cd "$D" && MUF_SX=1 node edge2.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
 # الحالة نفسها بمنطقة زمنية أخرى للعملية: المرساة والأيام بتوقيت برلين في الخادم لا تتأثّر
 (cd "$D" && TZ=Pacific/Kiritimati MUF_SX=1 node edge2.mjs "$W" "$R" anchorMissedTZ > "$W/e_anchorMissedTZ.out" 2> "$W/e_anchorMissedTZ.err" || echo "FAIL anchorMissedTZ: توقّف بخطأ" >> "$W/e_anchorMissedTZ.out") & wait
@@ -39,6 +39,16 @@ P("جهاز جديد بساعة صحيحة: مقبول مع الطيّ وبدو�
 P("جهاز جديد ساعته متأخّرة 60 يومًا: مع الطيّ أول حدث إلى الحجر «old» (لا يضيع، ويُعاد تطبيقه من اللوحة)، وبدونه يُقبل",on.lag[0]==="q"&&on.lag[1]==="old"&&off.lag[0]==="ok",[off.lag,on.lag]);
 P("ويأخذ الجهاز من الردّ رقمًا بعد الأرض العامة، فيُقبل حدثه التالي",on.dnGlo&&on.lagNext==="ok",[on.dnGlo,on.lagNext])}
 fs.writeFileSync(w+"/e_gloImpact.out",out.join("\n")+"\n")' "$W"
+# دراسة الاستعادة بعد 45 يومًا دون اتصال (مدّة القبول 30 يومًا كما هي): المرجع (اتصال يومي)، ودون استعادة، وإعادة التطبيق بترتيب الأرقام
+for m in online asis seq; do (cd "$D" && RO=$m MUF_SX=1 node edge2.mjs "$W" "$R" roOne > "$W/ro_$m.out" 2> "$W/ro_$m.err") & done; wait
+node -e '
+const fs=require("fs"),w=process.argv[1],R={};for(const m of ["online","asis","seq"]){const l=(fs.readFileSync(w+"/ro_"+m+".out","utf8").match(/^RORES (.*)$/m)||[])[1];R[m]=l?JSON.parse(l):null}
+const out=[],P=(n,c,x)=>out.push((c?"PASS ":"FAIL ")+"restoreOrder: "+n+(x!==undefined?" → "+JSON.stringify(x):""));
+if(Object.values(R).some(x=>!x))out.push("FAIL restoreOrder: لم يكتمل التشغيل");else{for(const m in R)out.push("INFO restoreOrder: "+m+" → "+JSON.stringify(R[m]));const o=R.online,s=R.seq;
+P("بعد الاستعادة بالترتيب: كل ما حُجر لقاعدة الكلمات طُبّق (لا يبقى «word»)",!s.ap.word,s.ap);
+P("الكلمات والمحطات مطابقة للمرجع",s.words===o.words&&s.stations===o.stations,[o.words,s.words,o.stations,s.stations]);
+P("لا تكرار: المراجعات والخبرة لا تزيد على المرجع",s.reviews<=o.reviews&&s.xp<=o.xp,[o.reviews,s.reviews,o.xp,s.xp])}
+fs.writeFileSync(w+"/e_restoreOrder.out",out.join("\n")+"\n")' "$W"
 # تغيير الساعة عدة مرات أثناء العمل دون إنترنت (FCM=1): مرساة الهاتف مطابقة للساعة الصحيحة؛ وبدونها لا مكسب، ولا ضياع صامت
 for m in plain page native; do (cd "$D" && FCM=1 FC=$m MUF_SX=1 node edge2.mjs "$W" "$R" fcOne > "$W/fcm_$m.out" 2> "$W/fcm_$m.err") & done; wait
 node -e '
@@ -54,7 +64,7 @@ if(Object.values(R).some(x=>!x))out.push("FAIL clockMulti: لم يكتمل ال�
   P(n+": لا ضياع صامت (كل حدث له حالة: مقبول أو متأخّر أو في الحجر)",Object.values(r.st).reduce((a,b)=>a+b,0)>0,r.st)}}
 fs.writeFileSync(w+"/e_clockMulti.out",out.join("\n")+"\n")' "$W"
 E2="$E2 clockMulti"
-E2="$E2 forwardClock gloImpact"
+E2="$E2 forwardClock gloImpact restoreOrder"
 { for s in $SC; do node -e '
 const fs=require("fs"),[,w,s]=process.argv,rd=m=>{try{return JSON.parse(fs.readFileSync(`${w}/${s}.${m}.json`,"utf8"))}catch(e){return null}};
 const c=rd("ctrl"),t=rd("test");if(!c||!t){console.log(`FAIL ${s}: لم يكتمل التشغيل (انظر ${w}/${s}.*.err)`);process.exit()}
