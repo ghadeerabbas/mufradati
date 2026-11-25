@@ -3,7 +3,7 @@
 # الاستعمال: tests/run-all.sh        السجلات الكاملة في مجلد مؤقت يُطبع مساره
 # الخروج: 0 كل شيء نجح · 1 فشل فحص أو RELEASED قديم · 2 بعض المجموعات لم تُشغَّل (لا يُعدّ نجاحًا)
 D=$(cd "$(dirname "$0")" && pwd); L=$(mktemp -d); bad=0; skip=0; nocmp=""
-SUITES="golden storage sync-loss rewards checkpoint checkpoint-it:checkpoint/run-it.sh combined perf integration seen stage0 backup backup-dup backup-diff browser auth sec err err-workerd:err/run-workerd.sh verify-batch srs tts-check"
+SUITES="golden storage sync-loss rewards checkpoint checkpoint-it:checkpoint/run-it.sh combined perf integration seen stage0 backup backup-dup backup-diff browser auth sec err err-workerd:err/run-workerd.sh verify-batch srs tts-check staging"
 echo "== هل RELEASED هو المنشور فعلًا؟"
 if bash "$D/check-released.sh" > "$L/released.log" 2>&1; then rel="مطابق"; else rel="قديم أو غير صحيح"; bad=$((bad+1)); fi; cat "$L/released.log"; echo
 printf '%-14s %-28s %s\n' "المجموعة" "الحالة" "ناجح · فاشل · معلومات · المدة"

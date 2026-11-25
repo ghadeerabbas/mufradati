@@ -12,6 +12,13 @@ android {
         versionCode run
         versionName "1.0." + run
     }
+    // عنوان الصفحة التجريبية لنسخة الاختبار (فارغ إن لم يُعطَ)
+    def stagingUrl = { ->
+        def u = (project.findProperty("mufStagingUrl") ?: "").toString().trim()
+        if (u && !(u ==~ /^https:\/\/[a-z0-9.-]+\/([a-z0-9._-]+\/)*$/)) throw new GradleException("mufStagingUrl: يجب أن يكون https://النطاق/ (بلا معاملات)")
+        if (u.contains("github.io") || u.contains("mufradati-406bd")) throw new GradleException("mufStagingUrl يشير إلى الإنتاج أو إلى نطاق يشارك تخزينه")
+        return u
+    }
     // نسختان من التطبيق نفسه تُثبَّتان معًا على الجهاز: الأساسية، والثانوية «مفرداتي 1» (لحساب ثانٍ مثلًا)
     flavorDimensions "v"
     productFlavors {
@@ -41,6 +48,7 @@ android {
             minifyEnabled false
             signingConfig signingConfigs.release
             buildConfigField "boolean", "ANCHOR_TEST", "false"
+            buildConfigField "String", "HOME_URL", "\"https://ghadeerabbas.github.io/mufradati/\""   // الإنتاج: النسخة المنشورة وحدها
         }
         // نسخة اختبار محلية فقط (لا تُنشر ولا تُوزَّع): اسم حزمة مختلف (.test) فتُثبَّت بجانب التطبيق الحقيقي ولا تمسّه،
         // وتوقيع اختبار Android الافتراضي (لا مفتاح النشر)، وتفتح صفحة اختبار المرساة المحلية بدل الموقع. تُبنى بـ: gradle assemblePrimaryDebug
@@ -49,6 +57,9 @@ android {
             versionNameSuffix "-test"
             manifestPlaceholders = [appLabel: "مفرداتي تجربة"]
             buildConfigField "boolean", "ANCHOR_TEST", "true"
+            // الصفحة التجريبية (البيئة المعزولة) من خاصية البناء mufStagingUrl، مثل: gradle assemblePrimaryDebug -PmufStagingUrl=https://….pages.dev/
+            // لا رجوع إلى الإنتاج أبدًا: بلا الخاصية تفتح صفحة اختبار المرساة المحلية وحدها، وعنوان github.io أو بلا https يوقف البناء
+            buildConfigField "String", "HOME_URL", "\"${stagingUrl()}\""
         }
     }
     buildFeatures { buildConfig true }

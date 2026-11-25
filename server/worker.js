@@ -6,11 +6,29 @@
    المستخدم لا يستطيع الكتابة في تقدّمه أو جواهره أو الدوري إلا عبر هذا الخادم.
    السرّ المطلوب: SA = محتوى ملف مفتاح الخدمة من Firebase (JSON)
    =========================================================== */
-const PROJECT = "mufradati-406bd";
-const ADMIN = "admin@mufradati.app";
-const ORIGINS = ["https://ghadeerabbas.github.io"];
-const SITE = "https://ghadeerabbas.github.io/mufradati/";
-const FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`;
+// البيئة: الإنتاج (القيم الثابتة أدناه، بلا أي متغيّر) أو التجريبية (MUF_ENV=staging وكل قيمها من متغيّرات الخادم).
+// لا رجوع تلقائي من التجريبية إلى الإنتاج: نقص قيمة، أو قيمة تشير إلى الإنتاج، أو حساب خدمة من مشروع آخر → يتوقّف الخادم كله (503) ولا يلمس أي قاعدة بيانات.
+// وفي الإنتاج: حساب خدمة من مشروع غير مشروع الإنتاج (أي خادم تجريبي نُشر بلا MUF_ENV) → يتوقّف أيضًا.
+const PROD = Object.freeze({ PROJECT: "mufradati-406bd", ADMIN: "admin@mufradati.app", ORIGINS: Object.freeze(["https://ghadeerabbas.github.io"]), SITE: "https://ghadeerabbas.github.io/mufradati/" });
+let PROJECT = PROD.PROJECT, ADMIN = PROD.ADMIN, ORIGINS = PROD.ORIGINS, SITE = PROD.SITE, ENVNAME = "production";
+let FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`, DOCROOT = `projects/${PROJECT}/databases/(default)/documents`;
+// اسم مشروع حساب الخدمة من حقله project_id (موجود دائمًا في ملفات حسابات الخدمة من Google)؛ "" إن لم يوجد، و"?" إن كان السرّ تالفًا
+const saProject = env => { if (!env.SA) return ""; try { const a = typeof env.SA === "string" ? JSON.parse(env.SA) : env.SA; return a && a.project_id ? String(a.project_id) : "" } catch (e) { return "?" } };
+function envSet(p, a, o, site, name) { PROJECT = p; ADMIN = a; ORIGINS = o; SITE = site; ENVNAME = name;
+  FS_BASE = `https://firestore.googleapis.com/v1/projects/${PROJECT}/databases/(default)/documents`; DOCROOT = `projects/${PROJECT}/databases/(default)/documents` }
+// يعيد "" إن كانت البيئة سليمة (ويضبط القيم)، أو سبب التوقّف
+function envCfg(env) {
+  const m = env && env.MUF_ENV, sp = saProject(env || {});
+  if (!m || m === "production") { envSet(PROD.PROJECT, PROD.ADMIN, PROD.ORIGINS, PROD.SITE, "production");
+    return sp && sp !== "?" && sp !== PROD.PROJECT ? "env: service account is not the production project" : "" }   // حساب خدمة من مشروع آخر صراحةً (خادم تجريبي بلا MUF_ENV) → توقّف
+  if (m !== "staging") return "env: unknown MUF_ENV";
+  const miss = ["FB_PROJECT", "ADMIN_EMAIL", "ORIGINS", "SITE", "SA"].filter(k => !env[k] || !String(env[k]).trim()); if (miss.length) return "env: staging missing " + miss.join(",");
+  const p = String(env.FB_PROJECT).trim(), a = String(env.ADMIN_EMAIL).trim(), o = String(env.ORIGINS).split(",").map(x => x.trim()).filter(Boolean), site = String(env.SITE).trim();
+  if (!/^[a-z0-9-]{6,30}$/.test(p) || !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(a) || !o.length || !o.every(x => /^https:\/\/[a-z0-9.-]+$/.test(x)) || !/^https:\/\/[a-z0-9.-]+\/([a-z0-9._-]+\/)*$/.test(site)) return "env: staging value malformed";
+  if (p === PROD.PROJECT || o.some(x => PROD.ORIGINS.includes(x) || /github\.io$/.test(x)) || site.startsWith(PROD.SITE) || /github\.io/.test(site)) return "env: staging points at production";
+  if (sp !== p) return "env: service account project mismatch";
+  envSet(p, a, Object.freeze(o), site, "staging"); return "";
+}
 
 /* ---------- متغيّرات الحالة التي يعمل عليها المنطق المشترك ---------- */
 let P = {}, LOG = [], QLOG = [], QA = [], BUY = [], R = { bank: 0, ach: [], lv: 1, ts: 0 },
@@ -764,6 +782,7 @@ function dec(v) {
 }
 const docData = d => { const o = {}; for (const k in d.fields || {}) o[k] = dec(d.fields[k]); return o };
 function makeFS(env) {
+  { const bad = envCfg(env); if (bad) throw new Error(bad) }   // كل وصول إلى قاعدة البيانات يمرّ من هنا: بيئة غير سليمة → لا وصول
   const H = async () => ({ Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" });
   return {
     async get(path) {
@@ -1504,7 +1523,7 @@ async function handleAiLog(fs, user, body, env) {
 // الاحتفاظ (السياسة 2): آخر 14 نسخة ليلية وآخر 5 يدوية، كلٌّ على حدة، فلا تُخرج اليدويةُ الليليةَ.
 // يُطبَّق فقط على النسخ التي أُنشئت بهذه السياسة (pol: 2)؛ النسخ الأقدم لا تُحذف تلقائيًا أبدًا، ولا نسخة «قبل الاسترجاع»
 const BAK_KEEP = { auto: 14, manual: 5 }, BAK_POL = 2;
-const DOCROOT = `projects/${PROJECT}/databases/(default)/documents`;
+// DOCROOT: يُضبط مع البيئة (أعلى الملف)
 async function gauth(env) { return { Authorization: "Bearer " + await googleToken(env), "Content-Type": "application/json" } }
 // كل وثائق قاعدة البيانات بصيغتها الأصلية (الأنواع محفوظة كما هي). تُحفظ الردود كما وصلت بلا تحليل، توفيرًا لوقت المعالج
 // صور مساعد الوظيفة محفوظة في تخزين Cloudflare لا في قاعدة البيانات، فلا تدخل النسخة (وتُحذف وحدها بعد شهر)
@@ -2338,9 +2357,10 @@ async function handleRd(fs, user, body, env) {
 }
 
 export default {
-  async scheduled(ev, env, ctx) { ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { await srvErr(env, { msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }, "server") } })()) },
+  async scheduled(ev, env, ctx) { if (envCfg(env)) return; ctx.waitUntil((async () => { try { await aiCleanup(env) } catch (e) { } try { if (env.BAK) await backupOnce(env, env.__fs || makeFS(env), null, "auto") } catch (e) { await srvErr(env, { msg: "النسخ الاحتياطي فشل: " + String(e && e.message || e), where: "backup" }, "server") } })()) },
   async fetch(req, env, ctx) {
     env.__ctx = ctx;
+    { const bad = envCfg(env); if (bad) return new Response(JSON.stringify({ error: "env", detail: bad }), { status: 503, headers: { "Content-Type": "application/json" } }) }
     const H = cors(req), url = new URL(req.url);
     if (req.method === "OPTIONS") return new Response(null, { headers: H });
     if (url.pathname === "/" && req.method === "GET") return new Response("mufradati-api ✓", { headers: H });

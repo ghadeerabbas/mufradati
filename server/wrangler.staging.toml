@@ -1,0 +1,33 @@
+# الخادم التجريبي المعزول — لا يُنشر إلا على حساب Cloudflare التجريبي المستقل، وبموافقة صاحب المشروع.
+# القيم «REQUIRED» تُستبدل قبل النشر؛ إن بقيت أيّ منها يرفض أمر النشر (tools/deploy-staging.sh) ويتوقّف الخادم نفسه (503) لأنها ليست قيمًا صالحة.
+# حساب الخدمة (SA) سرّ يُضاف بـ: wrangler secret put SA -c server/wrangler.staging.toml  (من مشروع Firebase التجريبي فقط؛ الخادم يرفض غيره)
+name = "mufradati-api-stg"
+main = "worker.js"
+account_id = "REQUIRED-staging-cloudflare-account-id"
+compatibility_date = "2025-01-01"
+workers_dev = true
+preview_urls = false
+keep_vars = false            # لا تبقى متغيّرات قديمة من نشر سابق: كل القيم من هذا الملف
+
+[vars]
+MUF_ENV = "staging"
+FB_PROJECT = "REQUIRED"
+ADMIN_EMAIL = "REQUIRED"
+ORIGINS = "REQUIRED"
+SITE = "REQUIRED"
+
+[triggers]
+crons = ["17 3 * * *"]
+
+[[kv_namespaces]]
+binding = "BAK"
+id = "REQUIRED-staging-kv-namespace-id"
+
+[[durable_objects.bindings]]
+name = "ERRGATE"
+class_name = "ErrGate"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["ErrGate"]
+# لا ربط للذكاء الاصطناعي ولا مفاتيح Azure: المساعد والأصوات معطّلة في التجريبية

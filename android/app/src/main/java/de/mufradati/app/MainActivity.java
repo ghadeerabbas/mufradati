@@ -25,8 +25,9 @@ import java.util.Locale;
 
 // تطبيق مفرداتي: يعرض الموقع بملء الشاشة، فيتحدّث تلقائيًّا مع كل تحديث للموقع.
 public class MainActivity extends Activity {
-    private static final String HOME = "https://ghadeerabbas.github.io/mufradati/";
-    private static final String HOST = "ghadeerabbas.github.io";
+    // الصفحة التي يعرضها التطبيق: في نسخة النشر الموقع المنشور، وفي نسخة الاختبار الصفحة التجريبية المعزولة (أو لا شيء)؛ لا رجوع من الاختبار إلى الإنتاج
+    private static final String HOME = BuildConfig.HOME_URL;
+    private static final String HOST = HOME.isEmpty() ? "" : Uri.parse(HOME).getHost();
     private WebView web;
     private static final int PICK = 7;
     private android.webkit.ValueCallback<Uri[]> pick;
@@ -107,7 +108,7 @@ public class MainActivity extends Activity {
             @Override
             public boolean shouldOverrideUrlLoading(WebView v, WebResourceRequest r) {
                 Uri u = r.getUrl();
-                if (HOST.equals(u.getHost())) return false;          // صفحات الموقع داخل التطبيق
+                if (!HOST.isEmpty() && HOST.equals(u.getHost())) return false;          // صفحات الموقع داخل التطبيق
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
                 return true;                                          // تيليغرام وغيره خارج التطبيق
             }
@@ -126,8 +127,9 @@ public class MainActivity extends Activity {
 
         Reminder.schedule(this);   // تذكيرات نهاية اليوم مفعّلة افتراضيًّا (لا تصل إلا إن سمح المستخدم بالإشعارات)
         if (state != null) web.restoreState(state);
-        else if (BuildConfig.ANCHOR_TEST) web.loadUrl("file:///android_asset/anchor-test.html");   // نسخة الاختبار المحلية وحدها
-        else web.loadUrl(HOME + "?t=" + System.currentTimeMillis());   // دائمًا آخر نسخة من الموقع
+        else if (HOME.isEmpty() && BuildConfig.ANCHOR_TEST) web.loadUrl("file:///android_asset/anchor-test.html");   // نسخة الاختبار بلا صفحة تجريبية: صفحة المرساة المحلية وحدها
+        else if (HOME.isEmpty()) web.loadData("<p dir=rtl>لا عنوان للصفحة</p>", "text/html", "utf-8");
+        else web.loadUrl(HOME + "?t=" + System.currentTimeMillis());   // دائمًا آخر نسخة من الموقع (أو من الصفحة التجريبية في نسخة الاختبار)
     }
 
     public class Bridge {
