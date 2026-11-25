@@ -295,8 +295,10 @@ const C = {
     env.__export = async () => { const arr = [...DB].map(([p, d]) => ({ document: { name: ROOT + '/' + p, fields: Object.fromEntries(Object.entries(d.data).map(([k, v]) => [k, enc(v)])), updateTime: d.ut }, readTime: '' })); return { parts: [JSON.stringify(arr)], n: arr.length, users: 1 } };
     const key = (await post('/backup', 'admin', { op: 'now', rid: 'aiChain00001' })).key; let v = await post('/backup', 'admin', { op: 'verify', key });
     T('التحقق الكامل يقرأ السلسلة: sx والأرشيف «same»', v.accts[uid].docs.sx === 'same' && v.accts[uid].docs.sxa === 'same', v.accts[uid].docs);
-    await memfs.commit([{ path: `users/${uid}/data/sxi-old-30`, del: true }]); v = await post('/backup', 'admin', { op: 'verify', key });
+    const keep = DB.get(`users/${uid}/data/sxi-old-30`).data; await memfs.commit([{ path: `users/${uid}/data/sxi-old-30`, del: true }]); v = await post('/backup', 'admin', { op: 'verify', key });
     T('وثيقة فهرس من الطبقة الثانية حُذفت: التحقق يرى الفرق', v.accts[uid].docs.sxa === 'diff', v.accts[uid].docs);
+    let e = ''; try { await post('/wipe', 'admin', { uid }) } catch (x) { e = x.message } T('وثيقة فهرس مفقودة: الحذف يتوقّف (لا حذف جزئي يترك أرشيفًا يتيمًا)', / 500 /.test(e) && DB.has(`users/${uid}/data/sxi-old-0`), e.slice(0, 60));
+    await memfs.commit([{ path: `users/${uid}/data/sxi-old-30`, data: keep }]);   // بعد إعادتها (من النسخة الاحتياطية)
     await post('/wipe', 'admin', { uid }); const left = [...DB.keys()].filter(p => p.startsWith(`users/${uid}/data/sxi-`) || p.startsWith(`users/${uid}/data/sxa-`));
     T('الحذف يمسح السلسلة كلها (51 وثيقة فهرس والأرشيف)', !left.length, left.length) },
 
@@ -336,8 +338,9 @@ const C = {
     const r0 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW + 5, d: A.dev() }], A.dev()); T('الأجهزة المعروفة تعمل كالمعتاد', r0.st[0] === 'ok', r0.st);
     T('حجم وثيقة sx محدود (أقل من 200 كيلوبايت)', bytes(doc(`users/${uid}/data/sx`)) < 200000, bytes(doc(`users/${uid}/data/sx`)));
     const L = await post('/sxq', 'admin', { op: 'list', uid }); const q = L.qz.find(x => x.why === 'devmax' && x.type === 'rate'); const ra = await post('/sxq', 'admin', { op: 'apply', uid, qid: q.qid });
-    T('إعادة تطبيقه من اللوحة: مقبول', ra.st === 'ok', ra);
+    T('إعادة تطبيقه من اللوحة والحدّ ما زال ممتلئًا: مرفوض «devmax» (إعادة التطبيق لا تتجاوز الحدّ)، ولا سجلّ جديد', ra.st === 'q' && ra.rej[0][1] === 'devmax' && !sxDoc(uid).dv.newDev01 && Object.keys(sxDoc(uid).dv).length <= 2000, ra);
     ctl.NOW += 200 * DAY; A.ev({ type: 'eday' }); await A.sync(); const S2 = sxDoc(uid);
+    const rb = await post('/sxq', 'admin', { op: 'apply', uid, qid: q.qid }); T('بعد الطيّ: إعادة تطبيقه مقبولة («ok» أو «late» إن كانت للكلمة مراجعة أحدث)', rb.st === 'ok' || rb.st === 'late', rb);
     T('بعد أن يتجاوز الوقت أرضها: تُطوى إلى 500، والأرض العامة أقدم من مدّة القبول', Object.keys(S2.dv).length <= 502 && S2.glo < ctl.NOW - 32 * DAY, { devices: Object.keys(S2.dv).length, glo: S2.glo });
     const r2 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW, d: 'newDev02' }], 'newDev02'); T('ثم جهاز جديد: يُقبل', r2.st[0] === 'ok', r2.st) },
 
@@ -354,6 +357,37 @@ const C = {
     env.__export = async () => { const arr = [...DB].map(([p, d]) => ({ document: { name: ROOT + '/' + p, fields: Object.fromEntries(Object.entries(d.data).map(([k, v]) => [k, enc(v)])), updateTime: d.ut }, readTime: '' })); return { parts: [JSON.stringify(arr)], n: arr.length, users: 1 } };
     const key = (await post('/backup', 'admin', { op: 'now', rid: 'deepChain001' })).key; const v = await post('/backup', 'admin', { op: 'verify', key });
     T('التحقق: 64 طبقة «same»، و65 «incomplete» والنتيجة ليست مطابقة', v.accts.dp64.docs.sxa === 'same' && v.accts.dp65.docs.sxa === 'incomplete' && v.result !== 'match', [v.accts.dp64.docs.sxa, v.accts.dp65.docs.sxa, v.result]) },
+
+  // استعادة جهاز بالترتيب: معاينة بلا كتابة، وتأكيد ببصمة الخطة، وجولات، ومنع التكرار (ضغطتان معًا، وتكرار التشغيل)، وتوقّف عند فهرس مفقود أو تالف
+  async restoreDev() { const uid = 'rd', A = await learner(uid, 3, true); const day0 = ctl.NOW, dev = A.dev();
+    for (let d = 1; d <= 45; d++) { ctl.NOW = day0 + d * DAY; for (const k of due(A).slice(0, 4)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } if (d % 5 === 0) await station(A, { syncEach: false }) }
+    let j; do { j = await A.sync() } while (A.q);
+    const dump = () => JSON.stringify([...DB].filter(([p]) => p.startsWith(`users/${uid}/`)).map(([p, d]) => [p, d.ut]).sort());
+    const s0 = dump(); const P = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' });
+    I('المعاينة', { n: P.n, count: P.count, before: P.before, after: P.after });
+    T('المعاينة لا تكتب شيئًا', dump() === s0);
+    T('المعاينة: كل ما حُجر لقاعدة الكلمات يُطبَّق في جولة لاحقة، والكلمات والمحطات تزيد', !P.count.word && P.after.words > P.before.words && P.after.stations > P.before.stations, [P.count, P.before, P.after]);
+    let e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P.plan }) } catch (x) { e = x.message } T('التنفيذ بلا تأكيد: مرفوض', / 400 /.test(e) && /confirm/.test(e), e.slice(0, 50));
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: 'x', confirm: true }) } catch (x) { e = x.message } T('ببصمة خطة مختلفة: «stale»', / 409 /.test(e), e.slice(0, 50));
+    const run = async () => { let round = 1, calls = 0; for (;;) { calls++; const r = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P.plan, confirm: true, round }); if (r.more) continue; if (r.word && round < 3) { round++; continue } return calls } };
+    // ضغطتان معًا (تُنفَّذان تباعًا في الخادم)، ثم تشغيل ثالث بعد الانتهاء
+    await Promise.all([run(), run()]); const a1 = await srv(uid); await run(); const a2 = await srv(uid);
+    const pick = x => ({ xp: x.xp, reviews: x.reviews, words: x.words, stations: x.stations });
+    T('النتيجة الفعلية = المعاينة (الخبرة والمراجعات والكلمات والمحطات)', JSON.stringify(pick(a1)) === JSON.stringify(pick(P.after)), [pick(a1), pick(P.after)]);
+    T('ضغطتان معًا ثم تشغيل ثالث: لا شيء يُطبَّق مرتين', JSON.stringify(pick(a2)) === JSON.stringify(pick(a1)), [pick(a1), pick(a2)]);
+    const P2 = await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' }); T('معاينة بعد التنفيذ: لا شيء يتغيّر', JSON.stringify(P2.after) === JSON.stringify(P2.before), [P2.before, P2.after]);
+    // مدخل جديد للجهاز بعد المعاينة: البصمة تتغيّر
+    await send(uid, [{ type: 'rate', k: due(A)[0], r: 2, t: ctl.NOW - 40 * DAY, n: ctl.NOW - 40 * DAY, d: dev }], dev);
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'run', plan: P2.plan, confirm: true }) } catch (x) { e = x.message } T('حدث جديد للجهاز بعد المعاينة: «stale»، تُعاد المعاينة', / 409 /.test(e), e.slice(0, 50));
+    // سلامة الفهرس والأرشيف
+    const D = sxDoc(uid); D.ai = ['sxi-gone-1']; await memfs.commit([{ path: `users/${uid}/data/sx`, data: { v: JSON.stringify(D) } }]);
+    for (const [name, op] of [['المعاينة', { op: 'restore', uid, dev, mode: 'preview' }], ['اللوحة', { op: 'list', uid }]]) { e = ''; try { await post('/sxq', 'admin', op) } catch (x) { e = x.message } T('وثيقة فهرس مفقودة: ' + name + ' تتوقّف بخطأ واضح', / 500 /.test(e) && /sx index missing/.test(e), e.slice(0, 70)) }
+    const before = dump(); e = ''; try { await post('/wipe', 'admin', { uid }) } catch (x) { e = x.message } T('وثيقة فهرس مفقودة: الحذف يتوقّف قبل أي كتابة', / 500 /.test(e) && dump() === before, e.slice(0, 60));
+    await memfs.commit([{ path: `users/${uid}/data/sxi-gone-1`, data: { v: '{"an": "not-a-list"' } }]);
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' }) } catch (x) { e = x.message } T('وثيقة فهرس تالفة: تتوقّف بخطأ واضح', / 500 /.test(e) && /sx index corrupt/.test(e), e.slice(0, 70));
+    e = ''; try { await post('/wipe', 'admin', { uid }) } catch (x) { e = x.message } T('وثيقة فهرس تالفة: الحذف يتوقّف قبل أي كتابة', / 500 /.test(e) && DB.has(`users/${uid}/data/core`), e.slice(0, 60));
+    D.ai = []; D.an = [...(D.an || []), 'sxa-gone-1']; await memfs.commit([{ path: `users/${uid}/data/sx`, data: { v: JSON.stringify(D) } }]);
+    e = ''; try { await post('/sxq', 'admin', { op: 'restore', uid, dev, mode: 'preview' }) } catch (x) { e = x.message } T('وثيقة أرشيف مفقودة: الاستعادة تتوقّف بخطأ واضح', / 500 /.test(e) && /sx archive missing/.test(e), e.slice(0, 70)) },
 
   // ردود الخادم الحقيقية (كل الحالات) تمرّ فحص الصفحة syncChk: لا تباعد بين الخادم والصفحة
   async replyChk() { const src = (await import('node:fs')).readFileSync(process.argv[3] + '/index.html', 'utf8');

@@ -9,8 +9,14 @@ cd "$(git rev-parse --show-toplevel)"
 git rev-parse -q --verify "$BASE^{commit}" >/dev/null || { echo "فشل الفحص: المرجع الأساس $BASE غير موجود"; exit 2; }
 git rev-parse -q --verify "$HEAD_REF^{commit}" >/dev/null || { echo "فشل الفحص: المرجع $HEAD_REF غير موجود"; exit 2; }
 # المقارنة من نقطة التفرّع (ثلاث نقاط): ما يضيفه الفرع وحده، لا ما أُضيف إلى الأساس بعد تفرّعه
-ADDED=$(git diff "$BASE...$HEAD_REF" -U0 --no-color | grep '^+' | grep -v '^+++' || true)
-FILES=$(git diff --name-only "$BASE...$HEAD_REF")
+# SCAN_SAME_AS=<مرجع> (اختياري): يستثني فقط الملفات التي محتواها في المرفوع مطابق تمامًا لمحتواها في ذلك المرجع المنشور أصلًا
+# (مثل ملفات الأصوات والكلمات القادمة من main بعد تحديث الفرع منه). أي ملف يختلف ولو بايتًا يُفحص كاملًا.
+EXA=(); if [ -n "${SCAN_SAME_AS:-}" ]; then git rev-parse -q --verify "$SCAN_SAME_AS^{commit}" >/dev/null || { echo "فشل الفحص: المرجع $SCAN_SAME_AS غير موجود"; exit 2; }
+  while IFS= read -r f; do [ -n "$f" ] || continue; a=$(git rev-parse -q --verify "$HEAD_REF:$f" 2>/dev/null || true); b=$(git rev-parse -q --verify "$SCAN_SAME_AS:$f" 2>/dev/null || true)
+    [ -n "$a" ] && [ "$a" = "$b" ] && EXA+=(":(exclude)$f"); done < <(git diff --name-only "$BASE...$HEAD_REF")
+  echo "مستثنى لأنه مطابق لـ$SCAN_SAME_AS: ${#EXA[@]} ملفًا"; fi
+ADDED=$(git diff "$BASE...$HEAD_REF" -U0 --no-color -- . "${EXA[@]}" | grep '^+' | grep -v '^+++' || true)
+FILES=$(git diff --name-only "$BASE...$HEAD_REF" -- . "${EXA[@]}")
 [ -n "$FILES" ] || { echo "لا تغييرات بين $BASE و$HEAD_REF"; exit 0; }
 bad=0; hit(){ echo "✗ $1"; echo "$2" | head -5 | cut -c1-160; bad=1; }
 # مفاتيح ورموز معروفة الشكل
@@ -24,6 +30,6 @@ x=$(echo "$ADDED" | grep -noE "[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[a-z]{2,}" | gr
 x=$(echo "$ADDED" | grep -noE "\b[A-Za-z0-9]{28}\b" | grep -E "[A-Z]" | grep -E "[a-z]" | grep -E "[0-9]" || true); [ -z "$x" ] || hit "يشبه معرّف حساب Firebase" "$x"
 # ملفات لا تُرفع: نسخ احتياطية، ومفاتيح، وبيانات مستخدمين مصدَّرة، وملفات ثنائية
 x=$(echo "$FILES" | grep -iE "\.(p12|jks|keystore|pem|key|gz|zip|sqlite|db|bak)$|backup|bak-|export|dump|\.env|credentials|service.?account" || true); [ -z "$x" ] || hit "اسم ملف حساس" "$x"
-x=$(git diff --numstat "$BASE...$HEAD_REF" | awk '$1=="-"{print $3}'); [ -z "$x" ] || hit "ملف ثنائي" "$x"
+x=$(git diff --numstat "$BASE...$HEAD_REF" -- . "${EXA[@]}" | awk '$1=="-"{print $3}'); [ -z "$x" ] || hit "ملف ثنائي" "$x"
 if [ $bad = 1 ]; then echo "== فشل فحص الأسرار: لا رفع"; exit 1; fi
 echo "== فحص الأسرار نظيف: $(echo "$FILES" | wc -l) ملفًا، $(echo "$ADDED" | wc -l) سطرًا مضافًا"
