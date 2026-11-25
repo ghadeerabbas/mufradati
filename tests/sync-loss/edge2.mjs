@@ -261,6 +261,59 @@ const C = {
     T('هوية غير صالحة وحجم 50 كيلوبايت: الحجر «badid» بوثيقة مرجعية منفصلة', j2.st[0] === 'q' && j2.rej[0][1] === 'badid' && q[2].ref && DB.has(`users/${uid}/data/${q[2].ref}`), [j2.st, q && q[2]]);
     T('وثيقة sx بقيت صغيرة', bytes(doc(`users/${uid}/data/sx`)) < 40000, bytes(doc(`users/${uid}/data/sx`))) },
 
+  // البند 1 (الجولة الأخيرة): أثر الأرض العامة على الأجهزة السليمة والأحداث غير المتزامنة — مقارنة السيناريو نفسه مع طيّ الأجهزة وبدونه
+  async gloOne() { const fill = process.env.GF === '1', uid = 'gi', A = await learner(uid, 3, true), B = app('new', uid); await B.sync(); const res = { st: {}, q: {} };
+    if (fill) { let n = ctl.NOW; for (let b = 0; b < 7; b++) await send(uid, Array.from({ length: 100 }, (_, i) => ({ type: 'zz', t: ctl.NOW, n: ++n, d: 'gf' + (b * 100 + i) })), 'gf0') }
+    const day0 = ctl.NOW;
+    // A يدرس 45 يومًا دون اتصال (مراجعات كل يوم، ومحطة كل 5 أيام)؛ B يزامن في اليوم 40 فيُطوى سجلّ A نفسه (خامل) مع الأجهزة الأخرى
+    for (let d = 1; d <= 45; d++) { ctl.NOW = day0 + d * DAY; for (const k of due(A).slice(0, 4)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } if (d % 5 === 0) await station(A, { syncEach: false });
+      if (d === 40) { B.ev({ type: 'eday' }); await B.sync(); res.devAfterFold = Object.keys(sxDoc(uid).dv).length; res.aFolded = !sxDoc(uid).dv[A.dev()] } }
+    let j; do { j = await A.sync(); for (const x of j.st || []) res.st[x] = (res.st[x] || 0) + 1; for (const r of j.rej || []) res.q[r[1]] = (res.q[r[1]] || 0) + 1 } while (A.q);
+    const a = await srv(uid); Object.assign(res, { xp: a.xp, gems: a.gems, streak: a.streak, reviews: a.reviews, stations: a.stations, words: a.words, glo: sxDoc(uid).glo || 0, now: ctl.NOW });
+    // جهاز جديد ساعته صحيحة، وجهاز جديد ساعته متأخّرة 60 يومًا (الحالة الوحيدة التي تتأثّر)
+    const k = due(A)[0]; const r1 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW, d: 'newOk01' }], 'newOk01'); res.newOk = r1.st[0];
+    const r2 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW - 60 * DAY, d: 'newLag01' }], 'newLag01'); res.lag = [r2.st[0], (r2.rej[0] || [])[1] || null];
+    const r3 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW + 60e3, n: Math.max(r2.dn, ctl.NOW - 60 * DAY) + 1, d: 'newLag01' }], 'newLag01'); res.lagNext = r3.st[0]; res.dnGlo = r2.dn >= res.glo;
+    out.push('GLRES ' + JSON.stringify(res)) },
+
+  // البند 2 (الجولة الأخيرة): قائمة وثائق الفهرس ai نفسها محدودة — عند بلوغ 50 تنتقل أسماؤها إلى وثيقة الفهرس الجديدة (سلسلة)
+  async aiChain() { const uid = 'ac', A = await learner(uid); const G = { type: 'rate', k: due(A)[0], r: 2, t: ctl.NOW - 3600e3, n: 5, d: 'acdev01' };
+    { const D0 = sxDoc(uid); D0.glo = 1e6; await memfs.commit([{ path: `users/${uid}/data/sx`, data: { v: JSON.stringify(D0) } }]) }   // جهاز جديد يبدأ بأرض عامة > 5: الحدث إلى الحجر
+    await send(uid, [G], 'acdev01'); let L = await post('/sxq', 'admin', { op: 'list', uid }); const qid = L.qz.find(q => q.n === 5).qid;
+    let r = await post('/sxq', 'admin', { op: 'apply', uid, qid }); T('إعادة تطبيق أولى: مقبولة', r.st === 'ok', r);
+    // 50 وثيقة فهرس قديمة (أولاها تحمل مفتاح إعادة التطبيق الحقيقي واسم أرشيف حقيقي)
+    const D = sxDoc(uid), names = Array.from({ length: 50 }, (_, i) => 'sxi-old-' + i), real = D.ap.splice(0), W = [];
+    names.forEach((nm, i) => W.push({ path: `users/${uid}/data/${nm}`, data: { v: JSON.stringify({ an: ['sxa-chain-' + i], ap: i === 0 ? real : [], am: {}, at: 1 }) } }));
+    W.push({ path: `users/${uid}/data/sxa-chain-0`, data: { v: JSON.stringify({ qz: [], late: [], at: 1 }) } });
+    D.ai = names; D.ap.push(...Array.from({ length: 3000 }, (_, i) => 'pad-key-' + i + '-xxxxxxxxxxxx')); W.push({ path: `users/${uid}/data/sx`, data: { v: JSON.stringify(D) } }); await memfs.commit(W);
+    A.ev({ type: 'eday' }); await A.sync(); const S = sxDoc(uid), nx = JSON.parse(doc(`users/${uid}/data/${S.ai[0]}`));
+    T('بعد النقل: قائمة ai في sx فيها اسم واحد، والوثيقة الجديدة تحمل أسماء الخمسين', S.ai.length === 1 && nx.ai.length === 50, [S.ai.length, nx.ai && nx.ai.length]);
+    L = await post('/sxq', 'admin', { op: 'list', uid }); T('اللوحة تقرأ السلسلة كلها (أسماء الأرشيف من الطبقة الثانية)', L.an.includes('sxa-chain-0') && L.an.includes('sxa-chain-49'), L.an.length);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid }); T('مفتاح إعادة التطبيق في الطبقة الثانية يُرى: «applied»، لا تكرار', r.rej && r.rej[0][1] === 'applied', r);
+    const ROOT = 'projects/mufradati-406bd/databases/(default)/documents';
+    const enc = v => typeof v === 'string' ? { stringValue: v } : typeof v === 'number' ? (Number.isInteger(v) ? { integerValue: String(v) } : { doubleValue: v }) : typeof v === 'boolean' ? { booleanValue: v } : v === null ? { nullValue: null } : Array.isArray(v) ? { arrayValue: { values: v.map(enc) } } : (v && v.ms !== undefined && Object.keys(v).length === 1) ? { timestampValue: new Date(v.ms).toISOString() } : { mapValue: { fields: Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) } };
+    env.__export = async () => { const arr = [...DB].map(([p, d]) => ({ document: { name: ROOT + '/' + p, fields: Object.fromEntries(Object.entries(d.data).map(([k, v]) => [k, enc(v)])), updateTime: d.ut }, readTime: '' })); return { parts: [JSON.stringify(arr)], n: arr.length, users: 1 } };
+    const key = (await post('/backup', 'admin', { op: 'now', rid: 'aiChain00001' })).key; let v = await post('/backup', 'admin', { op: 'verify', key });
+    T('التحقق الكامل يقرأ السلسلة: sx والأرشيف «same»', v.accts[uid].docs.sx === 'same' && v.accts[uid].docs.sxa === 'same', v.accts[uid].docs);
+    await memfs.commit([{ path: `users/${uid}/data/sxi-old-30`, del: true }]); v = await post('/backup', 'admin', { op: 'verify', key });
+    T('وثيقة فهرس من الطبقة الثانية حُذفت: التحقق يرى الفرق', v.accts[uid].docs.sxa === 'diff', v.accts[uid].docs);
+    await post('/wipe', 'admin', { uid }); const left = [...DB.keys()].filter(p => p.startsWith(`users/${uid}/data/sxi-`) || p.startsWith(`users/${uid}/data/sxa-`));
+    T('الحذف يمسح السلسلة كلها (51 وثيقة فهرس والأرشيف)', !left.length, left.length) },
+
+  // التراجع والمتأخّرات: on ثم ids:1 ثم إطفاء كامل ثم on، والمتأخّرات لا تُحذف من sx في أي وضع
+  async rollbackLate() { const uid = 'rl', A = await learner(uid); const k = due(A)[0], t = ctl.NOW; ctl.NOW += 3 * 36e5;
+    await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW, d: 'rlDevA1' }], 'rlDevA1');
+    const j1 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW - 36e5, n: ctl.NOW - 36e5, d: 'rlDevB1' }], 'rlDevB1');
+    T('مراجعة أقدم من مراجعة أحدث للكلمة نفسها: «late»', j1.st[0] === 'late', j1.st);
+    const day = new Date(ctl.NOW).toISOString().slice(0, 10), per = async () => { adv(61e3); const B = app('new', uid); const j = await B.sync(); const L = JSON.parse(j.late || 'null');   // الإعدادات تُخزَّن في الخادم دقيقة
+      return { n: (B.E().per[day] || { n: 0 }).n + L.L.filter(x => new Date(x[0]).toISOString().slice(0, 10) === day).length + (+L.F[day] || 0), L } };   // نشاط اليوم كما تحسبه السلسلة (مع المتأخّرات)
+    const on = await per(); await cfg({ on: 0, ids: 1 }); const ids = await per(); await memfs.commit([{ path: 'config/app', data: { v: JSON.stringify({ sx: { on: 0 } }) } }]); const off = await per();
+    const kept = sxDoc(uid).late.length; await cfg({}); const back = await per();
+    I('مراجعات اليوم وقائمة المتأخّرات في كل وضع', { on: [on.n, on.L.L.length], ids: [ids.n, ids.L.L.length], off: [off.n, off.L.L.length], back: [back.n, back.L.L.length] });
+    T('ids:1: المتأخّرة ما زالت محسوبة في نشاط يومها، وتصل الصفحة', ids.n === on.n && ids.L.L.length === 1, [on.n, ids.n]);
+    T('إطفاء كامل: الخادم يتجاهلها (سلوك النسخة المنشورة)، ويرسل قائمة فارغة فتطابقه الصفحة', off.n === on.n - 1 && off.L.L.length === 0, [on.n, off.n]);
+    T('ولا تُحذف من sx، وتعود كاملة عند إعادة التشغيل', kept === 1 && back.n === on.n && back.L.L.length === 1, [kept, back.n]) },
+
   // ردود الخادم الحقيقية (كل الحالات) تمرّ فحص الصفحة syncChk: لا تباعد بين الخادم والصفحة
   async replyChk() { const src = (await import('node:fs')).readFileSync(process.argv[3] + '/index.html', 'utf8');
     const syncChk = new Function(src.slice(src.indexOf('const SX_ST='), src.indexOf('async function syncNow(')) + ';return syncChk')();
@@ -274,10 +327,10 @@ const C = {
   // البند 4: حدود كل مكوّنات sx — سجلّات الأجهزة، وقوائم الفهارس
   async sxBounds() { const uid = 'sb', A = await learner(uid); const k = due(A)[0]; let n = ctl.NOW + 2e9;
     // 700 جهاز، حدث واحد لكل منها، ثم 40 يومًا → خاملة
-    for (let b = 0; b < 7; b++) await send(uid, Array.from({ length: 100 }, (_, i) => ({ type: 'zz', t: ctl.NOW, n: ++n, d: 'mdev' + (b * 100 + i) })), 'mdev0');
+    n = ctl.NOW; for (let b = 0; b < 7; b++) await send(uid, Array.from({ length: 100 }, (_, i) => ({ type: 'zz', t: ctl.NOW, n: ++n, d: 'mdev' + (b * 100 + i) })), 'mdev0');
     const old = { type: 'rate', k, r: 2, t: ctl.NOW, n: ++n, d: 'mdev3' }; await send(uid, [old], 'mdev3');
     ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync(); const sx = sxDoc(uid), nd = Object.keys(sx.dv).length;
-    T('الأجهزة الخاملة ≤ 500، والزائد مطويّ في الأرض العامة', nd <= 502 && sx.glo >= n - 800, { devices: nd, glo: sx.glo });
+    T('الأجهزة الخاملة ≤ 500، والزائد مطويّ في الأرض العامة (وهي أقدم من كل مدّة قبول)', nd <= 502 && sx.glo >= n - 800 && sx.glo < ctl.NOW - 32 * DAY, { devices: nd, glo: sx.glo });
     const b = await srv(uid); const r1 = await send(uid, [old], 'mdev3'); const a = await srv(uid);
     T('حدث قديم من جهاز مطويّ يُعاد: لا يُطبَّق مرة ثانية', r1.st[0] === 'q' && a.reviews === b.reviews, [r1.st, r1.rej]);
     const r2 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, n: ctl.NOW + 5, d: 'brandNew1' }], 'brandNew1');
