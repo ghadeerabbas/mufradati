@@ -5282,13 +5282,13 @@ async function renderSafe(){
         const c=Object.entries(j.count||{}).map(([k,v])=>`${esc(QZW[k]||k)}: ${v}`).join(" · ")||"لا شيء جديد",ba=k=>`${j.before[k]} ← ${j.after[k]}`;
         box.innerHTML=`<div class="bkrow"><div><b>معاينة: ${j.n} مدخلًا بترتيب إنشائها على الجهاز${j.skipped?` (${j.skipped} سبق تطبيقها)`:""}</b><small>${c}</small>
           <small>الخبرة ${ba("xp")} · الجواهر ${ba("gems")} · المراجعات ${ba("reviews")} · الكلمات ${ba("words")} · المحطات ${ba("stations")}</small></div>
-          <button class="btn qzRgo" data-u="${esc(rs.dataset.u)}" data-d="${esc(rs.dataset.d)}" data-p="${esc(j.plan)}">تنفيذ</button></div>`}
+          <button class="btn qzRgo" data-u="${esc(rs.dataset.u)}" data-d="${esc(rs.dataset.d)}" data-p="${esc(j.plan)}" data-s="${esc(j.state)}">تنفيذ</button></div>`}
       catch(err){box.innerHTML=`<div class="err">توقّفت المعاينة: ${esc(err.detail||err.error||"")}</div>`}return}
     if(rg){if(!confirm("تنفيذ الاستعادة كما في المعاينة على حساب المتعلّم؟ لا يُطبَّق شيء مرتين."))return;rg.disabled=true;let round=1,n=0;
-      try{for(let i=0;i<200;i++){const j=await apiPost("/sxq",{op:"restore",uid:rg.dataset.u,dev:rg.dataset.d,mode:"run",plan:rg.dataset.p,confirm:true,round});
+      try{for(let i=0;i<200;i++){const j=await apiPost("/sxq",{op:"restore",uid:rg.dataset.u,dev:rg.dataset.d,mode:"run",plan:rg.dataset.p,state:rg.dataset.s,confirm:true,round});if(j.state)rg.dataset.s=j.state;
           if(j.more){n+=(j.out||[]).length;rg.textContent="جارٍ… "+n;continue}if(j.word&&round<3){round++;continue}break}
         toast("✓","انتهت الاستعادة",n+" مدخلًا");const b=document.querySelector(`.qzU[data-u="${CSS.escape(rg.dataset.u)}"]`);if(b)b.click()}
-      catch(err){rg.disabled=false;rg.textContent="تنفيذ";toast("⚠️",err.error==="stale"?"تغيّر الحجر منذ المعاينة: أعد المعاينة":"توقّفت الاستعادة",err.detail||err.error||"")}return}
+      catch(err){rg.disabled=false;rg.textContent="تنفيذ";toast("⚠️",err.error==="stale"?"تغيّر الحجر منذ المعاينة: أعد المعاينة":err.error==="stale-state"?"تغيّر تقدّم الحساب منذ المعاينة (مزامنة جديدة مثلًا): أعد المعاينة":"توقّفت الاستعادة",err.detail||err.error||"")}return}
     if(u){const box=$("qzU_"+u.dataset.u);box.innerHTML='<div class="empty">جارٍ التحميل…</div>';try{const j=await apiPost("/sxq",{op:"list",uid:u.dataset.u});
       const devs=[...new Set(j.qz.filter(r=>r.d||r.n).map(r=>r.d||"_"))];
       box.innerHTML=devs.map(d=>`<button class="btn sec qzR" data-u="${esc(u.dataset.u)}" data-d="${esc(d)}" style="width:100%;margin-top:4px">استعادة الجهاز ${esc(d)} بالترتيب (معاينة أولًا)</button><div class="qzRb" id="qzR_${esc(u.dataset.u)}_${esc(d)}"></div>`).join("")+
