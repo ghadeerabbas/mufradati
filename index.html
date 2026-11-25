@@ -1998,11 +1998,41 @@ let EN={v:30,t:0},STN=[],STV=0,EVQ=[];   // الطاقة، والمحطات ال
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};{const x=jget(K("late"),{});LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}SEQ=0;ANC=null;
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};sfLoad();{const x=jget(K("late"),{});LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}SEQ=0;ANC=null;
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
-const save=()=>{if(!UID)return;st(K("reset"),JSON.stringify(R));st(K("progress"),JSON.stringify(P));st(K("settings"),JSON.stringify(S));st(K("log"),JSON.stringify(LOG));st(K("ck"),JSON.stringify(CK));
-  st(K("qlog"),JSON.stringify(QLOG));st(K("qa"),JSON.stringify(QA));st(K("late"),JSON.stringify({L:LATE,F:LATEF}));st(K("buy"),JSON.stringify(BUY));st(K("equip"),JSON.stringify(E));st(K("league"),JSON.stringify(LG));st(K("energy"),JSON.stringify(EN));st(K("stations"),JSON.stringify(STN));st(K("stv"),String(STV||0));st(K("evq"),JSON.stringify(EVQ))};
+// الحفظ المحلي: الأحداث التي لم تصل الخادم تُحفظ أولًا ويُتحقَّق أنها حُفظت فعلًا، ثم بقية المفاتيح مع التحقق أيضًا.
+// كل ما سوى الأحداث المنتظرة نسخةٌ من حالة الخادم مضافًا إليها أثر تلك الأحداث، فيعود كاملًا مع أول مزامنة.
+// إن امتلأت ذاكرة الهاتف نُفرّغ ما يُنزَّل من جديد (نسخ المناهج غير الحالية والواجهة المحفوظة)، ثم نسخة السجلّ وسجلّ الإجابات المحلية،
+// وهذه الأخيرة لا تُحذف إلا إذا ثبت أن كل ما فيها إما وصل الخادم (علامة «srv» من آخر مزامنة) أو موجود في الأحداث المنتظرة.
+// STFAIL: عدد مرات الحفظ التي لم تُحفظ فيها الأحداث المنتظرة (تراكمي على الجهاز). STKF: عدد مرات فشل مفتاح آخر. LSZ: حجم ذاكرة الجهاز بالمحارف.
+let STFAIL=0,STKF=0,STWARN=false,LSZ=-1,LSZT=0;
+function stOk(k,v){try{localStorage.setItem(k,v);return localStorage.getItem(k)===v}catch(e){return false}}
+// علامة ما وصل الخادم: عدد عناصر السجلّ وسجلّ الإجابات في آخر حالة من الخادم، ووقت آخر عنصر في كلٍّ منهما
+function srvMark(){try{const l=LOG.length,q=QA.length;stOk(K("srv"),JSON.stringify({n:l,t:l?LOG[l-1][0]:0,q,qt:q?QA[q-1][0]:0}))}catch(e){}}
+function logSafe(){if(typeof isAdmin==="function"&&isAdmin())return false;   // المشرف لا يزامن، فسجلّه لا نسخة له في الخادم
+  const m=jget(K("srv"),null);if(!m||typeof m.n!=="number")return false;
+  const okL=LOG.length>=m.n&&(m.n?LOG[m.n-1][0]===m.t:true)&&LOG.length-m.n<=EVQ.length,okQ=QA.length>=m.q&&(m.q?QA[m.q-1][0]===m.qt:true)&&QA.length-m.q<=EVQ.length;
+  return okL&&okQ}
+function stFree(lv){try{const cur="muf_w_"+((COURSES[COURSE]||{}).file||""),ks=[];
+  if(lv===2&&!logSafe())return 0;
+  for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(lv===1?((/^muf_w_/.test(k)&&k!==cur)||k==="muf_shell"):(k===K("log")||k===K("qa")))ks.push(k)}
+  ks.forEach(k=>localStorage.removeItem(k));return ks.length}catch(e){return 0}}
+function saveEvq(){const v=JSON.stringify(EVQ);if(stOk(K("evq"),v))return true;for(const lv of [1,2]){if(stFree(lv)&&stOk(K("evq"),v))return true}return false}
+function lsSize(){try{let n=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);n+=k.length+(localStorage.getItem(k)||"").length}return n}catch(e){return -1}}
+// للملخّص: الحجم يُقاس كل ساعة على الأكثر ويُقرَّب إلى 10 آلاف محرف، فلا يتغيّر الملخّص (ولا يُكتب من جديد) لتغيّر صغير
+function lsNow(){const t=Date.now();if(LSZ<0||t-LSZT>36e5){const n=lsSize();LSZ=n<0?-1:Math.round(n/1e4)*1e4;LSZT=t}return LSZ}
+let STKW=false;
+function sfLoad(){const o=jget(K("sf"),{});STFAIL=+o.f||0;STKF=+o.k||0;STWARN=false;STKW=false;LSZ=-1}
+const save=()=>{if(!UID)return;
+  const okE=saveEvq();
+  if(!okE){STFAIL++;if(!STWARN){STWARN=true;toast("⚠️","ذاكرة الهاتف ممتلئة","لا تغلق التطبيق قبل أن يُحفظ تقدّمك في حسابك");try{repErr("local storage full: evq not saved","","save")}catch(e){}}if(EVQ.length)schedSync(1000)}
+  else if(STWARN&&!EVQ.length)STWARN=false;
+  const kv=[["progress",P],["energy",EN],["stations",STN],["stv",String(STV||0)],["reset",R],["settings",S],["ck",CK],["qlog",QLOG],["buy",BUY],["equip",E],["league",LG],["log",LOG],["qa",QA],["late",{L:LATE,F:LATEF}]],bad=[];
+  for(const [k,v] of kv){const t=typeof v==="string"?v:JSON.stringify(v);if(!stOk(K(k),t))bad.push([k,t])}
+  if(bad.length&&stFree(1))for(let i=bad.length-1;i>=0;i--)if(stOk(K(bad[i][0]),bad[i][1]))bad.splice(i,1);
+  if(bad.length){STKF++;if(okE&&EVQ.length)schedSync(1000);if(!STKW){STKW=true;try{repErr("local storage full: "+bad.map(x=>x[0]).join(","),"","save")}catch(e){}}}
+  if(!okE||bad.length)stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}))};
 const key=w=>w.de.trim().toLowerCase();
 const uniq=a=>{const s=new Set;return a.filter(w=>!s.has(w.k)&&s.add(w.k))};
 
@@ -2043,8 +2073,8 @@ let OTHERC={},ORPH=[];
 async function loadOtherWords(){
   const o={};
   for(const c of MY_COURSES){if(c===COURSE||!COURSES[c])continue;const f=COURSES[c].file,ck="muf_w_"+f;
-    let t=st(ck);if(!t){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
-    try{const d=JSON.parse(t||"{}");o[c]=uniq((d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
+    let t=st(ck),d=t?wordsOk(t):null;if(!d){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();d=wordsOk(t);if(d)st(ck,t)}}catch(e){}}
+    if(d)o[c]=uniq(d.words.map(w=>({...w,k:key(w),oc:c})))}
   OTHERC=o;
   // كلمات تعلّمها من منهجٍ لم يعد من مناهجه: تبقى في قائمته ومراجعاته
   const known=new Set([...W,...Object.values(OTHERC).flat()].map(w=>w.k));
@@ -2072,14 +2102,19 @@ async function switchCourse(c,silent){
   if(!COURSES[c]||c===COURSE)return;st(K("course"),c);
   await loadWords(c);loadOtherWords();renderCourseSel();econ();renderHeader();refresh();if(!silent)toast("📘","المنهج الآن: "+COURSES[c].name,W.length+" كلمة");
 }
+// ملف المنهج: يُقبل ويُحفظ فقط إن كان JSON سليمًا وبنيته صحيحة (قائمة كلمات، لكل كلمة نص ألماني ومعنى عربي، والأيام قائمة إن وُجدت)
+function wordsOk(t){let d;try{d=JSON.parse(t)}catch(e){return null}
+  if(!d||typeof d!=="object"||Array.isArray(d)||!Array.isArray(d.words))return null;if(d.days!==undefined&&!Array.isArray(d.days))return null;
+  for(const w of d.words)if(!w||typeof w!=="object"||typeof w.de!=="string"||!w.de.trim()||typeof w.ar!=="string")return null;
+  return d}
 async function loadWords(c){
   COURSE=c;const f=COURSES[c].file,ck="muf_w_"+f;
   const net=fetch(DP+f,{cache:"no-cache"}).then(r=>r.ok?r.text():null).catch(()=>null);
-  let txt=st(ck);
-  if(txt){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){st(ck,t);applyWords(JSON.parse(t));if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
-  else{txt=await net;if(txt)st(ck,txt)}
-  let d={days:[],words:[]};try{if(txt)d=JSON.parse(txt)}catch(e){}
-  applyWords(d);
+  let txt=st(ck),d=txt?wordsOk(txt):null;
+  if(txt&&!d){try{localStorage.removeItem(ck)}catch(e){}txt=null}   // نسخة محفوظة تالفة: تُحذف ويُنتظر الملف من الشبكة
+  if(d){net.then(t=>{if(t&&t!==st(ck)&&COURSE===c){const n=wordsOk(t);if(!n)return;st(ck,t);applyWords(n);if(!queue.length&&!STS&&!GM)refresh();econ();renderHeader()}})}
+  else{txt=await net;d=txt?wordsOk(txt):null;if(d)st(ck,txt)}   // لا يُحفظ ملف تالف أو ناقص أو بغير البنية المتوقعة
+  applyWords(d||{days:[],words:[]});
 }
 function applyWords(d){
   DAYS=d.days||[];const seen={};
@@ -2518,8 +2553,8 @@ let EXTRAW=[];
 async function loadAllCourseWords(){
   const have=new Set([COURSE,...Object.keys(OTHERC)]),o=[];
   for(const c of Object.keys(COURSES)){if(have.has(c))continue;const f=COURSES[c].file,ck="muf_w_"+f;
-    let t=st(ck);if(!t){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();st(ck,t)}}catch(e){}}
-    try{const d=JSON.parse(t||"{}");o.push(...(d.words||[]).map(w=>({...w,k:key(w),oc:c})))}catch(e){}}
+    let t=st(ck),d=t?wordsOk(t):null;if(!d){try{const q=await fetch(DP+f,{cache:"no-cache"});if(q.ok){t=await q.text();d=wordsOk(t);if(d)st(ck,t)}}catch(e){}}
+    if(d)o.push(...d.words.map(w=>({...w,k:key(w),oc:c})))}
   EXTRAW=uniq(o);
 }
 function stationWords(j){   // كلمات المحطة رقم j من محطات اليوم
@@ -3932,7 +3967,7 @@ function applyServer(j){
   if(c.wiped&&c.wiped>(+st(K("wiped"))||0)){st(K("wiped"),String(c.wiped));EVQ=[];E=Object.assign({},DEF_E,{ts:Date.now()});S=Object.assign({},DEF_S,{ts:Date.now()});st(K("giftSeen"),"[]");PREFLAST="";applyLook()}
   P=c.P||{};QLOG=c.QLOG||[];BUY=c.BUY||[];R=Object.assign({bank:0,ach:[],lv:1,ts:0},c.R||{});
   LG=Object.assign({tier:null,w:"",hist:[],ts:0},c.LG||{});EN=c.EN||{v:30,t:0};STN=c.STN||[];STV=c.STV||0;
-  LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));
+  LOG=unpackLog(JSON.parse(j.log||"null"));QA=unpackQA(JSON.parse(j.qa||"null"));srvMark();
   if(j.ck!==undefined)CK=j.ck?JSON.parse(j.ck):null;   // نقطة حفظ السجل: تصل فقط حين تختلف
   if(j.late!==undefined){try{const x=JSON.parse(j.late)||{};LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}catch(e){}}   // المراجعات المتأخّرة (المزامنة الجديدة)
   if(+j.dn>SEQ){SEQ=+j.dn;st(K("seq"),String(SEQ))}
@@ -4690,7 +4725,7 @@ function summary(){
   return {login:loginName(),course:COURSE,last:LOG.length?LOG[LOG.length-1][0]:0,first:LOG.length?LOG[0][0]:0,days:days.length,
     total:e.s.reviews,acc:LOG.length?Math.round(ok/LOG.length*100):0,started:u.filter(w=>P[w.k]).length,
     mem:u.filter(w=>P[w.k]&&P[w.k].box>=4).length,words:u.length,streak:e.s.streak,best:e.s.best,sd:e.s.today?today():"",
-    lv:e.lv,gems:e.gems,fz:e.s.freezes,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier};
+    lv:e.lv,gems:e.gems,fz:e.s.freezes,ach:e.got.size,quizzes:QLOG.length,qacc:qn?Math.round(qs/qn*100):0,d14,at:now,ms:measure(),lg:LG.tier,ls:lsNow(),sf:STFAIL,sk:STKF};
 }
 
 /* ================= تقارير المستخدمين (للمدير) ================= */
@@ -4888,7 +4923,7 @@ function renderUser(){
    <div class="kpi ${sm.acc<70?"r":"g"}"><b>${sm.acc}%</b><span>صواب المراجعة</span></div>
    <div class="kpi o"><b>${sm.total}</b><span>مجموع المراجعات</span></div>
    <div class="kpi"><b>${sm.days}</b><span>يومًا درس فيها</span></div>
-   <div class="kpi"><b>${sm.quizzes}</b><span>اختبار (صواب ${sm.qacc}%)</span></div>
+   <div class="kpi"><b>${sm.quizzes}</b><span>اختبار (صواب ${sm.qacc}%)</span></div>${sm.ls!=null&&sm.ls>=0?`<div class="kpi"><b>${(sm.ls/1e6).toFixed(2)}</b><span>مليون محرف في ذاكرة الجهاز${sm.sf?` · ⚠️ ${sm.sf} مرة لم تُحفظ الأحداث المنتظرة`:""}${sm.sk?` · ${sm.sk} مرة لم يُحفظ مفتاح آخر`:""}</span></div>`:""}
    <div class="kpi"><b>${sm.lv}</b><span>المستوى · ${sm.ach} إنجاز</span></div>
    <div class="kpi"><b>💎 ${sm.gems}</b><span>جواهر</span></div>
   </div>

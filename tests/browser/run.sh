@@ -4,6 +4,6 @@
 D=$(cd "$(dirname "$0")" && pwd); . "$D/../lib.sh"
 python3 -c "import playwright" 2>/dev/null || { echo "SKIP لا يوجد Playwright لبايثون (pip install playwright && playwright install chromium)"; exit 3; }
 # الملف والحساب: المشرف لأدوات الحماية، وحساب عادي لغيرها
-LIST="srs/browser.js:tester srs/admin.js:admin stage0/browser.js:tester stage0/offline-background.js:tester ui-tweaks/station.js:tester ui-tweaks/chal.js:tester seen/browser.js:tester backup-dup/browser.js:admin backup-diff/browser.js:admin backup-diff/browser2.js:admin sync-loss/browser.js:tester"
+LIST="srs/browser.js:tester srs/admin.js:admin stage0/browser.js:tester stage0/offline-background.js:tester ui-tweaks/station.js:tester ui-tweaks/chal.js:tester seen/browser.js:tester backup-dup/browser.js:admin backup-diff/browser.js:admin backup-diff/browser2.js:admin sync-loss/browser.js:tester storage/browser-sync.js:tester"
 { for x in $LIST; do f=${x%%:*}; u=${x##*:}; echo "== $f"
     USR=$u timeout 300 python3 "$D/page.py" "$R" "$R/tests/$f" 2>&1 || echo "FAIL تعذّر تشغيل $f (Chromium؟)"; done; echo __END; } | verdict
