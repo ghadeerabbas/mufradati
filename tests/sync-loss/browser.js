@@ -53,6 +53,18 @@ T('المزامنة الجديدة مفعّلة لهذا الحساب في ال�
   fake(evs => evs.map(() => 'ok')); await syncNow(true); T('ثم ردّ كامل من الخادم الجديد: حُذفت', EVQ.length === 0, EVQ.length);
   two(); fake(evs => evs.map(() => 'ok'), { __old: 1 }); await syncNow(true); T('الخادم القديم (بلا sxv ولا st): تُحذف المرسلة كما كان', EVQ.length === 0, EVQ.length) }
 
+// 5) فحص الردّ كاملًا قبل الحذف: كل ردّ مشوّه لا يغيّر الحالة ولا قائمة الانتظار، ويُبلَّغ، وتبقى الأحداث للمحاولة التالية
+{ const two = () => { EVQ.length = 0; EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }, { type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }) };
+  const good = evs => evs.map(() => 'ok');
+  const cases = [['حالة غير معروفة', evs => evs.map(() => 'yes'), {}], ['حالة ليست نصًّا', evs => evs.map(() => 1), {}], ['حالات أكثر من الأحداث', evs => [...evs.map(() => 'ok'), 'ok'], {}],
+    ['core مشوّه', good, { core: '{bad' }], ['core ليس كائنًا', good, { core: '[1,2]' }], ['log ليس JSON', good, { log: 'xx' }], ['qa رقم', good, { qa: 5 }], ['ck مشوّه', good, { ck: '{' }],
+    ['late مشوّه', good, { late: '{' }], ['dn نصّي', good, { dn: '99' }], ['dn سالب', good, { dn: -1 }], ['now كسري', good, { now: 1.5 }], ['now ضخم', good, { now: 2 ** 60 }], ['prefs كائن', good, { prefs: {} }]];
+  for (const [name, f, x] of cases) { two(); const P0 = JSON.stringify(P), R0 = JSON.stringify(R), S0 = SEQ; REPS.length = 0; fake(f, x);
+    const ok = await syncNow(true); T('ردّ مشوّه (' + name + '): لا حذف ولا تغيير، ومُبلَّغ', !ok && EVQ.length === 2 && JSON.stringify(P) === P0 && JSON.stringify(R) === R0 && SEQ === S0 && REPS.some(m => /bad reply/.test(m)), [ok, EVQ.length, REPS[0]]) }
+  fake(good); const ok = await syncNow(true); T('ثم ردّ سليم: تُرسل الأحداث نفسها وتُحذف', ok && EVQ.length === 0, [ok, EVQ.length]);
+  T('ردّ سليم كامل يمرّ الفحص', syncChk({ core: '{}', log: 'null', qa: 'null', sxv: 1, st: ['ok', 'late', 'dup', 'q', 'big', 'wiped', 'bad', 'rej'], dn: 5, now: 6 }, 8) === '');
+  T('ردّ الخادم القديم (بلا sxv ولا st) يمرّ الفحص', syncChk({ core: '{}', log: 'null', qa: 'null' }, 3) === '') }
+
 // 5) ما يرسله التطبيق: الجهاز في الطلب، والمرساة مع الحدث حين تكون صالحة
 { fake(evs => evs.map(() => 'ok')); CALLS.length = 0; delete window.MufApp; ANC = null; ancSet(Date.now(), 0);
   EVQ.push(evId({ type: 'zzok', t: Date.now() })); await syncNow(true);
