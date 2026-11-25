@@ -260,11 +260,11 @@ async function handleSync(fs, user, body, opts) {
     // حدث بلا هوية (تطبيق قديم، ومفرداتي ٢ اليوم) يُقبل جهازًا «_» كما كان؛ وهوية موجودة لكنها غير صالحة → الحجر «badid» (لا تطبيق بلا منع تكرار)
     const badId = SXI && ((e.d !== undefined && (typeof e.d !== "string" || !SX_DEV.test(e.d))) || (e.n !== undefined && !(Number.isSafeInteger(e.n) && e.n > 0 && e.n <= now + 400 * 864e5)));
     if (badId && !RE) { if (SXU) { const q = sxPut(sx, sxArch, uid, now, "badid", e, i); st.push(q); rej.push([i, q === "big" ? "big" : "badid"]) } else { st.push("rej"); rej.push([i, "badid"]) } continue }
-    // حدّ سجلّات الأجهزة: جهاز جديد بعد بلوغ SX_DEVCAP سجلًّا (لا يحدث إلا بآلاف المعرّفات في أسابيع) → الحجر «devmax»، لا طيّ لأرض حديثة
-    if (SXI && !RE && !sx.dv[sxDevKey(e)] && Object.keys(sx.dv).length >= SX_DEVCAP) { const q = sxPut(sx, sxArch, uid, now, "devmax", e, i); st.push(q); rej.push([i, q === "big" ? "big" : "devmax"]); continue }
+    // حدّ سجلّات الأجهزة (وإعادة التطبيق لا تتجاوزه أيضًا): جهاز جديد بعد بلوغ SX_DEVCAP سجلًّا (لا يحدث إلا بآلاف المعرّفات في أسابيع) → الحجر «devmax»، لا طيّ لأرض حديثة
+    if (SXI && !sx.dv[sxDevKey(e)] && Object.keys(sx.dv).length >= SX_DEVCAP) { if (RE) { st.push("q"); rej.push([i, "devmax"]); sxMark(sx, RE.qids ? RE.qids[i] : RE.qid, now, "devmax", RE.rd); continue } const q = sxPut(sx, sxArch, uid, now, "devmax", e, i); st.push(q); rej.push([i, q === "big" ? "big" : "devmax"]); continue }
     const dv = SXI ? sxDev(sx, e) : null, n = SXI && Number.isSafeInteger(e.n) && e.n > 0 ? e.n : 0;
     if (RE && CW && (+e.t || 0) < CW) { st.push("wiped"); rej.push([i, "wiped"]); continue }   // ما قبل حذف بيانات الحساب لا يُعاد
-    if (RE) { const r = sxReapply(sx, dv, e, now, { server: true, admin, words: e.type === "stDone" ? await wordSet() : null, duelOk: false, dwinOk: false }, RE);
+    if (RE) { if (RE.qids) RE.qid = RE.qids[i]; const r = sxReapply(sx, dv, e, now, { server: true, admin, words: e.type === "stDone" ? await wordSet() : null, duelOk: false, dwinOk: false }, RE);
       st.push(r === true ? "ok" : r === "late" ? "late" : "q"); if (r !== true && r !== "late") rej.push([i, r]); continue }
     if (dv && n && sxHas(dv, n)) { st.push("dup"); continue }
     // رقم لا يزيد على أرض الجهاز lo: حدث أُنشئ قبل حدثٍ وصل قبل أكثر من أطول مدّة قبول، فهو أقدم منها مهما قالت ساعة الهاتف → الحجر «old»
@@ -359,11 +359,66 @@ function sxReapply(sx, dv, e, now, ctx, RE) {
   if (e.type === "dwin" || e.type === "duel") return "noverify";   // يحتاج تحقّقًا من وثيقة التحدّي: لا يُعاد من هنا
   EC = null; const r = applyEv(e, now, { ...ctx, dv, reapply: true });
   if (r === true || r === "late") sx.ap.push(key);
-  const mark = { ap: now, r: r === true ? "ok" : String(r) };
-  const q = sx.qz.find(x => x[4] === RE.qid); if (q) q[3] = mark; else (sx.am = sx.am || {})[RE.qid] = mark;   // في الوثيقة، أو في سجلّ نتائج الأرشيف بالمعرّف
+  sxMark(sx, RE.qid, now, r === true ? "ok" : String(r), RE.rd);
   return r;
 }
-// /sxq (المشرف): users | list | arch | apply
+// نتيجة محاولة إعادة التطبيق على مدخلها: في الحجر الحالي، أو في سجلّ نتائج الأرشيف بالمعرّف (rd: جولة الاستعادة بالترتيب)
+function sxMark(sx, qid, now, r, rd) { if (!qid) return; const mark = { ap: now, r, ...(rd ? { rd } : {}) };
+  const q = sx.qz.find(x => x[4] === qid); if (q) q[3] = mark; else (sx.am = sx.am || {})[qid] = mark }
+/* ---------- استعادة جهاز بالترتيب (المشرف) ----------
+   الخطة: كل مدخلات الحجر لجهاز واحد (في الوثيقة والأرشيف معًا) مرتّبة برقم الحدث n، أي ترتيب إنشائها على الجهاز (المحطة قبل مراجعات كلماتها).
+   «preview»: تشغيل كامل على نسخة في الذاكرة (لا كتابة إطلاقًا)، بجولات يُعاد فيها ما رُفض لأن كلمته لم تُتعلَّم بعد؛ ونتيجة كل مدخل، والأرقام قبل وبعد، وبصمة الخطة.
+   «run»: يتطلّب confirm وبصمة الخطة نفسها (مدخل جديد للجهاز منذ المعاينة يغيّر البصمة → «stale» وتُعاد المعاينة)، وينفّذ دفعة (حتى SX_RSN مدخلًا)
+   في طلب واحد ويعيد more إن بقي شيء، والصفحة تكرّر الطلب. منع التكرار: مفاتيح ما أُعيد تطبيقه (ap) ونتيجة كل مدخل مسجّلة عليه؛
+   فالضغط مرتين أو انقطاع الشبكة أو إعادة التشغيل لا يطبّق شيئًا مرتين («applied»). وإعادة التطبيق لا تتجاوز حدّ سجلّات الأجهزة («devmax»). */
+const SX_RSN = 50, SX_RSPASS = 3, SX_RSDONE = new Set(["ok", "late", "applied", "dupc", "dup", "wiped"]);
+async function sxCands(fs, uid, sx, IX, dev) {
+  const out = [], add = (q, src) => out.push({ q, src, ref: q[2] && q[2].ref ? q[2].ref : null, e: q[2] && q[2].ref ? null : q[2] });
+  for (const q of sx.qz) add(q, "qz");
+  if (IX.an.length) { const A = await fs.manyT(IX.an.map(n => `users/${uid}/data/${n}`));
+    for (const n of IX.an) { const a = A[`users/${uid}/data/${n}`], x = a ? parseJ(a.data.v, null) : null;
+      if (!x || typeof x !== "object") throw Object.assign(new Error(a ? "sx archive corrupt" : "sx archive missing"), { sxIdx: n });
+      for (const q of x.qz || []) add(q, n) } }
+  const refs = out.filter(c => c.ref); if (refs.length) { const R = await fs.manyT(refs.map(c => `users/${uid}/data/${c.ref}`));   // الأحداث الكبيرة: من وثيقتها المرجعية
+    for (const c of refs) { const a = R[`users/${uid}/data/${c.ref}`], x = a ? parseJ(a.data.v, null) : null; if (!x || !x.ev) throw Object.assign(new Error("sx ref missing"), { sxIdx: c.ref }); c.e = x.ev } }
+  const C = out.filter(c => c.e && typeof c.e === "object" && sxDevKey(c.e) === dev && Number.isSafeInteger(c.e.n) && c.e.n > 0);
+  C.sort((a, b) => a.e.n - b.e.n || (a.q[4] < b.q[4] ? -1 : 1)); return C;
+}
+const sxPlanHash = C => { let h = 2166136261 >>> 0; for (const c of C) for (const ch of c.q[4] + ";") { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0 } return C.length + "-" + h.toString(36) };
+// نسخة في الذاكرة فوق قاعدة البيانات: القراءة منها أولًا، والكتابة إليها وحدها (للمعاينة)
+function overlayFS(fs) { const M = new Map(); let ut = 0;
+  const g = p => M.has(p) ? (M.get(p) ? { data: JSON.parse(JSON.stringify(M.get(p).data)), updateTime: M.get(p).ut } : null) : undefined;
+  return { async get(p) { const x = g(p); return x !== undefined ? x : fs.get(p) }, async list(c) { return fs.list(c) },
+    async manyT(ps) { const miss = ps.filter(p => g(p) === undefined), R = miss.length ? await fs.manyT(miss) : {}, o = {}; for (const p of ps) { const x = g(p); o[p] = x !== undefined ? x : R[p] } return o },
+    async many(ps) { return this.manyT(ps) },
+    async commit(ws) { for (const w of ws) { if (w.del) { M.set(w.path, null); continue } if (w.inc) continue; const o = g(w.path); M.set(w.path, { data: w.merge && o ? { ...o.data, ...w.data } : w.data, ut: "ov" + (++ut) }) } return {} } } }
+async function sxSnap(fs, uid) { await handleSync(fs, { uid, email: "(restore)" }, { evs: [] }, { reapply: true, qid: "" }); EC = null; const x = econ(); return { xp: x.xp, gems: x.gems, reviews: x.s.reviews, words: Object.keys(P).length, stations: STN.length } }
+async function sxRestore(fs, uid, sx, d, IX, body) {
+  const dev = String(body.dev || ""); if (!(dev === "_" || SX_DEV.test(dev))) return { status: 400, json: { error: "dev" } };
+  const mode = String(body.mode || "preview"), C = await sxCands(fs, uid, sx, IX, dev), plan = sxPlanHash(C);
+  if (!C.length) return { status: 200, json: { plan, n: 0, done: true } };
+  if (mode === "preview") {
+    const O = overlayFS(fs), before = await sxSnap(O, uid), res = {}; let todo = C.filter(c => !c.q[3] || !SX_RSDONE.has(c.q[3].r)); const skipped = C.length - todo.length;
+    for (let pass = 1; pass <= SX_RSPASS && todo.length; pass++) { const again = [];
+      for (let i = 0; i < todo.length; i += SX_RSN) { const B = todo.slice(i, i + SX_RSN);
+        const r = await handleSync(O, { uid, email: "(restore)" }, { evs: B.map(c => c.e) }, { reapply: true, qids: B.map(c => c.q[4]), apx: IX.ap, rd: pass });
+        B.forEach((c, j) => { const st = r.json.st[j], why = st === "ok" || st === "late" ? st : ((r.json.rej.find(x => x[0] === j) || [])[1] || st); res[c.q[4]] = why; if (why === "word") again.push(c) }) }
+      if (again.length === todo.length) break; todo = again }
+    const after = await sxSnap(O, uid), count = {}; for (const k in res) count[res[k]] = (count[res[k]] || 0) + 1;
+    return { status: 200, json: { plan, n: C.length, skipped, count, before, after,
+      rows: C.map(c => ({ qid: c.q[4], type: c.e.type, n: c.e.n, t: c.e.t, k: c.e.k, why: c.q[1], prev: c.q[3] ? c.q[3].r : null, will: res[c.q[4]] || (c.q[3] && c.q[3].r) || null })) } } }
+  if (mode !== "run") return { status: 400, json: { error: "mode" } };
+  if (body.confirm !== true) return { status: 400, json: { error: "confirm" } };
+  if (String(body.plan || "") !== plan) return { status: 409, json: { error: "stale", plan } };
+  const rd = Math.max(1, Math.min(SX_RSPASS, +body.round || 1));
+  // المعلّق في هذه الجولة: بلا نتيجة، أو «word» من جولة سابقة
+  const pend = C.filter(c => !c.q[3] || (c.q[3].r === "word" && (c.q[3].rd || 0) < rd)), todo = pend.slice(0, SX_RSN);
+  if (!todo.length) return { status: 200, json: { plan, done: true, more: false, round: rd, word: C.filter(c => c.q[3] && c.q[3].r === "word").length } };
+  const r = await handleSync(fs, { uid, email: "(restore)" }, { evs: todo.map(c => c.e) }, { reapply: true, qids: todo.map(c => c.q[4]), apx: IX.ap, rd });
+  return { status: 200, json: { plan, done: false, more: true, round: rd, left: pend.length - todo.length,
+    out: todo.map((c, j) => ({ qid: c.q[4], st: r.json.st[j], why: (r.json.rej.find(x => x[0] === j) || [])[1] || null })) } };
+}
+// /sxq (المشرف): users | list | arch | apply | restore
 async function handleSxq(fs, user, body) {
   if (user.email !== ADMIN) return { status: 403, json: { error: "admin" } };
   const op = String(body.op || "users"), uid = String(body.uid || "");
@@ -382,11 +437,13 @@ async function handleSxq(fs, user, body) {
     const a = await fs.get(`users/${uid}/data/${name}`); const x = parseJ(a && a.data.v, {}) || {};
     if (x.ev) return { status: 200, json: { big: 1, ev: x.ev, why: x.why, at: x.at } };
     return { status: 200, json: { qz: (x.qz || []).map(q => row(name, q, IX.am[q[4]])), late: (x.late || []).length } } }
+  if (op === "restore") return await sxRestore(fs, uid, sx, d, IX, body);
   if (op === "apply") {
     // بالمعرّف الثابت: يُبحث في الحجر الحالي، ثم في وثائق الأرشيف (لو نقلته مزامنةٌ إلى الأرشيف بعد عرض القائمة)
     const qid = String(body.qid || ""); if (!/^q[a-z0-9-]{4,40}$/.test(qid)) return { status: 400, json: { error: "qid" } };
     let q = sx.qz.find(x => x[4] === qid) || null;
-    for (let k = IX.an.length - 1; !q && k >= 0; k--) { const a = await fs.get(`users/${uid}/data/${IX.an[k]}`); const x = parseJ(a && a.data.v, {}) || {}; q = (x.qz || []).find(y => y[4] === qid) || null }
+    for (let k = IX.an.length - 1; !q && k >= 0; k--) { const a = await fs.get(`users/${uid}/data/${IX.an[k]}`); const x = a ? parseJ(a.data.v, null) : null;
+      if (!x || typeof x !== "object") throw Object.assign(new Error(a ? "sx archive corrupt" : "sx archive missing"), { sxIdx: IX.an[k] }); q = (x.qz || []).find(y => y[4] === qid) || null }
     if (!q) return { status: 404, json: { error: "noentry" } };
     let e = q[2];
     if (e && e.ref) { const a = await fs.get(`users/${uid}/data/${e.ref}`); e = (parseJ(a && a.data.v, {}) || {}).ev; if (!e) return { status: 404, json: { error: "noref" } } }
@@ -402,7 +459,10 @@ async function sxIndex(fs, uid, sx) {
   for (let depth = 0; q.length; depth++) { q = q.filter(n => !seen.has(n) && seen.add(n)); if (!q.length) break;
     if (depth >= SX_AIDEPTH) throw Object.assign(new Error("sx index depth"), { sxDeep: true });   // لا تجاهل صامت: العملية كلها تتوقّف ويُبلَّغ المشرف
     const D = await fs.manyT(q.map(n => `users/${uid}/data/${n}`)), next = [];
-    for (const n of q) { all.push(n); const d = D[`users/${uid}/data/${n}`], x = parseJ(d && d.data.v, {}) || {};
+    for (const n of q) { all.push(n); const d = D[`users/${uid}/data/${n}`], x = d ? parseJ(d.data.v, null) : null;
+      // وثيقة فهرس مفقودة أو تالفة: لا قائمة ناقصة — تتوقّف اللوحة والاستعادة والحذف بخطأ واضح
+      if (!x || typeof x !== "object" || !Array.isArray(x.an) || !Array.isArray(x.ap) || (x.ai !== undefined && !Array.isArray(x.ai)) || (x.am !== undefined && (!x.am || typeof x.am !== "object" || Array.isArray(x.am))))
+        throw Object.assign(new Error(d ? "sx index corrupt" : "sx index missing"), { sxIdx: n });
       old.unshift(...(x.an || [])); for (const k of x.ap || []) ap.add(k); for (const k in x.am || {}) if (!(k in am)) am[k] = x.am[k];
       for (const m of x.ai || []) if (typeof m === "string" && /^sxi-[a-z0-9-]+$/.test(m)) next.push(m) }
     q = next }
