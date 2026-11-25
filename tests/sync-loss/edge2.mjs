@@ -21,7 +21,7 @@ const bytes = s => Buffer.byteLength(s, 'utf8');
 const C = {
   // صناديق المهام: 30 يومًا، والاستحقاق يُتحقَّق منه بنشاط ذلك اليوم، ولا تكرار (ولو من جهاز آخر وبعد 35 يومًا من الصناديق)
   async quest30() { await memfs.commit([{ path: 'config/app', data: { v: JSON.stringify({ sx: { on: 1 }, gems: { quest: [5, 5, 0] } }) } }]); const uid = 'q3', A = await learner(uid); const B = app('new', uid); await B.sync(); const dev = 'questdev2';
-    let n = ctl.NOW * 10; const d0 = ctl.NOW - 2 * DAY;   // قبل يومين: يوم فيه محطات مع تدريبها (من learner)
+    let n = (ctl.NOW + 2e9); const d0 = ctl.NOW - 2 * DAY;   // قبل يومين: يوم فيه محطات مع تدريبها (من learner)
     const q = (id, t, d = dev) => ({ type: 'quest', id, t, n: ++n, d });
     // صندوق مهمة «محطة مع تدريبها» ليوم قديم فيه محطات
     const r1 = await send(uid, [q('st1', d0 + 3600e3)], dev); T('صندوق ليوم قديم مستحَق: مقبول', r1.st[0] === 'ok', [r1.st, r1.rej]);
@@ -98,7 +98,7 @@ const C = {
     T('بعد قفزة الساعة إلى 2030 وعودتها: الرقم التالي أكبر، والحدث مقبول', nAfter > nFut && j3.st[0] === 'ok', [nAfter > nFut, j3.st]) },
 
   // البند 4: تضخّم قائمة الأرقام نفسها: حدّ لكل جهاز ولكل الأجهزة، والمحذوف مبكّرًا لا يُطبَّق مرة ثانية
-  async idsGrowth() { const uid = 'ig'; await user(uid); const A = app('new', uid); await A.sync(); const dev = 'growdev1'; let n = ctl.NOW * 10; const first = [];
+  async idsGrowth() { const uid = 'ig'; await user(uid); const A = app('new', uid); await A.sync(); const dev = 'growdev1'; let n = (ctl.NOW + 2e9); const first = [];
     for (let b = 0; b < 60; b++) { const evs = Array.from({ length: 300 }, () => ({ type: 'zz', t: ctl.NOW, n: ++n, d: dev })); if (!b) first.push(evs[0]); await send(uid, evs, dev); adv(1e3) }
     const x = ids(uid, dev), sxb = bytes(doc(`users/${uid}/data/sx`));
     T('18000 حدث من جهاز واحد في يوم: القائمة لا تتجاوز 15000، والأرض ارتفعت', x.ids.length <= 15000 && x.lo > 0, { ids: x.ids.length, lo: x.lo > 0 });
@@ -111,7 +111,7 @@ const C = {
     I('وثائق الأرشيف (الحجر بلا حذف)', archDocs(uid).length) },
 
   // البند 5: حدث أكبر من 32 كيلوبايت يُحفظ كاملًا في وثيقة مستقلة؛ وأكبر مما تتّسع له وثيقة: لا إقرار ولا تطبيق
-  async bigEvent() { const uid = 'be', A = await learner(uid); const dev = A.dev(); let n = ctl.NOW * 10;
+  async bigEvent() { const uid = 'be', A = await learner(uid); const dev = A.dev(); let n = (ctl.NOW + 2e9);
     const mid = { type: 'quiz', kind: 's2', ok: 99, total: 10, ms: 1, t: ctl.NOW, n: ++n, d: dev, qa: Array.from({ length: 300 }, (_, i) => ['ك'.repeat(60) + i, 1]) };
     const j = await send(uid, [mid], dev); const q = sxDoc(uid).qz.find(x => x[2].ref); const full = q && JSON.parse(doc(`users/${uid}/data/${q[2].ref}`)).ev;
     T('حدث 40 كيلوبايت تقريبًا: في الحجر، ومحفوظ كاملًا في وثيقة مستقلة', j.st[0] === 'q' && full && JSON.stringify(full) === JSON.stringify(mid), { st: j.st, bytes: bytes(JSON.stringify(mid)), ref: q && q[2].ref });
@@ -120,7 +120,7 @@ const C = {
     const s1 = doc(`users/${uid}/data/sx`); const j3 = await send(uid, [huge], dev); T('إعادته: «big» مرة أخرى (لم يُسجَّل رقمه كمستلَم)', j3.st[0] === 'big' && doc(`users/${uid}/data/sx`) === s1, j3.st) },
 
   // البند 7: الحدود بالبايت لا بالمحارف (نصوص عربية: محرف = بايتان)
-  async bytesLimit() { const uid = 'bl'; await user(uid); const A = app('new', uid); await A.sync(); const dev = 'bytedev1'; let n = ctl.NOW * 10;
+  async bytesLimit() { const uid = 'bl'; await user(uid); const A = app('new', uid); await A.sync(); const dev = 'bytedev1'; let n = (ctl.NOW + 2e9);
     const ev = () => ({ type: 'zz', t: ctl.NOW, n: ++n, d: dev, note: 'ض'.repeat(1300) });   // نحو 1300 محرف و2600 بايت
     for (let b = 0; b < 2; b++) await send(uid, Array.from({ length: 150 }, ev), dev);
     const s = doc(`users/${uid}/data/sx`); T('300 حدث عربي في الحجر: الوثيقة ≤ 400 كيلوبايت بالبايت (لا بالمحارف)', bytes(s) <= 402000, { chars: s.length, bytes: bytes(s), archives: archDocs(uid).length });
@@ -129,7 +129,7 @@ const C = {
     let err = ''; try { await memfs.commit([{ path: 'x/y', data: { v: 'ع'.repeat(530000) } }]) } catch (e) { err = e.message } T('قاعدة الاختبار تفرض حدّ Firestore بالبايت', /1 ميغابايت/.test(err), err.slice(0, 40)) },
 
   // البند 6: sx وأرشيفها في النسخ الاحتياطي، والتحقق الكامل، والاسترجاع، وحذف بيانات الحساب
-  async backupSx() { const uid = 'bs', A = await learner(uid); const dev = A.dev(); let n = ctl.NOW * 10;
+  async backupSx() { const uid = 'bs', A = await learner(uid); const dev = A.dev(); let n = (ctl.NOW + 2e9);
     await send(uid, Array.from({ length: 300 }, () => ({ type: 'zz', t: ctl.NOW, n: ++n, d: dev, note: 'ض'.repeat(1300) })), dev);
     for (const k of due(A).slice(0, 2)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } await A.sync();
     const ROOT = 'projects/mufradati-406bd/databases/(default)/documents';
@@ -166,68 +166,115 @@ const C = {
     let L = await post('/sxq', 'admin', { op: 'list', uid }); const find = f => L.qz.find(f);
     const eG = find(r => r.n === G.n), eE = find(r => r.n === E1.n), eQ = find(r => r.n === Q1.n);
     T('لوحة الحجر تعرض الثلاثة', !!(eG && eE && eQ), L.qz.length);
-    let r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eG.i }); let a = await srv(uid);
+    let r = await post('/sxq', 'admin', { op: 'apply', uid, qid: eG.qid }); let a = await srv(uid);
     T('إعادة الحقيقي: مقبول، والمراجعات +1', r.st === 'ok' && a.reviews - b.reviews === 1, [r, a.reviews - b.reviews]);
-    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eG.i }); a = await srv(uid);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid: eG.qid }); a = await srv(uid);
     T('إعادته مرة ثانية: «applied»، ولا تغيير', r.st === 'q' && r.rej[0][1] === 'applied' && a.reviews - b.reviews === 1, [r, a.reviews - b.reviews]);
-    const x0 = a.xp; r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eE.i }); a = await srv(uid);
+    const x0 = a.xp; r = await post('/sxq', 'admin', { op: 'apply', uid, qid: eE.qid }); a = await srv(uid);
     T('إعادة مراجعة طُبّقت من قبل: «late» (نشاط فقط)، بلا خبرة ولا مراجعة', r.st === 'late' && a.xp === x0 && a.reviews - b.reviews === 1, [r, a.xp - x0, a.reviews - b.reviews, { e1t: E1.t, log: a.B.LOG.filter(x => x[1] === E1.k).map(x => [x[0] - E1.t, x[2], x[3]]) }]);
-    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eQ.i }); a = await srv(uid);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid: eQ.qid }); a = await srv(uid);
     T('إعادة تمرين طُبّق من قبل: «dupc»، والتمارين كما هي', r.st === 'q' && r.rej[0][1] === 'dupc' && a.quizzes === b.quizzes, [r, a.quizzes - b.quizzes]);
     L = await post('/sxq', 'admin', { op: 'list', uid }); T('نتيجة كل محاولة مسجّلة على مدخلها', L.qz.find(q => q.n === G.n).ap.r === 'ok' && L.qz.find(q => q.n === Q1.n).ap.r === 'dupc');
     // ج) حدث في وثيقة أرشيف
-    const G2 = { type: 'rate', k: ks[2], r: 2, t: ctl.NOW - 1800e3, n: lo - 3, d: dev }; await send(uid, [G2], dev); let n = ctl.NOW * 10;
+    const G2 = { type: 'rate', k: ks[2], r: 2, t: ctl.NOW - 1800e3, n: lo - 3, d: dev }; await send(uid, [G2], dev); let n = (ctl.NOW + 2e9);
     for (let k = 0; k < 2; k++) await send(uid, Array.from({ length: 160 }, () => ({ type: 'zz', t: ctl.NOW, n: ++n, d: dev })), dev);
     L = await post('/sxq', 'admin', { op: 'list', uid }); let hit = null;
     for (const nm of L.an) { const x = await post('/sxq', 'admin', { op: 'arch', uid, name: nm }); const q = (x.qz || []).find(r => r.n === G2.n); if (q) hit = q }
     T('الحدث انتقل إلى وثيقة أرشيف وتعرضه اللوحة', !!hit, L.an.length);
-    r = await post('/sxq', 'admin', { op: 'apply', uid, src: hit.src, i: hit.i }); a = await srv(uid);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid: hit.qid }); a = await srv(uid);
     T('إعادة تطبيقه من الأرشيف: مقبول، والمراجعات +1 (المجموع 2)', r.st === 'ok' && a.reviews - b.reviews === 2, [r, a.reviews - b.reviews]);
-    r = await post('/sxq', 'admin', { op: 'apply', uid, src: hit.src, i: hit.i }); T('ومرة ثانية: «applied»', r.rej && r.rej[0][1] === 'applied', r);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid: hit.qid }); T('ومرة ثانية: «applied»', r.rej && r.rej[0][1] === 'applied', r);
     let err = ''; try { await post('/sxq', uid, { op: 'users' }) } catch (e) { err = e.message } T('متعلّم عادي لا يصل إلى اللوحة', / 403 /.test(err), err.slice(0, 30));
     const U = await post('/sxq', 'admin', { op: 'users' }); T('قائمة الحسابات تعرض حسابه', U.users.some(u => u.uid === uid), U.users.length) },
 
   // البند 1: عدّاد الصفحة توقّف أثناء نوم الهاتف (المرساة متأخّرة 10 ساعات) والساعة صحيحة → الحدث في وقته الصحيح لا في الماضي
-  async anchorSleep() { const uid = 'as', A = await learner(uid); ctl.NOW += 2 * DAY + 12 * 36e5; const dev = A.dev(); let n = ctl.NOW * 10;
+  async anchorSleep() { const uid = 'as', A = await learner(uid); ctl.NOW += 2 * DAY + 12 * 36e5; const dev = A.dev(); let n = (ctl.NOW + 2e9);
     const evs = due(A).slice(0, 10).map((k, i) => ({ type: 'rate', k, r: 2, t: ctl.NOW + i * 20e3, a: ctl.NOW - 10 * 36e5 + i * 20e3, n: ++n, d: dev })); adv(300e3);
     await send(uid, evs, dev); const a = await srv(uid), tk = new Date(ctl.NOW).toISOString().slice(0, 10), yk = new Date(ctl.NOW - DAY).toISOString().slice(0, 10);
     T('المراجعات العشر حُسبت في اليوم الصحيح (لا أمس)', (a.e.per[tk] || { n: 0 }).n === 10 && !(a.e.per[yk] || { n: 0 }).n, { today: (a.e.per[tk] || {}).n, yesterday: (a.e.per[yk] || {}).n }) },
 
   // البند 3 (الخادم): حدث «big» بين حدثين في الدفعة نفسها: لا يوقف الباقي
-  async bigMiddle() { const uid = 'bm', A = await learner(uid); const dev = A.dev(); let n = ctl.NOW * 10; const ks = due(A);
+  async bigMiddle() { const uid = 'bm', A = await learner(uid); const dev = A.dev(); let n = (ctl.NOW + 2e9); const ks = due(A);
     const evs = [{ type: 'rate', k: ks[0], r: 2, t: ctl.NOW, n: ++n, d: dev }, { type: 'quiz', kind: 's2', ok: 1, total: 10, ms: 1, t: ctl.NOW + 1e3, n: ++n, d: dev, blob: 'ع'.repeat(500000) },
       { type: 'rate', k: ks[1], r: 2, t: ctl.NOW + 20e3, n: ++n, d: dev }]; adv(60e3);
     const j = await send(uid, evs, dev); T('الحالات: مقبول، كبير، مقبول', j.st.join() === 'ok,big,ok', j.st) },
 
   // البند 1: ساعة متقدّمة يومًا والجهاز دون إنترنت 3 أيام. كل وضع في عملية مستقلة بالوقت نفسه (FC=ok|plain|page|native)، والمقارنة في run.sh
-  async fcOne() { const mode = process.env.FC, uid = 'fc', A = await learner(uid); A.anchor = { ok: false, plain: false, page: 'page', native: 'native' }[mode]; A.skew = mode === 'ok' ? 0 : DAY;
+  // FCM=1: تغيير الساعة عدة مرات أثناء العمل دون إنترنت (يوم 0: +ساعتان، يوم 1: +يوم، يوم 2: −يومان، ثم تُصحَّح قبل المزامنة)
+  async fcOne() { const mode = process.env.FC, multi = process.env.FCM === '1', uid = 'fc', A = await learner(uid); A.anchor = { ok: false, plain: false, page: 'page', native: 'native' }[mode]; A.skew = mode === 'ok' ? 0 : DAY;
+    const SK = multi && mode !== 'ok' ? [2 * 36e5, DAY, -2 * DAY] : null;
     const day0 = ctl.NOW; const s0 = await srv(uid);
-    for (let d = 0; d < 3; d++) { ctl.NOW = day0 + d * DAY + 3 * 36e5; for (const k of due(A).slice(0, 12)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } await station(A, { syncEach: false }) }
-    ctl.NOW = day0 + 2 * DAY + 10 * 36e5; const why = {}; let j; do { j = await A.sync(); for (const r of j.rej || []) why[r[1]] = (why[r[1]] || 0) + 1 } while (A.q);
+    for (let d = 0; d < 3; d++) { ctl.NOW = day0 + d * DAY + 3 * 36e5; if (SK) A.skew = SK[d]; for (const k of due(A).slice(0, 12)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } await station(A, { syncEach: false }) }
+    if (SK) A.skew = 0; ctl.NOW = day0 + 2 * DAY + 10 * 36e5; const why = {}, stc = {}; let j; do { const q = A.q; j = await A.sync(); for (const r of j.rej || []) why[r[1]] = (why[r[1]] || 0) + 1; for (const x of j.st || []) stc[x] = (stc[x] || 0) + 1 } while (A.q);
     const a = await srv(uid);
-    out.push('FCRES ' + JSON.stringify({ mode, xp: a.xp - s0.xp, gems: a.gems - s0.gems, streak: a.streak, reviews: a.reviews - s0.reviews, stations: a.stations - s0.stations, energy: Math.round(a.energy), ach: [...a.e.got].filter(x => !s0.e.got.has(x)), q: why })) },
+    out.push('FCRES ' + JSON.stringify({ mode, xp: a.xp - s0.xp, gems: a.gems - s0.gems, streak: a.streak, reviews: a.reviews - s0.reviews, stations: a.stations - s0.stations, energy: Math.round(a.energy), ach: [...a.e.got].filter(x => !s0.e.got.has(x)), q: why, st: stc })) },
 
   // البند 2: إعادة التطبيق مع الضغط المتكرّر، وانقطاع الاتصال (فشل الكتابة، وضياع الردّ)، وتعارض الكتابة
   async reapplyStress() { const uid = 'rs', A = await learner(uid); const dev = A.dev(); ctl.NOW += 3 * 36e5; A.ev({ type: 'eday' }); await A.sync(); ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync();
     const lo = ids(uid, dev).lo, ks = due(A); const b = await srv(uid);
     const G = i => ({ type: 'rate', k: ks[i], r: 2, t: ctl.NOW - 3600e3 + i * 60e3, n: lo - 20 + i, d: dev }); await send(uid, [G(0), G(1), G(2)], dev);
-    const L = await post('/sxq', 'admin', { op: 'list', uid }), at = n => L.qz.find(q => q.n === n).i;
+    const L = await post('/sxq', 'admin', { op: 'list', uid }), at = n => L.qz.find(q => q.n === n).qid;
     // ضغط متكرّر: ثلاثة طلبات معًا للمدخل نفسه
-    const rr = await Promise.all([0, 1, 2].map(() => post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(0).n) })));
+    const rr = await Promise.all([0, 1, 2].map(() => post('/sxq', 'admin', { op: 'apply', uid, qid: at(G(0).n) })));
     let a = await srv(uid); T('ثلاث ضغطات معًا: واحدة مقبولة والباقي «applied»، والمراجعات +1', rr.filter(r => r.st === 'ok').length === 1 && rr.filter(r => r.rej && r.rej[0] && r.rej[0][1] === 'applied').length === 2 && a.reviews - b.reviews === 1, rr.map(r => r.st + (r.rej && r.rej[0] ? ':' + r.rej[0][1] : '')));
     // انقطاع: فشل الكتابة → خطأ للمشرف، ولا تغيير؛ ثم إعادة الضغط → مقبول مرة واحدة
     const orig = memfs.commit; let fails = 1; memfs.commit = async function (ws) { if (fails-- > 0) throw new Error('شبكة'); return orig.call(this, ws) };
-    let err = ''; try { await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(1).n) }) } catch (e) { err = e.message } memfs.commit = orig;
+    let err = ''; try { await post('/sxq', 'admin', { op: 'apply', uid, qid: at(G(1).n) }) } catch (e) { err = e.message } memfs.commit = orig;
     a = await srv(uid); T('فشل الكتابة: خطأ ظاهر، ولا تغيير في الحساب', !!err && a.reviews - b.reviews === 1, [err.slice(0, 25), a.reviews - b.reviews]);
-    let r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(1).n) }); a = await srv(uid);
+    let r = await post('/sxq', 'admin', { op: 'apply', uid, qid: at(G(1).n) }); a = await srv(uid);
     T('إعادة الضغط بعد الانقطاع: مقبول مرة واحدة', r.st === 'ok' && a.reviews - b.reviews === 2, [r.st, a.reviews - b.reviews]);
-    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(1).n) }); T('ضياع الردّ ثم ضغطة أخرى: «applied»، لا تكرار', r.rej && r.rej[0][1] === 'applied', r);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid: at(G(1).n) }); T('ضياع الردّ ثم ضغطة أخرى: «applied»، لا تكرار', r.rej && r.rej[0][1] === 'applied', r);
     // تعارض كتابة (متعلّم يزامن في اللحظة نفسها): الخادم يعيد العملية كلها، ويُطبَّق مرة واحدة
     let conf = 1; memfs.commit = async function (ws) { if (conf-- > 0) { const e = new Error('conflict'); e.conflict = true; throw e } return orig.call(this, ws) };
-    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(2).n) }); memfs.commit = orig; a = await srv(uid);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, qid: at(G(2).n) }); memfs.commit = orig; a = await srv(uid);
     T('تعارض كتابة: مقبول مرة واحدة بعد إعادة الخادم', r.st === 'ok' && a.reviews - b.reviews === 3, [r.st, a.reviews - b.reviews]);
     const L2 = await post('/sxq', 'admin', { op: 'list', uid }); T('المدخلات الثلاثة مسجّلة «ok» مرة واحدة لكلٍّ منها', [0, 1, 2].every(i => L2.qz.find(q => q.n === G(i).n).ap.r === 'ok'));
     T('مفاتيح إعادة التطبيق في sx: ثلاثة بلا تكرار', new Set(sxDoc(uid).ap).size === sxDoc(uid).ap.length && sxDoc(uid).ap.length === 3, sxDoc(uid).ap.length) },
+
+  // البند 5: معرّف ثابت. المشرف يعرض القائمة، ثم تنقل مزامنةٌ المدخل إلى الأرشيف، ثم يضغط «إعادة التطبيق» → يُطبَّق المدخل نفسه
+  async reapplyArchived() { const uid = 'rv', A = await learner(uid); const dev = A.dev(); ctl.NOW += 3 * 36e5; A.ev({ type: 'eday' }); await A.sync(); ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync();
+    const lo = ids(uid, dev).lo, ks = due(A); const b = await srv(uid);
+    const G = { type: 'rate', k: ks[0], r: 2, t: ctl.NOW - 3600e3, n: lo - 9, d: dev }; await send(uid, [G], dev);
+    const L = await post('/sxq', 'admin', { op: 'list', uid }); const row = L.qz.find(q => q.n === G.n);
+    T('كل مدخل له معرّف ثابت', L.qz.every(q => /^q[a-z0-9-]+$/.test(q.qid)) && new Set(L.qz.map(q => q.qid)).size === L.qz.length, L.qz.length);
+    let n = (ctl.NOW + 2e9); await send(uid, Array.from({ length: 300 }, () => ({ type: 'zz', t: ctl.NOW, n: ++n, d: dev })), dev);   // أرشفة بين العرض والضغط
+    const L2 = await post('/sxq', 'admin', { op: 'list', uid }); T('المدخل انتقل إلى الأرشيف بعد عرض القائمة', !L2.qz.some(q => q.qid === row.qid) && L2.an.length > 0, L2.an.length);
+    const [r1, r2] = await Promise.all([post('/sxq', 'admin', { op: 'apply', uid, qid: row.qid }), post('/sxq', 'admin', { op: 'apply', uid, qid: row.qid })]); const a = await srv(uid);
+    T('الضغط بالمعرّف (مرتين معًا): المدخل نفسه يُطبَّق مرة واحدة من الأرشيف', [r1, r2].filter(r => r.st === 'ok').length === 1 && a.reviews - b.reviews === 1, [r1.st, r2.st, a.reviews - b.reviews]);
+    const r3 = await post('/sxq', 'admin', { op: 'apply', uid, qid: 'qnotthere-0-x' }).catch(e => e.message); T('معرّف غير موجود: «noentry» ولا أثر', /noentry/.test(JSON.stringify(r3)), r3);
+    let ar = null; for (const nm of L2.an) { const x = await post('/sxq', 'admin', { op: 'arch', uid, name: nm }); ar = ar || (x.qz || []).find(q => q.qid === row.qid) }
+    T('نتيجة إعادة التطبيق تظهر على المدخل في الأرشيف', ar && ar.ap && ar.ap.r === 'ok', ar && ar.ap) },
+
+  // البند 8: التحقق من معرّف الجهاز ورقم الحدث عند الخادم
+  async badIds() { const uid = 'bi', A = await learner(uid); const k = due(A)[0], t = ctl.NOW; const b = await srv(uid);
+    const cases = [['معرّف جهاز برموز غير مقبولة', { d: 'dev<script>', n: t * 10 }], ['معرّف جهاز قصير', { d: 'ab', n: t * 10 + 1 }], ['معرّف جهاز ليس نصًّا', { d: 12345678, n: t * 10 + 2 }],
+      ['رقم سالب', { d: 'devGood1', n: -5 }], ['رقم كسري', { d: 'devGood1', n: 1.5 }], ['رقم نصّي', { d: 'devGood1', n: '123' }], ['رقم أكبر من الآمن', { d: 'devGood1', n: 2 ** 60 }], ['رقم بعيد في المستقبل', { d: 'devGood1', n: t + 500 * DAY }]];
+    for (const [name, id] of cases) { const j = await send(uid, [{ type: 'rate', k, r: 2, t, ...id }], 'devGood1'); T(name + ': الحجر «badid»', j.st[0] === 'q' && j.rej[0][1] === 'badid', [j.st, j.rej]) }
+    const a = await srv(uid); T('لم يُطبَّق أيّ منها', a.reviews === b.reviews, a.reviews - b.reviews);
+    const j = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW + 1e3 }], 'x'); T('حدث بلا هوية إطلاقًا (تطبيق قديم): يُقبل كما كان', j.st[0] === 'ok', j.st) },
+
+  // البند 6: كل ردّ من الخادم الجديد فيه sxv وst كاملة، ولو كان المفتاح مطفأً
+  async ackMarker() { const uid = 'am2', A = await learner(uid); const k = due(A)[0];
+    const j1 = await send(uid, [{ type: 'rate', k, r: 2, t: ctl.NOW, d: A.dev(), n: (ctl.NOW + 2e9) }], A.dev()); T('المفتاح مشغَّل: sxv وst بطول الدفعة', j1.sxv === 1 && j1.st.length === 1, [j1.sxv, j1.st]);
+    await memfs.commit([{ path: 'config/app', data: { v: JSON.stringify({ sx: { on: 0 } }) } }]); adv(20e3);
+    const j2 = await send(uid, [{ type: 'rate', k: due(A)[1], r: 2, t: ctl.NOW }, {}, null], A.dev()); T('المفتاح مطفأ: sxv وst بطول الدفعة أيضًا (ومنها الحدث التالف)', j2.sxv === 1 && j2.st.length === 3, [j2.sxv, j2.st]);
+    await memfs.commit([{ path: 'config/app', data: { v: JSON.stringify({ sx: { on: 1 } }) } }]) },
+
+  // البند 7: النمو على المدى الطويل (أسوأ من الاستعمال العادي): 3 سنوات، مزامنة يومية، جهاز جديد كل أسبوع (إعادة تثبيت)،
+  // وثلاثة أحداث يوميًا إلى الحجر. يُقاس: حجم وثيقة sx، وسجلّات الأجهزة، وأسماء الأرشيف، وعدد الأرقام المحفوظة، ووثائق الأرشيف
+  async longTerm() { const uid = 'lt'; await user(uid); const A = app('new', uid); await A.sync(); const snap = [];
+    for (let day = 0; day < 3 * 365; day++) { const dev = 'ltdev' + Math.floor(day / 7); let n = ctl.NOW;
+      await send(uid, [{ type: 'eday', t: ctl.NOW, d: dev, n: ++n }, ...[1, 2, 3].map(() => ({ type: 'zz', t: ctl.NOW, d: dev, n: ++n }))], dev);
+      if ((day + 1) % 365 === 0) { const x = sxDoc(uid), b = bytes(doc(`users/${uid}/data/sx`));
+        snap.push({ year: (day + 1) / 365, sxBytes: b, devices: Object.keys(x.dv).length, fullDevices: Object.values(x.dv).filter(v => v.lt).length, archives: x.an.length, ids: Object.values(x.dv).reduce((a, v) => a + Object.values(v.g || {}).join(',').split(',').filter(Boolean).length, 0), qzInDoc: x.qz.length, archiveDocs: archDocs(uid).length }) }
+      ctl.NOW += DAY }
+    for (const r of snap) I('السنة ' + r.year, r);
+    const y3 = snap[2]; T('بعد 3 سنوات: وثيقة sx دون حدّ الأرشفة (400 كيلوبايت) وبعيدة عن حدّ Firestore', y3.sxBytes < 400000, y3.sxBytes);
+    T('سجلّات الأجهزة الكاملة (بأرقام) لا تتجاوز أجهزة آخر 32 يومًا، والباقي أرض الجهاز وحدها', y3.fullDevices <= 6, y3.fullDevices);
+    T('الأرقام المحفوظة محدودة بآخر 32 يومًا (لا تتراكم)', y3.ids <= 32 * 4 + 8, y3.ids);
+    T('الحجر لم يُحذف منه شيء (في الوثيقة + الأرشيف = كل ما دخله)', y3.qzInDoc + archDocs(uid).reduce((a, [, d]) => a + JSON.parse(d.data.v).qz.length, 0) === 3 * 365 * 3, y3.qzInDoc);
+    T('وثائق الأرشيف قليلة: دفعة لكل 100 حدث محجور على الأقل (لا وثيقة لكل مزامنة)', y3.archiveDocs <= Math.ceil(3 * 365 * 3 / 100), y3.archiveDocs);
+    const perDev = (snap[2].sxBytes - snap[1].sxBytes) / 52; I('نموّ الوثيقة السنوي بالبايت (أجهزة بأرضها فقط وأسماء أرشيف)', { perYear: snap[2].sxBytes - snap[1].sxBytes, perDevice: Math.round(perDev) }) },
 };
 C.anchorMissedTZ = C.anchorMissed;   // الحالة نفسها بمنطقة زمنية أخرى للعملية (TZ في run.sh): النتيجة يجب أن تكون نفسها
 await C[CASE](); console.log(out.join('\n'));

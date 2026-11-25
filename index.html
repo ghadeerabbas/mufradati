@@ -4034,7 +4034,8 @@ async function syncNow(manual){
     FSC.r-=stSent.r;FSC.w-=stSent.w;
     if(+j.now>0)ancSet(+j.now,performance.now()-t1);
     // حدث رفض الخادم حفظه لكبر حجمه («big»): يبقى في قائمة الانتظار بعلامة hold (انظر evqN)، ويُبلَّغ المشرف
-    const full=!j.st||(Array.isArray(j.st)&&j.st.length===sent.length);
+    // الإقرار: ردّ من الخادم الجديد (sxv) يُحذف به ما أُرسل فقط إن جاءت حالة لكل حدث؛ وردّ بلا sxv هو الخادم القديم (يحذف ما أُرسل كما كان)
+    const full=j.sxv?(Array.isArray(j.st)&&j.st.length===sent.length):true;
     if(full&&Array.isArray(j.st)&&j.st.includes("big")){let h=0;sent.forEach((x,i)=>{if(j.st[i]==="big"){x.hold=1;h++}});try{repErr("sync: event too big ("+h+")","","sync")}catch(e){}}
     // الإقرار: تُحذف من الهاتف الأحداث المرسلة فقط، وفقط إن أعاد الخادم حالة لكل واحد منها (أو كان الخادم القديم الذي لا يعيد حالات)
     if(full){const S=new Set(sent.filter(x=>!x.hold));EVQ=EVQ.filter(x=>!S.has(x))}applyServer(j);LGC.at=0;verCheck(j);   // الدوري يُقرأ من جديد بعد كل حفظ
@@ -5254,7 +5255,7 @@ async function renderSafe(){
     <button class="btn" id="qzLoad" style="width:100%">عرض الحسابات التي لها حجر</button><div class="stmsg" id="qzMsg"></div><div id="qzOut"></div></div>`);
   const QZW={old:"أقدم من مدّة القبول",time:"وقت غير مقبول",word:"كلمة غير معروفة",energy:"طاقة غير كافية",dup:"مكرّر",dupc:"مكرّر بمحتواه",cap:"تجاوز حدّ اليوم",none:"لا محطة مفتوحة",drill:"التدريب مطلوب",max:"حدّ المحطات",lreset:"تصفير متأخّر",type:"نوع غير معروف",bad:"بيانات تالفة",notyet:"غير مستحق",off:"معطّل",full:"الطاقة ممتلئة"};
   const qzMsg=(t,c)=>{const m=$("qzMsg");if(m){m.textContent=t;m.className="stmsg "+(c||"")}};
-  const qzRows=(uid,rows)=>rows.map(r=>`<div class="bkrow"><div><b>${esc(r.type||"")}${r.kind?" · "+esc(r.kind):""}${r.k?" · "+esc(r.k):""}</b><small>${esc(QZW[r.why]||r.why)} · وصل ${fmt(r.at)}${r.t?" · وقته "+fmt(r.t):""}</small>${r.ap?`<small>${r.ap.r==="ok"||r.ap.r==="late"?"✓ أُعيد تطبيقه":"✗ أُعيدت المحاولة"}: ${esc(r.ap.r)} · ${fmt(r.ap.ap)}</small>`:""}</div>${r.ap&&(r.ap.r==="ok"||r.ap.r==="late"||r.ap.r==="applied")?"":`<button class="btn qzAp" data-u="${esc(uid)}" data-s="${esc(r.src)}" data-i="${r.i}">إعادة التطبيق</button>`}</div>`).join("");
+  const qzRows=(uid,rows)=>rows.map(r=>`<div class="bkrow"><div><b>${esc(r.type||"")}${r.kind?" · "+esc(r.kind):""}${r.k?" · "+esc(r.k):""}</b><small>${esc(QZW[r.why]||r.why)} · وصل ${fmt(r.at)}${r.t?" · وقته "+fmt(r.t):""}</small>${r.ap?`<small>${r.ap.r==="ok"||r.ap.r==="late"?"✓ أُعيد تطبيقه":"✗ أُعيدت المحاولة"}: ${esc(r.ap.r)} · ${fmt(r.ap.ap)}</small>`:""}</div>${r.ap&&(r.ap.r==="ok"||r.ap.r==="late"||r.ap.r==="applied")?"":`<button class="btn qzAp" data-u="${esc(uid)}" data-q="${esc(r.qid||"")}">إعادة التطبيق</button>`}</div>`).join("");
   $("qzLoad").onclick=async()=>{qzMsg("جارٍ التحميل…");try{const j=await apiPost("/sxq",{op:"users"});qzMsg(j.users.length?"":"لا حجر عند أي حساب.","ok");
     $("qzOut").innerHTML=j.users.map(u=>`<div class="bkrow"><div><b>${esc(u.name||u.uid)}</b><small>${u.open} مفتوح من ${u.qz} · ${u.an} أرشيف · ${u.ap} أُعيد تطبيقه · ${u.dev} جهاز</small></div><button class="btn qzU" data-u="${esc(u.uid)}">عرض</button></div><div id="qzU_${esc(u.uid)}"></div>`).join("")}
     catch(err){qzMsg("تعذّر التحميل: "+(err.detail||err.error||""),"bad")}};
@@ -5265,7 +5266,7 @@ async function renderSafe(){
     if(ar){const box=$("qzA_"+ar.dataset.n);try{const j=await apiPost("/sxq",{op:"arch",uid:ar.dataset.u,name:ar.dataset.n});
       box.innerHTML=j.big?`<pre>${esc(JSON.stringify(j.ev).slice(0,400))}…</pre>`:(j.qz.length?qzRows(ar.dataset.u,j.qz):'<div class="empty">لا أحداث محجورة في هذا الأرشيف'+(j.late?" ("+j.late+" مراجعة متأخّرة)":"")+'.</div>')}catch(err){box.innerHTML='<div class="err">تعذّر التحميل.</div>'}}
     if(ap){if(!confirm("إعادة تطبيق هذا الحدث على حساب المتعلّم؟ يمرّ بالقواعد نفسها، ولا يُطبَّق مرتين."))return;ap.disabled=true;
-      try{const j=await apiPost("/sxq",{op:"apply",uid:ap.dataset.u,src:ap.dataset.s,i:+ap.dataset.i});const ok=j.st==="ok"||j.st==="late";
+      try{const j=await apiPost("/sxq",{op:"apply",uid:ap.dataset.u,qid:ap.dataset.q});const ok=j.st==="ok"||j.st==="late";
         toast(ok?"✓":"⚠️",ok?(j.st==="late"?"أُعيد: نشاط يوم فقط (للكلمة مراجعة أحدث)":"أُعيد تطبيقه"):"لم يُطبَّق",ok?"":(QZW[(j.rej&&j.rej[0]&&j.rej[0][1])]||(j.rej&&j.rej[0]&&j.rej[0][1])||""));
         const b=document.querySelector(`.qzU[data-u="${CSS.escape(ap.dataset.u)}"]`);if(b)b.click()}catch(err){ap.disabled=false;toast("⚠️","تعذّرت إعادة التطبيق",err.detail||err.error||"")}}};
   const msg=(t,c)=>{const m=$("bkMsg");m.textContent=t;m.className="stmsg "+(c||"")};

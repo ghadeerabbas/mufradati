@@ -11,7 +11,7 @@ SC="clockAhead clockBack twoDevices offline8 offline30 resend doubleStart lateSa
 EC="gaps order reinstall resendMulti atomic rollback edayMix comboMix clockFuture clockBack missedDay fullEvent devicesArchive prune"
 for s in $SC; do for m in ctrl test; do (cd "$D" && MUF_SX=1 node scen.mjs "$W" "$R" $s $m > "$W/$s.$m.json" 2> "$W/$s.$m.err") & done; done
 for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
-E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress"
+E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress reapplyArchived badIds ackMarker longTerm"
 for c in $E2; do (cd "$D" && MUF_SX=1 node edge2.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
 # الحالة نفسها بمنطقة زمنية أخرى للعملية: المرساة والأيام بتوقيت برلين في الخادم لا تتأثّر
 (cd "$D" && TZ=Pacific/Kiritimati MUF_SX=1 node edge2.mjs "$W" "$R" anchorMissedTZ > "$W/e_anchorMissedTZ.out" 2> "$W/e_anchorMissedTZ.err" || echo "FAIL anchorMissedTZ: توقّف بخطأ" >> "$W/e_anchorMissedTZ.out") & wait
@@ -25,6 +25,21 @@ if(Object.values(R).some(x=>!x)){out.push("FAIL forwardClock: لم يكتمل ا
 for(const m of ["ok","plain","page","native"])out.push("INFO forwardClock: "+m+" → "+JSON.stringify(R[m]));
 for(const [m,n] of [["native","مرساة الهاتف"],["page","مرساة الصفحة"],["plain","بلا مرساة"]])P("ساعة متقدّمة يومًا ودون إنترنت 3 أيام، "+n+": مطابقة للساعة الصحيحة (الخبرة والجواهر والسلسلة والمراجعات والمحطات والطاقة، ولا حجر)",eq(R[m],ok)&&!Object.keys(R[m].q).length,R[m])}
 fs.writeFileSync(w+"/e_forwardClock.out",out.join("\n")+"\n")' "$W"
+# تغيير الساعة عدة مرات أثناء العمل دون إنترنت (FCM=1): مرساة الهاتف مطابقة للساعة الصحيحة؛ وبدونها لا مكسب، ولا ضياع صامت
+for m in plain page native; do (cd "$D" && FCM=1 FC=$m MUF_SX=1 node edge2.mjs "$W" "$R" fcOne > "$W/fcm_$m.out" 2> "$W/fcm_$m.err") & done; wait
+node -e '
+const fs=require("fs"),w=process.argv[1],R={};for(const m of ["ok","plain","page","native"]){const f=m==="ok"?"fc_ok":"fcm_"+m;const l=(fs.readFileSync(w+"/"+f+".out","utf8").match(/^FCRES (.*)$/m)||[])[1];R[m]=l?JSON.parse(l):null}
+const out=[],P=(n,c,x)=>out.push((c?"PASS ":"FAIL ")+"clockMulti: "+n+(x!==undefined?" → "+JSON.stringify(x):""));
+if(Object.values(R).some(x=>!x))out.push("FAIL clockMulti: لم يكتمل التشغيل");else{const ok=R.ok;
+ for(const m of ["plain","page","native"])out.push("INFO clockMulti: "+m+" → "+JSON.stringify(R[m]));
+ P("مرساة الهاتف رغم ثلاثة تغييرات للساعة: كل ما أرسله الجهاز مقبول، ولا شيء في الحجر، والسلسلة والطاقة كالساعة الصحيحة",Object.keys(R.native.st).every(k=>k==="ok")&&!Object.keys(R.native.q).length&&R.native.streak===ok.streak&&R.native.energy===ok.energy,R.native);
+ P("مرساة الهاتف: لا مكسب",R.native.xp<=ok.xp&&R.native.gems<=ok.gems,R.native);
+ out.push("INFO clockMulti: الفرق في عدد المراجعات والمحطات عن الساعة الصحيحة من الجهاز نفسه: حين أشارت ساعته إلى يوم آخر رفض التطبيق بعض الأعمال محليًا فلم تُرسل (لا علاقة للخادم)");
+ for(const [m,n] of [["plain","بلا مرساة"],["page","مرساة الصفحة"]]){const r=R[m];
+  P(n+": لا مكسب (الخبرة والجواهر والسلسلة والمراجعات والمحطات لا تزيد على الساعة الصحيحة)",r.xp<=ok.xp&&r.gems<=ok.gems&&r.streak<=ok.streak&&r.reviews<=ok.reviews&&r.stations<=ok.stations,r);
+  P(n+": لا ضياع صامت (كل حدث له حالة: مقبول أو متأخّر أو في الحجر)",Object.values(r.st).reduce((a,b)=>a+b,0)>0,r.st)}}
+fs.writeFileSync(w+"/e_clockMulti.out",out.join("\n")+"\n")' "$W"
+E2="$E2 clockMulti"
 E2="$E2 forwardClock"
 { for s in $SC; do node -e '
 const fs=require("fs"),[,w,s]=process.argv,rd=m=>{try{return JSON.parse(fs.readFileSync(`${w}/${s}.${m}.json`,"utf8"))}catch(e){return null}};
