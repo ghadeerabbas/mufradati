@@ -16,21 +16,25 @@ T('المزامنة تنجح والذاكرة ممتلئة، وتُفرغ الأ
 junk.forEach(k => localStorage.removeItem(k)); save();
 T('بعد تحرير الذاكرة: الحفظ ينجح، وقائمة الانتظار المحفوظة فارغة', JSON.parse(localStorage.getItem(K('evq')) || '[]').length === 0);
 const e2 = { type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }; T('الرقم التالي أكبر من كل ما قبله', e2.n > Math.max(...seqs), e2.n - Math.max(...seqs));
-// البند 3: حدث كبير محجوز (hold) والذاكرة ممتلئة: يُحفظ أولًا مع الأحداث المنتظرة، ويبقى بعد «الإغلاق والفتح»
-window.fetch = async (u, o) => { if (!String(u).endsWith('/sync')) return new Response('{}'); const b = JSON.parse(o.body);
-  const j = { core: JSON.stringify({ P, QLOG, BUY, R, LG, EN, STN, STV }), log: JSON.stringify(LOG), qa: JSON.stringify(QA), prefs: '', cv: CORE_V, st: b.evs.map(e => e.type === 'zzbig' ? 'big' : 'ok'), now: Date.now(), dn: 0 };
+// البند 3: حدث كبير بحجمه الحقيقي (أكبر مما يقبله الخادم، نحو 950 كيلوبايت) محجوز، ثم ذاكرة ممتلئة فعلًا، ولا اتصال، وعمل حقيقي، وإغلاق فوري
+let ONLINE = true;
+window.fetch = async (u, o) => { if (!String(u).endsWith('/sync')) return new Response('{}'); if (!ONLINE) throw new TypeError('Failed to fetch'); const b = JSON.parse(o.body);
+  const j = { core: JSON.stringify({ P, QLOG, BUY, R, LG, EN, STN, STV }), log: JSON.stringify(LOG), qa: JSON.stringify(QA), prefs: '', cv: CORE_V, sxv: 1, st: b.evs.map(e => new TextEncoder().encode(JSON.stringify(e)).length > 900000 ? 'big' : 'ok'), now: Date.now(), dn: 0 };
   return new Response(JSON.stringify(j), { headers: { 'Content-Type': 'application/json' } }) };
-{ EVQ.length = 0; const big = evId({ type: 'zzbig', t: Date.now(), blob: 'x'.repeat(2000) }); EVQ.push(big); await syncNow(true);
-  T('الحدث الكبير محجوز في قائمة الانتظار', EVQ.length === 1 && EVQ[0].hold === 1 && evqN() === 0);
-  const junk2 = []; let ji2 = 0; for (const sz of [50000, 5000, 500, 50]) { try { for (let i = 0; i < 2000; i++) { localStorage.setItem('jk' + ji2, 'x'.repeat(sz)); junk2.push('jk' + ji2++) } } catch (e) { } }
-  for (let i = 0; i < 3; i++) EVQ.push(evId({ type: 'zzok', t: Date.now() }));
-  const f0 = STFAIL; save(); const stored = JSON.parse(localStorage.getItem(K('evq')) || '[]');
-  T('الذاكرة ممتلئة: قائمة الانتظار محفوظة ومعها المحجوز (أو فشلٌ معدود لا صامت)', stored.some(e => e.n === big.n && e.hold === 1) || STFAIL > f0, [stored.length, STFAIL - f0]);
-  const failed = STFAIL - f0, reported = REPS.some(m => /evq not saved/.test(m));   // تُقرأ قبل «الإغلاق»: العدّاد نفسه قد لا يُحفظ والذاكرة ممتلئة تمامًا
-  const keep = EVQ.slice(); EVQ = []; loadState();   // «إغلاق وفتح»: القراءة من الذاكرة
-  T('بعد «الإغلاق والفتح»: المحجوز موجود بعلامته', EVQ.some(e => e.n === big.n && e.hold === 1), [EVQ.length, evqN()]);
-  T('والعادية: محفوظة معه، أو فشل حفظها معدود ومُبلَّغ (تنبيه وتقرير ومزامنة فورية، كما في إصلاح الحفظ)', EVQ.filter(e => !e.hold).length === 3 || (failed > 0 && reported), [EVQ.filter(e => !e.hold).length, failed, reported])
-  junk2.forEach(k => localStorage.removeItem(k)); EVQ = keep.filter(e => !e.hold).length ? EVQ : keep; await syncNow(true);
-  T('المزامنة بعدها ترسل العادية وحدها، والمحجوز باقٍ', evqN() === 0 && EVQ.length === 1 && EVQ[0].hold === 1, [EVQ.length, evqN()]);
+{ const Q = n => ({ type: 'quiz', kind: 's2', ok: 7, total: 10, ms: 40000 + n, full: true, t: Date.now() + n });
+  EVQ.length = 0; save(); const big = evId({ type: 'quiz', kind: 's2', ok: 1, total: 10, ms: 1, t: Date.now(), blob: 'ع'.repeat(475000) });   // ≈ 950 كيلوبايت بايتًا
+  T('الحدث بحجم حقيقي (> 900 كيلوبايت بالبايت)', new TextEncoder().encode(JSON.stringify(big)).length > 900000, new TextEncoder().encode(JSON.stringify(big)).length);
+  EVQ.push(big); save(); await syncNow(true);
+  T('الخادم ردّه «big»: محجوز في قائمة الانتظار، ومحفوظ على الجهاز', EVQ.length === 1 && EVQ[0].hold === 1 && evqN() === 0 && JSON.parse(localStorage.getItem(K('evq')) || '[]').some(e => e.n === big.n && e.hold === 1));
+  stFree(1); stFree(2); save();
+  const junk2 = []; let ji2 = 0; for (const sz of [50000, 5000, 500, 50, 5]) { try { for (let i = 0; i < 4000; i++) { localStorage.setItem('jk' + ji2, 'x'.repeat(sz)); junk2.push('jk' + ji2++) } } catch (e) { } }
+  ONLINE = false; const q0 = QLOG.length, f0 = STFAIL;
+  const r1 = ev(Q(1));
+  const se = JSON.parse(localStorage.getItem(K('evq')) || '[]'), sq = JSON.parse(localStorage.getItem(K('qlog')) || '[]');
+  T('إغلاق فوري بعد فشل الحفظ دون اتصال: المحفوظ متطابق — المحجوز باقٍ، والعمل الجديد ليس في الأحداث ولا في التمارين المحفوظة', r1 === true && se.length === 1 && se[0].n === big.n && sq.length === q0, [r1, se.length, sq.length - q0]);
+  for (let i = 0; i < 100 && STRESC; i++) await sleep(50);
+  T('بعد فشل الإنقاذ: الذاكرة عادت إلى المحفوظ (المحجوز وحده، بلا العمل الجديد)، وعُدّ الفشل', EVQ.length === 1 && EVQ[0].hold === 1 && QLOG.length === q0 && STFAIL > f0, [EVQ.length, QLOG.length - q0, STFAIL - f0]);
+  junk2.forEach(k => localStorage.removeItem(k)); ONLINE = true; const r2 = ev(Q(2)); await syncNow(true);
+  T('بعد عودة المساحة والاتصال: العمل يُقبل ويُرسل، والمحجوز باقٍ لا يُرسل', r2 === true && evqN() === 0 && EVQ.length === 1 && EVQ[0].hold === 1, [r2, evqN(), EVQ.length]);
   EVQ.length = 0; save() }
 window.fetch = realFetch; window.repErr = realRep;
