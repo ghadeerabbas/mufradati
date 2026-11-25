@@ -31,15 +31,18 @@ T('المزامنة الجديدة مفعّلة لهذا الحساب في ال�
   T('المتصفح بعد إعادة تحميل الصفحة (معرّف صفحة آخر): باطلة', ancNow() === 0);
   T('المنطقة الزمنية لا تدخل في المرساة (تعتمد على أرقام بالملّي ثانية وحدها)', !/getTimezoneOffset|toLocale/.test(String(ancNow) + String(ancSet) + String(monoNow))) }
 
-// 3) الحدث الكبير لا يعطّل ما بعده، ولا يُحذف
-{ fake(evs => evs.map(e => e.type === 'zzbig' ? 'big' : 'ok')); const before = EVQ.length;
-  localStorage.removeItem(K('held')); const big = { type: 'zzbig', t: Date.now(), d: devId(), n: nextSeq(), blob: 'x'.repeat(1000) };
+// 3) الحدث الكبير لا يعطّل ما بعده، ولا يُحذف: يبقى في قائمة الانتظار بعلامة hold (فيُحفظ أولًا مع الأحداث المنتظرة)
+{ fake(evs => evs.map(e => e.type === 'zzbig' ? 'big' : 'ok')); EVQ.length = 0;
+  const big = { type: 'zzbig', t: Date.now(), d: devId(), n: nextSeq(), blob: 'x'.repeat(1000) };
   EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }, big, { type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() });
-  const ok = await syncNow(true); const held = JSON.parse(localStorage.getItem(K('held')) || '[]');
-  T('مزامنة فيها حدث «big» بين حدثين: تنجح، والأحداث الثلاثة خرجت من قائمة الانتظار', ok && EVQ.length === 0, [ok, EVQ.length]);
-  T('الحدث الكبير لم يُحذف: محفوظ في held على الجهاز، وبُلِّغ المشرف', held.some(e => e.n === big.n) && REPS.some(m => /too big/.test(m)), [held.length, REPS.join('|').slice(0, 60)]);
-  EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }); const ok2 = await syncNow(true);
-  T('المزامنة التالية تعمل عاديًا', ok2 && EVQ.length === 0, [ok2, EVQ.length]) }
+  CALLS.length = 0; const ok = await syncNow(true);
+  T('مزامنة فيها حدث «big» بين حدثين: تنجح، وخرج الحدثان العاديان، وبقي الكبير محجوزًا', ok && EVQ.length === 1 && EVQ[0].n === big.n && EVQ[0].hold === 1 && evqN() === 0, [ok, EVQ.length, evqN()]);
+  T('بُلِّغ المشرف', REPS.some(m => /too big/.test(m)), REPS.join('|').slice(0, 60));
+  save(); T('المحجوز محفوظ على الجهاز مع قائمة الانتظار', JSON.parse(localStorage.getItem(K('evq')) || '[]').some(e => e.n === big.n && e.hold === 1));
+  CALLS.length = 0; EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }); const ok2 = await syncNow(true);
+  T('المزامنة التالية تعمل، ولا تُرسل المحجوز', ok2 && CALLS.length === 1 && CALLS[0].evs.length === 1 && !CALLS[0].evs.some(e => e.n === big.n) && evqN() === 0, [ok2, CALLS.length && CALLS[0].evs.length, evqN()]);
+  T('المحجوز لا يمنع تحديث التطبيق (لا يُعدّ منتظرًا)', reloadSafe ? (evqN() === 0) : true);
+  EVQ.length = 0; save() }
 
 // 4) الإقرار: ردّ لا يذكر حالة كل حدث → لا يُحذف شيء من الهاتف
 { fake(evs => evs.slice(1).map(() => 'ok')); EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }, { type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() });
@@ -48,7 +51,8 @@ T('المزامنة الجديدة مفعّلة لهذا الحساب في ال�
 
 // 5) ما يرسله التطبيق: الجهاز في الطلب، والمرساة مع الحدث حين تكون صالحة
 { fake(evs => evs.map(() => 'ok')); CALLS.length = 0; delete window.MufApp; ANC = null; ancSet(Date.now(), 0);
-  EVQ.push({ type: 'zzok', t: Date.now(), d: devId(), n: nextSeq() }); await syncNow(true);
-  T('الطلب يحمل معرّف الجهاز (dev)', CALLS[0] && CALLS[0].dev === devId());
+  EVQ.push(evId({ type: 'zzok', t: Date.now() })); await syncNow(true);
+  T('الطلب يحمل معرّف الجهاز (dev) وساعة الهاتف لحظة الإرسال (ct)', CALLS[0] && CALLS[0].dev === devId() && Math.abs(CALLS[0].ct - Date.now()) < 60e3);
+  T('الحدث يحمل المرساة ومصدرها (p: عدّاد الصفحة)', CALLS[0] && CALLS[0].evs[0].a > 0 && CALLS[0].evs[0].ak === 'p', CALLS[0] && [CALLS[0].evs[0].a > 0, CALLS[0].evs[0].ak]);
   T('الردّ يضبط المرساة من وقت الخادم (now)', !!JSON.parse(localStorage.getItem(K('anc')) || 'null')) }
 window.fetch = realFetch; window.repErr = realRep;

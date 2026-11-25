@@ -31,14 +31,14 @@ const C = {
     const r4 = await send(uid, [q('st1', d0 - 31 * DAY, 'questdev5')], 'questdev5'); T('صندوق أقدم من 30 يومًا: إلى الحجر «old»', r4.st[0] === 'q' && r4.rej[0][1] === 'old', [r4.st, r4.rej]);
     I('لماذا لا يتكرّر صندوق خلال 30 يومًا', 'الصناديق 3 في اليوم على الأكثر، وسجلّها R.qd يُطوى بعد 600 = 200 يوم، فكل صندوق ضمن مدّة القبول ما زال فيه بعينه') },
 
-  // المرساة: ساعة الهاتف مُرجَعة إلى أمس لملء يوم فائت → المرساة تُبقي الوقت الحقيقي، فلا يُملأ اليوم
+  // المرساة: ساعة الهاتف تشير إلى أمس → المرساة تُبقي اليوم الحقيقي
   async anchorMissed() { const res = {};
     for (const mode of ['plain', 'anchor']) { const uid = 'am' + mode; await cfg({}); const A = await learner(uid, 3, mode === 'anchor'); ctl.NOW += 2 * DAY; const s0 = await srv(uid);
       const y = ctl.NOW - DAY; for (const [i, k] of due(A).slice(0, 10).entries()) { A.ev({ type: 'rate', k, r: 2, t: y + i * 20e3 }); adv(20e3) }
       await A.sync(); const a = await srv(uid); const yk = new Date(y + 3600e3).toISOString().slice(0, 10), tk = new Date(ctl.NOW).toISOString().slice(0, 10);
       res[mode] = { streak: [s0.streak, a.streak], yesterday: (a.e.per[yk] || { n: 0 }).n, today: (a.e.per[tk] || { n: 0 }).n }; ctl.NOW += 5 * DAY }
-    I('عشر مراجعات بساعة مُرجَعة إلى أمس: أين حُسبت؟', res);
-    T('بلا مرساة: حُسبت في أمس (اليوم الفائت يُملأ، كما في المنشور اليوم)', res.plain.yesterday === 10, res.plain);
+    I('عشر مراجعات بساعة تشير إلى أمس: أين حُسبت؟', res);
+    T('بلا مرساة: كما في النسخة المنشورة', res.plain.yesterday === 10, res.plain);
     T('مع المرساة: حُسبت في اليوم الحقيقي، وأمس بقي فارغًا', res.anchor.yesterday === 0 && res.anchor.today === 10, res.anchor) },
 
   // المرساة والطاقة: ساعة متقدّمة يومًا لا تعطي طاقة امتلأت «في المستقبل»
@@ -50,7 +50,7 @@ const C = {
     I('بدء محطة بساعة متقدّمة يومًا وطاقة 2', out2);
     T('في الحالتين: إلى الحجر «energy» (الطاقة بوقت الخادم، لا ربح من المستقبل)', ['plain', 'anchor'].every(m => out2[m].st[0] === 'q' && out2[m].why[0][1] === 'energy' && out2[m].after <= out2[m].before + 1), out2) },
 
-  // السياسة "day" لحدث بلا مرساة: تسدّ ثغرة ملء اليوم الفائت، وثمنها على العمل دون إنترنت بلا مرساة (المتصفح بعد إعادة التحميل)
+  // السياسة "day" لحدث بلا مرساة مقارنةً بـ "trust": أثرها على العمل دون إنترنت
   async policyDay() { const res = {};
     for (const [mode, pol, anc] of [['trust', 'trust', false], ['day', 'day', false], ['dayAnchored', 'day', true]]) {
       await cfg({ uv: pol }); const uid = 'pd' + mode, A = await learner(uid, 3, anc); const day0 = ctl.NOW; const s0 = await srv(uid);
@@ -171,7 +171,7 @@ const C = {
     r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eG.i }); a = await srv(uid);
     T('إعادته مرة ثانية: «applied»، ولا تغيير', r.st === 'q' && r.rej[0][1] === 'applied' && a.reviews - b.reviews === 1, [r, a.reviews - b.reviews]);
     const x0 = a.xp; r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eE.i }); a = await srv(uid);
-    T('إعادة مراجعة طُبّقت من قبل: «late» (نشاط فقط)، بلا خبرة ولا مراجعة', r.st === 'late' && a.xp === x0 && a.reviews - b.reviews === 1, [r, a.xp - x0]);
+    T('إعادة مراجعة طُبّقت من قبل: «late» (نشاط فقط)، بلا خبرة ولا مراجعة', r.st === 'late' && a.xp === x0 && a.reviews - b.reviews === 1, [r, a.xp - x0, a.reviews - b.reviews, { e1t: E1.t, log: a.B.LOG.filter(x => x[1] === E1.k).map(x => [x[0] - E1.t, x[2], x[3]]) }]);
     r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: eQ.i }); a = await srv(uid);
     T('إعادة تمرين طُبّق من قبل: «dupc»، والتمارين كما هي', r.st === 'q' && r.rej[0][1] === 'dupc' && a.quizzes === b.quizzes, [r, a.quizzes - b.quizzes]);
     L = await post('/sxq', 'admin', { op: 'list', uid }); T('نتيجة كل محاولة مسجّلة على مدخلها', L.qz.find(q => q.n === G.n).ap.r === 'ok' && L.qz.find(q => q.n === Q1.n).ap.r === 'dupc');
@@ -198,6 +198,36 @@ const C = {
     const evs = [{ type: 'rate', k: ks[0], r: 2, t: ctl.NOW, n: ++n, d: dev }, { type: 'quiz', kind: 's2', ok: 1, total: 10, ms: 1, t: ctl.NOW + 1e3, n: ++n, d: dev, blob: 'ع'.repeat(500000) },
       { type: 'rate', k: ks[1], r: 2, t: ctl.NOW + 20e3, n: ++n, d: dev }]; adv(60e3);
     const j = await send(uid, evs, dev); T('الحالات: مقبول، كبير، مقبول', j.st.join() === 'ok,big,ok', j.st) },
+
+  // البند 1: ساعة متقدّمة يومًا والجهاز دون إنترنت 3 أيام. كل وضع في عملية مستقلة بالوقت نفسه (FC=ok|plain|page|native)، والمقارنة في run.sh
+  async fcOne() { const mode = process.env.FC, uid = 'fc', A = await learner(uid); A.anchor = { ok: false, plain: false, page: 'page', native: 'native' }[mode]; A.skew = mode === 'ok' ? 0 : DAY;
+    const day0 = ctl.NOW; const s0 = await srv(uid);
+    for (let d = 0; d < 3; d++) { ctl.NOW = day0 + d * DAY + 3 * 36e5; for (const k of due(A).slice(0, 12)) { A.ev({ type: 'rate', k, r: 2 }); adv(20e3) } await station(A, { syncEach: false }) }
+    ctl.NOW = day0 + 2 * DAY + 10 * 36e5; const why = {}; let j; do { j = await A.sync(); for (const r of j.rej || []) why[r[1]] = (why[r[1]] || 0) + 1 } while (A.q);
+    const a = await srv(uid);
+    out.push('FCRES ' + JSON.stringify({ mode, xp: a.xp - s0.xp, gems: a.gems - s0.gems, streak: a.streak, reviews: a.reviews - s0.reviews, stations: a.stations - s0.stations, energy: Math.round(a.energy), ach: [...a.e.got].filter(x => !s0.e.got.has(x)), q: why })) },
+
+  // البند 2: إعادة التطبيق مع الضغط المتكرّر، وانقطاع الاتصال (فشل الكتابة، وضياع الردّ)، وتعارض الكتابة
+  async reapplyStress() { const uid = 'rs', A = await learner(uid); const dev = A.dev(); ctl.NOW += 3 * 36e5; A.ev({ type: 'eday' }); await A.sync(); ctl.NOW += 40 * DAY; A.ev({ type: 'eday' }); await A.sync();
+    const lo = ids(uid, dev).lo, ks = due(A); const b = await srv(uid);
+    const G = i => ({ type: 'rate', k: ks[i], r: 2, t: ctl.NOW - 3600e3 + i * 60e3, n: lo - 20 + i, d: dev }); await send(uid, [G(0), G(1), G(2)], dev);
+    const L = await post('/sxq', 'admin', { op: 'list', uid }), at = n => L.qz.find(q => q.n === n).i;
+    // ضغط متكرّر: ثلاثة طلبات معًا للمدخل نفسه
+    const rr = await Promise.all([0, 1, 2].map(() => post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(0).n) })));
+    let a = await srv(uid); T('ثلاث ضغطات معًا: واحدة مقبولة والباقي «applied»، والمراجعات +1', rr.filter(r => r.st === 'ok').length === 1 && rr.filter(r => r.rej && r.rej[0] && r.rej[0][1] === 'applied').length === 2 && a.reviews - b.reviews === 1, rr.map(r => r.st + (r.rej && r.rej[0] ? ':' + r.rej[0][1] : '')));
+    // انقطاع: فشل الكتابة → خطأ للمشرف، ولا تغيير؛ ثم إعادة الضغط → مقبول مرة واحدة
+    const orig = memfs.commit; let fails = 1; memfs.commit = async function (ws) { if (fails-- > 0) throw new Error('شبكة'); return orig.call(this, ws) };
+    let err = ''; try { await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(1).n) }) } catch (e) { err = e.message } memfs.commit = orig;
+    a = await srv(uid); T('فشل الكتابة: خطأ ظاهر، ولا تغيير في الحساب', !!err && a.reviews - b.reviews === 1, [err.slice(0, 25), a.reviews - b.reviews]);
+    let r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(1).n) }); a = await srv(uid);
+    T('إعادة الضغط بعد الانقطاع: مقبول مرة واحدة', r.st === 'ok' && a.reviews - b.reviews === 2, [r.st, a.reviews - b.reviews]);
+    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(1).n) }); T('ضياع الردّ ثم ضغطة أخرى: «applied»، لا تكرار', r.rej && r.rej[0][1] === 'applied', r);
+    // تعارض كتابة (متعلّم يزامن في اللحظة نفسها): الخادم يعيد العملية كلها، ويُطبَّق مرة واحدة
+    let conf = 1; memfs.commit = async function (ws) { if (conf-- > 0) { const e = new Error('conflict'); e.conflict = true; throw e } return orig.call(this, ws) };
+    r = await post('/sxq', 'admin', { op: 'apply', uid, src: 'qz', i: at(G(2).n) }); memfs.commit = orig; a = await srv(uid);
+    T('تعارض كتابة: مقبول مرة واحدة بعد إعادة الخادم', r.st === 'ok' && a.reviews - b.reviews === 3, [r.st, a.reviews - b.reviews]);
+    const L2 = await post('/sxq', 'admin', { op: 'list', uid }); T('المدخلات الثلاثة مسجّلة «ok» مرة واحدة لكلٍّ منها', [0, 1, 2].every(i => L2.qz.find(q => q.n === G(i).n).ap.r === 'ok'));
+    T('مفاتيح إعادة التطبيق في sx: ثلاثة بلا تكرار', new Set(sxDoc(uid).ap).size === sxDoc(uid).ap.length && sxDoc(uid).ap.length === 3, sxDoc(uid).ap.length) },
 };
 C.anchorMissedTZ = C.anchorMissed;   // الحالة نفسها بمنطقة زمنية أخرى للعملية (TZ في run.sh): النتيجة يجب أن تكون نفسها
 await C[CASE](); console.log(out.join('\n'));

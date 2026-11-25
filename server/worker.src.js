@@ -250,6 +250,8 @@ async function handleSync(fs, user, body, opts) {
   const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
   const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [], sxArch = [];
+  // فرق ساعة الهاتف (ct: ساعته لحظة الإرسال) عن ساعة الخادم؛ يُهمل ما دون دقيقتين (تأخّر الشبكة) وما فوق سنة (قيمة غير معقولة)
+  const ct = +body.ct, sk0 = Number.isFinite(ct) && ct > 0 ? ct - now : 0, sk = Math.abs(sk0) > 120e3 && Math.abs(sk0) < 365 * 864e5 ? sk0 : 0;
   let words = null;
   for (let i = 0; i < evs.length; i++) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
@@ -271,7 +273,7 @@ async function handleSync(fs, user, body, opts) {
       dwinOk = !!(dd && duelWinner(dd.data) === uid) }   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
-    EC = null; const r = below ? "old" : applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(SXU && dv ? { dv } : {}) });
+    EC = null; const r = below ? "old" : applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(SXU && dv ? { dv, sk } : {}) });
     if (!SXU) { if (dv && n) sxSeen(dv, n, now); if (r !== true) rej.push([i, r]); st.push(r === true ? "ok" : "rej"); continue }   // وضع الأرقام وحدها: القواعد القديمة
     // لا حذف بصمت: ما لم يُقبل يُحفظ في الحجر مع سببه، ويُسجَّل رقمه فلا يتكرّر في الحجر عند إعادة الإرسال
     if (n) sxSeen(dv, n, now);

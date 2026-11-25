@@ -11,11 +11,21 @@ SC="clockAhead clockBack twoDevices offline8 offline30 resend doubleStart lateSa
 EC="gaps order reinstall resendMulti atomic rollback edayMix comboMix clockFuture clockBack missedDay fullEvent devicesArchive prune"
 for s in $SC; do for m in ctrl test; do (cd "$D" && MUF_SX=1 node scen.mjs "$W" "$R" $s $m > "$W/$s.$m.json" 2> "$W/$s.$m.err") & done; done
 for c in $EC; do (cd "$D" && MUF_SX=1 node edge.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
-E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle"
+E2="quest30 anchorMissed anchorEnergy policyDay rollbackQuiz rollbackCfg pruneClock idsGrowth bigEvent bytesLimit backupSx reapply anchorSleep bigMiddle reapplyStress"
 for c in $E2; do (cd "$D" && MUF_SX=1 node edge2.mjs "$W" "$R" $c > "$W/e_$c.out" 2> "$W/e_$c.err" || echo "FAIL $c: توقّف بخطأ: $(tail -c 300 "$W/e_$c.err")" >> "$W/e_$c.out") & done
 # الحالة نفسها بمنطقة زمنية أخرى للعملية: المرساة والأيام بتوقيت برلين في الخادم لا تتأثّر
 (cd "$D" && TZ=Pacific/Kiritimati MUF_SX=1 node edge2.mjs "$W" "$R" anchorMissedTZ > "$W/e_anchorMissedTZ.out" 2> "$W/e_anchorMissedTZ.err" || echo "FAIL anchorMissedTZ: توقّف بخطأ" >> "$W/e_anchorMissedTZ.out") & wait
 E2="$E2 anchorMissedTZ"
+# الساعة المتقدّمة: أربعة أوضاع في عمليات مستقلة بالوقت نفسه، ثم المقارنة بالساعة الصحيحة
+for m in ok plain page native; do (cd "$D" && FC=$m MUF_SX=1 node edge2.mjs "$W" "$R" fcOne > "$W/fc_$m.out" 2> "$W/fc_$m.err") & done; wait
+node -e '
+const fs=require("fs"),w=process.argv[1],R={};for(const m of ["ok","plain","page","native"]){const l=(fs.readFileSync(w+"/fc_"+m+".out","utf8").match(/^FCRES (.*)$/m)||[])[1];R[m]=l?JSON.parse(l):null}
+const out=[],P=(n,c,x)=>out.push((c?"PASS ":"FAIL ")+"forwardClock: "+n+(x!==undefined?" → "+JSON.stringify(x):""));
+if(Object.values(R).some(x=>!x)){out.push("FAIL forwardClock: لم يكتمل التشغيل")}else{const ok=R.ok,eq=(a,b)=>["xp","gems","streak","reviews","stations","energy"].every(k=>a[k]===b[k]);
+for(const m of ["ok","plain","page","native"])out.push("INFO forwardClock: "+m+" → "+JSON.stringify(R[m]));
+for(const [m,n] of [["native","مرساة الهاتف"],["page","مرساة الصفحة"],["plain","بلا مرساة"]])P("ساعة متقدّمة يومًا ودون إنترنت 3 أيام، "+n+": مطابقة للساعة الصحيحة (الخبرة والجواهر والسلسلة والمراجعات والمحطات والطاقة، ولا حجر)",eq(R[m],ok)&&!Object.keys(R[m].q).length,R[m])}
+fs.writeFileSync(w+"/e_forwardClock.out",out.join("\n")+"\n")' "$W"
+E2="$E2 forwardClock"
 { for s in $SC; do node -e '
 const fs=require("fs"),[,w,s]=process.argv,rd=m=>{try{return JSON.parse(fs.readFileSync(`${w}/${s}.${m}.json`,"utf8"))}catch(e){return null}};
 const c=rd("ctrl"),t=rd("test");if(!c||!t){console.log(`FAIL ${s}: لم يكتمل التشغيل (انظر ${w}/${s}.*.err)`);process.exit()}

@@ -121,11 +121,11 @@ const C = {
     T('ساعة راجعة 3 أيام: المراجعات العشر مقبولة ومسجّلة بعد آخر حدث من الجهاز (لا في الماضي)', j.st.every(s => s === 'ok') && B.LOG.slice(-10).every(x => x[0] >= s0.B.LOG[s0.B.LOG.length - 1][0]), j.st);
     T('السلسلة لم تتغيّر بأيام ماضية', a.streak === s0.streak || a.streak === s0.streak + 1, [s0.streak, a.streak]) },
 
-  // ملء يوم فائت بتغيير الساعة إلى أمس: مقارنة الخادم الجديد بالقديم (المنشور)
+  // أحداث بوقت هاتف في يوم سابق: مقارنة الخادم الجديد بالقديم (المنشور)
   async missedDay() { const res = {};
     for (const which of ['old', 'new']) { const uid = 'md' + which; ctl.ACTIVE = 'new'; const A = await learner(uid); ctl.NOW += 2 * DAY; ctl.ACTIVE = which; const s0 = await srv(uid); let n = ctl.NOW * 10;
       const y = ctl.NOW - DAY; const evs = due(A).slice(0, 10).map((k, i) => rate(k, y + i * 20e3, ++n, A.dev())); adv(300e3); await send(uid, evs, A.dev()); const a = await srv(uid); res[which] = [s0.streak, a.streak]; ctl.NOW += 5 * DAY }
-    I('ملء أمس بساعة مُرجَعة [قبل، بعد]', res);
+    I('السلسلة [قبل، بعد]', res);
     T('الجديد ليس أضعف من القديم المنشور في هذه الحالة', res.new[1] <= res.old[1], res) },
 
   // ملاحظة ChatGPT 5: الحدث في الحجر محفوظ كما وصل تمامًا

@@ -531,14 +531,17 @@ const sxWinMax=()=>{const w=(CFG.sx||{}).w||{};return Math.max(w.rate||30,w.st||
 // a لا يُصدَّق إن تجاوز وقت الاستلام. بلا مرساة وبالسياسة "day": لا يُنسب الحدث إلى يوم قبل يوم الاستلام.
 // بالسياسة "day" يُنقل الحدث إلى بداية يوم الاستلام مع الإبقاء على الفواصل بين أحداث الجهاز نفسه (dv.rt: ساعة الهاتف لآخر حدث قُبل منه)،
 // فلا تتصادم أحداث جلسة كاملة في لحظة واحدة (قاعدة نصف الثانية، ومدّة المحطة)
-// مع المرساة: الأحدث من وقتها ووقت ساعة الهاتف. فإرجاع الساعة لا يُرجع الحدث (المرساة أحدث)، وعدّاد صفحة توقّف أثناء نوم الهاتف
-// (قد يحدث في المتصفح) لا يُرجعه أيضًا (الساعة أحدث). تقديم الساعة لا ينفع: كل وقت يُقصّ إلى وقت الاستلام.
-function sxT0(ev,now,dv){const a=+ev.a,t=+ev.t||now;if(Number.isFinite(a)&&a>0)return Math.min(Math.max(a,t),now);
+// مع المرساة من عدّاد الهاتف (ak="n"، تطبيق أندرويد: لا يتوقّف أثناء النوم): وقت المرساة وحده، فلا أثر لتقديم الساعة ولا لإرجاعها.
+// مع المرساة من عدّاد الصفحة (المتصفح: قد يتوقّف أثناء نوم الهاتف فتتأخّر): الأحدث من وقتها ووقت الساعة؛ فإرجاع الساعة لا يُرجع الحدث،
+// والعدّاد المتوقّف لا يُرجعه أيضًا، وثمنه أن تقديم الساعة يدفع الحدث إلى الأمام (ثم يُقصّ إلى وقت الاستلام).
+// sk: فرق ساعة الهاتف عن ساعة الخادم لحظة الإرسال (الخادم يحسبه من ساعة الهاتف المرسلة مع الطلب)، فيُصحَّح به وقت الهاتف t.
+// فساعة متقدّمة أو مُرجَعة وقت المزامنة لا تنقل الأحداث إلى أيام أخرى، ولا تجمعها في يوم الاستلام.
+function sxT0(ev,now,dv,sk){const a=+ev.a,t=(+ev.t||now)-(sk||0);if(Number.isFinite(a)&&a>0)return Math.min(ev.ak==="n"?a:Math.max(a,t),now);
   if((CFG.sx||{}).uv==="day"&&dkey(t)<dkey(now)){const d=new Date(now+tzOff(now)),m0=Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate()),mid=m0-tzOff(m0);
     const step=dv&&dv.rt&&t>=dv.rt?t-dv.rt:0;return Math.min(now,Math.max(mid,(dv&&dv.lt||0)+step))}
   return t}
 function applySx(ev,T,now,ctx){
-  const dv=ctx.dv,t0=sxT0(ev,now,dv),tc=Math.min(t0,now),raw=+ev.t||now,re=!!ctx.reapply;
+  const dv=ctx.dv,t0=sxT0(ev,now,dv,ctx.sk),tc=Math.min(t0,now),raw=+ev.t||now,re=!!ctx.reapply;
   // إعادة التطبيق من الحجر (المشرف): لا مدّة قبول، والحدث في وقته الأصلي لا بعد آخر حدث من الجهاز، فيمرّ بقواعد المتأخّر كلها:
   // مراجعة كلمة لها مراجعة في وقتها أو بعده → نشاط فقط بلا خبرة؛ تمرين موجود بمحتواه → «dupc»؛ كلمات محطة معروفة → «word»
   if(!re&&now-tc>sxWin(T))return "old";
@@ -555,7 +558,8 @@ function applySx(ev,T,now,ctx){
   if(T==="quiz"){const k=String(ev.kind||"quiz").slice(0,8),ms=Math.max(0,+ev.ms|0);if(ms&&QLOG.some(q=>q[3]===k&&q[1]===(ev.ok|0)&&q[2]===(ev.total|0)&&q[4]===ms&&q[0]>=tc-1000&&q[0]<=now))return "dupc"}   // تصفير وصل بعد دراسة أحدث منه من جهاز آخر: لا يُطبَّق تلقائيًا
   if(late&&T==="rate"){const k=String(ev.k||""),r=ev.r|0;
     if(!(r>=0&&r<=3)||!P[k])return "word";
-    if((CK&&CK.t>t)||LOG.some(x=>x[1]===k&&x[0]>=t)){LATE.push([t,k,r]);if(!re){dv.lt=Math.max(dv.lt||0,t);dv.r0=t0}return "late"}}
+    if((CK&&CK.t>t)||LOG.some(x=>x[1]===k&&x[0]>=t-1000)){   // السجلّ يُحفظ بالثانية مقرّبًا: هامش ثانية
+   LATE.push([t,k,r]);if(!re){dv.lt=Math.max(dv.lt||0,t);dv.r0=t0}return "late"}}
   const r=applyAt(ev,T,t,{...ctx,sx:true});
   if(r===true&&!re){dv.lt=Math.max(dv.lt||0,t);dv.rt=raw;if(T==="rate"){dv.r0=t0;dv.rr=raw}if(T==="quiz")dv.q=t}
   if(r===true)EN.lt=Math.max(EN.lt||0,t);
@@ -686,7 +690,7 @@ function applyAt(ev,T,now,ctx){
 
 applyCfg(null);
 
-const CORE_V = "83b523f808";
+const CORE_V = "bf8c16bc57";
 
 /* ---------- ضغط السجلّات (الصيغة نفسها التي في التطبيق) ---------- */
 function packLog(L) { const K = [], ix = {}, F = []; let p = 0; for (const [t, k, r, n] of L) { if (ix[k] === undefined) { ix[k] = K.length; K.push(k) } const s = Math.round(t / 1000); F.push(s - p, ix[k], r, n); p = s } return { K, F } }
@@ -920,6 +924,8 @@ async function handleSync(fs, user, body, opts) {
   const before = { log: LOG.length, l0: LOG.length ? LOG[0][0] : 0, l1: LOG.length ? LOG[LOG.length - 1][0] : 0, qa: QA.length, core: JSON.stringify(coreObj()), ck: CK ? CK.t : 0 };
   // الأحداث
   const evs = Array.isArray(body.evs) ? body.evs.slice(0, 300) : [], rej = [], st = [], sxArch = [];
+  // فرق ساعة الهاتف (ct: ساعته لحظة الإرسال) عن ساعة الخادم؛ يُهمل ما دون دقيقتين (تأخّر الشبكة) وما فوق سنة (قيمة غير معقولة)
+  const ct = +body.ct, sk0 = Number.isFinite(ct) && ct > 0 ? ct - now : 0, sk = Math.abs(sk0) > 120e3 && Math.abs(sk0) < 365 * 864e5 ? sk0 : 0;
   let words = null;
   for (let i = 0; i < evs.length; i++) {
     const e = evs[i]; if (!e || typeof e !== "object") { rej.push(i); st.push("bad"); continue }
@@ -941,7 +947,7 @@ async function handleSync(fs, user, body, opts) {
       dwinOk = !!(dd && duelWinner(dd.data) === uid) }   // حدث التحدي: يُقبل فقط إن كان لاعبًا فيه وأنهى كل أسئلته
     if (e.type === "duel") { const dd = /^[A-Za-z0-9_-]{4,40}$/.test(String(e.id || "")) ? await fs.get(`duel/${e.id}`) : null;
       duelOk = !!(dd && dAct(dd.data).includes(uid) && dProg(dd.data, uid).d && !dProg(dd.data, uid).q) }
-    EC = null; const r = below ? "old" : applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(SXU && dv ? { dv } : {}) });
+    EC = null; const r = below ? "old" : applyEv(e, Math.max(now - 1, Date.now()), { server: true, admin, words, duelOk, dwinOk, ...(SXU && dv ? { dv, sk } : {}) });
     if (!SXU) { if (dv && n) sxSeen(dv, n, now); if (r !== true) rej.push([i, r]); st.push(r === true ? "ok" : "rej"); continue }   // وضع الأرقام وحدها: القواعد القديمة
     // لا حذف بصمت: ما لم يُقبل يُحفظ في الحجر مع سببه، ويُسجَّل رقمه فلا يتكرّر في الحجر عند إعادة الإرسال
     if (n) sxSeen(dv, n, now);
