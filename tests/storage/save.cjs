@@ -160,5 +160,36 @@ async function logCase({sync=true,admin=false,tamper=false,tamperContent=false})
   T('نسخة محفوظة بغير البنية: تُستبدل بملف الشبكة السليم',ls.getItem('muf_w_words-k3.json')===good&&A.calls.applied.words.length===1,ls.getItem('muf_w_words-k3.json'))}
  {const ls=mkLS(5e6);const A=device(ls,'U',{fetch:async()=>({ok:true,text:async()=>'{"words":[{"de":"Haus"}]}'})});A.loadState();await A.loadWords('k3');
   T('ملف شبكة بغير البنية: لا يُحفظ، ويُعرض منهج فارغ بدل كلمات ناقصة',ls.getItem('muf_w_words-k3.json')===null&&A.calls.applied.words.length===0,String(ls.getItem('muf_w_words-k3.json')))}
+ // الإغلاق المفاجئ أثناء الحفظ: يتوقّف كل شيء عند الكتابة رقم k (كل كتابة بعدها لا تصل التخزين)، لكل k من أول كتابة إلى آخرها،
+ // ثم فتح من جديد: المحفوظ إما متّسق (بعلامة sok) وإما معلَّم بأنه قد يتأخّر (STSTALE)، ثم مزامنة: النتيجة صحيحة دون فقد ولا تكرار
+ {const setup=()=>{const ls=mkLS(5e6),srv=server(),A=device(ls,'U',{srv,online:()=>false});A.loadState();for(let i=0;i<3;i++)A.ev(rate(i));srv.sync(A);A.ev(rate(3));A.ev(rate(4));return {ls,srv,A}};
+  let EP=0;const freeze=(ls,k)=>{let n=0;const si=ls.setItem.bind(ls),ri=ls.removeItem;ls.setItem=function(a,b){if(++n>=k)throw new Error('CRASH');if(a==='muf_U_evq'&&!EP)EP=n;return si(a,b)};ls.removeItem=a=>{if(++n>=k)return;ri(a)};return ()=>n};
+  let W;{const {ls,A}=setup();const cnt=freeze(ls,1e9);A.ev(rate(5));W=cnt()}
+  const bad=[];let withSok=0,stale=0,keptNew=0;
+  for(let k=1;k<=W+1;k++){const {ls,srv,A}=setup();freeze(ls,k);try{A.ev(rate(5))}catch(e){}
+   const ls2=mkLS(5e6);for(const [x,v] of ls.m)ls2.m.set(x,v);   // «فتح» التطبيق من جديد على ما وصل التخزين
+   const B=device(ls2,'U',{srv,online:()=>true});B.loadState();const q=B.EVQ.map(e=>e.k),sok=!B.STSTALE;
+   const exp={...srv.S.P};for(const x of q)exp[x]=(exp[x]||0)+1;const sp=stored(ls2,'progress')||{},sl=(stored(ls2,'log')||[]).length;
+   const cons=JSON.stringify(Object.entries(sp).sort())===JSON.stringify(Object.entries(exp).sort())&&sl===srv.S.log.length+q.length;
+   if(sok){withSok++;if(!cons)bad.push(k+': غير معلَّم مع عدم تطابق')}else stale++;
+   if(q.includes('w5'))keptNew++;
+   srv.sync(B);const ks=srv.S.log.map(x=>x[1]),dup=ks.length!==new Set(ks).size;
+   const lost=['w0','w1','w2','w3','w4'].filter(x=>!ks.includes(x));
+   if(dup||lost.length)bad.push(k+': بعد المزامنة '+(dup?'تكرار ':'')+(lost.length?'فقد '+lost:''));
+   if(JSON.stringify(B.P)!==JSON.stringify(srv.S.P)||B.LOG.length!==srv.S.log.length)bad.push(k+': الحالة بعد المزامنة لا تطابق الخادم');
+   if(ls2.getItem('muf_U_sok')===null)bad.push(k+': لم تُكتب sok بعد المزامنة')}
+  T('إغلاق مفاجئ عند كل كتابة أثناء الحفظ ('+W+' كتابة): المحفوظ متّسق أو معلَّم، والمزامنة تصحّحه دون فقد ولا تكرار',!bad.length,bad.slice(0,3).join(' | ')||JSON.stringify({cases:W+1,withSok,stale,keptNew}));
+  T('الحدث الجديد يبقى إن وصل الإغلاقُ بعد حفظ قائمة الأحداث (الكتابة رقم '+EP+')',EP>0&&keptNew===W+1-EP,keptNew+'/'+(W+1-EP))}
+ // فشل بعض مفاتيح الحالة (لا إغلاق) بعد حفظ الأحداث، ثم فتح، ثم مزامنة
+ for(const keys of [['log'],['progress','qa'],['energy','league','log']]){const ls=mkLS(5e6),srv=server(),A=device(ls,'U',{srv,online:()=>false});A.loadState();for(let i=0;i<3;i++)A.ev(rate(i));srv.sync(A);
+  const si=ls.setItem.bind(ls);ls.setItem=function(a,b){if(keys.some(x=>a==='muf_U_'+x))throw Object.assign(new Error('Quota'),{name:'QuotaExceededError'});return si(a,b)};
+  A.ev(rate(3));A.ev({type:'ans',k:'w3',t:2e12});ls.setItem=si;
+  const B=device(ls,'U',{srv,online:()=>true});B.loadState();const evq=B.EVQ.length;
+  T('فشل المفاتيح ('+keys.join('، ')+'): الأحداث محفوظة، والفتح يعلّم الحالة بأنها قد تتأخّر',evq===2&&B.STSTALE&&ls.getItem('muf_U_sok')===null,[evq,B.STSTALE]);
+  srv.sync(B);T('ثم المزامنة: الحالة تطابق الخادم، وكل الأحداث وصلت مرة واحدة، وعادت علامة sok',JSON.stringify(B.P)===JSON.stringify(srv.S.P)&&srv.S.log.length===4&&srv.S.qa.length===1&&B.LOG.length===4&&ls.getItem('muf_U_sok')!==null&&!B.STSTALE,[srv.S.log.length,srv.S.qa.length,B.LOG.length])}
+ // sok غائبة بلا أحداث منتظرة: معلَّمة أيضًا (تُطلب مزامنة فورية)، والتنبيه لا يظهر (لا عمل معلّق)
+ {const ls=mkLS(5e6),A=device(ls);A.loadState();A.ev(rate(1));A.EVQ=[];A.save();ls.removeItem('muf_U_sok');const B=device(ls);B.loadState();
+  T('sok غائبة ولا أحداث منتظرة: الحالة معلَّمة للمزامنة',B.STSTALE===true&&B.EVQ.length===0);
+  T('التنبيه مشروط بوجود أحداث منتظرة، والمزامنة تُطلب دائمًا',/if\(STSTALE\)setTimeout\(\(\)=>\{if\(EVQ\.length\)toast\([^;]*;schedSync\(0\)\}/.test(src))}
  console.log(out.join('\n'));if(out.some(l=>l.startsWith('FAIL')))process.exit(1);
 })();

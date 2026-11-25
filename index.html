@@ -1998,7 +1998,7 @@ let EN={v:30,t:0},STN=[],STV=0,EVQ=[];   // الطاقة، والمحطات ال
 let P={},LOG=[],QLOG=[],QA=[],BUY=[],S={},E={},R={bank:0,ach:[],lv:1,ts:0},LG={tier:null,w:"",hist:[],ts:0}; // R: جواهر محفوظة من قبل التصفير
 const DEF_S={limit:15,dir:"de",goal:30,ts:0},DEF_E={theme:"classic",frame:"none",avatar:"🎓",sticker:"",confetti:"squares",title:"t0",ncolor:"none",dark:0,ts:0};
 function loadState(){
-  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};sfLoad();STBLK=false;STSTALE=!st(K("sok"))&&EVQ.length>0;{const x=jget(K("late"),{});LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}SEQ=0;ANC=null;
+  R=Object.assign({bank:0,ach:[],lv:1,ts:0},jget(K("reset"),{}));P=jget(K("progress"),{});LOG=jget(K("log"),[]);CK=jget(K("ck"),null);QLOG=jget(K("qlog"),[]);QA=jget(K("qa"),[]);BUY=jget(K("buy"),[]);EN=jget(K("energy"),{v:30,t:0});STN=jget(K("stations"),[]);STV=+st(K("stv"))||0;EVQ=jget(K("evq"),[]);LG=Object.assign({tier:null,w:"",hist:[],ts:0},jget(K("league"),{}));migrateLG();LGC={at:0,rows:null};sfLoad();STBLK=false;STSTALE=st(K("sok"))!==sokSig(st(K("evq"))||"[]");{const x=jget(K("late"),{});LATE=Array.isArray(x.L)?x.L:[];LATEF=x.F&&typeof x.F==="object"?x.F:{}}SEQ=0;ANC=null;
   S=Object.assign({},DEF_S,jget(K("settings"),{}));E=Object.assign({},DEF_E,jget(K("equip"),{}));
 }
 // الحفظ المحلي: الأحداث التي لم تصل الخادم تُحفظ أولًا ويُتحقَّق أنها حُفظت فعلًا، ثم بقية المفاتيح مع التحقق أيضًا.
@@ -2008,7 +2008,8 @@ function loadState(){
 // STFAIL: عدد مرات الحفظ التي لم تُحفظ فيها الأحداث المنتظرة (تراكمي على الجهاز). STKF: عدد مرات فشل مفتاح آخر. LSZ: حجم ذاكرة الجهاز بالمحارف.
 let STFAIL=0,STKF=0,STWARN=false,LSZ=-1,LSZT=0;
 // STBLK: آخر حفظ للأحداث المنتظرة فشل، فلا يُقبل عمل جديد حتى ينجح حفظٌ أو مزامنة (فلا يتراكم عمل غير محفوظ).
-// STSTALE: الحالة المحفوظة قد تتأخّر عن الأحداث المحفوظة (فشل مفتاح بعد نجاح الأحداث): تُصحَّح بأول مزامنة
+// STSTALE: علامة sok غائبة عند الفتح أو لا تطابق قائمة الأحداث المحفوظة، فمفاتيح الحالة قد لا تتطابق فيما بينها أو مع الأحداث المحفوظة (إغلاق مفاجئ أثناء الحفظ، أو فشل مفتاح):
+// تُصحَّح بأول مزامنة (تُطلب فورًا دائمًا)، والتنبيه يظهر فقط إن كانت هناك أحداث منتظرة
 let STBLK=false,STSTALE=false,STRESC=false,STBT=0;
 function stOk(k,v){try{localStorage.setItem(k,v);return localStorage.getItem(k)===v}catch(e){return false}}
 // علامة ما وصل الخادم: عدد عناصر السجلّ وسجلّ الإجابات في آخر حالة من الخادم، ووقت آخر عنصر في كلٍّ منهما
@@ -2025,7 +2026,9 @@ function stFree(lv){try{const cur="muf_w_"+((COURSES[COURSE]||{}).file||""),ks=[
   if(lv===2&&!logSafe())return 0;
   for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(lv===1?((/^muf_w_/.test(k)&&k!==cur)||k==="muf_shell"):(k===K("log")||k===K("qa")))ks.push(k)}
   ks.forEach(k=>localStorage.removeItem(k));return ks.length}catch(e){return 0}}
-function saveEvq(){const v=JSON.stringify(EVQ);if(stOk(K("evq"),v))return true;for(const lv of [1,2]){if(stFree(lv)&&stOk(K("evq"),v))return true}return false}
+function saveEvq(){const v=JSON.stringify(EVQ);if(stOk(K("evq"),v))return v;for(const lv of [1,2]){if(stFree(lv)&&stOk(K("evq"),v))return v}return null}
+// علامة sok تحمل بصمة قائمة الأحداث المحفوظة التي كُتبت الحالة لأجلها: إغلاقٌ بعد حفظ قائمة جديدة وقبل تحديث العلامة يجعلها لا تطابق، فتُعلَّم الحالة
+function sokSig(v){let h=2166136261>>>0;for(let i=0;i<v.length;i++){h^=v.charCodeAt(i);h=Math.imul(h,16777619)>>>0}return v.length+":"+h.toString(36)}
 function lsSize(){try{let n=0;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);n+=k.length+(localStorage.getItem(k)||"").length}return n}catch(e){return -1}}
 // للملخّص: الحجم يُقاس كل ساعة على الأكثر ويُقرَّب إلى 10 آلاف محرف، فلا يتغيّر الملخّص (ولا يُكتب من جديد) لتغيّر صغير
 function lsNow(){const t=Date.now();if(LSZ<0||t-LSZT>36e5){const n=lsSize();LSZ=n<0?-1:Math.round(n/1e4)*1e4;LSZT=t}return LSZ}
@@ -2036,7 +2039,7 @@ function sfLoad(){const o=jget(K("sf"),{});STFAIL=+o.f||0;STKF=+o.k||0;STWARN=fa
 // علامة sok تُحذف قبل كتابة مفاتيح الحالة وتُكتب بعد نجاحها كلها؛ غيابها عند الفتح = الحالة قد تتأخّر عن الأحداث المحفوظة
 const save=()=>{if(!UID)return;
   const okE=saveEvq();
-  if(!okE){STFAIL++;STBLK=true;if(!STWARN){STWARN=true;try{repErr("local storage full: evq not saved","","save")}catch(e){}}
+  if(okE===null){STFAIL++;STBLK=true;if(!STWARN){STWARN=true;try{repErr("local storage full: evq not saved","","save")}catch(e){}}
     stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}));stRescue();return}
   STBLK=false;if(STWARN&&!EVQ.length)STWARN=false;
   try{localStorage.removeItem(K("sok"))}catch(e){}
@@ -2045,7 +2048,7 @@ const save=()=>{if(!UID)return;
   if(bad.length&&stFree(1))for(let i=bad.length-1;i>=0;i--)if(stOk(K(bad[i][0]),bad[i][1]))bad.splice(i,1);
   if(bad.length){STKF++;if(okE&&EVQ.length)schedSync(1000);if(!STKW){STKW=true;try{repErr("local storage full: "+bad.map(x=>x[0]).join(","),"","save")}catch(e){}}}
   if(bad.length)stOk(K("sf"),JSON.stringify({f:STFAIL,k:STKF}));
-  else{stOk(K("sok"),"1");STSTALE=false}};
+  else{stOk(K("sok"),sokSig(okE));STSTALE=false}};
 // الإنقاذ بعد فشل حفظ الأحداث: مزامنة فورية؛ فإن لم تنجح (أو حساب المشرف الذي لا يزامن) تعود الذاكرة إلى المحفوظ
 async function stRescue(){if(STRESC)return;STRESC=true;let ok=false;
   try{if(!(typeof isAdmin==="function"&&isAdmin()))ok=await syncNow(true)&&!evqN()}catch(e){ok=false}   // المحجوز لكبر حجمه (hold) لا يُعدّ
@@ -4604,7 +4607,7 @@ function showPending(user){
 async function onLogin(user){
   if(!await accountActive(user))return showPending(user);
   UID=user.uid;loadState();GIFTS=jget(K("gifts"),[]);
-  if(STSTALE)setTimeout(()=>{toast("⏳","تُحدَّث أرقامك","آخر ما فعلته محفوظ، ويظهر كاملًا بعد الاتصال بالإنترنت");schedSync(0)},1500);   // الحالة المحفوظة متأخّرة عن الأحداث المحفوظة
+  if(STSTALE)setTimeout(()=>{if(EVQ.length)toast("⏳","تُحدَّث أرقامك","آخر ما فعلته محفوظ، ويظهر كاملًا بعد الاتصال بالإنترنت");schedSync(0)},1500);   // الحالة المحفوظة متأخّرة عن الأحداث المحفوظة
   UNAME=st(K("name"))||(user.email||"").split("@")[0];st(K("name"),UNAME);NM={};watchName();
   watchCfg();applyOffMode();
   await loadCourses();MY_COURSES=await myCourses();
