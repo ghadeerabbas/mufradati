@@ -4,7 +4,7 @@ const W = (await import(process.argv[2])).default; const out = [];
 const T = (n, c, x) => out.push((c ? 'PASS ' : 'FAIL ') + n + (x !== undefined ? ' → ' + JSON.stringify(x) : ''));
 let fetched = 0; const realFetch = globalThis.fetch; globalThis.fetch = async (...a) => { fetched++; throw new Error('no network in test') };
 const sa = p => JSON.stringify({ type: 'service_account', project_id: p });   // دون أي مفتاح: الفحص يقرأ اسم المشروع وحده
-const STG = { MUF_ENV: 'staging', FB_PROJECT: 'mufradati-stg', ADMIN_EMAIL: 'admin@mufradati.app', ORIGINS: 'https://mufradati-stg.pages.dev', SITE: 'https://mufradati-stg.pages.dev/', SA: sa('mufradati-stg') };
+const STG = { MUF_ENV: 'staging', FB_PROJECT: 'mufradati-stg', ADMIN_EMAIL: 'stg-admin@mufradati.app', ORIGINS: 'https://mufradati-stg.pages.dev', SITE: 'https://mufradati-stg.pages.dev/', SA: sa('mufradati-stg') };
 const call = async (env, path = '/', method = 'GET', origin = 'https://mufradati-stg.pages.dev') => { const r = await W.fetch(new Request('https://api.test' + path, { method, headers: { Origin: origin, 'Content-Type': 'application/json' }, ...(method === 'POST' ? { body: '{}' } : {}) }), env, { waitUntil() { } });
   let j = null; const t = await r.text(); try { j = JSON.parse(t) } catch (e) { } return { s: r.status, j, t, aco: r.headers.get('Access-Control-Allow-Origin') } };
 // الإنتاج
@@ -17,6 +17,8 @@ for (const k of ['FB_PROJECT', 'ADMIN_EMAIL', 'ORIGINS', 'SITE', 'SA']) { const 
 { const e = { ...STG, ORIGINS: ' ' }; r = await call(e); T('قيمة فارغة: يتوقّف', r.s === 503, r.j) }
 for (const [n, x] of [['مشروع الإنتاج', { FB_PROJECT: 'mufradati-406bd', SA: sa('mufradati-406bd') }], ['نطاق الإنتاج', { ORIGINS: 'https://ghadeerabbas.github.io' }], ['نطاق github.io آخر', { ORIGINS: 'https://other.github.io' }], ['موقع الإنتاج', { SITE: 'https://ghadeerabbas.github.io/mufradati/' }]]) {
   r = await call({ ...STG, ...x }); T('التجريبية تشير إلى ' + n + ': يتوقّف', r.s === 503 && /production/.test(r.j.detail), r.j) }
+r = await call({ ...STG, ADMIN_EMAIL: 'admin@mufradati.app' }); T('التجريبية ببريد مشرف الإنتاج: يتوقّف', r.s === 503 && /production/.test(r.j.detail), r.j);
+r = await call({ ...STG, ADMIN_EMAIL: 'Admin@Mufradati.App' }); T('ولو بأحرف كبيرة: يتوقّف', r.s === 503 && /production/.test(r.j.detail), r.j);
 r = await call({ ...STG, SA: sa('mufradati-406bd') }); T('التجريبية بحساب خدمة الإنتاج: يتوقّف', r.s === 503 && /production|mismatch/.test(r.j.detail), r.j);
 r = await call({ ...STG, SA: sa('other-proj') }); T('التجريبية بحساب خدمة مشروع آخر: يتوقّف', r.s === 503 && /mismatch/.test(r.j.detail), r.j);
 r = await call({ ...STG, SA: 'not json' }); T('حساب خدمة تالف: يتوقّف', r.s === 503, r.j);

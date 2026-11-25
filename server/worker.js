@@ -23,9 +23,9 @@ function envCfg(env) {
     return sp && sp !== "?" && sp !== PROD.PROJECT ? "env: service account is not the production project" : "" }   // حساب خدمة من مشروع آخر صراحةً (خادم تجريبي بلا MUF_ENV) → توقّف
   if (m !== "staging") return "env: unknown MUF_ENV";
   const miss = ["FB_PROJECT", "ADMIN_EMAIL", "ORIGINS", "SITE", "SA"].filter(k => !env[k] || !String(env[k]).trim()); if (miss.length) return "env: staging missing " + miss.join(",");
-  const p = String(env.FB_PROJECT).trim(), a = String(env.ADMIN_EMAIL).trim(), o = String(env.ORIGINS).split(",").map(x => x.trim()).filter(Boolean), site = String(env.SITE).trim();
+  const p = String(env.FB_PROJECT).trim(), a = String(env.ADMIN_EMAIL).trim().toLowerCase(), o = String(env.ORIGINS).split(",").map(x => x.trim()).filter(Boolean), site = String(env.SITE).trim();
   if (!/^[a-z0-9-]{6,30}$/.test(p) || !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/.test(a) || !o.length || !o.every(x => /^https:\/\/[a-z0-9.-]+$/.test(x)) || !/^https:\/\/[a-z0-9.-]+\/([a-z0-9._-]+\/)*$/.test(site)) return "env: staging value malformed";
-  if (p === PROD.PROJECT || o.some(x => PROD.ORIGINS.includes(x) || /github\.io$/.test(x)) || site.startsWith(PROD.SITE) || /github\.io/.test(site)) return "env: staging points at production";
+  if (p === PROD.PROJECT || a.toLowerCase() === PROD.ADMIN || o.some(x => PROD.ORIGINS.includes(x) || /github\.io$/.test(x)) || site.startsWith(PROD.SITE) || /github\.io/.test(site)) return "env: staging points at production";   // ومنه بريد مشرف الإنتاج
   if (sp !== p) return "env: service account project mismatch";
   envSet(p, a, Object.freeze(o), site, "staging"); return "";
 }

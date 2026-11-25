@@ -7,4 +7,6 @@ sed -i 's/REQUIRED-staging-cloudflare-account-id/abc/;s/REQUIRED-staging-kv-name
 o=$(cd "$T/w" && bash tools/deploy-staging.sh --dry 2>&1); [ $? = 2 ] && echo "$o" | grep -q "يشير إلى الإنتاج" && echo "PASS إعداد يشير إلى مشروع الإنتاج: يرفض النشر" || echo "FAIL لم يُرفض إعداد يشير إلى الإنتاج: $o"
 sed -i 's/FB_PROJECT = "mufradati-406bd"/FB_PROJECT = "mufradati-stg"/;s/^MUF_ENV = "staging"/MUF_ENV = "production"/' "$T/w/server/wrangler.staging.toml"
 o=$(cd "$T/w" && bash tools/deploy-staging.sh --dry 2>&1); [ $? = 2 ] && echo "$o" | grep -q "MUF_ENV" && echo "PASS MUF_ENV غير staging: يرفض النشر" || echo "FAIL لم يُرفض MUF_ENV غير staging: $o"
+sed -i 's/^MUF_ENV = "production"/MUF_ENV = "staging"/;s/ADMIN_EMAIL = "stg@example.com"/ADMIN_EMAIL = "admin@mufradati.app"/' "$T/w/server/wrangler.staging.toml"
+o=$(cd "$T/w" && bash tools/deploy-staging.sh --dry 2>&1); [ $? = 2 ] && echo "$o" | grep -q "مشرف الإنتاج" && echo "PASS بريد مشرف الإنتاج في التجريبية: يرفض النشر" || echo "FAIL لم يُرفض بريد مشرف الإنتاج: $o"
 git -C "$R" worktree remove --force "$T/w" 2>/dev/null; rm -rf "$T"

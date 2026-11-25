@@ -4,7 +4,7 @@ import json, os, subprocess, sys, tempfile, difflib
 R = sys.argv[1]; G = os.path.join(R, "tools", "staging.py"); out = []
 T = lambda n, c, x=None: out.append(("PASS " if c else "FAIL ") + n + ("" if x is None else " → " + str(x)[:200]))
 OK = {"firebase": {"apiKey": "stgkey1", "authDomain": "mufradati-stg.firebaseapp.com", "projectId": "mufradati-stg", "storageBucket": "mufradati-stg.firebasestorage.app", "messagingSenderId": "1234", "appId": "1:1234:web:abc"},
-      "api": "https://mufradati-api-stg.example-stg.workers.dev", "origin": "https://mufradati-stg.pages.dev", "admin": "admin@mufradati.app"}
+      "api": "https://mufradati-api-stg.example-stg.workers.dev", "origin": "https://mufradati-stg.pages.dev", "admin": "stg-admin@mufradati.app"}
 def run(cfg, extra=()):
     d = tempfile.mkdtemp(); c = os.path.join(d, "cfg.json"); json.dump(cfg, open(c, "w")); o = os.path.join(d, "out")
     p = subprocess.run([sys.executable, G, c, o, *extra], capture_output=True, text=True); return p.returncode, p.stdout + p.stderr, o
@@ -22,7 +22,7 @@ for k in ["apiKey", "projectId", "appId"]:
 for k in ["api", "origin", "admin"]:
     c = dict(OK); del c[k]; rc, msg, o = run(c); T("بلا " + k + ": يتوقّف دون إخراج", rc == 2 and not os.path.exists(o), msg.strip())
 for n, ch in [("مشروع الإنتاج", lambda c: c["firebase"].update(projectId="mufradati-406bd")), ("خادم الإنتاج", lambda c: c.update(api="https://mufradati-api.afunogrv.workers.dev")),
-              ("نطاق الإنتاج", lambda c: c.update(origin="https://ghadeerabbas.github.io")), ("نطاق github.io آخر", lambda c: c.update(origin="https://x.github.io")), ("نطاق بمسار", lambda c: c.update(origin="https://a.pages.dev/x"))]:
+              ("نطاق الإنتاج", lambda c: c.update(origin="https://ghadeerabbas.github.io")), ("نطاق github.io آخر", lambda c: c.update(origin="https://x.github.io")), ("نطاق بمسار", lambda c: c.update(origin="https://a.pages.dev/x")), ("بريد مشرف الإنتاج", lambda c: c.update(admin="admin@mufradati.app")), ("بريد مشرف الإنتاج بأحرف كبيرة", lambda c: c.update(admin="Admin@Mufradati.App"))]:
     c = json.loads(json.dumps(OK)); ch(c); rc, msg, o = run(c); T("إعداد يشير إلى " + n + ": يتوقّف دون إخراج", rc == 2 and not os.path.exists(o), msg.strip())
 rc, msg, _ = subprocess.run([sys.executable, G, "/nonexistent.json", "/tmp/x-out-stg"], capture_output=True, text=True).returncode, "", None
 T("ملف إعداد غير موجود: يتوقّف", rc == 2)

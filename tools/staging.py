@@ -27,6 +27,7 @@ def load_cfg(path):
     for m in PROD_MARKS:
         if m in blob: die("الإعداد يشير إلى الإنتاج (%s)" % m)
     if c["origin"].endswith("github.io"): die("نطاق github.io يشارك تخزين متصفح الإنتاج")
+    if c["admin"].strip().lower() == PROD["admin"]: die("بريد مشرف التجريبية هو بريد مشرف الإنتاج")
     return c
 
 def main():
