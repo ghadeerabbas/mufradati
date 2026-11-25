@@ -260,6 +260,8 @@ async function handleSync(fs, user, body, opts) {
     // حدث بلا هوية (تطبيق قديم، ومفرداتي ٢ اليوم) يُقبل جهازًا «_» كما كان؛ وهوية موجودة لكنها غير صالحة → الحجر «badid» (لا تطبيق بلا منع تكرار)
     const badId = SXI && ((e.d !== undefined && (typeof e.d !== "string" || !SX_DEV.test(e.d))) || (e.n !== undefined && !(Number.isSafeInteger(e.n) && e.n > 0 && e.n <= now + 400 * 864e5)));
     if (badId && !RE) { if (SXU) { const q = sxPut(sx, sxArch, uid, now, "badid", e, i); st.push(q); rej.push([i, q === "big" ? "big" : "badid"]) } else { st.push("rej"); rej.push([i, "badid"]) } continue }
+    // حدّ سجلّات الأجهزة: جهاز جديد بعد بلوغ SX_DEVCAP سجلًّا (لا يحدث إلا بآلاف المعرّفات في أسابيع) → الحجر «devmax»، لا طيّ لأرض حديثة
+    if (SXI && !RE && !sx.dv[sxDevKey(e)] && Object.keys(sx.dv).length >= SX_DEVCAP) { const q = sxPut(sx, sxArch, uid, now, "devmax", e, i); st.push(q); rej.push([i, q === "big" ? "big" : "devmax"]); continue }
     const dv = SXI ? sxDev(sx, e) : null, n = SXI && Number.isSafeInteger(e.n) && e.n > 0 ? e.n : 0;
     if (RE && CW && (+e.t || 0) < CW) { st.push("wiped"); rej.push([i, "wiped"]); continue }   // ما قبل حذف بيانات الحساب لا يُعاد
     if (RE) { const r = sxReapply(sx, dv, e, now, { server: true, admin, words: e.type === "stDone" ? await wordSet() : null, duelOk: false, dwinOk: false }, RE);
@@ -397,7 +399,8 @@ async function handleSxq(fs, user, body) {
 // وثائق الفهرس سلسلة: حين تبلغ قائمة ai في sx حدّها SX_AIMAX تنتقل أسماؤها كلها إلى وثيقة الفهرس الجديدة (حقل ai فيها)، فتُقرأ طبقة بعد طبقة
 async function sxIndex(fs, uid, sx) {
   const ap = new Set(sx.ap), am = {}, old = [], all = []; let q = [...(sx.ai || [])]; const seen = new Set();
-  for (let depth = 0; q.length && depth < 64; depth++) { q = q.filter(n => !seen.has(n) && seen.add(n)); if (!q.length) break;
+  for (let depth = 0; q.length; depth++) { q = q.filter(n => !seen.has(n) && seen.add(n)); if (!q.length) break;
+    if (depth >= SX_AIDEPTH) throw Object.assign(new Error("sx index depth"), { sxDeep: true });   // لا تجاهل صامت: العملية كلها تتوقّف ويُبلَّغ المشرف
     const D = await fs.manyT(q.map(n => `users/${uid}/data/${n}`)), next = [];
     for (const n of q) { all.push(n); const d = D[`users/${uid}/data/${n}`], x = parseJ(d && d.data.v, {}) || {};
       old.unshift(...(x.an || [])); for (const k of x.ap || []) ap.add(k); for (const k in x.am || {}) if (!(k in am)) am[k] = x.am[k];
@@ -422,7 +425,7 @@ const SX_DEV = /^[A-Za-z0-9_-]{4,40}$/, SX_IDN = 15000, SX_IDB = 300000, SX_QZ =
 const SX_QZ_LOW = 200, SX_LATE_LOW = 2000, SX_MAXB_LOW = 300000;
 // حدود بقية المكوّنات: سجلّات الأجهزة الخاملة (أرضها وحدها) ≤ 500 — الأقدم يُطوى في أرض عامة glo تبدأ بها كل الأجهزة الجديدة؛
 // وقوائم الفهارس (أسماء الأرشيف an، ومفاتيح ما أُعيد تطبيقه ap، ونتائج الأرشيف am) ≤ 60 كيلوبايت معًا — الأقدم يُنقل إلى وثيقة فهرس sxi-… (أسماؤها في ai)
-const SX_DEVMAX = 500, SX_IDX = 60000, SX_AIMAX = 50;
+const SX_DEVMAX = 500, SX_DEVCAP = 2000, SX_IDX = 60000, SX_AIMAX = 50, SX_AIDEPTH = 64;
 const sxBytes = s => new TextEncoder().encode(s).length;   // الحدود بالبايت (UTF-8) كما يحسبها Firestore، لا بعدد المحارف
 function sxLoad(d) {
   const x = parseJ(d && d.data.v, null) || {}, o = { dv: {}, late: [], lf: {}, qz: [], ax: +x.ax || 0, glo: +x.glo || 0, ai: Array.isArray(x.ai) ? x.ai.filter(a => typeof a === "string" && /^sxi-[a-z0-9-]+$/.test(a)) : [],
@@ -443,7 +446,8 @@ function sxSave(sx) { const dv = {}; for (const k in sx.dv) { const v = sx.dv[k]
     dv[k] = Object.keys(g).length || v.lt ? { g, lo: v.lo, lt: v.lt, r0: v.r0, q: v.q, rt: v.rt || 0, rr: v.rr || 0 } : { lo: v.lo } }
   return JSON.stringify({ dv, late: sx.late, lf: sx.lf, qz: sx.qz, ax: sx.ax, an: sx.an, ap: sx.ap, am: sx.am, glo: sx.glo || 0, ai: sx.ai || [] }) }
 // جهاز غير معروف يبدأ بالأرض العامة glo (أكبر أرض لأجهزة طُويت): فحدثٌ قديم من جهاز طُوي سجلّه لا يُطبَّق مرة ثانية
-function sxDev(sx, e) { const k = typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_"; return sx.dv[k] || (sx.dv[k] = { g: {}, lo: sx.glo || 0, lt: 0, r0: 0, q: 0, rt: 0, rr: 0 }) }
+const sxDevKey = e => typeof e.d === "string" && SX_DEV.test(e.d) ? e.d : "_";
+function sxDev(sx, e) { const k = sxDevKey(e); return sx.dv[k] || (sx.dv[k] = { g: {}, lo: sx.glo || 0, lt: 0, r0: 0, q: 0, rt: 0, rr: 0 }) }
 function sxIdx(a, n) { let lo = 0, hi = a.length; while (lo < hi) { const m = (lo + hi) >> 1; if (a[m] < n) lo = m + 1; else hi = m } return lo }
 function sxHas(dv, n) { for (const day in dv.g) { const a = dv.g[day], i = sxIdx(a, n); if (a[i] === n) return true } return false }
 function sxSeen(dv, n, now) { if (sxHas(dv, n)) return; const day = String(Math.floor(now / 864e5)), a = dv.g[day] || (dv.g[day] = []), i = sxIdx(a, n); a.splice(i, 0, n) }
@@ -467,11 +471,11 @@ function sxTrim(sx, now, uid, k0) {
   if (idb > SX_IDB) { all.sort((a, b) => a[0] - b[0]); for (const [day, k, b] of all) { if (idb <= SX_IDB) break; sxDrop(sx.dv[k], String(day)); idb -= b } }
   // الأجهزة الخاملة فوق الحدّ: الأقدم أرضًا يُطوى في glo
   // لا تُطوى إلا أرضٌ أقدم من أطول مدّة قبول + يومين (بساعة الخادم)، فالأرض العامة glo أقدم دائمًا من كل مدّة قبول: أي حدث برقم ≤ glo
-  // من جهاز ساعته صحيحة أو متقدّمة أُنشئ قبل مدّة القبول، فكان سيُرفض أصلًا. وأرضٌ أحدث من ذلك (أو في المستقبل) لا تُطوى إلا فوق ضعف الحدّ.
+  // من جهاز ساعته صحيحة أو متقدّمة أُنشئ قبل مدّة القبول، فكان سيُرفض أصلًا. وأرضٌ أحدث من ذلك (جهاز ساعته متقدّمة) لا تُطوى أبدًا؛
+  // تُطوى حين يتجاوزها الوقت. والحدّ الكلّي لسجلّات الأجهزة SX_DEVCAP (جهاز جديد بعده إلى الحجر «devmax»)، فيبقى حجمها محدودًا (نحو 2000 × 40 بايت).
   { const idle = Object.keys(sx.dv).filter(k => !sx.dv[k].lt && !Object.keys(sx.dv[k].g).length).sort((a, b) => sx.dv[a].lo - sx.dv[b].lo);
     const fold = k => { sx.glo = Math.max(sx.glo || 0, sx.dv[k].lo); delete sx.dv[k] };
-    let over = idle.length - SX_DEVMAX; for (const k of idle) { if (over <= 0 || sx.dv[k].lo > cutDay * 864e5) break; fold(k); over-- }
-    if (over > SX_DEVMAX) for (const k of idle) { if (over <= SX_DEVMAX) break; if (sx.dv[k]) { fold(k); over-- } } }
+    let over = idle.length - SX_DEVMAX; for (const k of idle) { if (over <= 0 || sx.dv[k].lo > cutDay * 864e5) break; fold(k); over-- } }
   sx.late = LATE; sx.lf = LATEF;
   const out = []; let qz = [], late = [], size = sxBytes(sxSave(sx)), ab = 0;
   const go = sx.qz.length > SX_QZ || sx.late.length > SX_LATE || size > SX_MAXB;   // تجاوز حدًّا أعلى؟ عندها يُنقل حتى الأدنى
@@ -907,7 +911,7 @@ async function verifyBak(fs, b, key) {
   const AN = {}, aiOf = d => d && d.data ? sxLoad({ data: d.data }).ai || [] : [], anOf = d => d && d.data ? sxLoad({ data: d.data }).an : [];
   // أسماء وثائق الفهرس (حالة الآن والنسخة)، ثم أسماء الأرشيف فيها، فتُقرأ كلها بأسمائها
   const AI = {}, AID = {}; let Q = {}; for (const uid of uids) { AI[uid] = []; Q[uid] = [...new Set([...aiOf(docs[`users/${uid}/data/sx`]), ...aiOf(B.get(`users/${uid}/data/sx`))])] }
-  for (let depth = 0; depth < 64 && Object.values(Q).some(a => a.length); depth++) {   // سلسلة وثائق الفهرس، طبقة بعد طبقة (من الحالة الآن ومن النسخة)
+  for (let depth = 0; Object.values(Q).some(a => a.length); depth++) { if (depth >= SX_AIDEPTH) break;   // سلسلة وثائق الفهرس، طبقة بعد طبقة (من الحالة الآن ومن النسخة)
     Object.assign(AID, await fs.manyT(Object.entries(Q).flatMap(([u, a]) => a.map(n => `users/${u}/data/${n}`)))); const N = {};
     for (const [u, a] of Object.entries(Q)) { N[u] = []; for (const n of a) { AI[u].push(n); const p = `users/${u}/data/${n}`, v = (AID[p] && AID[p].data) || (B.get(p) && B.get(p).data), x = parseJ(v && v.v, {}) || {};
       for (const m of x.ai || []) if (typeof m === "string" && /^sxi-[a-z0-9-]+$/.test(m) && !AI[u].includes(m) && !N[u].includes(m)) N[u].push(m) } }
@@ -931,7 +935,7 @@ async function verifyBak(fs, b, key) {
     const lg = [...l.gifts].sort((a, c) => a.id < c.id ? -1 : 1);
     docs.gifts = stab(bg) === stab(lg) ? "same" : "diff";
     const ba = {}; for (const [p, x] of B) { const m = p.match(new RegExp(`^users/${uid}/data/(sx[ai]-[^/]+)$`)); if (m) ba[m[1]] = x.data }
-    const la = AR[uid] || {}; docs.sxa = !Object.keys(ba).length && !Object.keys(la).length ? "none" : stab(ba) === stab(la) ? "same" : "diff";
+    const la = AR[uid] || {}; docs.sxa = (Q[uid] || []).length ? "incomplete" : !Object.keys(ba).length && !Object.keys(la).length ? "none" : stab(ba) === stab(la) ? "same" : "diff";   // سلسلة فهرس أعمق من الحدّ: «incomplete» لا «same»
     if (docs.sx === "none") delete docs.sx; if (docs.sxa === "none") delete docs.sxa;   // حساب بلا مزامنة جديدة: النتيجة كما كانت تمامًا
     const sum = (d, gifts) => d.core ? acctSum(parseJ(d.core.v, {}), parseJ(d.log && d.log.v, null), parseJ(d.qa && d.qa.v, null), parseJ(d.ck && d.ck.v, null), gifts, d.sx && d.sx.v) : null;
     const bs = sum(Object.fromEntries(K.map(k => [k, bd(k) && bd(k).data])), bg), ls = sum(Object.fromEntries(K.map(k => [k, l.d[k] && l.d[k].data])), lg);
